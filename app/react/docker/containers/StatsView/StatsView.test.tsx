@@ -183,6 +183,29 @@ describe('calculateCpuPercent', () => {
 });
 
 describe('StatsView', () => {
+  // Every render fetches the processes list. Wait for that request to finish
+  // so it never lands after the handlers are reset (it then fails the next test).
+  let topRequestsEnded = 0;
+  function countTopRequest({ request }: { request: Request }) {
+    if (request.url.endsWith('/containers/container1/top')) {
+      topRequestsEnded += 1;
+    }
+  }
+
+  beforeEach(() => {
+    topRequestsEnded = 0;
+    server.events.on('request:end', countTopRequest);
+  });
+
+  afterEach(async () => {
+    await waitFor(() => {
+      if (topRequestsEnded === 0) {
+        throw new Error('processes request still in flight');
+      }
+    });
+    server.events.removeListener('request:end', countTopRequest);
+  });
+
   it('renders the page header "Container statistics"', () => {
     renderComponent();
 

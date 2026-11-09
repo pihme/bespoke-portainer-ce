@@ -384,6 +384,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-301 | Close Priority work on `ExperimentalFeatures`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 14 of 14; +14). CE presence covered. Package left at 100 % (14 of 14; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-302 | Close Priority work on `app/portainer/components/slider`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 12 of 12; +12). Leftovers: none. Deferred-within-package: none. Package left at 100 % (12 of 12; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-303 | Close Priority work on `app/portainer/react/components/custom-templates`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 12 of 12; +12). Leftovers: none. Deferred-within-package: none. Package left at 100 % (12 of 12; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-304 | Close Priority work on `ContainerDetailsSection`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 79.7 % → 98.3 % (47 → 58 of 59; +11). Leftovers: unreachable GpuRow `!gpuCommand`. Deferred-within-package: none. Package left at 98.3 % (58 of 59; 1 missed). | Preferred ContainerDetailsSection covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -776,6 +777,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-301: close Priority work on ExperimentalFeatures. Parallel isolated 0 % → 100 % (0 → 14 of 14; +14). Do not grind further.
 - 2026-11-09. COV-302: close Priority work on slider helpers. Parallel isolated 0 % → 100 % (0 → 12 of 12; +12). Do not grind further.
 - 2026-11-09. COV-303: close Priority work on custom-templates bridges. Parallel isolated 0 % → 100 % (0 → 12 of 12; +12). Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-314` (`decff7176`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-304: close Priority work on ContainerDetailsSection. Parallel isolated 79.7 % → 98.3 % (47 → 58 of 59; +11). Unreachable GpuRow leftover. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

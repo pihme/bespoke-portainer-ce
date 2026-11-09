@@ -263,6 +263,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-180 | Close Priority work on `api/dataservices/pendingactions`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): pendingactions_local_test.go (4). Isolated remasure: 70.4 % → 88.9 % (19 → 24 of 27; +5). Leftovers: 3 thin. Deferred-within-package: none. Package left at 88.9 % (24 of 27; 3 missed). | Preferred pending-actions datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-181 | Close Priority work on `api/gitops/sources`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): status_test.go + source_access_local_test.go (5 under REQ-GIT-02). Isolated remasure: 71.4 % → 100 % (20 → 28 of 28; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (28 of 28; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-182 | Close Priority work on `api/http/errors`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): errors_test.go (3). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-183 | Close Priority work on `api/motd`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): service_local_test.go (3). Isolated remasure: 70.8 % → 100 % (17 → 24 of 24; +7). Leftovers: none. Deferred-within-package: none (MOTD helper, not BE-only upsell). Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete for MOTD helper. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -525,6 +526,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-180: close Priority work on pending-actions datastore. Parallel isolated 70.4 % → 88.9 % (19 → 24 of 27; +5). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-181: close Priority work on gitops sources. Parallel isolated 71.4 % → 100 % (20 → 28 of 28; +8). Do not grind further.
 - 2026-11-09. COV-182: close Priority work on HTTP error values. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
+- 2026-11-09. COV-183: close Priority work on MOTD helper. Parallel isolated 70.8 % → 100 % (17 → 24 of 24; +7). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

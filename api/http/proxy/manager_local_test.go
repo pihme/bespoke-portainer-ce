@@ -15,9 +15,9 @@ func TestNewProxyFactoryAndGitlabProxy(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
 	manager := NewManager(nil)
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 
-	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), nil, factory, nil, nil, nil, nil, nil)
+	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil, nil, nil, nil)
 	require.NotNil(t, manager.proxyFactory)
 
 	proxy, err := manager.CreateGitlabProxy("https://gitlab.example.com")
@@ -29,8 +29,8 @@ func TestCreateAndRegisterEndpointProxy_LocalDocker(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
 	manager := NewManager(nil)
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
-	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), nil, factory, nil, nil, nil, nil, nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
+	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil, nil, nil, nil)
 
 	endpoint := &portainer.Endpoint{
 		ID:   1,
@@ -47,8 +47,8 @@ func TestCreateAgentProxyServer_WithFactory(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
 	manager := NewManager(nil)
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
-	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), nil, factory, nil, nil, nil, nil, nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
+	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil, nil, nil, nil)
 
 	endpoint := &portainer.Endpoint{
 		ID:   2,

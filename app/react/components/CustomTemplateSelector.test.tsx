@@ -23,7 +23,6 @@ const mockCustomTemplates: CustomTemplate[] = [
     Type: StackType.DockerCompose,
     Variables: [],
     IsComposeFormat: false,
-    EdgeTemplate: false,
   },
   {
     Id: 2,
@@ -38,7 +37,6 @@ const mockCustomTemplates: CustomTemplate[] = [
     Type: StackType.DockerCompose,
     Variables: [],
     IsComposeFormat: false,
-    EdgeTemplate: false,
   },
 ];
 

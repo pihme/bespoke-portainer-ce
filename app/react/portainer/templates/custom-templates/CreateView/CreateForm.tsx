@@ -21,11 +21,10 @@ export function CreateForm({
   defaultType,
 }: {
   environmentId?: EnvironmentId;
-  viewType: 'docker' | 'edge';
+  viewType: 'docker';
   defaultType: StackType;
 }) {
   const deployMethod: DeployMethod = 'compose';
-  const isEdge = !environmentId;
   const router = useRouter();
   const mutation = useCreateTemplateMutation();
   const validation = useValidation({ viewType, deployMethod });
@@ -33,7 +32,6 @@ export function CreateForm({
 
   const initialValues = useInitialValues({
     defaultType,
-    isEdge,
     buildMethods: buildMethods.map((method) => method.value),
   });
 
@@ -57,10 +55,7 @@ export function CreateForm({
 
   function handleSubmit(values: FormValues) {
     mutation.mutate(
-      {
-        ...values,
-        EdgeTemplate: isEdge,
-      },
+      values,
       {
         onSuccess() {
           notifySuccess('Success', 'Template created');

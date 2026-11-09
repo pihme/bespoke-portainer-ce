@@ -37,7 +37,7 @@ type customTemplateUpdatePayload struct {
 	// Required for Docker stacks
 	Platform portainer.CustomTemplatePlatform `example:"1" enums:"1,2"`
 	// Type of created stack (1 - swarm, 2 - compose)
-	Type portainer.StackType `example:"1" enums:"1,2" validate:"required"`
+	Type portainer.StackType `example:"2" enums:"2" validate:"required"`
 	// SourceID references an existing Source for git credentials/URL.
 	// When set, the inline URL and authentication fields are ignored.
 	SourceID portainer.SourceID `example:"1"`
@@ -61,8 +61,6 @@ type customTemplateUpdatePayload struct {
 	TLSSkipVerify bool `example:"false"`
 	// IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file
 	IsComposeFormat bool `example:"false"`
-	// EdgeTemplate indicates if this template purpose for Edge Stack
-	EdgeTemplate bool `example:"false"`
 }
 
 func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
@@ -74,7 +72,7 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 		return errors.New("Invalid custom template platform")
 	}
 
-	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
+	if payload.Type != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 
@@ -179,7 +177,6 @@ func (handler *Handler) customTemplateUpdate(w http.ResponseWriter, r *http.Requ
 	customTemplate.Type = payload.Type
 	customTemplate.Variables = payload.Variables
 	customTemplate.IsComposeFormat = payload.IsComposeFormat
-	customTemplate.EdgeTemplate = payload.EdgeTemplate
 
 	userContext := source.NewUserContext(securityContext.User, securityContext.UserMemberships)
 

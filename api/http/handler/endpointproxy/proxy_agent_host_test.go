@@ -1,12 +1,10 @@
 package endpointproxy
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
@@ -16,30 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// stubTunnelService is a minimal ReverseTunnelService that controls TunnelAddr behavior.
-type stubTunnelService struct {
-	tunnelAddr    string
-	tunnelAddrErr error
-}
-
-func (s *stubTunnelService) StartTunnelServer(_, _ string, _ portainer.SnapshotService) error {
-	return nil
-}
-func (s *stubTunnelService) StopTunnelServer() error { return nil }
-func (s *stubTunnelService) GenerateEdgeKey(_, _ string, _ int) string {
-	return ""
-}
-func (s *stubTunnelService) Open(_ *portainer.Endpoint) error { return nil }
-func (s *stubTunnelService) Config(_ portainer.EndpointID) portainer.TunnelDetails {
-	return portainer.TunnelDetails{}
-}
-func (s *stubTunnelService) TunnelAddr(_ *portainer.Endpoint) (string, error) {
-	return s.tunnelAddr, s.tunnelAddrErr
-}
-func (s *stubTunnelService) UpdateLastActivity(_ portainer.EndpointID) {}
-func (s *stubTunnelService) KeepTunnelAlive(_ portainer.EndpointID, _ context.Context, _ time.Duration) {
-}
 
 // denyBouncer wraps the test bouncer but rejects AuthorizedEndpointOperation.
 // Used to test the 403 path without setting up a full JWT stack.
@@ -62,7 +36,6 @@ func setupProxyHandler(t *testing.T, bouncer security.BouncerService) (*Handler,
 	h := NewHandler(bouncer)
 	h.DataStore = store
 	h.ProxyManager = proxy.NewManager(nil)
-	h.ReverseTunnelService = &stubTunnelService{}
 
 	return h, store
 }
@@ -118,57 +91,6 @@ func TestProxyAgentHostAPI_PermissionDenied(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, rw.Code)
 }
 
-func TestProxyAgentHostAPI_EdgeNoEdgeID(t *testing.T) {
-	t.Parallel()
-
-	// An Edge environment that was registered in Portainer but whose agent has never
-	// connected (EdgeID is empty) cannot be contacted — the server returns 500.
-	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
-
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:     2,
-		Name:   "edge-env-no-id",
-		Type:   portainer.EdgeAgentOnDockerEnvironment,
-		EdgeID: "",
-	}))
-
-	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/2/agent/host/docker-storage", nil)
-
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rw.Code)
-}
-
-func TestProxyAgentHostAPI_EdgeTunnelUnavailable(t *testing.T) {
-	t.Parallel()
-
-	// The Edge agent was registered and has an EdgeID but is currently offline
-	// (tunnel establishment fails). The user receives 500 rather than a hang.
-	_, store := datastore.MustNewTestStore(t, false, false)
-
-	h := NewHandler(testhelpers.NewTestRequestBouncer())
-	h.DataStore = store
-	h.ProxyManager = proxy.NewManager(nil)
-	h.ReverseTunnelService = &stubTunnelService{
-		tunnelAddrErr: errors.New("no active tunnel for edge agent"),
-	}
-
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:     3,
-		Name:   "edge-env-offline",
-		Type:   portainer.EdgeAgentOnDockerEnvironment,
-		EdgeID: "registered-edge-id",
-	}))
-
-	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/3/agent/host/docker-storage", nil)
-
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rw.Code)
-}
-
 func TestProxyAgentHostAPI_ProxyCreationFails(t *testing.T) {
 	t.Parallel()
 
@@ -192,8 +114,26 @@ func TestProxyAgentHostAPI_ProxyCreationFails(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, rw.Code)
 }
 
-// Verify the stubTunnelService satisfies the interface at compile time.
-var _ portainer.ReverseTunnelService = (*stubTunnelService)(nil)
-
 // Verify denyBouncer satisfies the interface at compile time.
 var _ security.BouncerService = denyBouncer{}
+
+// REQ-TAI-004: a legacy Edge environment record is refused with 400; there is
+// no reverse tunnel to reach it.
+func TestREQ_TAI_004_ProxyAgentHostAPI_EdgeEnvironmentIsRejected(t *testing.T) {
+	t.Parallel()
+
+	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:     3,
+		Name:   "legacy-edge",
+		Type:   portainer.EdgeAgentOnDockerEnvironment,
+		EdgeID: "registered-edge-id",
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/3/agent/host/docker-storage", nil)
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusBadRequest, rw.Code)
+	assert.Contains(t, rw.Body.String(), "Edge environments are no longer supported")
+}

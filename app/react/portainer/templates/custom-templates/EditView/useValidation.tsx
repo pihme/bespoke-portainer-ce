@@ -7,7 +7,6 @@ import { Platform } from '@/react/portainer/templates/types';
 import { variablesValidation } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { buildGitValidationSchema } from '@/react/portainer/gitops/GitForm';
 import { useCustomTemplates } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplates';
-import { edgeFieldsetValidation } from '@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset.validation';
 import { DeployMethod } from '@/react/portainer/gitops/types';
 
 import { CustomTemplate } from '../types';
@@ -46,13 +45,12 @@ export function useValidation({
 
         Git: isGit ? buildGitValidationSchema(deployMethod) : mixed(),
         Variables: variablesValidation(),
-        EdgeSettings: viewType === 'edge' ? edgeFieldsetValidation() : mixed(),
       }).concat(
         commonFieldsValidation({
           templates: customTemplatesQuery.data,
           currentTemplateId: templateId,
         })
       ),
-    [customTemplatesQuery.data, isGit, templateId, viewType, deployMethod]
+    [customTemplatesQuery.data, isGit, templateId, deployMethod]
   );
 }

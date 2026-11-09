@@ -84,8 +84,6 @@ export interface PublicSettingsResponse {
   CustomLoginBanner: string;
   /** Deployment options for encouraging deployment as code (only on BE) */
   GlobalDeploymentOptions: GlobalDeploymentOptions;
-  /** Whether edge compute features are enabled */
-  EnableEdgeComputeFeatures: boolean;
   /** Supported feature flags */
   Features: { [key: Feature]: boolean };
   /** The expiry of a Kubeconfig */
@@ -93,17 +91,5 @@ export interface PublicSettingsResponse {
   /** Whether to hide default registry (only on BE) */
   DefaultRegistry?: {
     Hide: boolean;
-  };
-  Edge: {
-    /** Whether the device has been started in edge async mode */
-    AsyncMode: boolean;
-    /** The ping interval for edge agent - used in edge async mode [seconds] */
-    PingInterval: number;
-    /** The snapshot interval for edge agent - used in edge async mode [seconds] */
-    SnapshotInterval: number;
-    /** The command list interval for edge agent - used in edge async mode [seconds] */
-    CommandInterval: number;
-    /** The check in interval for edge agent (in seconds) - used in non async mode [seconds] */
-    CheckinInterval: number;
   };
 }

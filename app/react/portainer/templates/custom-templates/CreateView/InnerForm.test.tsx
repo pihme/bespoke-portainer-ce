@@ -110,25 +110,6 @@ vi.mock(
   })
 );
 
-vi.mock('./EdgeSettingsFieldset', () => ({
-  EdgeSettingsFieldset: ({
-    values,
-    setValues,
-  }: {
-    values: { PrePullImage: boolean };
-    setValues: (values: { PrePullImage: boolean }) => void;
-  }) => (
-    <div data-cy="edge-settings">
-      <button
-        type="button"
-        onClick={() => setValues({ PrePullImage: true })}
-      >
-        Edge prepull {String(values.PrePullImage)}
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock('../useParseTemplateOnFileChange', () => ({
   useParseTemplateOnFileChange: () => mockHandleChangeFileContent,
 }));
@@ -205,7 +186,6 @@ function baseValues(overrides: Partial<FormValues> = {}): FormValues {
       AdditionalFiles: [],
     },
     Variables: [],
-    EdgeSettings: undefined,
     ...overrides,
   };
 }
@@ -348,25 +328,15 @@ describe('REQ-TPL-03 / REQ-TPL-04 InnerForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders edge settings when EdgeSettings are present', async () => {
-    const user = userEvent.setup();
+  it('REQ-TAI-004 renders no Edge settings fieldset even for legacy Edge values', () => {
     renderInner(
       baseValues({
-        EdgeSettings: {
-          PrePullImage: false,
-          RetryDeploy: false,
-          PrivateRegistryId: undefined,
-          RelativePathSettings: {} as never,
-          StaggerConfig: {} as never,
-        },
-      })
+        EdgeSettings: { PrePullImage: false },
+      } as never)
     );
 
-    expect(screen.getByTestId('edge-settings')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /Edge prepull/i }));
-    expect(
-      screen.getByRole('button', { name: /Edge prepull true/i })
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId('edge-settings')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Edge/i)).not.toBeInTheDocument();
   });
 
   it('wires editor changes through the template parse helper', async () => {

@@ -6,7 +6,6 @@ import {
   getDashboardRoute,
   getEnvironmentTypeIcon,
 } from '@/react/portainer/environments/utils';
-import { useEdgeGroup } from '@/react/edge/edge-groups/queries/useEdgeGroup';
 
 import { Icon } from '@@/Icon';
 import { Link } from '@@/Link';
@@ -52,8 +51,8 @@ function EdgeGroupTarget({
   id: number;
   status: WorkflowStatus;
 }) {
-  const { data } = useEdgeGroup(id);
-  const name = data?.Name ?? `Edge Group ${id}`;
+  // Edge Groups went with Edge computing (TAI-004); the mapping goes in TAI-011.
+  const name = `Edge Group ${id}`;
   return (
     <TargetRow
       icon={
@@ -65,14 +64,12 @@ function EdgeGroupTarget({
       }
       status={status}
     >
-      <Link
-        to="edge.groups.edit"
-        params={{ groupId: id }}
+      <span
         data-cy={`workflow-edge-group-link-${id}`}
         className="tracking-wider text-gray-9 th-highcontrast:text-white th-dark:text-white"
       >
         {name}
-      </Link>
+      </span>
     </TargetRow>
   );
 }

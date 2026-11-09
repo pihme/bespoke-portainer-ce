@@ -1,7 +1,6 @@
 import { Settings as SettingsIcon } from 'lucide-react';
 import { Field, Form, Formik, useFormikContext } from 'formik';
 
-import { EdgeCheckinIntervalField } from '@/react/edge/components/EdgeCheckInIntervalField';
 import { useUpdateSettingsMutation } from '@/react/portainer/settings/queries';
 import { notifySuccess } from '@/portainer/services/notifications';
 
@@ -28,7 +27,6 @@ export function ApplicationSettingsPanel({
   const mutation = useUpdateSettingsMutation();
 
   const initialValues: Values = {
-    edgeAgentCheckinInterval: settings.EdgeAgentCheckinInterval,
     loginBannerEnabled: !!settings.CustomLoginBanner,
     loginBanner: settings.CustomLoginBanner,
     logoEnabled: !!settings.LogoURL,
@@ -60,7 +58,6 @@ export function ApplicationSettingsPanel({
         LogoURL: values.logo,
         CustomLoginBanner: values.loginBanner,
         TemplatesURL: values.templatesUrl,
-        EdgeAgentCheckinInterval: values.edgeAgentCheckinInterval,
       },
       {
         onSuccess(settings) {
@@ -73,7 +70,7 @@ export function ApplicationSettingsPanel({
 }
 
 function InnerForm({ isLoading }: { isLoading: boolean }) {
-  const { values, setFieldValue, isValid, errors } = useFormikContext<Values>();
+  const { isValid, errors } = useFormikContext<Values>();
 
   return (
     <Form className="form-horizontal">
@@ -90,13 +87,6 @@ function InnerForm({ isLoading }: { isLoading: boolean }) {
           name="snapshotInterval"
         />
       </FormControl>
-
-      <EdgeCheckinIntervalField
-        value={values.edgeAgentCheckinInterval}
-        label="Edge agent default poll frequency"
-        isDefaultHidden
-        onChange={(value) => setFieldValue('edgeAgentCheckinInterval', value)}
-      />
 
       <LogoFieldset />
 

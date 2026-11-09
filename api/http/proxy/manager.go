@@ -30,8 +30,8 @@ func NewManager(kubernetesClientFactory *cli.ClientFactory) *Manager {
 	}
 }
 
-func (manager *Manager) NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, tunnelService portainer.ReverseTunnelService, clientFactory *dockerclient.ClientFactory, kubernetesClientFactory *cli.ClientFactory, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, gitService portainer.GitService, snapshotService portainer.SnapshotService, jwtService portainer.JWTService) {
-	manager.proxyFactory = factory.NewProxyFactory(dataStore, signatureService, tunnelService, clientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
+func (manager *Manager) NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, clientFactory *dockerclient.ClientFactory, kubernetesClientFactory *cli.ClientFactory, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, gitService portainer.GitService, snapshotService portainer.SnapshotService, jwtService portainer.JWTService) {
+	manager.proxyFactory = factory.NewProxyFactory(dataStore, signatureService, clientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
 }
 
 // CreateAndRegisterEndpointProxy creates a new HTTP reverse proxy based on environment(endpoint) properties and adds it to the registered proxies.

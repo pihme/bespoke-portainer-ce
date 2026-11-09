@@ -11,7 +11,6 @@ import {
   environmentTypes,
   existingEnvironmentTypes,
   formTitles,
-  newEnvironmentTypes,
 } from './environment-types';
 import { EnvironmentSelector } from './EnvironmentSelector';
 
@@ -40,7 +39,6 @@ describe('REQ-ENV-04 EnvironmentTypeSelectView', () => {
     expect(screen.getByText('Quick Setup')).toBeVisible();
     expect(screen.getAllByText('Environment Wizard').length).toBeGreaterThan(0);
     expect(screen.getByText('Connect to existing environments')).toBeVisible();
-    expect(screen.getByText('Set up new environments')).toBeVisible();
     expect(
       screen.getByLabelText(/Docker Standalone/i, { exact: false })
     ).toBeInTheDocument();
@@ -78,9 +76,7 @@ describe('environment-types local Docker options', () => {
       existingEnvironmentTypes.some((t) => t.value === 'dockerStandalone')
     ).toBe(true);
     expect(formTitles.dockerStandalone).toMatch(/Docker Standalone/);
-    expect(environmentTypes.length).toBe(
-      existingEnvironmentTypes.length + newEnvironmentTypes.length
-    );
+    expect(environmentTypes.length).toBe(existingEnvironmentTypes.length);
   });
 });
 
@@ -135,5 +131,22 @@ describe('REQ-TAI-003 no Docker Swarm environment creation', () => {
     renderView();
 
     expect(screen.queryByText('Docker Swarm')).not.toBeInTheDocument();
+  });
+});
+
+describe('REQ-TAI-004 no Edge environment creation', () => {
+  it('offers no KubeSolo (Edge) option or form title', () => {
+    const values = environmentTypes.map((t) => t.value as string);
+    expect(values).not.toContain('kubesolo');
+    expect(Object.keys(formTitles)).not.toContain('kubesolo');
+  });
+
+  it('renders no "Set up new environments" section or KubeSolo box', () => {
+    renderView();
+
+    expect(
+      screen.queryByText('Set up new environments')
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/KubeSolo/)).not.toBeInTheDocument();
   });
 });

@@ -48,8 +48,6 @@ type endpointUpdatePayload struct {
 	TagIDs             []portainer.TagID `example:"1,2"`
 	UserAccessPolicies portainer.UserAccessPolicies
 	TeamAccessPolicies portainer.TeamAccessPolicies
-	// The check in interval for edge agent (in seconds)
-	EdgeCheckinInterval *int `example:"5"`
 }
 
 func (payload *endpointUpdatePayload) Validate(r *http.Request) error {
@@ -116,7 +114,6 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	endpoint.PublicURL = *cmp.Or(payload.PublicURL, &endpoint.PublicURL)
-	endpoint.EdgeCheckinInterval = *cmp.Or(payload.EdgeCheckinInterval, &endpoint.EdgeCheckinInterval)
 
 	updateRelations := false
 

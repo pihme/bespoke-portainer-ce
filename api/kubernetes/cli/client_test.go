@@ -15,7 +15,7 @@ import (
 
 func TestClearUserClientCache(t *testing.T) {
 	t.Parallel()
-	factory, _ := NewClientFactory(nil, nil, nil, "", "", "")
+	factory, _ := NewClientFactory(nil, nil, "", "", "")
 	kcl := &KubeClient{}
 	factory.endpointProxyClients.Set("12.1", kcl, 0)
 	factory.endpointProxyClients.Set("12.12", kcl, 0)
@@ -70,15 +70,6 @@ users:
 	})
 }
 
-// stubReverseTunnelService resolves the tunnel address buildEdgeConfig needs.
-type stubReverseTunnelService struct {
-	portainer.ReverseTunnelService
-}
-
-func (s *stubReverseTunnelService) TunnelAddr(endpoint *portainer.Endpoint) (string, error) {
-	return "127.0.0.1:8000", nil
-}
-
 // recordingRoundTripper captures the headers the wrapped transport was handed.
 type recordingRoundTripper struct {
 	headers http.Header
@@ -131,37 +122,10 @@ func TestClientFactory_buildAgentConfig_SignsOnlyOutsideFIPSMode(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			factory, err := NewClientFactory(testhelpers.NewStubSignatureService(), nil, nil, "", "", "")
+			factory, err := NewClientFactory(testhelpers.NewStubSignatureService(), nil, "", "", "")
 			require.NoError(t, err)
 
 			config, err := factory.buildAgentConfig(&portainer.Endpoint{ID: 1, URL: "agent.example.com:9001"}, test.fipsMode)
-			require.NoError(t, err)
-
-			assertConfigSigning(t, config, test.wantSigned)
-		})
-	}
-}
-
-func TestClientFactory_buildEdgeConfig_SignsOnlyOutsideFIPSMode(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name       string
-		fipsMode   bool
-		wantSigned bool
-	}{
-		{name: "wraps the transport outside FIPS mode", fipsMode: false, wantSigned: true},
-		{name: "leaves the transport unwrapped in FIPS mode", fipsMode: true, wantSigned: false},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			factory, err := NewClientFactory(testhelpers.NewStubSignatureService(), &stubReverseTunnelService{}, nil, "", "", "")
-			require.NoError(t, err)
-
-			config, err := factory.buildEdgeConfig(&portainer.Endpoint{ID: 1}, test.fipsMode)
 			require.NoError(t, err)
 
 			assertConfigSigning(t, config, test.wantSigned)
@@ -174,27 +138,30 @@ func TestClientFactory_buildEdgeConfig_SignsOnlyOutsideFIPSMode(t *testing.T) {
 func TestClientFactory_buildConfigs_FIPSModeNeverCreatesSignature(t *testing.T) {
 	t.Parallel()
 
-	factory, err := NewClientFactory(testhelpers.NewFailingSignatureService(), &stubReverseTunnelService{}, nil, "", "", "")
+	factory, err := NewClientFactory(testhelpers.NewFailingSignatureService(), nil, "", "", "")
 	require.NoError(t, err)
 
 	agentConfig, err := factory.buildAgentConfig(&portainer.Endpoint{ID: 1, URL: "agent.example.com:9001"}, true)
 	require.NoError(t, err)
 	require.Nil(t, agentConfig.WrapTransport)
-
-	edgeConfig, err := factory.buildEdgeConfig(&portainer.Endpoint{ID: 1}, true)
-	require.NoError(t, err)
-	require.Nil(t, edgeConfig.WrapTransport)
 }
 
 func TestClientFactory_buildConfigs_SignatureFailurePropagatesOutsideFIPSMode(t *testing.T) {
 	t.Parallel()
 
-	factory, err := NewClientFactory(testhelpers.NewFailingSignatureService(), &stubReverseTunnelService{}, nil, "", "", "")
+	factory, err := NewClientFactory(testhelpers.NewFailingSignatureService(), nil, "", "", "")
 	require.NoError(t, err)
 
 	_, err = factory.buildAgentConfig(&portainer.Endpoint{ID: 1, URL: "agent.example.com:9001"}, false)
 	require.ErrorContains(t, err, "signature failure")
+}
 
-	_, err = factory.buildEdgeConfig(&portainer.Endpoint{ID: 1}, false)
-	require.ErrorContains(t, err, "signature failure")
+func TestREQ_TAI_004_EdgeKubernetesEnvironmentHasNoClientConfig(t *testing.T) {
+	t.Parallel()
+
+	factory, err := NewClientFactory(testhelpers.NewStubSignatureService(), nil, "", "", "")
+	require.NoError(t, err)
+
+	_, err = factory.CreateConfig(&portainer.Endpoint{ID: 1, Type: portainer.EdgeAgentOnKubernetesEnvironment})
+	require.ErrorIs(t, err, portainer.ErrEdgeEnvironmentNotSupported)
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/patrickmn/go-cache"
-	pkgerrors "github.com/pkg/errors"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -35,7 +34,6 @@ type (
 	// ClientFactory is used to create Kubernetes clients
 	ClientFactory struct {
 		dataStore            dataservices.DataStore
-		reverseTunnelService portainer.ReverseTunnelService
 		signatureService     portainer.DigitalSignatureService
 		instanceID           string
 		endpointProxyClients *cache.Cache
@@ -55,7 +53,7 @@ type (
 )
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*ClientFactory, error) {
+func NewClientFactory(signatureService portainer.DigitalSignatureService, dataStore dataservices.DataStore, instanceID, addrHTTPS, userSessionTimeout string) (*ClientFactory, error) {
 	if userSessionTimeout == "" {
 		userSessionTimeout = portainer.DefaultUserSessionTimeout
 	}
@@ -67,7 +65,6 @@ func NewClientFactory(signatureService portainer.DigitalSignatureService, revers
 	return &ClientFactory{
 		dataStore:            dataStore,
 		signatureService:     signatureService,
-		reverseTunnelService: reverseTunnelService,
 		instanceID:           instanceID,
 		endpointProxyClients: cache.New(timeout, timeout),
 		AddrHTTPS:            addrHTTPS,
@@ -270,7 +267,7 @@ func (factory *ClientFactory) CreateConfig(endpoint *portainer.Endpoint) (*rest.
 	case portainer.AgentOnKubernetesEnvironment:
 		return factory.buildAgentConfig(endpoint, fips.FIPSMode())
 	case portainer.EdgeAgentOnKubernetesEnvironment:
-		return factory.buildEdgeConfig(endpoint, fips.FIPSMode())
+		return nil, portainer.ErrEdgeEnvironmentNotSupported
 	}
 	return nil, errors.New("unsupported environment type")
 }
@@ -331,38 +328,6 @@ func (factory *ClientFactory) buildAgentConfig(endpoint *portainer.Endpoint, fip
 	clientURL.WriteString("/kubernetes")
 
 	config, err := clientcmd.BuildConfigFromFlags(clientURL.String(), "")
-	if err != nil {
-		return nil, err
-	}
-
-	config.Insecure = true
-	config.QPS = defaultKubeClientQPS
-	config.Burst = defaultKubeClientBurst
-
-	// The agent verifies this signature unless it is running in FIPS mode, where it
-	// relies on mTLS instead. Skip sending it to match that behaviour.
-	if !fipsMode {
-		signature, err := factory.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
-		if err != nil {
-			return nil, err
-		}
-
-		config.Wrap(func(rt http.RoundTripper) http.RoundTripper {
-			return NewAgentHeaderRoundTripper(signature, factory.signatureService.EncodedPublicKey(), rt)
-		})
-	}
-
-	return config, nil
-}
-
-func (factory *ClientFactory) buildEdgeConfig(endpoint *portainer.Endpoint, fipsMode bool) (*rest.Config, error) {
-	tunnelAddr, err := factory.reverseTunnelService.TunnelAddr(endpoint)
-	if err != nil {
-		return nil, pkgerrors.Wrap(err, "failed to activate the chisel reverse tunnel. check if the tunnel port is open at the portainer instance")
-	}
-	endpointURL := fmt.Sprintf("http://%s/kubernetes", tunnelAddr)
-
-	config, err := clientcmd.BuildConfigFromFlags(endpointURL, "")
 	if err != nil {
 		return nil, err
 	}

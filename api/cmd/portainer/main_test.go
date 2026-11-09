@@ -82,15 +82,12 @@ func TestREQ_TAI_002_UpdateSettingsFromFlags_IgnoresKubectlShellImage(t *testing
 			)
 
 			flags := &portainer.CLIFlags{
-				SnapshotInterval:          &emptyString,
-				Logo:                      &emptyString,
-				EnableEdgeComputeFeatures: &falseBool,
-				EdgePortainerURL:          &emptyString,
-				EdgeTrustOnFirstConnect:   &falseBool,
-				Templates:                 &emptyString,
-				Labels:                    &emptyLabels,
-				HTTPDisabled:              &falseBool,
-				HTTPEnabled:               &falseBool,
+				SnapshotInterval: &emptyString,
+				Logo:             &emptyString,
+				Templates:        &emptyString,
+				Labels:           &emptyLabels,
+				HTTPDisabled:     &falseBool,
+				HTTPEnabled:      &falseBool,
 			}
 			flags.KubectlShellImage = &tc.flagImage
 			flags.KubectlShellImageSet = tc.imageSet
@@ -103,42 +100,6 @@ func TestREQ_TAI_002_UpdateSettingsFromFlags_IgnoresKubectlShellImage(t *testing
 			require.Equal(t, tc.expectedKubectlShellImage, settings.KubectlShellImage)
 		})
 	}
-}
-
-func TestUpdateSettingsFromFlags_EdgeCompute(t *testing.T) {
-	emptyString := ""
-	falseBool := false
-	trueBool := true
-	var emptyLabels []portainer.Pair
-
-	edgeURL := "https://edge.example.com:9443"
-
-	store := testhelpers.NewDatastore(
-		testhelpers.WithSettingsService(&portainer.Settings{}),
-		testhelpers.WithSSLSettingsService(&portainer.SSLSettings{}),
-	)
-
-	flags := &portainer.CLIFlags{
-		SnapshotInterval:          &emptyString,
-		Logo:                      &emptyString,
-		EnableEdgeComputeFeatures: &trueBool,
-		EdgePortainerURL:          &edgeURL,
-		EdgeTrustOnFirstConnect:   &trueBool,
-		Templates:                 &emptyString,
-		Labels:                    &emptyLabels,
-		HTTPDisabled:              &falseBool,
-		HTTPEnabled:               &falseBool,
-		KubectlShellImage:         &emptyString,
-	}
-
-	err := updateSettingsFromFlags(store, flags)
-	require.NoError(t, err)
-
-	settings, err := store.Settings().Settings()
-	require.NoError(t, err)
-	require.True(t, settings.EnableEdgeComputeFeatures)
-	require.Equal(t, edgeURL, settings.EdgePortainerURL)
-	require.True(t, settings.TrustOnFirstConnect)
 }
 
 func TestDBSecretPath(t *testing.T) {

@@ -77,7 +77,7 @@ func newImagesHandlerUnderTest(t *testing.T, endpointURL string, bouncer securit
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	h := NewHandler("/docker/{id}/images", bouncer, dockerclient.NewClientFactory(nil, nil))
+	h := NewHandler("/docker/{id}/images", bouncer, dockerclient.NewClientFactory(nil))
 	root := mux.NewRouter()
 	sub := root.PathPrefix("/docker/{id}").Subrouter()
 	sub.Use(middlewares.WithEndpoint(store.Endpoint(), "id"))
@@ -200,7 +200,7 @@ func TestImagesList_DefaultWithUsageWhenOmitted(t *testing.T) {
 func TestImagesList_MissingEndpoint(t *testing.T) {
 	t.Parallel()
 	bouncer := testhelpers.NewTestRequestBouncer()
-	h := NewHandler("/docker/{id}/images", bouncer, dockerclient.NewClientFactory(nil, nil))
+	h := NewHandler("/docker/{id}/images", bouncer, dockerclient.NewClientFactory(nil))
 	root := mux.NewRouter()
 	root.PathPrefix("/docker/{id}/images").Handler(h)
 

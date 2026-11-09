@@ -9,7 +9,6 @@ import {
   createLocalDockerEnvironment,
   createAzureEnvironment,
   createAgentEnvironment,
-  createEdgeAgentEnvironment,
 } from '../environment.service/create';
 
 export function useCreateAzureEnvironmentMutation() {
@@ -35,10 +34,6 @@ export function useCreateRemoteEnvironmentMutation(
 
 export function useCreateAgentEnvironmentMutation() {
   return useGenericCreationMutation(createAgentEnvironment);
-}
-
-export function useCreateEdgeAgentEnvironmentMutation() {
-  return useGenericCreationMutation(createEdgeAgentEnvironment);
 }
 
 function useGenericCreationMutation<TData = unknown, TVariables = void>(

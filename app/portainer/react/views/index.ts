@@ -5,12 +5,9 @@ import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { r2a } from '@/react-tools/react2angular';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
-import { EdgeComputeSettingsView } from '@/react/portainer/settings/EdgeComputeView/EdgeComputeSettingsView';
-import { InitEdgeView } from '@/react/portainer/init/InitEdgeView/InitEdgeView';
 import { SettingsView } from '@/react/portainer/settings/SettingsView/SettingsView';
 
 import { wizardModule } from './wizard';
-import { updateSchedulesModule } from './update-schedules';
 import { environmentGroupModule } from './env-groups';
 import { registriesModule } from './registries';
 import { activityLogsModule } from './activity-logs';
@@ -21,7 +18,6 @@ import { gitopsViewsModule } from './gitops';
 export const viewsModule = angular
   .module('portainer.app.react.views', [
     wizardModule,
-    updateSchedulesModule,
     environmentGroupModule,
     registriesModule,
     activityLogsModule,
@@ -32,17 +28,6 @@ export const viewsModule = angular
   .component(
     'homeView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(HomeView))), [])
-  )
-  .component(
-    'settingsEdgeCompute',
-    r2a(
-      withUIRouter(withReactQuery(withCurrentUser(EdgeComputeSettingsView))),
-      ['onSubmit', 'settings']
-    )
-  )
-  .component(
-    'initEdgeView',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(InitEdgeView))), [])
   )
   .component(
     'settingsView',

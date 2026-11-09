@@ -9,7 +9,6 @@ import {
   EnvironmentCreationTypes,
 } from '@/react/portainer/environments/types';
 import { type TagId } from '@/portainer/tags/types';
-import { EdgeAsyncIntervalsValues } from '@/react/edge/components/EdgeAsyncIntervalsForm';
 
 import { toEnvironment } from './utils';
 
@@ -91,19 +90,12 @@ interface TLSSettings {
   keyFile?: File;
 }
 
-interface EdgeSettings extends EdgeAsyncIntervalsValues {
-  asyncMode: boolean;
-}
-
 export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
   meta?: EnvironmentMetadata;
   azure?: AzureSettings;
   tls?: TLSSettings;
-  pollFrequency?: number;
-  edge?: EdgeSettings;
-  tunnelServerAddr?: string;
   containerEngine?: ContainerEngine;
 }
 
@@ -158,37 +150,6 @@ export function createAgentEnvironment({
   });
 }
 
-interface CreateEdgeAgentEnvironment {
-  name: string;
-  portainerUrl: string;
-  tunnelServerAddr?: string;
-  meta?: EnvironmentMetadata;
-  pollFrequency: number;
-  edge: EdgeSettings;
-  containerEngine: ContainerEngine;
-}
-
-export function createEdgeAgentEnvironment({
-  name,
-  portainerUrl,
-  meta = { tagIds: [] },
-  pollFrequency,
-  edge,
-  containerEngine,
-}: CreateEdgeAgentEnvironment) {
-  return createEnvironment(
-    name,
-    EnvironmentCreationTypes.EdgeAgentEnvironment,
-    {
-      url: portainerUrl,
-      pollFrequency,
-      edge,
-      meta,
-      containerEngine,
-    }
-  );
-}
-
 async function createEnvironment(
   name: string,
   creationType: EnvironmentCreationTypes,
@@ -213,7 +174,6 @@ async function createEnvironment(
       PublicURL: options.publicUrl,
       GroupID: groupId,
       TagIds: arrayToJson(tagIds),
-      EdgeCheckinInterval: options.pollFrequency,
       ContainerEngine: containerEngine,
     };
 

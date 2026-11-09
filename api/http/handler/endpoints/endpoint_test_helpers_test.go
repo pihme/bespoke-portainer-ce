@@ -26,7 +26,7 @@ func newDockerEndpointHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.SnapshotService = fakeSnapshotService{}
 	h.PendingActionsService = pendingactions.NewService(store, nil)
 	h.ProxyManager = proxy.NewManager(nil)
-	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	return h, store
 }
 

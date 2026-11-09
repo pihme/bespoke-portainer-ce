@@ -58,12 +58,6 @@ vi.mock('@/react-tools/withUIRouter', () => ({
 }));
 
 vi.mock('@/react/portainer/HomeView', () => ({ HomeView: () => null }));
-vi.mock('@/react/portainer/settings/EdgeComputeView/EdgeComputeSettingsView', () => ({
-  EdgeComputeSettingsView: () => null,
-}));
-vi.mock('@/react/portainer/init/InitEdgeView/InitEdgeView', () => ({
-  InitEdgeView: () => null,
-}));
 vi.mock('@/react/portainer/settings/SettingsView/SettingsView', () => ({
   SettingsView: () => null,
 }));
@@ -87,10 +81,6 @@ vi.mock('@/react/portainer/environments/ListView', () => ({ ListView: () => null
 vi.mock('@/react/portainer/environments/ItemView/ItemView', () => ({
   ItemView: () => null,
 }));
-vi.mock(
-  '@/react/portainer/environments/EdgeAutoCreateScriptView/EdgeAutoCreateScriptView',
-  () => ({ EdgeAutoCreateScriptViewWrapper: () => null })
-);
 vi.mock('@/react/portainer/gitops/workflows/ListView/ListView', () => ({
   ListView: () => null,
 }));
@@ -128,11 +118,6 @@ vi.mock('@/react/sidebar/useSidebarState', () => ({
 vi.mock('@/react/portainer/registries/ListView', () => ({ ListView: () => null }));
 vi.mock('@/react/portainer/registries/environments/ListView', () => ({
   ListView: () => null,
-}));
-vi.mock('@/react/portainer/environments/update-schedules', () => ({
-  ListView: () => null,
-  CreateView: () => null,
-  ItemView: () => null,
 }));
 vi.mock('@/portainer/authorization-guard', () => ({
   AccessHeaders: { Admin: 'admin', Restricted: 'restricted' },
@@ -267,5 +252,26 @@ describe('portainer react view wrappers', () => {
     await import('./index');
     const names = components.map((c) => c.name);
     expect(names).not.toContain('createHelmRepositoryView');
+  });
+
+  it('REQ-TAI-004 registers no Edge views or Edge routes', async () => {
+    await import('./index');
+    const names = components.map((c) => c.name);
+    for (const gone of [
+      'edgeAutoCreateScriptView',
+      'initEdgeView',
+      'settingsEdgeCompute',
+      'updateSchedulesListView',
+      'updateSchedulesCreateView',
+      'updateSchedulesItemView',
+    ]) {
+      expect(names).not.toContain(gone);
+    }
+    const stateNames = registeredStates.map((st) =>
+      String((st as { name?: string }).name ?? '')
+    );
+    expect(stateNames.filter((n) => /edge|updateSchedules/i.test(n))).toEqual(
+      []
+    );
   });
 });

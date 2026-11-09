@@ -18,7 +18,6 @@ const baseTemplate = {
   Platform: Platform.LINUX,
   Type: StackType.DockerCompose,
   Variables: [],
-  EdgeTemplate: false,
   ProjectPath: '',
   EntryPoint: '',
   CreatedByUserId: 1,
@@ -61,7 +60,7 @@ describe('REQ-TPL-03 useInitialValues for editing local Compose templates', () =
     });
   });
 
-  it('keeps edge settings for edge templates', () => {
+  it('REQ-TAI-004 drops Edge settings from legacy Edge templates', () => {
     const { result } = renderHook(() =>
       useInitialValues({
         template: {
@@ -72,6 +71,6 @@ describe('REQ-TPL-03 useInitialValues for editing local Compose templates', () =
         templateFile: 'x',
       })
     );
-    expect(result.current?.EdgeSettings).toEqual({ PrePullImage: false });
+    expect(result.current).not.toHaveProperty('EdgeSettings');
   });
 });

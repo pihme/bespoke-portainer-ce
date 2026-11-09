@@ -193,7 +193,7 @@ func TestREQ_VOL_02_VolumeCreateExistenceCheck(t *testing.T) {
 			endpoint:            &portainer.Endpoint{ID: 1, URL: srv.URL},
 			dataStore:           store,
 			HTTPTransport:       &http.Transport{},
-			dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+			dockerClientFactory: dockerclient.NewClientFactory(nil),
 			dockerID:            "engine-1",
 		}
 
@@ -236,7 +236,7 @@ func TestREQ_VOL_02_VolumeCreateExistenceCheck(t *testing.T) {
 			endpoint:            &portainer.Endpoint{ID: 1, URL: srv.URL},
 			dataStore:           store,
 			HTTPTransport:       &http.Transport{},
-			dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+			dockerClientFactory: dockerclient.NewClientFactory(nil),
 			dockerID:            "engine-1",
 		}
 
@@ -313,7 +313,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		endpoint:            &portainer.Endpoint{ID: 1, URL: srv.URL},
 		dataStore:           store,
 		HTTPTransport:       &http.Transport{},
-		dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+		dockerClientFactory: dockerclient.NewClientFactory(nil),
 	}
 
 	tokenReq := func(method, path string, user portainer.User) *http.Request {
@@ -761,7 +761,7 @@ func TestREQ_USR_08_RestrictedResourceInheritedDeniedAndEmptyDockerID(t *testing
 		endpoint:            &portainer.Endpoint{ID: 1, URL: srv.URL},
 		dataStore:           store,
 		HTTPTransport:       &http.Transport{},
-		dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+		dockerClientFactory: dockerclient.NewClientFactory(nil),
 	}
 
 	req := httptest.NewRequest(http.MethodPost, srv.URL+"/v"+version+"/containers/c-inh/start", nil)

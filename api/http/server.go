@@ -19,10 +19,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer/api/http/handler/docker"
-	"github.com/portainer/portainer/api/http/handler/edgegroups"
-	"github.com/portainer/portainer/api/http/handler/edgejobs"
-	"github.com/portainer/portainer/api/http/handler/edgestacks"
-	"github.com/portainer/portainer/api/http/handler/endpointedge"
 	"github.com/portainer/portainer/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
@@ -46,8 +42,6 @@ import (
 	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
-	edgestackservice "github.com/portainer/portainer/api/internal/edge/edgestacks"
-	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/ssl"
 	"github.com/portainer/portainer/api/internal/upgrade"
 	"github.com/portainer/portainer/api/kubernetes/cli"
@@ -69,10 +63,8 @@ type Server struct {
 	HTTPEnabled                 bool
 	AssetsPath                  string
 	Status                      *portainer.Status
-	ReverseTunnelService        portainer.ReverseTunnelService
 	ComposeStackManager         portainer.ComposeStackManager
 	CryptoService               portainer.CryptoService
-	EdgeStacksService           *edgestackservice.Service
 	SignatureService            portainer.DigitalSignatureService
 	SnapshotService             portainer.SnapshotService
 	FileService                 portainer.FileService
@@ -115,35 +107,18 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.DataStore, server.FileService, server.GitService)
 
-	var edgeGroupsHandler = edgegroups.NewHandler(requestBouncer)
-	edgeGroupsHandler.DataStore = server.DataStore
-	edgeGroupsHandler.ReverseTunnelService = server.ReverseTunnelService
-
-	var edgeJobsHandler = edgejobs.NewHandler(requestBouncer)
-	edgeJobsHandler.DataStore = server.DataStore
-	edgeJobsHandler.FileService = server.FileService
-	edgeJobsHandler.ReverseTunnelService = server.ReverseTunnelService
-
-	var edgeStacksHandler = edgestacks.NewHandler(requestBouncer, server.DataStore, server.EdgeStacksService)
-	edgeStacksHandler.FileService = server.FileService
-	edgeStacksHandler.GitService = server.GitService
-	edgeStacksHandler.KubernetesDeployer = server.KubernetesDeployer
-
 	var endpointHandler = endpoints.NewHandler(requestBouncer)
 	endpointHandler.DataStore = server.DataStore
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
 	endpointHandler.SnapshotService = server.SnapshotService
 	endpointHandler.DockerClientFactory = server.DockerClientFactory
-	endpointHandler.ReverseTunnelService = server.ReverseTunnelService
 	endpointHandler.ComposeStackManager = server.ComposeStackManager
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 	endpointHandler.PendingActionsService = server.PendingActionsService
 	endpointHandler.PullLimitCheckDisabled = server.PullLimitCheckDisabled
-
-	var endpointEdgeHandler = endpointedge.NewHandler(requestBouncer, server.DataStore, server.FileService, server.ReverseTunnelService)
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService
@@ -153,7 +128,6 @@ func (server *Server) Start(ctx context.Context) error {
 	var endpointProxyHandler = endpointproxy.NewHandler(requestBouncer)
 	endpointProxyHandler.DataStore = server.DataStore
 	endpointProxyHandler.ProxyManager = server.ProxyManager
-	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
 	containerService := docker.NewContainerService(server.DockerClientFactory, server.DataStore)
 
@@ -216,18 +190,13 @@ func (server *Server) Start(ctx context.Context) error {
 	var websocketHandler = websocket.NewHandler(requestBouncer)
 	websocketHandler.DataStore = server.DataStore
 	websocketHandler.SignatureService = server.SignatureService
-	websocketHandler.ReverseTunnelService = server.ReverseTunnelService
 
 	server.Handler = &handler.Handler{
 		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
 		DockerHandler:          dockerHandler,
-		EdgeGroupsHandler:      edgeGroupsHandler,
-		EdgeJobsHandler:        edgeJobsHandler,
-		EdgeStacksHandler:      edgeStacksHandler,
 		EndpointGroupHandler:   endpointGroupHandler,
 		EndpointHandler:        endpointHandler,
-		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
 		GitOperationHandler:    gitOperationHandler,
 		FileHandler:            fileHandler,
@@ -288,7 +257,6 @@ func (server *Server) Start(ctx context.Context) error {
 	}
 
 	go shutdown(ctx, httpsServer)
-	go snapshot.NewBackgroundSnapshotter(server.DataStore, server.ReverseTunnelService)
 
 	return httpsServer.ListenAndServeTLS("", "")
 }

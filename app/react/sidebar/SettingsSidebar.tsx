@@ -7,7 +7,6 @@ import {
   Bell,
 } from 'lucide-react';
 
-import { usePublicSettings } from '@/react/portainer/settings/queries';
 import { isBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import { SidebarItem } from './SidebarItem';
@@ -41,7 +40,6 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
             <SidebarItem
               label="Environments"
               to="portainer.endpoints"
-              ignorePaths={['portainer.endpoints.updateSchedules']}
               includePaths={['portainer.wizard.endpoints']}
               isSubMenu
               data-cy="portainerSidebar-environments"
@@ -58,7 +56,6 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
               isSubMenu
               data-cy="portainerSidebar-environmentTags"
             />
-            <EdgeUpdatesSidebarItem />
           </SidebarParent>
 
           <SidebarItem
@@ -85,17 +82,6 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
           />
         </>
       )}
-      {isBE && !isPureAdmin && isAdmin && (
-        <SidebarParent
-          label="Environment-related"
-          icon={HardDrive}
-          to="portainer.endpoints.updateSchedules"
-          data-cy="portainerSidebar-environments-area"
-          listId="portainer-environments-area"
-        >
-          <EdgeUpdatesSidebarItem />
-        </SidebarParent>
-      )}
 
       <SidebarItem
         to="portainer.notifications"
@@ -115,10 +101,7 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
             to="portainer.settings"
             label="General"
             isSubMenu
-            ignorePaths={[
-              'portainer.settings.sharedcredentials',
-              'portainer.settings.edgeCompute',
-            ]}
+            ignorePaths={['portainer.settings.sharedcredentials']}
             data-cy="portainerSidebar-generalSettings"
           />
           {isBE && (
@@ -129,13 +112,6 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
               data-cy="portainerSidebar-cloud"
             />
           )}
-
-          <SidebarItem
-            to="portainer.settings.edgeCompute"
-            label="Edge Compute"
-            isSubMenu
-            data-cy="portainerSidebar-edgeCompute"
-          />
 
           <SidebarItem.Wrapper label="Get Help">
             <a
@@ -150,22 +126,5 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
         </SidebarParent>
       )}
     </SidebarSection>
-  );
-}
-
-function EdgeUpdatesSidebarItem() {
-  const settingsQuery = usePublicSettings();
-
-  if (!isBE || !settingsQuery.data?.EnableEdgeComputeFeatures) {
-    return null;
-  }
-
-  return (
-    <SidebarItem
-      to="portainer.endpoints.updateSchedules"
-      label="Update & Rollback"
-      isSubMenu
-      data-cy="portainerSidebar-updateSchedules"
-    />
   );
 }

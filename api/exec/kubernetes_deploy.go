@@ -18,7 +18,6 @@ import (
 // KubernetesDeployer represents a service to deploy resources inside a Kubernetes environment(endpoint).
 type KubernetesDeployer struct {
 	dataStore                   dataservices.DataStore
-	reverseTunnelService        portainer.ReverseTunnelService
 	signatureService            portainer.DigitalSignatureService
 	kubernetesClientFactory     *cli.ClientFactory
 	kubernetesTokenCacheManager *kubernetes.TokenCacheManager
@@ -26,10 +25,9 @@ type KubernetesDeployer struct {
 }
 
 // NewKubernetesDeployer initializes a new KubernetesDeployer service.
-func NewKubernetesDeployer(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore dataservices.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager) *KubernetesDeployer {
+func NewKubernetesDeployer(kubernetesTokenCacheManager *kubernetes.TokenCacheManager, kubernetesClientFactory *cli.ClientFactory, datastore dataservices.DataStore, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager) *KubernetesDeployer {
 	return &KubernetesDeployer{
 		dataStore:                   datastore,
-		reverseTunnelService:        reverseTunnelService,
 		signatureService:            signatureService,
 		kubernetesClientFactory:     kubernetesClientFactory,
 		kubernetesTokenCacheManager: kubernetesTokenCacheManager,

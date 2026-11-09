@@ -22,16 +22,6 @@ export function useViewParams(): {
   ]);
 
   switch (viewType) {
-    case 'edge':
-      return {
-        viewType,
-        params: { edge: true },
-        getTemplateLinkParams: (template: CustomTemplate) => ({
-          to: 'edge.stacks.new',
-          params: { templateId: template.Id, templateType: 'custom' },
-        }),
-        storageKey: 'edge-custom-templates',
-      };
     case 'docker':
       return {
         viewType,

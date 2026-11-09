@@ -81,7 +81,7 @@ func (handler *Handler) handleExecRequest(w http.ResponseWriter, r *http.Request
 	if params.endpoint.Type == portainer.AgentOnDockerEnvironment {
 		return handler.proxyAgentWebsocketRequest(w, r, params)
 	} else if params.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
-		return handler.proxyEdgeAgentWebsocketRequest(w, r, params)
+		return portainer.ErrEdgeEnvironmentNotSupported
 	}
 
 	websocketConn, err := handler.connectionUpgrader.Upgrade(w, r, nil)

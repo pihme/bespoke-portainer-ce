@@ -13,20 +13,6 @@ import (
 	"github.com/koding/websocketproxy"
 )
 
-func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
-	tunnelAddr, err := handler.ReverseTunnelService.TunnelAddr(params.endpoint)
-	if err != nil {
-		return err
-	}
-
-	agentURL, err := url.Parse("http://" + tunnelAddr)
-	if err != nil {
-		return err
-	}
-
-	return handler.doProxyWebsocketRequest(w, r, params, agentURL, true)
-}
-
 func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
 	endpointURL := params.endpoint.URL
 	if params.endpoint.Type == portainer.AgentOnKubernetesEnvironment {
@@ -38,7 +24,7 @@ func (handler *Handler) proxyAgentWebsocketRequest(w http.ResponseWriter, r *htt
 		return err
 	}
 
-	return handler.doProxyWebsocketRequest(w, r, params, agentURL, false)
+	return handler.doProxyWebsocketRequest(w, r, params, agentURL)
 }
 
 // buildAgentProxyDirector returns the websocketproxy director that decorates the
@@ -77,9 +63,8 @@ func (handler *Handler) doProxyWebsocketRequest(
 	r *http.Request,
 	params *webSocketRequestParams,
 	agentURL *url.URL,
-	isEdge bool,
 ) error {
-	enableTLS := !isEdge && (params.endpoint.TLSConfig.TLS || params.endpoint.TLSConfig.TLSSkipVerify)
+	enableTLS := params.endpoint.TLSConfig.TLS || params.endpoint.TLSConfig.TLSSkipVerify
 
 	agentURL.Scheme = "ws"
 	if enableTLS {
@@ -100,11 +85,6 @@ func (handler *Handler) doProxyWebsocketRequest(
 	}
 
 	proxy.Director = director
-
-	if isEdge {
-		handler.ReverseTunnelService.UpdateLastActivity(params.endpoint.ID)
-		handler.ReverseTunnelService.KeepTunnelAlive(params.endpoint.ID, r.Context(), portainer.WebSocketKeepAlive)
-	}
 
 	proxy.Dialer.NetDial = func(network, addr string) (net.Conn, error) {
 		netDialer := &net.Dialer{}

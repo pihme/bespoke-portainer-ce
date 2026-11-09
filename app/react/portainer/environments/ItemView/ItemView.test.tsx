@@ -14,41 +14,6 @@ import { createMockEnvironment } from '@/react-tools/test-mocks';
 
 import { ItemView } from './ItemView';
 
-// Mock child components
-vi.mock('./EdgeInformationPanel/EdgeInformationPanel', () => ({
-  EdgeInformationPanel: ({
-    environmentId,
-    edgeKey,
-    edgeId,
-    platformName,
-  }: {
-    environmentId: number;
-    edgeKey: string;
-    edgeId: string;
-    platformName: string;
-  }) => (
-    <div data-cy="edge-info-panel">
-      EdgeInformationPanel: {environmentId}, {edgeKey}, {edgeId}, {platformName}
-    </div>
-  ),
-}));
-
-vi.mock('./EdgeAgentDeploymentWidget/EdgeAgentDeploymentWidget', () => ({
-  EdgeAgentDeploymentWidget: ({
-    edgeKey,
-    edgeId,
-    asyncMode,
-  }: {
-    edgeKey: string;
-    edgeId?: string;
-    asyncMode?: boolean;
-  }) => (
-    <div data-cy="edge-agent-deployment">
-      EdgeAgentDeploymentWidget: {edgeKey}, {edgeId}, {asyncMode?.toString()}
-    </div>
-  ),
-}));
-
 vi.mock('./EnvironmentDetailsForm', () => ({
   EnvironmentDetailsForm: ({ environment }: { environment: Environment }) => (
     <div data-cy="environment-details-form">
@@ -76,7 +41,7 @@ describe('ItemView', () => {
     expect(screen.getByText('Test Environment')).toBeVisible();
   });
 
-  it('should render EdgeInformationPanel for edge environment with EdgeID', async () => {
+  it('REQ-TAI-004 shows a legacy Edge environment as unsupported, without an edit form', async () => {
     const environment = createMockEnvironment({
       Type: EnvironmentType.EdgeAgentOnDocker,
       EdgeID: 'edge-123',
@@ -86,34 +51,14 @@ describe('ItemView', () => {
     renderComponentWithEnvironment(environment);
 
     await waitFor(() => {
-      const edgeInfoPanel = screen.getByTestId('edge-info-panel');
-      expect(edgeInfoPanel).toBeVisible();
-      expect(edgeInfoPanel).toHaveTextContent('edge-key-123');
-      expect(edgeInfoPanel).toHaveTextContent('edge-123');
+      expect(
+        screen.getByText(/Edge environments are no longer supported/)
+      ).toBeVisible();
     });
-  });
-
-  it('should render EdgeAgentDeploymentWidget for edge environment without EdgeID', async () => {
-    const environment = createMockEnvironment({
-      Type: EnvironmentType.EdgeAgentOnDocker,
-      EdgeID: undefined,
-      EdgeKey: 'edge-key-456',
-      Edge: {
-        AsyncMode: true,
-        PingInterval: 30,
-        SnapshotInterval: 60,
-        CommandInterval: 10,
-      },
-    });
-
-    renderComponentWithEnvironment(environment);
-
-    await waitFor(() => {
-      const deploymentWidget = screen.getByTestId('edge-agent-deployment');
-      expect(deploymentWidget).toBeVisible();
-      expect(deploymentWidget).toHaveTextContent('edge-key-456');
-      expect(deploymentWidget).toHaveTextContent('true'); // AsyncMode
-    });
+    expect(
+      screen.queryByTestId('environment-details-form')
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/edge-key-123/)).not.toBeInTheDocument();
   });
 
   it('should not render edge components for non-edge environment', async () => {
@@ -127,9 +72,8 @@ describe('ItemView', () => {
       expect(screen.getByTestId('environment-details-form')).toBeVisible();
     });
 
-    expect(screen.queryByTestId('edge-info-panel')).not.toBeInTheDocument();
     expect(
-      screen.queryByTestId('edge-agent-deployment')
+      screen.queryByText(/Edge environments are no longer supported/)
     ).not.toBeInTheDocument();
   });
 

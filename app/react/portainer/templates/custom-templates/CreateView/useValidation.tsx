@@ -7,7 +7,6 @@ import { Platform } from '@/react/portainer/templates/types';
 import { variablesValidation } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { buildGitValidationSchema } from '@/react/portainer/gitops/GitForm';
 import { useCustomTemplates } from '@/react/portainer/templates/custom-templates/queries/useCustomTemplates';
-import { edgeFieldsetValidation } from '@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset.validation';
 import { DeployMethod } from '@/react/portainer/gitops/types';
 
 import { file } from '@@/form-components/yup-file-validation';
@@ -23,7 +22,7 @@ export function useValidation({
   viewType,
   deployMethod,
 }: {
-  viewType: 'docker' | 'edge';
+  viewType: 'docker';
   deployMethod: DeployMethod;
 }) {
   const customTemplatesQuery = useCustomTemplates({
@@ -58,12 +57,11 @@ export function useValidation({
           then: () => buildGitValidationSchema(deployMethod),
         }),
         Variables: variablesValidation(),
-        EdgeSettings: viewType === 'edge' ? edgeFieldsetValidation() : mixed(),
       }).concat(
         commonFieldsValidation({
           templates: customTemplatesQuery.data,
         })
       ),
-    [customTemplatesQuery.data, viewType, deployMethod]
+    [customTemplatesQuery.data, deployMethod]
   );
 }

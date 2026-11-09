@@ -64,7 +64,7 @@ func TestHandlerDeleteK8sRegistrySecrets_Execute(t *testing.T) {
 	})
 
 	t.Run("kube factory has no client for endpoint - returns error", func(t *testing.T) {
-		emptyFactory, err := kubecli.NewClientFactory(nil, nil, nil, "test", "", "")
+		emptyFactory, err := kubecli.NewClientFactory(nil, nil, "test", "", "")
 		require.NoError(t, err)
 
 		h := NewHandlerDeleteRegistrySecrets(nil, nil, emptyFactory)

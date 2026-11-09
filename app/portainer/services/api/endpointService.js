@@ -94,10 +94,7 @@ angular.module('portainer.app').factory('EndpointService', [
     ) {
       var deferred = $q.defer();
 
-      var endpointURL = URL;
-      if (creationType !== PortainerEndpointCreationTypes.EdgeAgentEnvironment) {
-        endpointURL = 'tcp://' + URL;
-      }
+      var endpointURL = 'tcp://' + URL;
 
       FileUploadService.createEndpoint(
         name,

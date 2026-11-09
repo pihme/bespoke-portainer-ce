@@ -28,23 +28,6 @@ vi.mock('./AzureEnvironmentForm/AzureEnvironmentForm', () => ({
   ),
 }));
 
-vi.mock('./EdgeEnvironmentForm/EdgeEnvironmentForm', () => ({
-  EdgeEnvironmentForm: ({
-    environment,
-    onSuccess,
-  }: {
-    environment: Environment;
-    onSuccess: () => void;
-  }) => (
-    <div data-cy="edge-environment-form">
-      EdgeEnvironmentForm: {environment.Name}
-      <button type="button" onClick={onSuccess}>
-        Submit Edge
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock('./GeneralEnvironmentForm/GeneralEnvironmentForm', () => ({
   GeneralEnvironmentForm: ({
     environment,
@@ -115,44 +98,6 @@ describe('EnvironmentDetailsForm', () => {
     expect(
       screen.queryByTestId('general-environment-form')
     ).not.toBeInTheDocument();
-  });
-
-  it('should render EdgeEnvironmentForm for EdgeAgentOnDocker environment', async () => {
-    const environment = createMockEnvironment({
-      Type: EnvironmentType.EdgeAgentOnDocker,
-      Name: 'Edge Docker Test',
-    });
-
-    renderComponent({ environment });
-
-    await waitFor(() => {
-      const edgeForm = screen.getByTestId('edge-environment-form');
-      expect(edgeForm).toBeVisible();
-      expect(edgeForm).toHaveTextContent('Edge Docker Test');
-    });
-
-    // Should not render other forms
-    expect(
-      screen.queryByTestId('azure-environment-form')
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId('general-environment-form')
-    ).not.toBeInTheDocument();
-  });
-
-  it('should render EdgeEnvironmentForm for EdgeAgentOnKubernetes environment', async () => {
-    const environment = createMockEnvironment({
-      Type: EnvironmentType.EdgeAgentOnKubernetes,
-      Name: 'Edge K8s Test',
-    });
-
-    renderComponent({ environment });
-
-    await waitFor(() => {
-      const edgeForm = screen.getByTestId('edge-environment-form');
-      expect(edgeForm).toBeVisible();
-      expect(edgeForm).toHaveTextContent('Edge K8s Test');
-    });
   });
 
   it('should render GeneralEnvironmentForm for Docker environment', async () => {

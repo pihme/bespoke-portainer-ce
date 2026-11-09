@@ -21,7 +21,7 @@ import (
 func TestREQ_CTR_06_NewContainerService(t *testing.T) {
 	t.Parallel()
 
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	svc := NewContainerService(factory, nil)
 	require.NotNil(t, svc)
 	require.Same(t, factory, svc.factory)
@@ -31,7 +31,7 @@ func TestREQ_CTR_06_NewContainerService(t *testing.T) {
 func TestREQ_CTR_06_Recreate_CreateClientError(t *testing.T) {
 	t.Parallel()
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.AzureEnvironment,
 		URL:  "https://example.invalid",
@@ -237,7 +237,7 @@ func TestREQ_CTR_06_Recreate_LocalContainerSuccess(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -262,7 +262,7 @@ func TestREQ_CTR_06_Recreate_WithImageTagAndSecondNetwork(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -285,7 +285,7 @@ func TestREQ_CTR_06_Recreate_InspectError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -301,7 +301,7 @@ func TestREQ_CTR_06_Recreate_StopError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -317,7 +317,7 @@ func TestREQ_CTR_06_Recreate_CreateErrorRestoresOldContainer(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -340,7 +340,7 @@ func TestREQ_CTR_06_Recreate_InvalidImageParse(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -362,7 +362,7 @@ func TestREQ_CTR_06_Recreate_ConnectExtraNetworkError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -383,7 +383,7 @@ func TestREQ_CTR_06_Recreate_RenameError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -399,7 +399,7 @@ func TestREQ_CTR_06_Recreate_DisconnectError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -415,7 +415,7 @@ func TestREQ_CTR_06_Recreate_StartNewContainerError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -431,7 +431,7 @@ func TestREQ_CTR_06_Recreate_InspectNewContainerError(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -447,7 +447,7 @@ func TestREQ_CTR_06_Recreate_InvalidImageTag(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -467,7 +467,7 @@ func TestREQ_CTR_06_Recreate_RestoreWarnPaths(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -491,7 +491,7 @@ func TestREQ_CTR_06_Recreate_CleanupNewContainerWarnPaths(t *testing.T) {
 	srv := newRecreateServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	svc := NewContainerService(dockerclient.NewClientFactory(nil, nil), nil)
+	svc := NewContainerService(dockerclient.NewClientFactory(nil), nil)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,

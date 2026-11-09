@@ -12,14 +12,10 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/client"
-	"github.com/portainer/portainer/api/internal/edge"
-	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
-
-	"github.com/google/uuid"
 )
 
 type endpointCreatePayload struct {
@@ -39,7 +35,6 @@ type endpointCreatePayload struct {
 	AzureTenantID          string
 	AzureAuthenticationKey string
 	TagIDs                 []portainer.TagID
-	EdgeCheckinInterval    int
 	ContainerEngine        string
 }
 
@@ -50,7 +45,7 @@ const (
 	localDockerEnvironment
 	agentEnvironment
 	azureEnvironment
-	edgeAgentEnvironment
+	// 4 was the Edge Agent environment, removed with Edge (TAI-004).
 	// 5 was the local Kubernetes environment, removed with Kubernetes (TAI-002).
 )
 
@@ -62,8 +57,12 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	payload.Name = name
 
 	endpointCreationType, err := request.RetrieveNumericMultiPartFormValue(r, "EndpointCreationType", false)
-	if err != nil || endpointCreationType < int(localDockerEnvironment) || endpointCreationType > int(edgeAgentEnvironment) {
-		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment), 2 (Agent environment), 3 (Azure environment) or 4 (Edge Agent environment)")
+	if err == nil && endpointCreationType == 4 {
+		return errors.New("Edge Agent environments are no longer supported")
+	}
+
+	if err != nil || endpointCreationType < int(localDockerEnvironment) || endpointCreationType > int(azureEnvironment) {
+		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment), 2 (Agent environment) or 3 (Azure environment)")
 	}
 	payload.EndpointCreationType = endpointCreationEnum(endpointCreationType)
 
@@ -89,10 +88,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 
 	useTLS, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLS", true)
 	payload.TLS = useTLS
-
-	if payload.TLS && payload.EndpointCreationType == edgeAgentEnvironment {
-		return errors.New("TLS is not supported for Edge Agent environments")
-	}
 
 	if payload.TLS {
 		skipTLSServerVerification, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLSSkipVerify", true)
@@ -146,17 +141,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		}
 		payload.AzureAuthenticationKey = azureAuthenticationKey
 
-	case edgeAgentEnvironment:
-		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", false)
-		if err != nil || strings.EqualFold("", strings.Trim(endpointURL, " ")) {
-			return errors.New("URL cannot be empty")
-		}
-
-		payload.URL = endpointURL
-
-		publicURL, _ := request.RetrieveMultiPartFormValue(r, "PublicURL", true)
-		payload.PublicURL = publicURL
-
 	default:
 		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", true)
 		if err != nil {
@@ -175,13 +159,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 
 	payload.Gpus = gpus
 
-	edgeCheckinInterval, _ := request.RetrieveNumericMultiPartFormValue(r, "EdgeCheckinInterval", true)
-	if edgeCheckinInterval == 0 {
-		// deprecated CheckinInterval
-		edgeCheckinInterval, _ = request.RetrieveNumericMultiPartFormValue(r, "CheckinInterval", true)
-	}
-	payload.EdgeCheckinInterval = edgeCheckinInterval
-
 	return nil
 }
 
@@ -193,9 +170,9 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name that will be used to identify this environment(endpoint) (example: my-environment)"
-// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 2 (Agent environment), 3 (Azure environment), 4 (Edge agent environment)" Enum(1,2,3,4)
+// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 2 (Agent environment), 3 (Azure environment)" Enum(1,2,3)
 // @param ContainerEngine formData string false "Container engine used by the environment(endpoint). Value must be one of: 'docker' or 'podman'"
-// @param URL formData string false "URL or IP address of a Docker host (example: docker.mydomain.tld:2375). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine). Cannot be empty if EndpointCreationType is set to 4 (Edge agent environment)"
+// @param URL formData string false "URL or IP address of a Docker host (example: docker.mydomain.tld:2375). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine)."
 // @param PublicURL formData string false "URL or IP address where exposed containers will be reachable. Defaults to URL if not specified (example: docker.mydomain.tld:2375)"
 // @param GroupID formData int false "Environment(Endpoint) group identifier. If not specified will default to 1 (unassigned)."
 // @param TLS formData bool false "Require TLS to connect against this environment(endpoint). Must be true if EndpointCreationType is set to 2 (Agent environment)"
@@ -208,8 +185,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @param AzureTenantID formData string false "Azure tenant ID. Required if environment(endpoint) type is set to 3"
 // @param AzureAuthenticationKey formData string false "Azure authentication key. Required if environment(endpoint) type is set to 3"
 // @param TagIds formData string false "JSON-parsable array of tag identifiers to which this environment(endpoint) is associated"
-// @param EdgeCheckinInterval formData int false "The check in interval for edge agent (in seconds)"
-// @param EdgeTunnelServerAddress formData string false "URL or IP address that will be used to establish a reverse tunnel"
 // @param Gpus formData string false "List of GPUs - json stringified array of {name, value} structs"
 // @success 200 {object} portainer.Endpoint "Success"
 // @failure 400 "Invalid request"
@@ -236,31 +211,13 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return endpointCreationError
 	}
 
-	endpointGroup, err := handler.DataStore.EndpointGroup().Read(endpoint.GroupID)
-	if err != nil {
+	if _, err := handler.DataStore.EndpointGroup().Read(endpoint.GroupID); err != nil {
 		return httperror.InternalServerError("Unable to find an environment group inside the database", err)
-	}
-
-	edgeGroups, err := handler.DataStore.EdgeGroup().ReadAll()
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
-	}
-
-	edgeStacks, err := handler.DataStore.EdgeStack().EdgeStacks()
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve edge stacks from the database", err)
 	}
 
 	relationObject := &portainer.EndpointRelation{
 		EndpointID: endpoint.ID,
 		EdgeStacks: map[portainer.EdgeStackID]bool{},
-	}
-
-	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
-		relatedEdgeStacks := edge.EndpointRelatedEdgeStacks(endpoint, endpointGroup, edgeGroups, edgeStacks)
-		for _, stackID := range relatedEdgeStacks {
-			relationObject.EdgeStacks[stackID] = true
-		}
 	}
 
 	if err := handler.DataStore.EndpointRelation().Create(relationObject); err != nil {
@@ -274,9 +231,6 @@ func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *end
 	switch payload.EndpointCreationType {
 	case azureEnvironment:
 		return handler.createAzureEndpoint(tx, payload)
-
-	case edgeAgentEnvironment:
-		return handler.createEdgeAgentEndpoint(tx, payload)
 	}
 
 	endpointType := portainer.DockerEnvironment
@@ -335,65 +289,6 @@ func (handler *Handler) createAzureEndpoint(tx dataservices.DataStoreTx, payload
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
-	}
-
-	if err := handler.saveEndpointAndUpdateAuthorizations(tx, endpoint); err != nil {
-		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
-	}
-
-	return endpoint, nil
-}
-
-func (handler *Handler) createEdgeAgentEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {
-	endpointID := tx.Endpoint().GetNextIdentifier()
-
-	portainerHost, err := edge.ParseHostForEdge(payload.URL)
-	if err != nil {
-		return nil, httperror.BadRequest("Unable to parse host", err)
-	}
-
-	edgeKey := handler.ReverseTunnelService.GenerateEdgeKey(payload.URL, portainerHost, endpointID)
-
-	endpoint := &portainer.Endpoint{
-		ID:   portainer.EndpointID(endpointID),
-		Name: payload.Name,
-		URL:  portainerHost,
-		Type: func() portainer.EndpointType {
-			// an empty container engine means that the endpoint is a Kubernetes endpoint
-			if payload.ContainerEngine == "" {
-				return portainer.EdgeAgentOnKubernetesEnvironment
-			}
-			return portainer.EdgeAgentOnDockerEnvironment
-		}(),
-		ContainerEngine: payload.ContainerEngine,
-		GroupID:         portainer.EndpointGroupID(payload.GroupID),
-		Gpus:            payload.Gpus,
-		TLSConfig: portainer.TLSConfiguration{
-			TLS: false,
-		},
-		UserAccessPolicies:  portainer.UserAccessPolicies{},
-		TeamAccessPolicies:  portainer.TeamAccessPolicies{},
-		TagIDs:              payload.TagIDs,
-		Status:              portainer.EndpointStatusUp,
-		Snapshots:           []portainer.DockerSnapshot{},
-		EdgeKey:             edgeKey,
-		EdgeCheckinInterval: payload.EdgeCheckinInterval,
-		Kubernetes:          portainer.KubernetesDefault(),
-		UserTrusted:         true,
-	}
-
-	settings, err := tx.Settings().Settings()
-	if err != nil {
-		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
-	}
-
-	if settings.EnforceEdgeID {
-		edgeID, err := uuid.NewRandom()
-		if err != nil {
-			return nil, httperror.InternalServerError("Cannot generate the Edge ID", err)
-		}
-
-		endpoint.EdgeID = edgeID.String()
 	}
 
 	if err := handler.saveEndpointAndUpdateAuthorizations(tx, endpoint); err != nil {
@@ -503,10 +398,6 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.Data
 	endpoint.SecuritySettings = portainer.DefaultEndpointSecuritySettings()
 
 	if err := tx.Endpoint().Create(endpoint); err != nil {
-		return err
-	}
-
-	if err := endpointutils.InitializeEdgeEndpointRelation(endpoint, tx); err != nil {
 		return err
 	}
 

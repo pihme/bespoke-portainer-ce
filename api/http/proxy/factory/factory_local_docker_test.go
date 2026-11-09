@@ -15,6 +15,7 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/proxy/factory/docker"
 	"github.com/portainer/portainer/pkg/fips"
 
@@ -52,10 +53,10 @@ func startUnixHTTPServer(t *testing.T, handler http.Handler) string {
 func TestNewProxyFactory_WiresDependencies(t *testing.T) {
 	t.Parallel()
 
-	tunnel := &stubTunnelService{}
-	f := NewProxyFactory(nil, nil, tunnel, nil, nil, nil, nil, nil, nil)
+	clientFactory := dockerclient.NewClientFactory(nil)
+	f := NewProxyFactory(nil, nil, clientFactory, nil, nil, nil, nil, nil)
 	require.NotNil(t, f)
-	require.Same(t, tunnel, f.reverseTunnelService)
+	require.Same(t, clientFactory, f.dockerClientFactory)
 }
 
 // TestREQ_ENV_05_NewEndpointProxy_LocalDockerUnix builds a filesystem-backed
@@ -71,7 +72,7 @@ func TestREQ_ENV_05_NewEndpointProxy_LocalDockerUnix(t *testing.T) {
 		_, _ = io.WriteString(w, `{"ok":true}`)
 	}))
 
-	f := NewProxyFactory(nil, nil, &stubTunnelService{}, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	endpoint := &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "unix://" + sock,
@@ -98,7 +99,7 @@ func TestREQ_ENV_05_NewEndpointProxy_LocalDockerUnix(t *testing.T) {
 func TestREQ_ENV_05_NewEndpointProxy_DockerTCP(t *testing.T) {
 	enableSSRF(t)
 
-	f := NewProxyFactory(nil, nil, &stubTunnelService{}, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	endpoint := &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "tcp://192.168.1.50:2375",
@@ -117,7 +118,7 @@ func TestREQ_ENV_05_NewEndpointProxy_DockerTCP(t *testing.T) {
 func TestREQ_ENV_05_NewDockerProxy_RoutesUnixAndNpipe(t *testing.T) {
 	enableSSRF(t)
 
-	f := &ProxyFactory{reverseTunnelService: &stubTunnelService{}}
+	f := &ProxyFactory{}
 
 	sock := startUnixHTTPServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
@@ -231,7 +232,7 @@ func TestREQ_ENV_05_NewSocketTransport_DialsUnix(t *testing.T) {
 func TestNewGitlabProxy_BuildsHandler(t *testing.T) {
 	t.Parallel()
 
-	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	handler, err := f.NewGitlabProxy("https://gitlab.example.com/api/v4/")
 	require.NoError(t, err)
 	require.IsType(t, &httputil.ReverseProxy{}, handler)
@@ -270,7 +271,7 @@ func TestSingleJoiningSlash(t *testing.T) {
 func TestREQ_ENV_05_NewEndpointProxy_AgentOnDockerFallsThroughToDocker(t *testing.T) {
 	enableSSRF(t)
 
-	f := NewProxyFactory(nil, nil, &stubTunnelService{}, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	endpoint := &portainer.Endpoint{
 		Type: portainer.AgentOnDockerEnvironment,
 		URL:  "tcp://192.168.1.60:9001",
@@ -284,7 +285,7 @@ func TestREQ_ENV_05_NewEndpointProxy_AgentOnDockerFallsThroughToDocker(t *testin
 func TestREQ_ENV_05_NewDockerHTTPProxy_InvalidURL(t *testing.T) {
 	t.Parallel()
 
-	f := &ProxyFactory{reverseTunnelService: &stubTunnelService{}}
+	f := &ProxyFactory{}
 	_, err := f.newDockerHTTPProxy(&portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "tcp://%zz",
@@ -295,7 +296,7 @@ func TestREQ_ENV_05_NewDockerHTTPProxy_InvalidURL(t *testing.T) {
 func TestREQ_ENV_05_NewDockerHTTPProxy_TLSConfigFromDiskFails(t *testing.T) {
 	enableSSRF(t)
 
-	f := &ProxyFactory{reverseTunnelService: &stubTunnelService{}}
+	f := &ProxyFactory{}
 	_, err := f.newDockerHTTPProxy(&portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "tcp://192.168.1.70:2376",

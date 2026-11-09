@@ -15,7 +15,6 @@ import { dockerHandlers } from './setup-handlers/docker';
 import { endpointsHandlers } from './setup-handlers/endpoints';
 import { settingsHandlers } from './setup-handlers/settings';
 import { templatesHandlers } from './setup-handlers/templates';
-import { edgeHandlers } from './setup-handlers/edge';
 import { gitopsHandlers } from './setup-handlers/gitops';
 
 const tags: Tag[] = [
@@ -42,7 +41,6 @@ export const handlers = [
   ...templatesHandlers,
   ...azureHandlers,
   ...dockerHandlers,
-  ...edgeHandlers,
   ...gitopsHandlers,
   http.get('/api/stacks', () => HttpResponse.json([])),
   http.get('/api/licenses/info', () => HttpResponse.json(licenseInfo)),

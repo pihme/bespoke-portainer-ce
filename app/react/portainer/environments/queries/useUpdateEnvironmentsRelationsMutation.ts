@@ -6,9 +6,7 @@ import {
   withError,
   withInvalidate,
 } from '@/react-tools/react-query';
-import { EdgeGroup } from '@/react/edge/edge-groups/types';
 import { TagId } from '@/portainer/tags/types';
-import { queryKeys as edgeGroupQueryKeys } from '@/react/edge/edge-groups/queries/query-keys';
 import { queryKeys as groupQueryKeys } from '@/react/portainer/environments/environment-groups/queries/query-keys';
 import { tagKeys } from '@/portainer/tags/queries';
 
@@ -25,7 +23,6 @@ export function useUpdateEnvironmentsRelationsMutation() {
     mutationOptions(
       withInvalidate(queryClient, [
         environmentQueryKeys.base(),
-        edgeGroupQueryKeys.base(),
         groupQueryKeys.base(),
         tagKeys.all,
       ]),
@@ -35,7 +32,6 @@ export function useUpdateEnvironmentsRelationsMutation() {
 }
 
 export interface EnvironmentRelationsPayload {
-  edgeGroups: Array<EdgeGroup['Id']>;
   group: EnvironmentGroupId;
   tags: Array<TagId>;
 }

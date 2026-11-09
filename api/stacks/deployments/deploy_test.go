@@ -568,7 +568,7 @@ type factoryDeployer struct {
 }
 
 func (factoryDeployer) GetDockerClientFactory() *dockerclient.ClientFactory {
-	return dockerclient.NewClientFactory(nil, nil)
+	return dockerclient.NewClientFactory(nil)
 }
 
 func Test_ValidateStackForUser_DockerClientCreationFails(t *testing.T) {

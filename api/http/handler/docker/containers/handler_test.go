@@ -56,7 +56,7 @@ func newHandlerUnderTest(
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	containerService := dockerdomain.NewContainerService(factory, store)
 	h := NewHandler("/docker/{id}/containers", bouncer, store, factory, containerService)
 

@@ -305,3 +305,38 @@ func TestREQ_TAI_002_SettingsUpdate_IgnoresKubernetesFields(t *testing.T) {
 	assert.Equal(t, before.KubeconfigExpiry, after.KubeconfigExpiry)
 	assert.Equal(t, before.KubectlShellImage, after.KubectlShellImage)
 }
+
+// REQ-TAI-004: the Edge settings (Edge compute, trust on first connect,
+// enforced Edge ID, Edge URL, check-in interval) are removed; the update
+// ignores them.
+func TestREQ_TAI_004_SettingsUpdate_IgnoresEdgeFields(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, false)
+	handler, _ := setUpHandler(t, store)
+
+	before, err := store.Settings().Settings()
+	require.NoError(t, err)
+
+	body := []byte(`{
+		"EnableEdgeComputeFeatures": true,
+		"TrustOnFirstConnect": true,
+		"EnforceEdgeID": true,
+		"EdgePortainerURL": "https://localhost:9443",
+		"EdgeAgentCheckinInterval": 99
+	}`)
+
+	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", body))
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	after, err := store.Settings().Settings()
+	require.NoError(t, err)
+	assert.Equal(t, before.EnableEdgeComputeFeatures, after.EnableEdgeComputeFeatures)
+	assert.Equal(t, before.TrustOnFirstConnect, after.TrustOnFirstConnect)
+	assert.Equal(t, before.EnforceEdgeID, after.EnforceEdgeID)
+	assert.Equal(t, before.EdgePortainerURL, after.EdgePortainerURL)
+	assert.Equal(t, before.EdgeAgentCheckinInterval, after.EdgeAgentCheckinInterval)
+}

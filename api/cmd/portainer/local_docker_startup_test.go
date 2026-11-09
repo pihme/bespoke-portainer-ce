@@ -40,36 +40,30 @@ func localDockerStartupFlags(dataDir string) *portainer.CLIFlags {
 	snapshot := "5m"
 	logo := ""
 	templates := ""
-	edgeURL := ""
-	edgeEnabled := false
-	trustOnFirst := false
 	httpDisabled := false
 	httpEnabled := false
 	secretKeyName := "portainer"
 
 	return &portainer.CLIFlags{
-		Addr:                      &addr,
-		AddrHTTPS:                 &addrHTTPS,
-		Data:                      &dataDir,
-		Assets:                    &empty,
-		SnapshotInterval:          &snapshot,
-		Logo:                      &logo,
-		Templates:                 &templates,
-		EnableEdgeComputeFeatures: &edgeEnabled,
-		EdgePortainerURL:          &edgeURL,
-		EdgeTrustOnFirstConnect:   &trustOnFirst,
-		Labels:                    &labels,
-		HTTPDisabled:              &httpDisabled,
-		HTTPEnabled:               &httpEnabled,
-		KubectlShellImage:         &kubectl,
-		SecretKeyName:             &secretKeyName,
-		CompactDB:                 &compactDB,
-		Rollback:                  &rollback,
-		MaxBatchSize:              &maxBatchSize,
-		MaxBatchDelay:             &maxBatchDelay,
-		InitialMmapSize:           &initialMmapSize,
-		TLSCert:                   &empty,
-		TLSKey:                    &empty,
+		Addr:              &addr,
+		AddrHTTPS:         &addrHTTPS,
+		Data:              &dataDir,
+		Assets:            &empty,
+		SnapshotInterval:  &snapshot,
+		Logo:              &logo,
+		Templates:         &templates,
+		Labels:            &labels,
+		HTTPDisabled:      &httpDisabled,
+		HTTPEnabled:       &httpEnabled,
+		KubectlShellImage: &kubectl,
+		SecretKeyName:     &secretKeyName,
+		CompactDB:         &compactDB,
+		Rollback:          &rollback,
+		MaxBatchSize:      &maxBatchSize,
+		MaxBatchDelay:     &maxBatchDelay,
+		InitialMmapSize:   &initialMmapSize,
+		TLSCert:           &empty,
+		TLSKey:            &empty,
 	}
 }
 
@@ -103,16 +97,13 @@ func TestREQ_SRV_04_UpdateSettingsFromFlags_LocalDockerCLI(t *testing.T) {
 		)
 
 		flags := &portainer.CLIFlags{
-			SnapshotInterval:          &snapshot,
-			Logo:                      &logo,
-			Templates:                 &templates,
-			EnableEdgeComputeFeatures: &falseBool,
-			EdgePortainerURL:          &empty,
-			EdgeTrustOnFirstConnect:   &falseBool,
-			Labels:                    &labels,
-			HTTPDisabled:              &trueBool,
-			HTTPEnabled:               &falseBool,
-			KubectlShellImage:         &kubectl,
+			SnapshotInterval:  &snapshot,
+			Logo:              &logo,
+			Templates:         &templates,
+			Labels:            &labels,
+			HTTPDisabled:      &trueBool,
+			HTTPEnabled:       &falseBool,
+			KubectlShellImage: &kubectl,
 		}
 
 		require.NoError(t, updateSettingsFromFlags(store, flags))
@@ -136,16 +127,13 @@ func TestREQ_SRV_04_UpdateSettingsFromFlags_LocalDockerCLI(t *testing.T) {
 		)
 
 		flags := &portainer.CLIFlags{
-			SnapshotInterval:          &empty,
-			Logo:                      &empty,
-			Templates:                 &empty,
-			EnableEdgeComputeFeatures: &falseBool,
-			EdgePortainerURL:          &empty,
-			EdgeTrustOnFirstConnect:   &falseBool,
-			Labels:                    &[]portainer.Pair{},
-			HTTPDisabled:              &falseBool,
-			HTTPEnabled:               &trueBool,
-			KubectlShellImage:         &kubectl,
+			SnapshotInterval:  &empty,
+			Logo:              &empty,
+			Templates:         &empty,
+			Labels:            &[]portainer.Pair{},
+			HTTPDisabled:      &falseBool,
+			HTTPEnabled:       &trueBool,
+			KubectlShellImage: &kubectl,
 		}
 
 		require.NoError(t, updateSettingsFromFlags(store, flags))
@@ -164,16 +152,13 @@ func TestREQ_SRV_04_UpdateSettingsFromFlags_LocalDockerCLI(t *testing.T) {
 		)
 
 		flags := &portainer.CLIFlags{
-			SnapshotInterval:          &empty,
-			Logo:                      &empty,
-			Templates:                 &empty,
-			EnableEdgeComputeFeatures: &falseBool,
-			EdgePortainerURL:          &empty,
-			EdgeTrustOnFirstConnect:   &falseBool,
-			Labels:                    &[]portainer.Pair{},
-			HTTPDisabled:              &falseBool,
-			HTTPEnabled:               &falseBool,
-			KubectlShellImage:         &kubectl,
+			SnapshotInterval:  &empty,
+			Logo:              &empty,
+			Templates:         &empty,
+			Labels:            &[]portainer.Pair{},
+			HTTPDisabled:      &falseBool,
+			HTTPEnabled:       &falseBool,
+			KubectlShellImage: &kubectl,
 		}
 
 		require.NoError(t, updateSettingsFromFlags(store, flags))
@@ -303,9 +288,9 @@ func TestREQ_DED_04_InitSnapshotService_LocalInterval(t *testing.T) {
 
 	_, store := datastore.MustNewTestStore(t, true, false)
 	sig := initDigitalSignatureService()
-	dockerFactory := dockerclient.NewClientFactory(sig, nil)
+	dockerFactory := dockerclient.NewClientFactory(sig)
 
-	k8sFactory, err := kubecli.NewClientFactory(sig, nil, store, "test-instance", ":9443", portainer.DefaultUserSessionTimeout)
+	k8sFactory, err := kubecli.NewClientFactory(sig, store, "test-instance", ":9443", portainer.DefaultUserSessionTimeout)
 	require.NoError(t, err)
 
 	pending := pendingactions.NewService(store, k8sFactory)
@@ -441,8 +426,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	dataDir := t.TempDir()
 	flags := localDockerStartupFlags(dataDir)
 
-	tunnelAddr := "127.0.0.1"
-	tunnelPort := freeTCPPort(t)
 	assets := t.TempDir()
 	baseURL := "/"
 	trustedOrigins := ""
@@ -451,8 +434,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	endpointURL := ""
 	featureFlags := []string{}
 
-	flags.TunnelAddr = &tunnelAddr
-	flags.TunnelPort = &tunnelPort
 	flags.Assets = &assets
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
@@ -492,9 +473,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	assert.Equal(t, "admin", admins[0].Username)
 	assert.Empty(t, admins[0].Password)
 
-	if httpServer.ReverseTunnelService != nil {
-		_ = httpServer.ReverseTunnelService.StopTunnelServer()
-	}
 	cancel()
 	if httpServer.DataStore != nil {
 		_ = httpServer.DataStore.Close()
@@ -505,8 +483,6 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	dataDir := t.TempDir()
 	flags := localDockerStartupFlags(dataDir)
 
-	tunnelAddr := "127.0.0.1"
-	tunnelPort := freeTCPPort(t)
 	assets := t.TempDir()
 	baseURL := "/"
 	trustedOrigins := "https://portainer.example.com,https://ui.example.com:8443"
@@ -515,8 +491,6 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	endpointURL := ""
 	featureFlags := []string{}
 
-	flags.TunnelAddr = &tunnelAddr
-	flags.TunnelPort = &tunnelPort
 	flags.Assets = &assets
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
@@ -540,9 +514,6 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, []string{"https://portainer.example.com", "https://ui.example.com:8443"}, httpServer.TrustedOrigins)
 
-	if httpServer.ReverseTunnelService != nil {
-		_ = httpServer.ReverseTunnelService.StopTunnelServer()
-	}
 	cancel()
 	if httpServer.DataStore != nil {
 		_ = httpServer.DataStore.Close()

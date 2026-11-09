@@ -264,7 +264,7 @@ describe('endpoint resolve', () => {
     expect($state.go).not.toHaveBeenCalled();
   });
 
-  it('redirects edge endpoints without EdgeID to the endpoint detail page', async () => {
+  it('REQ-TAI-004 no longer redirects Edge endpoints to the Edge key page', async () => {
     const resolveFn = stateByName('endpoint').resolve.endpoint;
     const endpoint = { Id: 7, Type: 4, EdgeID: '' };
     const EndpointService = {
@@ -284,11 +284,9 @@ describe('endpoint resolve', () => {
       { error: vi.fn() }
     );
 
-    expect($state.go).toHaveBeenCalledWith('portainer.endpoints.endpoint', {
-      id: 7,
-    });
-    expect(EndpointProvider.setCurrentEndpoint).not.toHaveBeenCalled();
-    expect(result).toBeUndefined();
+    expect($state.go).not.toHaveBeenCalled();
+    expect(EndpointProvider.setCurrentEndpoint).toHaveBeenCalledWith(endpoint);
+    expect(result).toBe(endpoint);
   });
 
   it('notifies and redirects home when the endpoint is missing', async () => {

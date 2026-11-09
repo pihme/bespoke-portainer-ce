@@ -100,7 +100,6 @@ const baseValues = {
     AdditionalFiles: [],
   },
   Variables: [],
-  EdgeSettings: undefined,
 };
 
 function renderForm(
@@ -141,7 +140,6 @@ describe('REQ-TPL-03 CreateForm', () => {
         File: mixed().nullable(),
         Git: mixed(),
         Variables: array(),
-        EdgeSettings: mixed().nullable(),
       })
     );
     mockUseCurrentEnvironment.mockReturnValue({
@@ -165,7 +163,6 @@ describe('REQ-TPL-03 CreateForm', () => {
     });
     expect(mockUseInitialValues).toHaveBeenCalledWith({
       defaultType: StackType.DockerCompose,
-      isEdge: false,
       buildMethods: ['editor', 'upload', 'repository'],
     });
     expect(screen.getByTestId('inner-form')).toHaveTextContent(
@@ -186,11 +183,11 @@ describe('REQ-TPL-03 CreateForm', () => {
     });
   });
 
-  it('treats a missing environmentId as edge and still shows all build methods', () => {
-    renderForm({ environmentId: undefined, viewType: 'edge' });
+  it('REQ-TAI-004 treats a missing environmentId as a plain template, not Edge', () => {
+    renderForm({ environmentId: undefined, viewType: 'docker' });
 
     expect(mockUseInitialValues).toHaveBeenCalledWith(
-      expect.objectContaining({ isEdge: true })
+      expect.not.objectContaining({ isEdge: expect.anything() })
     );
     expect(screen.getByTestId('inner-form')).toHaveTextContent('env:');
   });
@@ -232,7 +229,6 @@ describe('REQ-TPL-03 CreateForm', () => {
         expect.objectContaining({
           Title: 'my-template',
           Method: 'editor',
-          EdgeTemplate: false,
         }),
         expect.any(Object)
       );
@@ -244,20 +240,16 @@ describe('REQ-TPL-03 CreateForm', () => {
     expect(mockGo).toHaveBeenCalledWith('^');
   });
 
-  it('marks EdgeTemplate true when creating without an environment', async () => {
+  it('REQ-TAI-004 never marks a template as an Edge template', async () => {
     const user = userEvent.setup();
     mockMutate.mockImplementation((_values, options) => {
       options?.onSuccess?.();
     });
 
-    renderForm({ environmentId: undefined, viewType: 'edge' });
+    renderForm({ environmentId: undefined, viewType: 'docker' });
     await user.click(screen.getByRole('button', { name: 'Submit create' }));
 
-    await waitFor(() => {
-      expect(mockMutate).toHaveBeenCalledWith(
-        expect.objectContaining({ EdgeTemplate: true }),
-        expect.any(Object)
-      );
-    });
+    await waitFor(() => expect(mockMutate).toHaveBeenCalled());
+    expect(mockMutate.mock.calls[0][0]).not.toHaveProperty('EdgeTemplate');
   });
 });

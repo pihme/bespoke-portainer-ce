@@ -38,7 +38,7 @@ func newDashboardAuthTestHandler(t *testing.T) (*Handler, *jwt.Service, *datasto
 
 	bouncer := security.NewRequestBouncer(t.Context(), store)
 
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	authorizationService := authorization.NewService(store)
 	containerService := dockerdomain.NewContainerService(factory, store)
 

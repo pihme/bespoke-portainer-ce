@@ -38,9 +38,6 @@ vi.mock('./AppDeliverySidebar', () => ({
   AppDeliverySidebar: () => <div data-cy="stub-app-delivery">AppDelivery</div>,
 }));
 
-vi.mock('./EdgeComputeSidebar', () => ({
-  EdgeComputeSidebar: () => <div data-cy="stub-edge">Edge</div>,
-}));
 
 vi.mock('./SettingsSidebar', () => ({
   SettingsSidebar: ({
@@ -116,16 +113,13 @@ describe('Sidebar shell', () => {
     expect(screen.getByTestId('stub-upgrade')).toBeInTheDocument();
   });
 
-  it('shows EdgeComputeSidebar only for admins', () => {
+  it('REQ-TAI-004 renders no Edge compute section, even for admins', () => {
     isAdmin = true;
     renderSidebar();
-    expect(screen.getByTestId('stub-edge')).toBeInTheDocument();
-  });
-
-  it('hides EdgeComputeSidebar for non-admins', () => {
-    isAdmin = false;
-    renderSidebar();
-    expect(screen.queryByTestId('stub-edge')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Edge compute/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('portainerSidebar-edgeGroups')
+    ).not.toBeInTheDocument();
   });
 
   it('REQ-TAI-001 passes no team leader flag into SettingsSidebar', () => {

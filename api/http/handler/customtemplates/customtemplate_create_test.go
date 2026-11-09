@@ -409,18 +409,20 @@ func TestCustomTemplateCreate_FromFileContent_InvalidVariables(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
 }
 
-func TestCustomTemplateCreate_FromFileContent_EdgeTemplate(t *testing.T) {
+// REQ-TAI-004: Edge templates went with Edge; the EdgeTemplate flag is
+// ignored on create, and a Swarm-type (Edge stack) template is rejected.
+func TestREQ_TAI_004_CustomTemplateCreate_NoEdgeTemplates(t *testing.T) {
 	t.Parallel()
 
 	handler, ds, _ := newTestHandler(t)
 
-	payload := customTemplateFromFileContentPayload{
-		Title:        "Edge Template",
-		Description:  "For edge stacks",
-		FileContent:  "version: '3'\nservices:\n  web:\n    image: nginx",
-		Type:         portainer.DockerComposeStack,
-		Platform:     portainer.CustomTemplatePlatformLinux,
-		EdgeTemplate: true,
+	payload := map[string]any{
+		"Title":        "Edge Template",
+		"Description":  "For edge stacks",
+		"FileContent":  "version: '3'\nservices:\n  web:\n    image: nginx",
+		"Type":         portainer.DockerComposeStack,
+		"Platform":     portainer.CustomTemplatePlatformLinux,
+		"EdgeTemplate": true,
 	}
 
 	r := createTemplateRequest(t, "string", payload, 1, portainer.AdministratorRole)
@@ -432,16 +434,23 @@ func TestCustomTemplateCreate_FromFileContent_EdgeTemplate(t *testing.T) {
 
 	var tmpl portainer.CustomTemplate
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
-	require.True(t, tmpl.EdgeTemplate)
+	require.False(t, tmpl.EdgeTemplate)
 
 	err := ds.ViewTx(func(tx dataservices.DataStoreTx) error {
 		stored, err := tx.CustomTemplate().Read(tmpl.ID)
 		require.NoError(t, err)
-		require.True(t, stored.EdgeTemplate)
+		require.False(t, stored.EdgeTemplate)
 
 		return nil
 	})
 	require.NoError(t, err)
+
+	payload["Type"] = portainer.DockerSwarmStack
+	payload["Title"] = "Swarm Template"
+	r = createTemplateRequest(t, "string", payload, 1, portainer.AdministratorRole)
+	herr = handler.customTemplateCreate(httptest.NewRecorder(), r)
+	require.NotNil(t, herr)
+	require.ErrorContains(t, herr.Err, "Invalid custom template type")
 }
 
 func TestCustomTemplateCreate_FromFileUpload_MissingTitle(t *testing.T) {

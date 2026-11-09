@@ -18,7 +18,7 @@ import (
 
 func TestGetClient_MissingEndpoint(t *testing.T) {
 	t.Parallel()
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 	req := httptest.NewRequest(http.MethodGet, "/docker", nil)
 	cli, herr := GetClient(req, factory)
 	require.Nil(t, cli)
@@ -35,7 +35,7 @@ func TestGetClient_CreateClientError(t *testing.T) {
 		URL:  "https://azure.example",
 	}
 	ds := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portainer.Endpoint{*ep}))
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 
 	var (
 		cli  any
@@ -66,7 +66,7 @@ func TestGetClient_LocalDockerSuccess(t *testing.T) {
 		URL:  "unix:///var/run/docker.sock",
 	}
 	ds := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portainer.Endpoint{*ep}))
-	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService(), nil)
+	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 
 	var (
 		cli  any

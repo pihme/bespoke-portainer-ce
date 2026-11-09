@@ -1,7 +1,6 @@
 package endpointproxy
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -165,86 +164,33 @@ func TestProxyDockerAPI_AgentDockerPrefixStripped(t *testing.T) {
 	assert.Equal(t, "/containers/json", gotPath)
 }
 
-func TestProxyDockerAPI_EdgeNoEdgeID(t *testing.T) {
+// REQ-TAI-004: a legacy Edge environment record is refused with 400, even when
+// a proxy for it is cached.
+func TestREQ_TAI_004_ProxyDockerAPI_EdgeEnvironmentIsRejected(t *testing.T) {
 	t.Parallel()
 
-	// Edge Docker environment registered but never connected (empty EdgeID) → 500.
-	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
-
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:     12,
-		Name:   "edge-docker-no-id",
-		Type:   portainer.EdgeAgentOnDockerEnvironment,
-		EdgeID: "",
-	}))
-
-	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/12/docker/containers/json", nil)
-
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rw.Code)
-}
-
-func TestProxyDockerAPI_EdgeTunnelUnavailable(t *testing.T) {
-	t.Parallel()
-
-	// Edge agent has an EdgeID but the tunnel is offline → 500 rather than hanging.
 	_, store := datastore.MustNewTestStore(t, false, false)
 
 	h := NewHandler(testhelpers.NewTestRequestBouncer())
 	h.DataStore = store
 	h.ProxyManager = proxy.NewManager(nil)
-	h.ReverseTunnelService = &stubTunnelService{
-		tunnelAddrErr: errors.New("no active tunnel for edge agent"),
-	}
-
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:     13,
-		Name:   "edge-docker-offline",
-		Type:   portainer.EdgeAgentOnDockerEnvironment,
-		EdgeID: "registered-edge-id",
-	}))
-
-	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/13/docker/version", nil)
-
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusInternalServerError, rw.Code)
-}
-
-func TestProxyDockerAPI_EdgeWithTunnelUsesCachedProxy(t *testing.T) {
-	t.Parallel()
-
-	// Edge Docker with a live tunnel and a cached proxy forwards after strip.
-	_, store := datastore.MustNewTestStore(t, false, false)
-
-	h := NewHandler(testhelpers.NewTestRequestBouncer())
-	h.DataStore = store
-	h.ProxyManager = proxy.NewManager(nil)
-	h.ReverseTunnelService = &stubTunnelService{tunnelAddr: "127.0.0.1:9001"}
 
 	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
 		ID:     14,
-		Name:   "edge-docker-online",
+		Name:   "legacy-edge",
 		Type:   portainer.EdgeAgentOnDockerEnvironment,
 		EdgeID: "registered-edge-id",
 	}))
 
-	var gotPath string
+	reached := false
 	registerStubEndpointProxy(t, h.ProxyManager, 14, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotPath = r.URL.Path
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ok"))
+		reached = true
 	}))
 
 	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/14/docker/info", nil)
-
+	req := httptest.NewRequest(http.MethodGet, "/14/docker/version", nil)
 	h.ServeHTTP(rw, req)
 
-	assert.Equal(t, http.StatusOK, rw.Code)
-	assert.Equal(t, "ok", rw.Body.String())
-	assert.Equal(t, "/info", gotPath)
+	assert.Equal(t, http.StatusBadRequest, rw.Code)
+	assert.False(t, reached)
 }

@@ -1,17 +1,10 @@
 import { UserId } from '@/portainer/users/types';
 import { StackType } from '@/react/common/stacks/types';
-import {
-  StaggerConfig,
-  getDefaultStaggerConfig,
-} from '@/react/edge/edge-stacks/components/StaggerFieldset.types';
 
 import { ResourceControlResponse } from '../../access-control/types';
-import { RelativePathModel, RepoConfigResponse } from '../../gitops/types';
+import { RepoConfigResponse } from '../../gitops/types';
 import { VariableDefinition } from '../../custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { Platform } from '../types';
-import { RegistryId } from '../../registries/types/registry';
-import { getDefaultRelativePathModel } from '../../gitops/RelativePathFieldset/types';
-import { isBE } from '../../feature-flags/feature-flags.service';
 
 export type CustomTemplate = {
   Id: number;
@@ -92,11 +85,6 @@ export type CustomTemplate = {
    */
   IsComposeFormat: boolean;
 
-  /** EdgeTemplate indicates if this template purpose for Edge Stack */
-  EdgeTemplate: boolean;
-
-  EdgeSettings?: EdgeTemplateSettings;
-
   /** Artifact stores the git source reference for git-backed templates. */
   artifact?: {
     files?: Array<{ sourceId?: number }>;
@@ -109,41 +97,6 @@ export function getTemplateSourceId(
   return template?.artifact?.files?.[0]?.sourceId;
 }
 
-/**
- * EdgeTemplateSettings represents the configuration of a custom template for Edge
- */
-export type EdgeTemplateSettings = {
-  PrePullImage: boolean;
-
-  RetryDeploy: boolean;
-
-  PrivateRegistryId: RegistryId | undefined;
-
-  RelativePathSettings: RelativePathModel;
-
-  /**
-   * StaggerConfig is the configuration for staggered update
-   * required only on BE
-   */
-  StaggerConfig: StaggerConfig;
-};
-
 export type CustomTemplateFileContent = {
   FileContent: string;
 };
-
-export function getDefaultEdgeTemplateSettings():
-  | EdgeTemplateSettings
-  | undefined {
-  if (!isBE) {
-    return undefined;
-  }
-
-  return {
-    PrePullImage: false,
-    RetryDeploy: false,
-    PrivateRegistryId: undefined,
-    RelativePathSettings: getDefaultRelativePathModel(),
-    StaggerConfig: getDefaultStaggerConfig(),
-  };
-}

@@ -15,11 +15,10 @@ import (
 
 func (factory ProxyFactory) newOSBasedLocalProxy(path string, endpoint *portainer.Endpoint) (http.Handler, error) {
 	transportParameters := &docker.TransportParameters{
-		Endpoint:             endpoint,
-		DataStore:            factory.dataStore,
-		ReverseTunnelService: factory.reverseTunnelService,
-		SignatureService:     factory.signatureService,
-		DockerClientFactory:  factory.dockerClientFactory,
+		Endpoint:            endpoint,
+		DataStore:           factory.dataStore,
+		SignatureService:    factory.signatureService,
+		DockerClientFactory: factory.dockerClientFactory,
 	}
 
 	proxy := &dockerLocalProxy{}

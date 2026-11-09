@@ -229,9 +229,9 @@ describe('REQ-TPL-03 / REQ-TPL-04 useValidation', () => {
     ).rejects.toThrow(/unique/i);
   });
 
-  it('still builds a schema for edge view type', async () => {
+  it('REQ-TAI-004 does not validate legacy Edge settings', async () => {
     const { result } = renderHook(
-      () => useValidation({ viewType: 'edge', deployMethod: 'compose' }),
+      () => useValidation({ viewType: 'docker', deployMethod: 'compose' }),
       { wrapper }
     );
 
@@ -248,6 +248,7 @@ describe('REQ-TPL-03 / REQ-TPL-04 useValidation', () => {
         File: undefined,
         Git: {},
         Variables: [],
+        EdgeSettings: { PrePullImage: 'not-a-boolean' },
       })
     ).resolves.toBeTruthy();
   });

@@ -18,7 +18,6 @@ type (
 	ProxyFactory struct {
 		dataStore                   dataservices.DataStore
 		signatureService            portainer.DigitalSignatureService
-		reverseTunnelService        portainer.ReverseTunnelService
 		dockerClientFactory         *dockerclient.ClientFactory
 		kubernetesClientFactory     *cli.ClientFactory
 		kubernetesTokenCacheManager *kubernetes.TokenCacheManager
@@ -29,11 +28,10 @@ type (
 )
 
 // NewProxyFactory returns a pointer to a new instance of a ProxyFactory
-func NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, tunnelService portainer.ReverseTunnelService, clientFactory *dockerclient.ClientFactory, kubernetesClientFactory *cli.ClientFactory, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, gitService portainer.GitService, snapshotService portainer.SnapshotService, jwtService portainer.JWTService) *ProxyFactory {
+func NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, clientFactory *dockerclient.ClientFactory, kubernetesClientFactory *cli.ClientFactory, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, gitService portainer.GitService, snapshotService portainer.SnapshotService, jwtService portainer.JWTService) *ProxyFactory {
 	return &ProxyFactory{
 		dataStore:                   dataStore,
 		signatureService:            signatureService,
-		reverseTunnelService:        tunnelService,
 		dockerClientFactory:         clientFactory,
 		kubernetesClientFactory:     kubernetesClientFactory,
 		kubernetesTokenCacheManager: kubernetesTokenCacheManager,
@@ -48,7 +46,9 @@ func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (htt
 	switch endpoint.Type {
 	case portainer.AzureEnvironment:
 		return newAzureProxy(endpoint, factory.dataStore)
-	case portainer.EdgeAgentOnKubernetesEnvironment, portainer.AgentOnKubernetesEnvironment, portainer.KubernetesLocalEnvironment:
+	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
+		return nil, portainer.ErrEdgeEnvironmentNotSupported
+	case portainer.AgentOnKubernetesEnvironment, portainer.KubernetesLocalEnvironment:
 		return factory.newKubernetesProxy(endpoint)
 	}
 

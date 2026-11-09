@@ -20,13 +20,12 @@ func TestOptionParser(t *testing.T) {
 	a := os.Args
 	defer func() { os.Args = a }()
 
-	os.Args = []string{"portainer", "--edge-compute"}
+	os.Args = []string{"portainer"}
 
 	opts, err := p.ParseFlags("2.34.5")
 	require.NoError(t, err)
 
 	require.False(t, *opts.HTTPDisabled)
-	require.True(t, *opts.EnableEdgeComputeFeatures)
 }
 
 // TAI-001: the first-administrator and setup-token flags are gone, so the
@@ -45,84 +44,22 @@ func TestREQ_TAI_001_LoginSetupFlagsAreRejected(t *testing.T) {
 	}
 }
 
-func TestParseEdgeFlags(t *testing.T) {
-	const edgeURL = "https://edge.example.com:9443"
+// REQ-TAI-004: the Edge and tunnel server flags are gone with Edge, so the
+// parser rejects them as unknown flags and their variables do nothing.
+func TestREQ_TAI_004_EdgeFlagsAreRejected(t *testing.T) {
+	setOsArgs(t, []string{"portainer"})
+	t.Setenv("EDGE_COMPUTE", "1")
+	t.Setenv("EDGE_PORTAINER_URL", "https://edge.example.com:9443")
+	t.Setenv("EDGE_TRUST_ON_FIRST_CONNECT", "1")
 
-	testCases := []struct {
-		name          string
-		args          []string
-		envVars       map[string]string
-		expectedURL   string
-		expectedTrust bool
-	}{
-		{
-			name:          "no edge flags or env vars",
-			expectedURL:   "",
-			expectedTrust: false,
-		},
-		{
-			name:          "flags set",
-			args:          []string{"portainer", "--edge-portainer-url", edgeURL, "--edge-trust-on-first-connect"},
-			expectedURL:   edgeURL,
-			expectedTrust: true,
-		},
-		{
-			name: "env vars set",
-			envVars: map[string]string{
-				portainer.EdgePortainerURLEnvVar:        edgeURL,
-				portainer.EdgeTrustOnFirstConnectEnvVar: "1",
-			},
-			expectedURL:   edgeURL,
-			expectedTrust: true,
-		},
-		{
-			name:        "flag overrides env var",
-			args:        []string{"portainer", "--edge-portainer-url", edgeURL},
-			envVars:     map[string]string{portainer.EdgePortainerURLEnvVar: "https://other.example.com:9443"},
-			expectedURL: edgeURL,
-		},
-	}
+	_, err := Service{}.ParseFlags("test-version")
+	require.NoError(t, err)
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			if tc.args == nil {
-				tc.args = []string{"portainer"}
-			}
-			setOsArgs(t, tc.args)
+	for _, name := range []string{"edge-compute", "edge-portainer-url", "edge-trust-on-first-connect", "tunnel-addr", "tunnel-port"} {
+		require.Nil(t, kingpin.CommandLine.GetFlag(name), name)
 
-			for k, v := range tc.envVars {
-				t.Setenv(k, v)
-			}
-
-			flags, err := Service{}.ParseFlags("test-version")
-			require.NoError(t, err)
-
-			require.Equal(t, tc.expectedURL, *flags.EdgePortainerURL)
-			require.Equal(t, tc.expectedTrust, *flags.EdgeTrustOnFirstConnect)
-		})
-	}
-}
-
-func TestValidateEdgePortainerURL(t *testing.T) {
-	testCases := []struct {
-		name      string
-		edgeURL   string
-		expectErr bool
-	}{
-		{name: "empty url is valid (flags are optional)", edgeURL: ""},
-		{name: "valid https url with port", edgeURL: "https://edge.example.com:9443"},
-		{name: "localhost is rejected", edgeURL: "https://localhost:9443", expectErr: true},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := ValidateEdgePortainerURL(tc.edgeURL)
-			if tc.expectErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-		})
+		_, err := kingpin.CommandLine.Parse([]string{"--" + name})
+		require.ErrorContains(t, err, "unknown long flag '--"+name+"'")
 	}
 }
 
@@ -333,7 +270,6 @@ func TestValidateFlags_LocalDefaultsOK(t *testing.T) {
 	flags := &portainer.CLIFlags{
 		EndpointURL:      strPtr(""),
 		SnapshotInterval: strPtr(""),
-		EdgePortainerURL: strPtr(""),
 		NoAnalytics:      boolPtr(false),
 	}
 	require.NoError(t, svc.ValidateFlags(flags))
@@ -345,7 +281,6 @@ func TestValidateFlags_NoAnalyticsWarns(t *testing.T) {
 	flags := &portainer.CLIFlags{
 		EndpointURL:      strPtr("tcp://127.0.0.1:2375"),
 		SnapshotInterval: strPtr("5m"),
-		EdgePortainerURL: strPtr(""),
 		NoAnalytics:      boolPtr(true),
 	}
 	require.NoError(t, svc.ValidateFlags(flags))
@@ -357,7 +292,6 @@ func TestValidateFlags_InvalidSnapshotInterval(t *testing.T) {
 	flags := &portainer.CLIFlags{
 		EndpointURL:      strPtr(""),
 		SnapshotInterval: strPtr("not-a-duration"),
-		EdgePortainerURL: strPtr(""),
 		NoAnalytics:      boolPtr(false),
 	}
 	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidSnapshotInterval)
@@ -369,7 +303,6 @@ func TestValidateFlags_InvalidEndpointProtocol(t *testing.T) {
 	flags := &portainer.CLIFlags{
 		EndpointURL:      strPtr("http://example.com"),
 		SnapshotInterval: strPtr(""),
-		EdgePortainerURL: strPtr(""),
 		NoAnalytics:      boolPtr(false),
 	}
 	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidEndpointProtocol)

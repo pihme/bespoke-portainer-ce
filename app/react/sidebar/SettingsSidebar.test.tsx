@@ -109,9 +109,10 @@ describe('SettingsSidebar', () => {
       expect(
         screen.queryByTestId('portainerSidebar-authentication')
       ).not.toBeInTheDocument();
+      // REQ-TAI-004: no Edge Compute settings
       expect(
-        screen.getByTestId('portainerSidebar-edgeCompute')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-edgeCompute')
+      ).not.toBeInTheDocument();
     });
 
     it('should render Get Help link with correct CE URL', () => {
@@ -192,7 +193,7 @@ describe('SettingsSidebar', () => {
     });
   });
 
-  describe('Edge Compute Features', () => {
+  describe('REQ-TAI-004 no Edge Update & Rollback', () => {
     it('should not render Update & Rollback when edge compute is disabled in CE', () => {
       vi.mocked(usePublicSettings).mockImplementation(((options?: {
         select?: (settings: PublicSettingsResponse) => PublicSettingsResponse;

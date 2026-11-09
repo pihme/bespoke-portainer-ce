@@ -7,10 +7,6 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { server } from '@/setup-tests/server';
 
-vi.mock('../shared/EdgeAgentTab', () => ({
-  EdgeAgentTab: () => <div data-cy="edge-tab">edge</div>,
-}));
-
 vi.mock('./AgentTab', () => ({
   AgentTab: () => <div data-cy="agent-tab">agent</div>,
 }));
@@ -52,5 +48,13 @@ describe('WizardDocker', () => {
     expect(
       await screen.findByTestId('docker-aconnect-button')
     ).toBeVisible();
+  });
+
+  it('REQ-TAI-004 offers no Edge Agent option and opens on the Socket tab', async () => {
+    renderWizard();
+    expect(
+      await screen.findByTestId('docker-socket-connect-button')
+    ).toBeVisible();
+    expect(screen.queryByText(/Edge Agent/)).not.toBeInTheDocument();
   });
 });

@@ -5,12 +5,10 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/internal/testhelpers"
 	"github.com/portainer/portainer/pkg/fips"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,11 +39,6 @@ func TestSaveEndpointAndUpdateAuthorizations(t *testing.T) {
 			name:           "create azure environment, expect no relation to be created",
 			endpointType:   portainer.AzureEnvironment,
 			expectRelation: false,
-		},
-		{
-			name:           "create edge agent environment, expect relation to be created",
-			endpointType:   portainer.EdgeAgentOnDockerEnvironment,
-			expectRelation: true,
 		},
 		{
 			name:           "create kubernetes environment, expect no relation to be created",
@@ -126,24 +119,6 @@ func TestValidateEndpointCreatePayload_TLS(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "edge agent env with TLS rejected",
-			formValues: map[string][]string{
-				"Name":                 {"Test Endpoint"},
-				"EndpointCreationType": {"4"},
-				"TLS":                  {"true"},
-			},
-			expectedError: "TLS is not supported for Edge Agent environments",
-		},
-		{
-			name: "edge agent env without TLS succeeds",
-			formValues: map[string][]string{
-				"Name":                 {"Test Endpoint"},
-				"EndpointCreationType": {"4"},
-				"URL":                  {"https://portainer.example:9443"},
-			},
-			expectedError: "",
-		},
-		{
 			name: "non-edge agent env with TLS allowed",
 			formValues: map[string][]string{
 				"Name":                 {"Test Endpoint"},
@@ -167,64 +142,6 @@ func TestValidateEndpointCreatePayload_TLS(t *testing.T) {
 			} else {
 				require.EqualError(t, err, tc.expectedError)
 			}
-		})
-	}
-}
-
-func TestCreateEdgeAgentEndpoint_ContainerEngineMapping(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	// required group for save flow
-	endpointGroup := &portainer.EndpointGroup{ID: 1, Name: "test-group"}
-	err := store.EndpointGroup().Create(endpointGroup)
-	require.NoError(t, err)
-
-	h := &Handler{
-		DataStore:            store,
-		ReverseTunnelService: chisel.NewService(store, nil, nil),
-	}
-
-	tests := []struct {
-		name     string
-		engine   string
-		wantType portainer.EndpointType
-	}{
-		{
-			name:     "empty engine -> EdgeAgentOnKubernetesEnvironment",
-			engine:   "",
-			wantType: portainer.EdgeAgentOnKubernetesEnvironment,
-		},
-		{
-			name:     "docker engine -> EdgeAgentOnDockerEnvironment",
-			engine:   portainer.ContainerEngineDocker,
-			wantType: portainer.EdgeAgentOnDockerEnvironment,
-		},
-		{
-			name:     "podman engine -> EdgeAgentOnDockerEnvironment",
-			engine:   portainer.ContainerEnginePodman,
-			wantType: portainer.EdgeAgentOnDockerEnvironment,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			payload := &endpointCreatePayload{
-				Name:                 "edge-endpoint",
-				EndpointCreationType: edgeAgentEnvironment,
-				ContainerEngine:      tc.engine,
-				GroupID:              1,
-				URL:                  "https://portainer.example:9443",
-			}
-
-			ep, httpErr := h.createEdgeAgentEndpoint(store, payload)
-			require.Nil(t, httpErr)
-			require.NotNil(t, ep)
-
-			assert.Equal(t, tc.wantType, ep.Type)
-			assert.Equal(t, tc.engine, ep.ContainerEngine)
 		})
 	}
 }

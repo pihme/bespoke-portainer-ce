@@ -73,7 +73,6 @@ export function EditForm({
     mutation.mutate(
       {
         id: template.Id,
-        EdgeTemplate: template.EdgeTemplate,
         Description: values.Description,
         Title: values.Title,
         Type: values.Type,
@@ -82,7 +81,6 @@ export function EditForm({
         Note: values.Note,
         Platform: values.Platform,
         Variables: values.Variables,
-        EdgeSettings: values.EdgeSettings,
         ...values.Git,
       },
       {

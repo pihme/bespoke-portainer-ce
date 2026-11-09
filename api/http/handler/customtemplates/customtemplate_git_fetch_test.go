@@ -416,7 +416,7 @@ func TestREQ_TPL_03_CustomTemplateGitFetch_BackupFailsWhenProjectMissing(t *test
 		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
 			ID: 1, Title: "git-compose", Type: portainer.DockerComposeStack,
 			ProjectPath: t.TempDir() + "/does-not-exist",
-			Artifact: &portainer.Artifact{Files: []portainer.ArtifactFile{{SourceID: srcID, Path: "docker-compose.yml"}}},
+			Artifact:    &portainer.Artifact{Files: []portainer.ArtifactFile{{SourceID: srcID, Path: "docker-compose.yml"}}},
 		})
 	}))
 

@@ -32,15 +32,13 @@ type NodeNamesCtxKey struct{}
 
 // ClientFactory is used to create Docker clients
 type ClientFactory struct {
-	signatureService     portainer.DigitalSignatureService
-	reverseTunnelService portainer.ReverseTunnelService
+	signatureService portainer.DigitalSignatureService
 }
 
 // NewClientFactory returns a new instance of a ClientFactory
-func NewClientFactory(signatureService portainer.DigitalSignatureService, reverseTunnelService portainer.ReverseTunnelService) *ClientFactory {
+func NewClientFactory(signatureService portainer.DigitalSignatureService) *ClientFactory {
 	return &ClientFactory{
-		signatureService:     signatureService,
-		reverseTunnelService: reverseTunnelService,
+		signatureService: signatureService,
 	}
 }
 
@@ -54,15 +52,8 @@ func (factory *ClientFactory) CreateClient(endpoint *portainer.Endpoint, nodeNam
 		return nil, errUnsupportedEnvironmentType
 	case portainer.AgentOnDockerEnvironment:
 		return createAgentClient(endpoint, endpoint.URL, factory.signatureService, nodeName, timeout)
-	case portainer.EdgeAgentOnDockerEnvironment:
-		tunnelAddr, err := factory.reverseTunnelService.TunnelAddr(endpoint)
-		if err != nil {
-			return nil, err
-		}
-
-		endpointURL := "http://" + tunnelAddr
-
-		return createAgentClient(endpoint, endpointURL, factory.signatureService, nodeName, timeout)
+	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
+		return nil, portainer.ErrEdgeEnvironmentNotSupported
 	}
 
 	if strings.HasPrefix(endpoint.URL, "unix://") || strings.HasPrefix(endpoint.URL, "npipe://") {

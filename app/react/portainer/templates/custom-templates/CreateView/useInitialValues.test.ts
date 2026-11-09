@@ -8,7 +8,6 @@ import { useInitialValues } from './useInitialValues';
 
 const mockUseCurrentStateAndParams = vi.fn();
 const mockUseAppTemplateFile = vi.fn();
-const mockGetDefaultEdgeTemplateSettings = vi.fn();
 
 vi.mock('@uirouter/react', () => ({
   useCurrentStateAndParams: () => mockUseCurrentStateAndParams(),
@@ -18,24 +17,10 @@ vi.mock('../../app-templates/queries/useAppTemplateFile', () => ({
   useAppTemplateFile: (...args: unknown[]) => mockUseAppTemplateFile(...args),
 }));
 
-vi.mock('../types', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../types')>();
-  return {
-    ...actual,
-    getDefaultEdgeTemplateSettings: () => mockGetDefaultEdgeTemplateSettings(),
-  };
-});
-
 describe('REQ-TPL-03 useInitialValues', () => {
   beforeEach(() => {
     mockUseCurrentStateAndParams.mockReset();
     mockUseAppTemplateFile.mockReset();
-    mockGetDefaultEdgeTemplateSettings.mockReset();
-
-    mockGetDefaultEdgeTemplateSettings.mockReturnValue({
-      PrePullImage: false,
-      RetryDeploy: false,
-    });
     mockUseCurrentStateAndParams.mockReturnValue({
       params: {},
     });
@@ -89,11 +74,11 @@ describe('REQ-TPL-03 useInitialValues', () => {
         ComposeFilePathInRepository: 'docker-compose.yml',
         AdditionalFiles: [],
       },
-      EdgeSettings: undefined,
     });
     // REQ-TAI-001: no ownership defaults
     expect(result.current).not.toHaveProperty('AccessControl');
-    expect(mockGetDefaultEdgeTemplateSettings).not.toHaveBeenCalled();
+    // REQ-TAI-004: no Edge settings
+    expect(result.current).not.toHaveProperty('EdgeSettings');
   });
 
   it('prefers app template file content over router fileContent param', () => {
@@ -156,22 +141,6 @@ describe('REQ-TPL-03 useInitialValues', () => {
     expect(result.current?.Git.ComposeFilePathInRepository).toBe(
       'docker-compose.yml'
     );
-  });
-
-  it('sets edge settings for edge create', () => {
-    const { result } = renderHook(() =>
-      useInitialValues({
-        defaultType: StackType.DockerCompose,
-        isEdge: true,
-        buildMethods: ['editor'],
-      })
-    );
-
-    expect(result.current?.EdgeSettings).toEqual({
-      PrePullImage: false,
-      RetryDeploy: false,
-    });
-    expect(mockGetDefaultEdgeTemplateSettings).toHaveBeenCalled();
   });
 
   it('ignores invalid type and appTemplateId query params', () => {

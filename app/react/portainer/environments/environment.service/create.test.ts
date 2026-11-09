@@ -137,7 +137,6 @@ describe('create local Docker environments (backwards compatibility)', () => {
           tenantId: 'tenant',
           authenticationKey: 'key',
         },
-        pollFrequency: 5,
       },
     });
     const body = endpointCreate.mock.calls[0][0].body;
@@ -145,6 +144,7 @@ describe('create local Docker environments (backwards compatibility)', () => {
     expect(body.TLSCertFile).toBe(cert);
     expect(body.TLSKeyFile).toBe(key);
     expect(body.AzureApplicationID).toBe('app');
-    expect(body.EdgeCheckinInterval).toBe(5);
+    // REQ-TAI-004: no Edge check-in interval is sent
+    expect(body).not.toHaveProperty('EdgeCheckinInterval');
   });
 });

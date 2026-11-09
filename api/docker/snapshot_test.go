@@ -21,7 +21,7 @@ import (
 func TestREQ_ENV_12_NewSnapshotter(t *testing.T) {
 	t.Parallel()
 
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	snapshotter := NewSnapshotter(factory)
 	require.NotNil(t, snapshotter)
 	require.Same(t, factory, snapshotter.clientFactory)
@@ -30,7 +30,7 @@ func TestREQ_ENV_12_NewSnapshotter(t *testing.T) {
 func TestREQ_ENV_12_CreateSnapshot_CreateClientError(t *testing.T) {
 	t.Parallel()
 
-	snapshotter := NewSnapshotter(dockerclient.NewClientFactory(nil, nil))
+	snapshotter := NewSnapshotter(dockerclient.NewClientFactory(nil))
 	_, err := snapshotter.CreateSnapshot(&portainer.Endpoint{
 		Type: portainer.AzureEnvironment,
 		URL:  "https://example.invalid",
@@ -73,7 +73,7 @@ func TestREQ_ENV_12_CreateSnapshot_LocalDockerEndpoint(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	snapshotter := NewSnapshotter(dockerclient.NewClientFactory(nil, nil))
+	snapshotter := NewSnapshotter(dockerclient.NewClientFactory(nil))
 	snap, err := snapshotter.CreateSnapshot(&portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,

@@ -435,7 +435,7 @@ func TestProxyPortainerConfigUpdate(t *testing.T) {
 				return tx.Endpoint().Create(endpoint)
 			}))
 
-			factory, err := cli.NewClientFactory(nil, nil, nil, "test", "", "")
+			factory, err := cli.NewClientFactory(nil, nil, "test", "", "")
 			require.NoError(t, err)
 			factory.SetProxyKubeClient("1", "2", &cli.KubeClient{})
 

@@ -69,7 +69,6 @@ function template(overrides: Partial<CustomTemplate> = {}): CustomTemplate {
     Type: StackType.DockerCompose,
     Variables: [],
     IsComposeFormat: false,
-    EdgeTemplate: false,
     ...overrides,
   };
 }

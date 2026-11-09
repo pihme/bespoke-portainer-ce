@@ -1,4 +1,4 @@
-import { Form, FormikErrors, useFormikContext } from 'formik';
+import { Form, useFormikContext } from 'formik';
 import { RefreshCw } from 'lucide-react';
 
 import { CommonFields } from '@/react/portainer/custom-templates/components/CommonFields';
@@ -7,9 +7,6 @@ import { PlatformField } from '@/react/portainer/custom-templates/components/Pla
 import { GitForm } from '@/react/portainer/gitops/GitForm';
 import { isTemplateVariablesEnabled } from '@/react/portainer/custom-templates/components/utils';
 import { TemplateTypeSelector } from '@/react/portainer/custom-templates/components/TemplateTypeSelector';
-import { applySetStateAction } from '@/react-tools/apply-set-state-action';
-import { EdgeTemplateSettings } from '@/react/portainer/templates/custom-templates/types';
-import { EdgeSettingsFieldset } from '@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset';
 import { StackType } from '@/react/common/stacks/types';
 import { textByType } from '@/react/common/stacks/common/form-texts';
 
@@ -41,7 +38,6 @@ export function InnerForm({
     setFieldValue,
     errors,
     isValid,
-    setFieldError,
     setValues,
     isSubmitting,
     dirty,
@@ -143,24 +139,6 @@ export function InnerForm({
           onChange={(values) => setFieldValue('Variables', values)}
           isVariablesNamesFromParent={!isEditorReadonly}
           errors={errors.Variables}
-        />
-      )}
-
-      {values.EdgeSettings && (
-        <EdgeSettingsFieldset
-          setValues={(edgeValues) =>
-            setFieldValue(
-              'EdgeSettings',
-              applySetStateAction(edgeValues, values.EdgeSettings!)
-            )
-          }
-          gitConfig={values.Git}
-          fileValues={{
-            fileContent: values.FileContent,
-          }}
-          values={values.EdgeSettings}
-          errors={errors.EdgeSettings as FormikErrors<EdgeTemplateSettings>}
-          setFieldError={setFieldError}
         />
       )}
 

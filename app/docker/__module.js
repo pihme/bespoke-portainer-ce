@@ -18,7 +18,7 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
       abstract: true,
       onEnter: /* @ngInject */ function onEnter(endpoint, $async, $state, EndpointService, Notifications, StateManager, SystemService, EndpointProvider) {
         return $async(async () => {
-          const dockerTypes = [PortainerEndpointTypes.DockerEnvironment, PortainerEndpointTypes.AgentOnDockerEnvironment, PortainerEndpointTypes.EdgeAgentOnDockerEnvironment];
+          const dockerTypes = [PortainerEndpointTypes.DockerEnvironment, PortainerEndpointTypes.AgentOnDockerEnvironment];
 
           if (!dockerTypes.includes(endpoint.Type)) {
             $state.go('portainer.home');
@@ -28,9 +28,7 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
           try {
             const { status, error } = await checkEndpointStatus(endpoint);
 
-            if (endpoint.Type !== PortainerEndpointTypes.EdgeAgentOnDockerEnvironment) {
-              await updateEndpointStatus(endpoint, status);
-            }
+            await updateEndpointStatus(endpoint, status);
             endpoint.Status = status;
 
             if (status === EnvironmentStatus.Down) {
@@ -39,15 +37,9 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
 
             await StateManager.updateEndpointState(endpoint);
           } catch (e) {
-            let params = {};
-
-            if (endpoint.Type == PortainerEndpointTypes.EdgeAgentOnDockerEnvironment) {
-              params = { redirect: true, environmentId: endpoint.Id, environmentName: endpoint.Name, route: 'docker.dashboard' };
-            } else {
-              EndpointProvider.clean();
-              Notifications.error('Failed loading environment', e);
-            }
-            $state.go('portainer.home', params, { reload: true, inherit: false });
+            EndpointProvider.clean();
+            Notifications.error('Failed loading environment', e);
+            $state.go('portainer.home', {}, { reload: true, inherit: false });
             return false;
           }
 

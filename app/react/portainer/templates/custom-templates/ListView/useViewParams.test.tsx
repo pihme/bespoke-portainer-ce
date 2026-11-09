@@ -42,15 +42,12 @@ describe('REQ-TPL-03 useViewParams', () => {
     expect(result.current.getTemplateLinkParams).toBeUndefined();
   });
 
-  it('returns edge params when view type is edge', () => {
+  it('REQ-TAI-004 has no Edge params or Edge stack links', () => {
     viewType = 'edge';
     const { result } = renderHook(() => useViewParams());
-    expect(result.current.params).toEqual({ edge: true });
-    expect(result.current.storageKey).toBe('edge-custom-templates');
-    expect(result.current.getTemplateLinkParams?.({ Id: 4 } as never)).toEqual({
-      to: 'edge.stacks.new',
-      params: { templateId: 4, templateType: 'custom' },
-    });
+    expect(result.current.params).toEqual({});
+    expect(result.current.storageKey).toBe('custom-templates');
+    expect(result.current.getTemplateLinkParams).toBeUndefined();
   });
 
   it('falls back to empty params for an unknown view type', () => {

@@ -6,7 +6,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/internal/edge"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -25,16 +24,7 @@ type settingsUpdatePayload struct {
 	// URL to the templates that will be displayed in the UI when navigating to App Templates
 	TemplatesURL *string `example:"https://raw.githubusercontent.com/portainer/templates/master/templates.json"`
 	// Deployment options for encouraging deployment as code
-	GlobalDeploymentOptions  *portainer.GlobalDeploymentOptions // The default check in interval for edge agent (in seconds)
-	EdgeAgentCheckinInterval *int                               `example:"5"`
-	// Whether edge compute features are enabled
-	EnableEdgeComputeFeatures *bool `example:"true"`
-	// TrustOnFirstConnect makes Portainer accepting edge agent connection by default
-	TrustOnFirstConnect *bool `example:"false"`
-	// EnforceEdgeID makes Portainer store the Edge ID instead of accepting anyone
-	EnforceEdgeID *bool `example:"false"`
-	// EdgePortainerURL is the URL that is exposed to edge agents
-	EdgePortainerURL *string `json:"EdgePortainerURL"`
+	GlobalDeploymentOptions *portainer.GlobalDeploymentOptions
 	// ForceSecureCookies forces the Secure attribute on auth cookies regardless of the detected scheme
 	ForceSecureCookies *bool `example:"false"`
 }
@@ -46,12 +36,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 
 	if payload.TemplatesURL != nil && *payload.TemplatesURL != "" && !validate.IsURL(*payload.TemplatesURL) {
 		return errors.New("Invalid external templates URL. Must correspond to a valid URL format")
-	}
-
-	if payload.EdgePortainerURL != nil && *payload.EdgePortainerURL != "" {
-		if _, err := edge.ParseHostForEdge(*payload.EdgePortainerURL); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -105,10 +89,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 		settings.BlackListedLabels = payload.BlackListedLabels
 	}
 
-	settings.EnableEdgeComputeFeatures = *cmp.Or(payload.EnableEdgeComputeFeatures, &settings.EnableEdgeComputeFeatures)
-	settings.TrustOnFirstConnect = *cmp.Or(payload.TrustOnFirstConnect, &settings.TrustOnFirstConnect)
-	settings.EnforceEdgeID = *cmp.Or(payload.EnforceEdgeID, &settings.EnforceEdgeID)
-	settings.EdgePortainerURL = *cmp.Or(payload.EdgePortainerURL, &settings.EdgePortainerURL)
 	settings.ForceSecureCookies = *cmp.Or(payload.ForceSecureCookies, &settings.ForceSecureCookies)
 
 	if payload.SnapshotInterval != nil && *payload.SnapshotInterval != settings.SnapshotInterval {
@@ -116,8 +96,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 			return nil, httperror.InternalServerError("Unable to update snapshot interval", err)
 		}
 	}
-
-	settings.EdgeAgentCheckinInterval = *cmp.Or(payload.EdgeAgentCheckinInterval, &settings.EdgeAgentCheckinInterval)
 
 	if err := tx.Settings().UpdateSettings(settings); err != nil {
 		return nil, httperror.InternalServerError("Unable to persist settings changes inside the database", err)

@@ -1,7 +1,6 @@
 package endpointproxy
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -34,14 +33,7 @@ func (handler *Handler) proxyRequestsToAgentHostAPI(w http.ResponseWriter, r *ht
 	}
 
 	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
-		if endpoint.EdgeID == "" {
-			return httperror.InternalServerError("No Edge agent registered with the environment", errors.New("No agent available"))
-		}
-
-		_, err := handler.ReverseTunnelService.TunnelAddr(endpoint)
-		if err != nil {
-			return httperror.InternalServerError("Unable to get the active tunnel", err)
-		}
+		return httperror.BadRequest(portainer.ErrEdgeEnvironmentNotSupported.Error(), portainer.ErrEdgeEnvironmentNotSupported)
 	}
 
 	var proxy http.Handler

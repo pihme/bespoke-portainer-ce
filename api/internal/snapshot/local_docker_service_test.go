@@ -20,32 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type recordingTunnelService struct {
-	opened []portainer.EndpointID
-	err    error
-}
-
-func (s *recordingTunnelService) StartTunnelServer(addr, port string, snapshotService portainer.SnapshotService) error {
-	return nil
-}
-func (s *recordingTunnelService) StopTunnelServer() error { return nil }
-func (s *recordingTunnelService) GenerateEdgeKey(apiURL, tunnelAddr string, endpointIdentifier int) string {
-	return ""
-}
-func (s *recordingTunnelService) Open(endpoint *portainer.Endpoint) error {
-	s.opened = append(s.opened, endpoint.ID)
-	return s.err
-}
-func (s *recordingTunnelService) Config(endpointID portainer.EndpointID) portainer.TunnelDetails {
-	return portainer.TunnelDetails{}
-}
-func (s *recordingTunnelService) TunnelAddr(endpoint *portainer.Endpoint) (string, error) {
-	return "", nil
-}
-func (s *recordingTunnelService) UpdateLastActivity(endpointID portainer.EndpointID) {}
-func (s *recordingTunnelService) KeepTunnelAlive(endpointID portainer.EndpointID, ctx context.Context, maxKeepAlive time.Duration) {
-}
-
 func newServiceWithPending(
 	t *testing.T,
 	interval string,
@@ -458,56 +432,4 @@ func TestREQ_ENV_12_SetSnapshotInterval_ResetsTickerWhileRunning(t *testing.T) {
 	// Give the loop a moment to receive the interval reset without hanging.
 	time.Sleep(50 * time.Millisecond)
 	cancel()
-}
-
-func TestREQ_ENV_12_NewBackgroundSnapshotter_OpensTunnelForLocalDockerWithoutSnapshot(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:   8,
-		Name: "local",
-		Type: portainer.DockerEnvironment,
-		URL:  "unix:///var/run/docker.sock",
-	}))
-
-	tunnel := &recordingTunnelService{}
-	snapshot.NewBackgroundSnapshotter(store, tunnel)
-	require.Equal(t, []portainer.EndpointID{8}, tunnel.opened)
-}
-
-func TestREQ_ENV_12_NewBackgroundSnapshotter_SkipsWhenDockerSnapshotExists(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:   9,
-		Name: "local",
-		Type: portainer.DockerEnvironment,
-		URL:  "unix:///var/run/docker.sock",
-	}))
-	require.NoError(t, store.Snapshot().Create(&portainer.Snapshot{
-		EndpointID: 9,
-		Docker:     &portainer.DockerSnapshot{DockerVersion: "26"},
-	}))
-
-	tunnel := &recordingTunnelService{}
-	snapshot.NewBackgroundSnapshotter(store, tunnel)
-	require.Empty(t, tunnel.opened)
-}
-
-func TestREQ_ENV_12_NewBackgroundSnapshotter_OpenErrorIsLoggedNotFatal(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:   10,
-		Name: "local",
-		Type: portainer.DockerEnvironment,
-		URL:  "unix:///var/run/docker.sock",
-	}))
-
-	tunnel := &recordingTunnelService{err: errors.New("tunnel failed")}
-	snapshot.NewBackgroundSnapshotter(store, tunnel)
-	require.Equal(t, []portainer.EndpointID{10}, tunnel.opened)
 }

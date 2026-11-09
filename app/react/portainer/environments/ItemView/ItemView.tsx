@@ -1,12 +1,11 @@
 import { useIdParam } from '@/react/hooks/useIdParam';
 
 import { PageHeader } from '@@/PageHeader';
+import { TextTip } from '@@/Tip/TextTip';
 
 import { useEnvironment } from '../queries';
-import { getPlatformTypeName, isEdgeEnvironment } from '../utils';
+import { isEdgeEnvironment } from '../utils';
 
-import { EdgeInformationPanel } from './EdgeInformationPanel/EdgeInformationPanel';
-import { EdgeAgentDeploymentWidget } from './EdgeAgentDeploymentWidget/EdgeAgentDeploymentWidget';
 import { EnvironmentDetailsForm } from './EnvironmentDetailsForm';
 
 export function ItemView() {
@@ -20,7 +19,6 @@ export function ItemView() {
   const environment = environmentQuery.data;
 
   const isEdge = isEdgeEnvironment(environment.Type);
-  const platformName = getPlatformTypeName(environment.Type);
 
   return (
     <>
@@ -34,23 +32,14 @@ export function ItemView() {
       />
 
       <div className="mx-4 space-y-4 [&>*]:block">
-        {isEdge &&
-          (environment.EdgeID ? (
-            <EdgeInformationPanel
-              environmentId={id}
-              edgeKey={environment.EdgeKey}
-              edgeId={environment.EdgeID}
-              platformName={platformName}
-            />
-          ) : (
-            <EdgeAgentDeploymentWidget
-              edgeKey={environment.EdgeKey}
-              edgeId={environment.EdgeID}
-              asyncMode={environment.Edge?.AsyncMode}
-            />
-          ))}
-
-        <EnvironmentDetailsForm environment={environment} />
+        {isEdge ? (
+          <TextTip color="orange">
+            Edge environments are no longer supported. This environment can
+            only be removed from the environments list.
+          </TextTip>
+        ) : (
+          <EnvironmentDetailsForm environment={environment} />
+        )}
       </div>
     </>
   );

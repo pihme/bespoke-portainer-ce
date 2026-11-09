@@ -369,50 +369,20 @@ describe('REQ-HOST-01 Docker environment onEnter gate', () => {
     expect(deps.EndpointProvider.clean).toHaveBeenCalled();
   });
 
-  it('loads a reachable Edge Docker agent without persisting status', async () => {
+  it('REQ-TAI-004 sends a legacy Edge Docker agent home without pinging it', async () => {
     const deps = buildOnEnterDeps();
     const endpoint = {
       Id: 5,
       Name: 'edge-docker',
       Type: PortainerEndpointTypes.EdgeAgentOnDockerEnvironment,
-      Status: EnvironmentStatus.Down,
+      Status: EnvironmentStatus.Up,
     };
 
     await invokeOnEnter(endpoint, deps);
 
-    expect(deps.SystemService.ping).toHaveBeenCalledWith(5);
-    expect(deps.EndpointService.updateEndpoint).not.toHaveBeenCalled();
-    expect(endpoint.Status).toBe(EnvironmentStatus.Up);
-    expect(deps.StateManager.updateEndpointState).toHaveBeenCalledWith(endpoint);
-  });
-
-  it('redirects home with Edge params when an Edge Docker agent is unreachable', async () => {
-    const pingError = new Error('edge tunnel down');
-    const deps = buildOnEnterDeps({
-      SystemService: { ping: vi.fn().mockRejectedValue(pingError) },
-    });
-    const endpoint = {
-      Id: 6,
-      Name: 'edge-offline',
-      Type: PortainerEndpointTypes.EdgeAgentOnDockerEnvironment,
-      Status: EnvironmentStatus.Up,
-    };
-
-    const result = await invokeOnEnter(endpoint, deps);
-
-    expect(result).toBe(false);
-    expect(deps.EndpointProvider.clean).not.toHaveBeenCalled();
-    expect(deps.Notifications.error).not.toHaveBeenCalled();
-    expect(deps.$state.go).toHaveBeenCalledWith(
-      'portainer.home',
-      {
-        redirect: true,
-        environmentId: 6,
-        environmentName: 'edge-offline',
-        route: 'docker.dashboard',
-      },
-      { reload: true, inherit: false }
-    );
+    expect(deps.SystemService.ping).not.toHaveBeenCalled();
+    expect(deps.StateManager.updateEndpointState).not.toHaveBeenCalled();
+    expect(deps.$state.go).toHaveBeenCalledWith('portainer.home');
   });
 
   it('awaits async wrappers from $async when entering a local Docker environment', async () => {

@@ -1,6 +1,7 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-export type TemplateViewType = 'docker' | 'edge';
+// Edge custom templates went with Edge computing (TAI-004).
+export type TemplateViewType = 'docker';
 
 export function useViewType(): TemplateViewType {
   const {
@@ -8,10 +9,6 @@ export function useViewType(): TemplateViewType {
   } = useCurrentStateAndParams();
   if (name.includes('docker')) {
     return 'docker';
-  }
-
-  if (name.includes('edge')) {
-    return 'edge';
   }
 
   throw new Error(`Unknown view type: ${name}`);

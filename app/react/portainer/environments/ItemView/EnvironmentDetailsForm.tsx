@@ -3,10 +3,9 @@ import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { notifySuccess } from '@/portainer/services/notifications';
 
 import { Environment } from '../types';
-import { isAzureEnvironment, isEdgeEnvironment } from '../utils';
+import { isAzureEnvironment } from '../utils';
 
 import { AzureEnvironmentForm } from './AzureEnvironmentForm/AzureEnvironmentForm';
-import { EdgeEnvironmentForm } from './EdgeEnvironmentForm/EdgeEnvironmentForm';
 import { GeneralEnvironmentForm } from './GeneralEnvironmentForm/GeneralEnvironmentForm';
 
 export function EnvironmentDetailsForm({
@@ -19,20 +18,10 @@ export function EnvironmentDetailsForm({
     params: { redirectTo = '' },
   } = useCurrentStateAndParams();
   const isAzure = isAzureEnvironment(environment.Type);
-  const isEdge = isEdgeEnvironment(environment.Type);
 
   if (isAzure) {
     return (
       <AzureEnvironmentForm
-        environment={environment}
-        onSuccess={handleSuccess}
-      />
-    );
-  }
-
-  if (isEdge) {
-    return (
-      <EdgeEnvironmentForm
         environment={environment}
         onSuccess={handleSuccess}
       />

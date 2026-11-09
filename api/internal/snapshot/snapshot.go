@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/pendingactions"
-	endpointsutils "github.com/portainer/portainer/pkg/endpoints"
 
 	"github.com/rs/zerolog/log"
 )
@@ -48,37 +47,6 @@ func NewService(
 		kubernetesSnapshotter:     kubernetesSnapshotter,
 		pendingActionsService:     pendingActionsService,
 	}, nil
-}
-
-// NewBackgroundSnapshotter queues snapshots of existing edge environments that
-// do not have one already
-func NewBackgroundSnapshotter(dataStore dataservices.DataStore, tunnelService portainer.ReverseTunnelService) {
-	if err := dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-		endpoints, err := tx.Endpoint().Endpoints()
-		if err != nil {
-			return err
-		}
-
-		for _, e := range endpoints {
-			if !endpointsutils.HasDirectConnectivity(&e) {
-				continue
-			}
-
-			s, err := tx.Snapshot().Read(e.ID)
-			if dataservices.IsErrObjectNotFound(err) ||
-				(err == nil && s.Docker == nil && s.Kubernetes == nil) {
-				if err := tunnelService.Open(&e); err != nil {
-					log.Error().Err(err).Msg("could not open the tunnel")
-				}
-			}
-		}
-
-		return nil
-	}); err != nil {
-		log.Error().Err(err).Msg("background snapshotter failure")
-
-		return
-	}
 }
 
 func parseSnapshotFrequency(snapshotInterval string, dataStore dataservices.DataStore) (float64, error) {

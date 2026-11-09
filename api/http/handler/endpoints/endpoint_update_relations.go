@@ -14,9 +14,8 @@ import (
 
 type endpointUpdateRelationsPayload struct {
 	Relations map[portainer.EndpointID]struct {
-		EdgeGroups []portainer.EdgeGroupID
-		Tags       []portainer.TagID
-		Group      portainer.EndpointGroupID
+		Tags  []portainer.TagID
+		Group portainer.EndpointGroupID
 	}
 }
 
@@ -33,7 +32,7 @@ func (payload *endpointUpdateRelationsPayload) Validate(r *http.Request) error {
 // @id EndpointUpdateRelations
 // @summary Update relations for a list of environments
 // @description Update relations for a list of environments
-// @description Edge groups, tags and environment group can be updated.
+// @description Tags and environment group can be updated.
 // @description
 // @description **Access policy**: administrator
 // @tags endpoints
@@ -75,15 +74,6 @@ func (handler *Handler) updateRelations(w http.ResponseWriter, r *http.Request) 
 
 				endpoint.TagIDs = relationPayload.Tags
 				updateRelations = updateRelations || tagsChanged
-			}
-
-			if relationPayload.EdgeGroups != nil {
-				edgeGroupsChanged, err := updateEnvironmentEdgeGroups(tx, relationPayload.EdgeGroups, endpoint.ID)
-				if err != nil {
-					return errors.WithMessage(err, "Unable to update environment edge groups")
-				}
-
-				updateRelations = updateRelations || edgeGroupsChanged
 			}
 
 			if updateRelations {

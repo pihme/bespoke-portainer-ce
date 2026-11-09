@@ -14,21 +14,8 @@ type publicSettingsResponse struct {
 	LogoURL string `json:"LogoURL" example:"https://mycompany.mydomain.tld/logo.png"`
 	// Deployment options for encouraging deployment as code
 	GlobalDeploymentOptions portainer.GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
-	// Whether edge compute features are enabled
-	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
 	Features map[featureflags.Feature]bool `json:"Features"`
-
-	Edge struct {
-		// The ping interval for edge agent - used in edge async mode [seconds]
-		PingInterval int `json:"PingInterval" example:"60"`
-		// The snapshot interval for edge agent - used in edge async mode [seconds]
-		SnapshotInterval int `json:"SnapshotInterval" example:"60"`
-		// The command list interval for edge agent - used in edge async mode [seconds]
-		CommandInterval int `json:"CommandInterval" example:"60"`
-		// The check in interval for edge agent (in seconds) - used in non async mode [seconds]
-		CheckinInterval int `example:"60"`
-	}
 
 	IsDockerDesktopExtension bool `json:"IsDockerDesktopExtension" example:"false"`
 }
@@ -55,16 +42,10 @@ func (handler *Handler) settingsPublic(w http.ResponseWriter, r *http.Request) *
 
 func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResponse {
 	publicSettings := &publicSettingsResponse{
-		LogoURL:                   appSettings.LogoURL,
-		EnableEdgeComputeFeatures: appSettings.EnableEdgeComputeFeatures,
-		GlobalDeploymentOptions:   appSettings.GlobalDeploymentOptions,
-		Features:                  featureflags.FeatureFlags(),
+		LogoURL:                 appSettings.LogoURL,
+		GlobalDeploymentOptions: appSettings.GlobalDeploymentOptions,
+		Features:                featureflags.FeatureFlags(),
 	}
-
-	publicSettings.Edge.PingInterval = appSettings.Edge.PingInterval
-	publicSettings.Edge.SnapshotInterval = appSettings.Edge.SnapshotInterval
-	publicSettings.Edge.CommandInterval = appSettings.Edge.CommandInterval
-	publicSettings.Edge.CheckinInterval = appSettings.EdgeAgentCheckinInterval
 
 	publicSettings.IsDockerDesktopExtension = appSettings.IsDockerDesktopExtension
 

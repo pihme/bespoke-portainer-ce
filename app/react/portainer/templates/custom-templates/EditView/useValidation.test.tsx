@@ -30,12 +30,6 @@ vi.mock('@/react/portainer/gitops/GitForm', () => ({
     return object({});
   },
 }));
-vi.mock('@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset.validation', () => ({
-  edgeFieldsetValidation: () => {
-    const { object } = require('yup') as typeof import('yup');
-    return object({});
-  },
-}));
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const Wrapped = withTestQueryProvider(() => <>{children}</>);

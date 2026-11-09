@@ -52,10 +52,26 @@ func TestREQ_SET_01_GeneratePublicSettings_LocalFields(t *testing.T) {
 
 	public := generatePublicSettings(settings)
 	assert.Equal(t, "https://example.com/logo.png", public.LogoURL)
-	assert.Equal(t, 10, public.Edge.PingInterval)
-	assert.Equal(t, 20, public.Edge.SnapshotInterval)
-	assert.Equal(t, 30, public.Edge.CommandInterval)
-	assert.Equal(t, 5, public.Edge.CheckinInterval)
+}
+
+// REQ-TAI-004: the public settings no longer announce Edge compute or the
+// Edge agent intervals, even when a legacy record still holds them.
+func TestREQ_TAI_004_SettingsPublic_HasNoEdgeFields(t *testing.T) {
+	t.Parallel()
+
+	settings := &portainer.Settings{
+		EnableEdgeComputeFeatures: true,
+		EdgeAgentCheckinInterval:  5,
+		Edge:                      portainer.Edge{PingInterval: 10},
+	}
+
+	raw, err := json.Marshal(generatePublicSettings(settings))
+	require.NoError(t, err)
+
+	var got map[string]any
+	require.NoError(t, json.Unmarshal(raw, &got))
+	assert.NotContains(t, got, "EnableEdgeComputeFeatures")
+	assert.NotContains(t, got, "Edge")
 }
 
 // TAI-001: the public settings no longer announce a login method, OAuth URLs,

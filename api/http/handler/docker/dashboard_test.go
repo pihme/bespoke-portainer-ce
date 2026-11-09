@@ -163,7 +163,7 @@ func newDashboardHandler(t *testing.T, dockerURL string, endpointType portainer.
 	require.NoError(t, store.Endpoint().Create(ep))
 
 	bouncer := testhelpers.NewTestRequestBouncer()
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	authorizationService := authorization.NewService(store)
 	containerService := dockerdomain.NewContainerService(factory, store)
 	h := NewHandler(bouncer, authorizationService, store, factory, containerService)
@@ -424,7 +424,7 @@ func TestDashboard_BadTLSClient_GetClientError(t *testing.T) {
 	require.NoError(t, store.Endpoint().Create(ep))
 
 	bouncer := testhelpers.NewTestRequestBouncer()
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	h := NewHandler(bouncer, authorization.NewService(store), store, factory, dockerdomain.NewContainerService(factory, store))
 
 	rr := getDashboard(t, h, admin)

@@ -9,7 +9,7 @@ import {
 import { StackType } from '@/react/common/stacks/types';
 import { VariableDefinition } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField/CustomTemplatesVariablesDefinitionField';
 
-import { CustomTemplate, EdgeTemplateSettings } from '../types';
+import { CustomTemplate } from '../types';
 import { Platform } from '../../types';
 
 import { buildUrl } from './build-url';
@@ -73,9 +73,6 @@ interface CustomTemplateUpdatePayload {
   TLSSkipVerify?: boolean;
   /** IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file */
   IsComposeFormat?: boolean;
-  /** EdgeTemplate indicates if this template purpose for Edge Stack */
-  EdgeTemplate?: boolean;
-  EdgeSettings?: EdgeTemplateSettings;
 }
 
 async function updateTemplate(values: CustomTemplateUpdatePayload) {

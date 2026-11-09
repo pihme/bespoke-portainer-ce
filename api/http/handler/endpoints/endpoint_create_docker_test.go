@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/proxy"
@@ -57,9 +56,8 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.SnapshotService = snap
 	h.PendingActionsService = pendingactions.NewService(store, nil)
 	h.ProxyManager = proxy.NewManager(nil)
-	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 	h.FileService = fs
-	h.ReverseTunnelService = chisel.NewService(store, nil, nil)
 	return h, store
 }
 

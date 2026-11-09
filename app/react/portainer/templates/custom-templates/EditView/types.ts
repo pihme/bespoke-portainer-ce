@@ -4,7 +4,6 @@ import { DefinitionFieldValues } from '@/react/portainer/custom-templates/compon
 import { Platform } from '@/react/portainer/templates/types';
 import { GitFormModel } from '@/react/portainer/gitops/types';
 
-import { EdgeTemplateSettings } from '../types';
 
 export interface FormValues extends CommonFieldsValues {
   Platform: Platform;
@@ -12,5 +11,4 @@ export interface FormValues extends CommonFieldsValues {
   FileContent: string;
   Git?: GitFormModel;
   Variables: DefinitionFieldValues;
-  EdgeSettings?: EdgeTemplateSettings;
 }

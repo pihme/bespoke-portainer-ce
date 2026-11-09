@@ -23,6 +23,5 @@ export function useInitialValues({
     Git: template.GitConfig
       ? toGitFormModel(getTemplateSourceId(template), template.GitConfig)
       : undefined,
-    EdgeSettings: template.EdgeSettings,
   };
 }

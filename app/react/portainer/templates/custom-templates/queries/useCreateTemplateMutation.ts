@@ -8,10 +8,7 @@ import {
 } from '@/react-tools/react-query';
 import { StackType } from '@/react/common/stacks/types';
 import { VariableDefinition } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField/CustomTemplatesVariablesDefinitionField';
-import {
-  CustomTemplate,
-  EdgeTemplateSettings,
-} from '@/react/portainer/templates/custom-templates/types';
+import { CustomTemplate } from '@/react/portainer/templates/custom-templates/types';
 import { GitFormModel } from '@/react/portainer/gitops/types';
 import { DefinitionFieldValues } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { json2formData } from '@/portainer/helpers/json';
@@ -22,7 +19,6 @@ import { buildUrl } from './build-url';
 import { queryKeys } from './query-keys';
 
 interface CreateTemplatePayload {
-  EdgeTemplate?: boolean;
   Platform: Platform;
   Type: StackType;
   Method: 'editor' | 'upload' | 'repository';
@@ -30,7 +26,6 @@ interface CreateTemplatePayload {
   File: File | undefined;
   Git: GitFormModel;
   Variables: DefinitionFieldValues;
-  EdgeSettings?: EdgeTemplateSettings;
   Title: string;
   Description: string;
   Note: string;
@@ -69,14 +64,6 @@ function createTemplateFromGitPayload({
   return createTemplateFromGit({
     ...values,
     ...gitModel,
-    ...(values.EdgeSettings
-      ? {
-          EdgeSettings: {
-            ...values.EdgeSettings,
-            ...values.EdgeSettings.RelativePathSettings,
-          },
-        }
-      : {}),
   });
 }
 
@@ -100,9 +87,6 @@ interface CustomTemplateFromFileContentPayload {
   FileContent: string;
   /** Definitions of variables in the stack file. */
   Variables: VariableDefinition[];
-  /** Indicates if this template is for Edge Stack. */
-  EdgeTemplate?: boolean;
-  EdgeSettings?: EdgeTemplateSettings;
 }
 async function createTemplateFromText(
   values: CustomTemplateFromFileContentPayload
@@ -135,9 +119,6 @@ interface CustomTemplateFromFilePayload {
   Logo?: string;
   /** Definitions of variables in the stack file */
   Variables?: VariableDefinition[];
-  /** Indicates if this template is for Edge Stack. */
-  EdgeTemplate?: boolean;
-  EdgeSettings?: EdgeTemplateSettings;
 }
 
 async function createTemplateFromFile(values: CustomTemplateFromFilePayload) {
@@ -155,8 +136,6 @@ async function createTemplateFromFile(values: CustomTemplateFromFilePayload) {
       Logo: values.Logo,
       File: values.File,
       Variables: values.Variables,
-      EdgeTemplate: values.EdgeTemplate,
-      EdgeSettings: values.EdgeSettings,
     });
 
     const { data } = await axios.post<CustomTemplate>(
@@ -198,9 +177,6 @@ interface CustomTemplateFromGitRepositoryPayload {
   Variables: VariableDefinition[];
   /** Indicates if the Kubernetes template is created from a Docker Compose file. */
   IsComposeFormat?: boolean;
-  /** Indicates if this template is for Edge Stack. */
-  EdgeTemplate?: boolean;
-  EdgeSettings?: EdgeTemplateSettings;
 }
 async function createTemplateFromGit(
   values: CustomTemplateFromGitRepositoryPayload

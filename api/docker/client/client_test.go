@@ -99,16 +99,15 @@ func TestAgentClientHeaders_SignatureFailurePropagatesOutsideFIPSMode(t *testing
 
 func TestNewClientFactory(t *testing.T) {
 	t.Parallel()
-	f := NewClientFactory(nil, nil)
+	f := NewClientFactory(nil)
 	require.NotNil(t, f)
 	require.Nil(t, f.signatureService)
-	require.Nil(t, f.reverseTunnelService)
 }
 
 func TestCreateClient_LocalUnixAndTCP(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
-	f := NewClientFactory(nil, nil)
+	f := NewClientFactory(nil)
 
 	unixCli, err := f.CreateClient(&portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
@@ -142,7 +141,7 @@ func TestCreateClient_LocalUnixAndTCP(t *testing.T) {
 
 func TestCreateClient_AzureUnsupported(t *testing.T) {
 	t.Parallel()
-	f := NewClientFactory(nil, nil)
+	f := NewClientFactory(nil)
 	cli, err := f.CreateClient(&portainer.Endpoint{Type: portainer.AzureEnvironment}, "", nil)
 	require.ErrorIs(t, err, errUnsupportedEnvironmentType)
 	require.Nil(t, cli)
@@ -151,7 +150,7 @@ func TestCreateClient_AzureUnsupported(t *testing.T) {
 func TestCreateClient_AgentOnDocker(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
-	f := NewClientFactory(testhelpers.NewStubSignatureService(), nil)
+	f := NewClientFactory(testhelpers.NewStubSignatureService())
 
 	cli, err := f.CreateClient(&portainer.Endpoint{
 		Type: portainer.AgentOnDockerEnvironment,
@@ -165,7 +164,7 @@ func TestCreateClient_AgentOnDocker(t *testing.T) {
 func TestCreateClient_AgentSignatureFailure(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
-	f := NewClientFactory(testhelpers.NewFailingSignatureService(), nil)
+	f := NewClientFactory(testhelpers.NewFailingSignatureService())
 	cli, err := f.CreateClient(&portainer.Endpoint{
 		Type: portainer.AgentOnDockerEnvironment,
 		URL:  "tcp://127.0.0.1:9001",
@@ -257,7 +256,7 @@ func TestNodeNameTransport_RoundTrip(t *testing.T) {
 func TestCreateClient_TCPBadTLS_ReturnsError(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
-	f := NewClientFactory(nil, nil)
+	f := NewClientFactory(nil)
 	cli, err := f.CreateClient(&portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "tcp://127.0.0.1:2376",
@@ -274,7 +273,7 @@ func TestCreateClient_TCPBadTLS_ReturnsError(t *testing.T) {
 func TestCreateClient_AgentTLSAndHTTPClientError(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
-	f := NewClientFactory(testhelpers.NewStubSignatureService(), nil)
+	f := NewClientFactory(testhelpers.NewStubSignatureService())
 
 	cli, err := f.CreateClient(&portainer.Endpoint{
 		Type: portainer.AgentOnDockerEnvironment,

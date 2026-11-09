@@ -78,44 +78,39 @@ type (
 
 	// CLIFlags represents the available flags on the CLI
 	CLIFlags struct {
-		Addr                      *string
-		AddrHTTPS                 *string
-		TunnelAddr                *string
-		TunnelPort                *string
-		Assets                    *string
-		CSP                       *bool
-		CompactDB                 *bool
-		Data                      *string
-		FeatureFlags              *[]string
-		EnableEdgeComputeFeatures *bool
-		EndpointURL               *string
-		Labels                    *[]Pair
-		Logo                      *string
-		NoAnalytics               *bool
-		Templates                 *string
-		TLS                       *bool
-		TLSSkipVerify             *bool
-		HasTLSCacert              *bool
-		TLSCacert                 *string
-		TLSCert                   *string
-		TLSKey                    *string
-		HTTPDisabled              *bool
-		HTTPEnabled               *bool
-		Rollback                  *bool
-		SnapshotInterval          *string
-		BaseURL                   *string
-		InitialMmapSize           *int
-		MaxBatchSize              *int
-		MaxBatchDelay             *time.Duration
-		SecretKeyName             *string
-		LogLevel                  *string
-		LogMode                   *string
-		KubectlShellImage         *string
-		KubectlShellImageSet      bool
-		PullLimitCheckDisabled    *bool
-		TrustedOrigins            *string
-		EdgePortainerURL          *string
-		EdgeTrustOnFirstConnect   *bool
+		Addr                   *string
+		AddrHTTPS              *string
+		Assets                 *string
+		CSP                    *bool
+		CompactDB              *bool
+		Data                   *string
+		FeatureFlags           *[]string
+		EndpointURL            *string
+		Labels                 *[]Pair
+		Logo                   *string
+		NoAnalytics            *bool
+		Templates              *string
+		TLS                    *bool
+		TLSSkipVerify          *bool
+		HasTLSCacert           *bool
+		TLSCacert              *string
+		TLSCert                *string
+		TLSKey                 *string
+		HTTPDisabled           *bool
+		HTTPEnabled            *bool
+		Rollback               *bool
+		SnapshotInterval       *string
+		BaseURL                *string
+		InitialMmapSize        *int
+		MaxBatchSize           *int
+		MaxBatchDelay          *time.Duration
+		SecretKeyName          *string
+		LogLevel               *string
+		LogMode                *string
+		KubectlShellImage      *string
+		KubectlShellImageSet   bool
+		PullLimitCheckDisabled *bool
+		TrustedOrigins         *string
 	}
 
 	// CustomTemplateVariableDefinition
@@ -2099,18 +2094,6 @@ type (
 		Authenticate(ctx context.Context, code string, configuration *OAuthSettings) (string, error)
 	}
 
-	// ReverseTunnelService represents a service used to manage reverse tunnel connections.
-	ReverseTunnelService interface {
-		StartTunnelServer(addr, port string, snapshotService SnapshotService) error
-		StopTunnelServer() error
-		GenerateEdgeKey(apiURL, tunnelAddr string, endpointIdentifier int) string
-		Open(endpoint *Endpoint) error
-		Config(endpointID EndpointID) TunnelDetails
-		TunnelAddr(endpoint *Endpoint) (string, error)
-		UpdateLastActivity(endpointID EndpointID)
-		KeepTunnelAlive(endpointID EndpointID, ctx context.Context, maxKeepAlive time.Duration)
-	}
-
 	// Server defines the interface to serve the API
 	Server interface {
 		Start(ctx context.Context) error
@@ -2214,12 +2197,6 @@ const (
 	CompactDBEnvVar = "COMPACT_DB"
 	// CSRFAllowNoOriginEnvVar is the environment variable used to allow unsafe cookie-authenticated requests that carry no Origin or Sec-Fetch-Site header, reverting the CSRF protection to fail open for such requests
 	CSRFAllowNoOriginEnvVar = "CSRF_ALLOW_NO_ORIGIN"
-	// EdgeComputeEnvVar is the environment variable used to enable Edge Compute features
-	EdgeComputeEnvVar = "EDGE_COMPUTE"
-	// EdgePortainerURLEnvVar is the environment variable used to set the URL that edge agents connect back to
-	EdgePortainerURLEnvVar = "EDGE_PORTAINER_URL"
-	// EdgeTrustOnFirstConnectEnvVar is the environment variable used to auto-trust edge agents on first connect
-	EdgeTrustOnFirstConnectEnvVar = "EDGE_TRUST_ON_FIRST_CONNECT"
 )
 
 // List of supported features

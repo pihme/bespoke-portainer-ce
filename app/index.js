@@ -11,7 +11,6 @@ import { init as initFeatureService } from '@/react/portainer/feature-flags/feat
 import './agent';
 import { azureModule } from './azure';
 import './docker/__module';
-import './edge/__module';
 import './portainer/__module';
 
 import { onStartupAngular } from './app';
@@ -61,7 +60,6 @@ angular
     'portainer.agent',
     azureModule,
     'portainer.docker',
-    'portainer.edge',
     'rzModule',
     constantsModule,
   ])

@@ -14,9 +14,6 @@ vi.mock('@/react/portainer/settings/queries', () => ({
 vi.mock('@/portainer/services/notifications', () => ({
   notifySuccess: (...args: unknown[]) => notifySuccess(...args),
 }));
-vi.mock('@/react/edge/components/EdgeCheckInIntervalField', () => ({
-  EdgeCheckinIntervalField: () => null,
-}));
 vi.mock('./LogoFieldset', () => ({
   LogoFieldset: () => <div>logo-fieldset</div>,
 }));
@@ -49,7 +46,7 @@ describe('REQ-SET-01 ApplicationSettingsPanel', () => {
     vi.clearAllMocks();
   });
 
-  it('submits local application settings', async () => {
+  it('submits local application settings (REQ-TAI-004: no Edge poll frequency)', async () => {
     const user = userEvent.setup();
     mutate.mockImplementation((_payload, opts) => {
       opts?.onSuccess?.(settings);
@@ -61,6 +58,9 @@ describe('REQ-SET-01 ApplicationSettingsPanel', () => {
     expect(screen.getByText('logo-fieldset')).toBeVisible();
     await user.click(screen.getByRole('button', { name: /Save application settings/i }));
     await waitFor(() => expect(mutate).toHaveBeenCalled());
+    expect(mutate.mock.calls[0][0]).not.toHaveProperty(
+      'EdgeAgentCheckinInterval'
+    );
     expect(notifySuccess).toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalled();
   });

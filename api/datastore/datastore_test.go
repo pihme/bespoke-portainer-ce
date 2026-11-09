@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/pkg/librand"
 
@@ -122,10 +121,10 @@ func (store *Store) CreateEndpoint(t *testing.T, name string, endpointType porta
 		expectedEndpoint = newEndpoint(endpointType, id, name, URL, tls)
 
 	case portainer.EdgeAgentOnKubernetesEnvironment:
-		cs := chisel.NewService(store, nil, nil)
+		// A legacy Edge record stays storable (BoltDB is kept); the key
+		// generator went with Edge (TAI-004), so a fixed key stands in.
 		expectedEndpoint = newEndpoint(endpointType, id, name, URL, tls)
-		edgeKey := cs.GenerateEdgeKey(URL, "", int(id))
-		expectedEndpoint.EdgeKey = edgeKey
+		expectedEndpoint.EdgeKey = "legacy-edge-key"
 		store.testTunnelServer(t)
 
 	case portainer.KubernetesLocalEnvironment:

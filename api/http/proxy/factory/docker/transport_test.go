@@ -921,14 +921,6 @@ func TestTransport_proxyContainerRequest(t *testing.T) {
 	require.NoError(t, r.Body.Close())
 }
 
-// noopReverseTunnelService absorbs the keep-alive an Edge environment sends after
-// a successful request.
-type noopReverseTunnelService struct {
-	portainer.ReverseTunnelService
-}
-
-func (s *noopReverseTunnelService) UpdateLastActivity(endpointID portainer.EndpointID) {}
-
 // proxyForSignatureTest sends a request through proxyDockerRequest and returns the
 // headers the daemon received. The path is deliberately outside
 // prefixProxyFuncMap so the request falls straight through to the daemon.
@@ -943,10 +935,9 @@ func proxyForSignatureTest(t *testing.T, endpointType portainer.EndpointType, si
 	defer srv.Close()
 
 	transport := &Transport{
-		endpoint:             &portainer.Endpoint{URL: srv.URL, Type: endpointType},
-		signatureService:     signatureService,
-		reverseTunnelService: &noopReverseTunnelService{},
-		HTTPTransport:        &http.Transport{},
+		endpoint:         &portainer.Endpoint{URL: srv.URL, Type: endpointType},
+		signatureService: signatureService,
+		HTTPTransport:    &http.Transport{},
 	}
 
 	req := httptest.NewRequest(http.MethodGet, srv.URL+"/info", nil)

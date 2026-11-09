@@ -141,7 +141,6 @@ function composeTemplate(
     Type: StackType.DockerCompose,
     Variables: [],
     IsComposeFormat: false,
-    EdgeTemplate: false,
     ...overrides,
   };
 }

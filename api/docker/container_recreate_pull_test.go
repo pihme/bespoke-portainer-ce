@@ -82,7 +82,7 @@ func TestREQ_CTR_06_Recreate_ForcePullImage(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	svc := dockerpkg.NewContainerService(dockerclient.NewClientFactory(nil, nil), store)
+	svc := dockerpkg.NewContainerService(dockerclient.NewClientFactory(nil), store)
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
@@ -126,7 +126,7 @@ func TestREQ_CTR_06_Recreate_ForcePullImageError(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 
-	svc := dockerpkg.NewContainerService(dockerclient.NewClientFactory(nil, nil), store)
+	svc := dockerpkg.NewContainerService(dockerclient.NewClientFactory(nil), store)
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,

@@ -10,16 +10,21 @@ vi.mock('@uirouter/react', () => ({
 }));
 
 describe('REQ-TPL-03 useViewType', () => {
-  it('detects docker and edge view types', () => {
+  it('detects the docker view type', () => {
     useCurrentStateAndParams.mockReturnValue({
       state: { name: 'docker.templates.custom' },
     });
     expect(renderHook(() => useViewType()).result.current).toBe('docker');
+  });
 
+  it('REQ-TAI-004 has no Edge template view type', () => {
     useCurrentStateAndParams.mockReturnValue({
       state: { name: 'edge.templates.custom' },
     });
-    expect(renderHook(() => useViewType()).result.current).toBe('edge');
+    const { result } = renderHook(() => useViewType());
+    expect(result.error).toEqual(
+      expect.objectContaining({ message: expect.stringMatching(/Unknown view type/) })
+    );
   });
 
   it('REQ-TAI-002 has no Kubernetes template view type', () => {

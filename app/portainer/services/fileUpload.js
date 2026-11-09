@@ -5,10 +5,8 @@ angular.module('portainer.app').factory('FileUploadService', FileUploadFactory);
 /* @ngInject */
 function FileUploadFactory($q, Upload) {
   var service = {
-    // createSchedule, // edge jobs service
     // uploadBackup, // backup service
     // createComposeStack, // stack service
-    // createEdgeStack, // edge stack service
     // createCustomTemplate, // custom template service
     // configureRegistry, // registry service
     // createEndpoint, // endpoint service
@@ -21,21 +19,6 @@ function FileUploadFactory($q, Upload) {
   function uploadFile(url, file) {
     return Upload.upload({ url: url, data: { file: file } });
   }
-
-  service.createSchedule = function (payload) {
-    return Upload.upload({
-      url: 'api/edge_jobs/create/file',
-      data: {
-        file: payload.File,
-        Name: payload.Name,
-        CronExpression: payload.CronExpression,
-        Image: payload.Image,
-        Endpoints: Upload.json(payload.Endpoints),
-        RetryCount: payload.RetryCount,
-        RetryInterval: payload.RetryInterval,
-      },
-    });
-  };
 
   service.uploadBackup = function (file, password, setupToken) {
     return Upload.upload({
@@ -53,21 +36,6 @@ function FileUploadFactory($q, Upload) {
         Name: stackName,
         Env: Upload.json(env),
         Webhook: webhook,
-      },
-      ignoreLoadingBar: true,
-    });
-  };
-
-  service.createEdgeStack = function createEdgeStack({ EdgeGroups, Registries, envVars, staggerConfig, ...payload }, file, dryrun) {
-    return Upload.upload({
-      url: `api/edge_stacks/create/file?dryrun=${dryrun}`,
-      data: {
-        file,
-        EdgeGroups: Upload.json(EdgeGroups),
-        Registries: Upload.json(Registries),
-        EnvVars: Upload.json(envVars),
-        StaggerConfig: Upload.json(staggerConfig),
-        ...payload,
       },
       ignoreLoadingBar: true,
     });
@@ -101,10 +69,7 @@ function FileUploadFactory($q, Upload) {
     TLSCAFile,
     TLSCertFile,
     TLSKeyFile,
-    checkinInterval,
-    EdgePingInterval,
-    EdgeSnapshotInterval,
-    EdgeCommandInterval
+    checkinInterval
   ) {
     return Upload.upload({
       url: 'api/endpoints',
@@ -122,9 +87,6 @@ function FileUploadFactory($q, Upload) {
         TLSCertFile: TLSCertFile,
         TLSKeyFile: TLSKeyFile,
         CheckinInterval: checkinInterval,
-        EdgePingInterval: EdgePingInterval,
-        EdgeSnapshotInterval: EdgeSnapshotInterval,
-        EdgeCommandInterval: EdgeCommandInterval,
       },
       ignoreLoadingBar: true,
     });

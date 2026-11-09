@@ -110,13 +110,11 @@ type customTemplateFromFileContentPayload struct {
 	// Type of created stack:
 	// * 1 - swarm
 	// * 2 - compose
-	Type portainer.StackType `example:"1" enums:"1,2" validate:"required"`
+	Type portainer.StackType `example:"2" enums:"2" validate:"required"`
 	// Content of stack file
 	FileContent string `validate:"required"`
 	// Definitions of variables in the stack file
 	Variables []portainer.CustomTemplateVariableDefinition
-	// EdgeTemplate indicates if this template purpose for Edge Stack
-	EdgeTemplate bool `example:"false"`
 }
 
 func (payload *customTemplateFromFileContentPayload) Validate(r *http.Request) error {
@@ -133,7 +131,7 @@ func (payload *customTemplateFromFileContentPayload) Validate(r *http.Request) e
 		return errors.New("Invalid custom template platform")
 	}
 	// Platform validation is only for docker related stack (docker standalone and docker swarm)
-	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
+	if payload.Type != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	if !IsValidNote(payload.Note) {
@@ -163,16 +161,15 @@ func (handler *Handler) createCustomTemplateFromFileContent(r *http.Request) (*p
 
 	customTemplateID := handler.DataStore.CustomTemplate().GetNextIdentifier()
 	customTemplate := &portainer.CustomTemplate{
-		ID:           portainer.CustomTemplateID(customTemplateID),
-		Title:        payload.Title,
-		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Description:  payload.Description,
-		Note:         payload.Note,
-		Platform:     (payload.Platform),
-		Type:         (payload.Type),
-		Logo:         payload.Logo,
-		Variables:    payload.Variables,
-		EdgeTemplate: payload.EdgeTemplate,
+		ID:          portainer.CustomTemplateID(customTemplateID),
+		Title:       payload.Title,
+		EntryPoint:  filesystem.ComposeFileDefaultName,
+		Description: payload.Description,
+		Note:        payload.Note,
+		Platform:    (payload.Platform),
+		Type:        (payload.Type),
+		Logo:        payload.Logo,
+		Variables:   payload.Variables,
 	}
 
 	templateFolder := strconv.Itoa(customTemplateID)
@@ -201,7 +198,7 @@ type customTemplateFromGitRepositoryPayload struct {
 	// Type of created stack:
 	// * 1 - swarm
 	// * 2 - compose
-	Type portainer.StackType `example:"1" enums:"1,2" validate:"required"`
+	Type portainer.StackType `example:"2" enums:"2" validate:"required"`
 
 	// SourceID references an existing Source for git credentials/URL.
 	// When set, the inline URL and authentication fields are ignored.
@@ -224,8 +221,6 @@ type customTemplateFromGitRepositoryPayload struct {
 	TLSSkipVerify bool `example:"false"`
 	// IsComposeFormat indicates if the Kubernetes template is created from a Docker Compose file
 	IsComposeFormat bool `example:"false"`
-	// EdgeTemplate indicates if this template purpose for Edge Stack
-	EdgeTemplate bool `example:"false"`
 }
 
 func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request) error {
@@ -251,7 +246,7 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 	if payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
-	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
+	if payload.Type != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	if !IsValidNote(payload.Note) {
@@ -295,7 +290,6 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (
 		Logo:            payload.Logo,
 		Variables:       payload.Variables,
 		IsComposeFormat: payload.IsComposeFormat,
-		EdgeTemplate:    payload.EdgeTemplate,
 	}
 
 	getProjectPath := func() string {
@@ -404,8 +398,6 @@ type customTemplateFromFileUploadPayload struct {
 	FileContent []byte
 	// Definitions of variables in the stack file
 	Variables []portainer.CustomTemplateVariableDefinition
-	// EdgeTemplate indicates if this template purpose for Edge Stack
-	EdgeTemplate bool `example:"false"`
 }
 
 func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) error {
@@ -432,7 +424,7 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 
 	typeNumeral, _ := request.RetrieveNumericMultiPartFormValue(r, "Type", true)
 	templateType := portainer.StackType(typeNumeral)
-	if templateType != portainer.DockerSwarmStack && templateType != portainer.DockerComposeStack {
+	if templateType != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	payload.Type = templateType
@@ -461,9 +453,6 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 			return err
 		}
 	}
-
-	edgeTemplate, _ := request.RetrieveBooleanMultiPartFormValue(r, "EdgeTemplate", true)
-	payload.EdgeTemplate = edgeTemplate
 
 	return nil
 }
@@ -495,16 +484,15 @@ func (handler *Handler) createCustomTemplateFromFileUpload(r *http.Request) (*po
 
 	customTemplateID := handler.DataStore.CustomTemplate().GetNextIdentifier()
 	customTemplate := &portainer.CustomTemplate{
-		ID:           portainer.CustomTemplateID(customTemplateID),
-		Title:        payload.Title,
-		Description:  payload.Description,
-		Note:         payload.Note,
-		Platform:     payload.Platform,
-		Type:         payload.Type,
-		Logo:         payload.Logo,
-		EntryPoint:   filesystem.ComposeFileDefaultName,
-		Variables:    payload.Variables,
-		EdgeTemplate: payload.EdgeTemplate,
+		ID:          portainer.CustomTemplateID(customTemplateID),
+		Title:       payload.Title,
+		Description: payload.Description,
+		Note:        payload.Note,
+		Platform:    payload.Platform,
+		Type:        payload.Type,
+		Logo:        payload.Logo,
+		EntryPoint:  filesystem.ComposeFileDefaultName,
+		Variables:   payload.Variables,
 	}
 
 	templateFolder := strconv.Itoa(customTemplateID)

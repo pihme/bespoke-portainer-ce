@@ -1,4 +1,4 @@
-import { Form, FormikErrors, useFormikContext } from 'formik';
+import { Form, useFormikContext } from 'formik';
 
 import { CommonFields } from '@/react/portainer/custom-templates/components/CommonFields';
 import { CustomTemplatesVariablesDefinitionField } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
@@ -6,7 +6,6 @@ import { PlatformField } from '@/react/portainer/custom-templates/components/Pla
 import { GitForm } from '@/react/portainer/gitops/GitForm';
 import { isTemplateVariablesEnabled } from '@/react/portainer/custom-templates/components/utils';
 import { TemplateTypeSelector } from '@/react/portainer/custom-templates/components/TemplateTypeSelector';
-import { applySetStateAction } from '@/react-tools/apply-set-state-action';
 import { textByType } from '@/react/common/stacks/common/form-texts';
 import { StackType } from '@/react/common/stacks/types';
 
@@ -16,10 +15,8 @@ import { FileUploadForm } from '@@/form-components/FileUpload';
 import { FormActions } from '@@/form-components/FormActions';
 import { FormSection } from '@@/form-components/FormSection';
 
-import { EdgeTemplateSettings } from '../types';
 import { useParseTemplateOnFileChange } from '../useParseTemplateOnFileChange';
 
-import { EdgeSettingsFieldset } from './EdgeSettingsFieldset';
 import { FormValues, Method, initialBuildMethods } from './types';
 
 export function InnerForm({
@@ -35,7 +32,6 @@ export function InnerForm({
     setFieldValue,
     errors,
     isValid,
-    setFieldError,
     setValues,
     isSubmitting,
   } = useFormikContext<FormValues>();
@@ -135,28 +131,6 @@ export function InnerForm({
           onChange={(values) => setFieldValue('Variables', values)}
           isVariablesNamesFromParent={isEditor}
           errors={errors.Variables}
-        />
-      )}
-
-      {values.EdgeSettings && (
-        <EdgeSettingsFieldset
-          setValues={(edgeSetValues) =>
-            setValues((values) => ({
-              ...values,
-              EdgeSettings: applySetStateAction(
-                edgeSetValues,
-                values.EdgeSettings!
-              ),
-            }))
-          }
-          gitConfig={isGit ? values.Git : undefined}
-          fileValues={{
-            fileContent: values.FileContent,
-            file: values.File,
-          }}
-          values={values.EdgeSettings}
-          errors={errors.EdgeSettings as FormikErrors<EdgeTemplateSettings>}
-          setFieldError={setFieldError}
         />
       )}
 

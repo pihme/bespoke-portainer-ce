@@ -1,12 +1,10 @@
 import { ContainerListViewModel } from '@/react/docker/containers/types';
-import { EdgeStack } from '@/react/edge/edge-stacks/types';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { buildDockerSnapshotUrl, queryKeys as rootQueryKeys } from './root';
 
-export interface ContainersQueryParams {
-  edgeStackId?: EdgeStack['Id'];
-}
+// The edgeStackId filter went with Edge computing (TAI-004).
+export type ContainersQueryParams = Record<string, never>;
 
 export const queryKeys = {
   ...rootQueryKeys,

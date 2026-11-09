@@ -10,7 +10,6 @@ import {
   git,
 } from '@@/BoxSelector/common-options/build-methods';
 
-import { EdgeTemplateSettings } from '../types';
 
 export const initialBuildMethods = [editor, upload, git] as const;
 
@@ -24,5 +23,4 @@ export interface FormValues extends CommonFieldsValues {
   File: File | undefined;
   Git: GitFormModel;
   Variables: DefinitionFieldValues;
-  EdgeSettings?: EdgeTemplateSettings;
 }

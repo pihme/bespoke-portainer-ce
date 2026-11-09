@@ -37,25 +37,23 @@ type (
 	// Transport is a custom transport for Docker API reverse proxy. It allows
 	// interception of requests and rewriting of responses.
 	Transport struct {
-		HTTPTransport        *http.Transport
-		endpoint             *portainer.Endpoint
-		dataStore            dataservices.DataStore
-		signatureService     portainer.DigitalSignatureService
-		reverseTunnelService portainer.ReverseTunnelService
-		dockerClientFactory  *client.ClientFactory
-		gitService           portainer.GitService
-		snapshotService      portainer.SnapshotService
-		dockerID             string
-		mu                   sync.Mutex
+		HTTPTransport       *http.Transport
+		endpoint            *portainer.Endpoint
+		dataStore           dataservices.DataStore
+		signatureService    portainer.DigitalSignatureService
+		dockerClientFactory *client.ClientFactory
+		gitService          portainer.GitService
+		snapshotService     portainer.SnapshotService
+		dockerID            string
+		mu                  sync.Mutex
 	}
 
 	// TransportParameters is used to create a new Transport
 	TransportParameters struct {
-		Endpoint             *portainer.Endpoint
-		DataStore            dataservices.DataStore
-		SignatureService     portainer.DigitalSignatureService
-		ReverseTunnelService portainer.ReverseTunnelService
-		DockerClientFactory  *client.ClientFactory
+		Endpoint            *portainer.Endpoint
+		DataStore           dataservices.DataStore
+		SignatureService    portainer.DigitalSignatureService
+		DockerClientFactory *client.ClientFactory
 	}
 
 	restrictedDockerOperationContext struct {
@@ -77,14 +75,13 @@ type (
 // NewTransport returns a pointer to a new Transport instance.
 func NewTransport(parameters *TransportParameters, httpTransport *http.Transport, gitService portainer.GitService, snapshotService portainer.SnapshotService) (*Transport, error) {
 	transport := &Transport{
-		endpoint:             parameters.Endpoint,
-		dataStore:            parameters.DataStore,
-		signatureService:     parameters.SignatureService,
-		reverseTunnelService: parameters.ReverseTunnelService,
-		dockerClientFactory:  parameters.DockerClientFactory,
-		HTTPTransport:        httpTransport,
-		gitService:           gitService,
-		snapshotService:      snapshotService,
+		endpoint:            parameters.Endpoint,
+		dataStore:           parameters.DataStore,
+		signatureService:    parameters.SignatureService,
+		dockerClientFactory: parameters.DockerClientFactory,
+		HTTPTransport:       httpTransport,
+		gitService:          gitService,
+		snapshotService:     snapshotService,
 	}
 
 	return transport, nil
@@ -189,17 +186,7 @@ func (transport *Transport) proxyDockerRequest(request *http.Request, fipsMode b
 }
 
 func (transport *Transport) executeDockerRequest(request *http.Request) (*http.Response, error) {
-	response, err := transport.HTTPTransport.RoundTrip(request)
-
-	if transport.endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
-		return response, err
-	}
-
-	if err == nil {
-		transport.reverseTunnelService.UpdateLastActivity(transport.endpoint.ID)
-	}
-
-	return response, err
+	return transport.HTTPTransport.RoundTrip(request)
 }
 
 func (transport *Transport) proxyAgentRequest(r *http.Request, unversionedPath string) (*http.Response, error) {

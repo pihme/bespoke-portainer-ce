@@ -1,7 +1,6 @@
 package endpointutils
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -263,68 +262,6 @@ func TestGetEndpointCheckinInterval(t *testing.T) {
 			Edge: portainer.Edge{PingInterval: 50, CommandInterval: 50, SnapshotInterval: 50},
 		})
 		assert.Equal(t, 5, interval)
-	})
-}
-
-type relationService struct {
-	dataservices.EndpointRelationService
-	created []*portainer.EndpointRelation
-	err     error
-}
-
-func (s *relationService) Create(relation *portainer.EndpointRelation) error {
-	if s.err != nil {
-		return s.err
-	}
-	s.created = append(s.created, relation)
-	return nil
-}
-
-type relationStore struct {
-	dataservices.DataStoreTx
-	relations *relationService
-}
-
-func (s *relationStore) EndpointRelation() dataservices.EndpointRelationService {
-	return s.relations
-}
-
-func TestInitializeEdgeEndpointRelation(t *testing.T) {
-	t.Parallel()
-
-	t.Run("non-edge is no-op", func(t *testing.T) {
-		t.Parallel()
-		svc := &relationService{}
-		err := InitializeEdgeEndpointRelation(&portainer.Endpoint{
-			ID:   1,
-			Type: portainer.DockerEnvironment,
-		}, &relationStore{relations: svc})
-		require.NoError(t, err)
-		assert.Empty(t, svc.created)
-	})
-
-	t.Run("edge creates empty stack map", func(t *testing.T) {
-		t.Parallel()
-		svc := &relationService{}
-		err := InitializeEdgeEndpointRelation(&portainer.Endpoint{
-			ID:   9,
-			Type: portainer.EdgeAgentOnDockerEnvironment,
-		}, &relationStore{relations: svc})
-		require.NoError(t, err)
-		require.Len(t, svc.created, 1)
-		assert.Equal(t, portainer.EndpointID(9), svc.created[0].EndpointID)
-		assert.NotNil(t, svc.created[0].EdgeStacks)
-		assert.Empty(t, svc.created[0].EdgeStacks)
-	})
-
-	t.Run("create error propagates", func(t *testing.T) {
-		t.Parallel()
-		svc := &relationService{err: errors.New("relation create failed")}
-		err := InitializeEdgeEndpointRelation(&portainer.Endpoint{
-			ID:   2,
-			Type: portainer.EdgeAgentOnKubernetesEnvironment,
-		}, &relationStore{relations: svc})
-		assert.EqualError(t, err, "relation create failed")
 	})
 }
 

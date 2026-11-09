@@ -17,9 +17,6 @@ vi.mock('@/react/portainer/environments/utils', () => ({
 vi.mock('@@/Icon', () => ({
   Icon: () => <span data-cy="icon" />,
 }));
-vi.mock('@/react/edge/edge-groups/queries/useEdgeGroup', () => ({
-  useEdgeGroup: () => ({ data: undefined }),
-}));
 vi.mock('@@/Link', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));

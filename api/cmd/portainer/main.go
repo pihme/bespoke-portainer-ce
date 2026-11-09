@@ -10,7 +10,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/cli"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/database"
@@ -31,7 +30,6 @@ import (
 	kubeproxy "github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/ssl"
@@ -56,7 +54,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
-
 
 func initCLI() *portainer.CLIFlags {
 	cliService := cli.Service{}
@@ -169,8 +166,8 @@ func checkDBSchemaServerVersionMatch(dbStore dataservices.DataStore, serverVersi
 	return v.SchemaVersion == serverVersion && v.Edition == serverEdition
 }
 
-func initKubernetesDeployer(kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore dataservices.DataStore, reverseTunnelService portainer.ReverseTunnelService, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager) portainer.KubernetesDeployer {
-	return exec.NewKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager)
+func initKubernetesDeployer(kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager) portainer.KubernetesDeployer {
+	return exec.NewKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, signatureService, proxyManager)
 }
 
 func initJWTService(userSessionTimeout string, dataStore dataservices.DataStore) (portainer.JWTService, error) {
@@ -235,9 +232,6 @@ func updateSettingsFromFlags(dataStore dataservices.DataStore, flags *portainer.
 
 	settings.SnapshotInterval = cmp.Or(*flags.SnapshotInterval, settings.SnapshotInterval)
 	settings.LogoURL = cmp.Or(*flags.Logo, settings.LogoURL)
-	settings.EnableEdgeComputeFeatures = cmp.Or(*flags.EnableEdgeComputeFeatures, settings.EnableEdgeComputeFeatures)
-	settings.EdgePortainerURL = cmp.Or(*flags.EdgePortainerURL, settings.EdgePortainerURL)
-	settings.TrustOnFirstConnect = cmp.Or(*flags.EdgeTrustOnFirstConnect, settings.TrustOnFirstConnect)
 	settings.TemplatesURL = cmp.Or(*flags.Templates, settings.TemplatesURL)
 
 	if *flags.Labels != nil {
@@ -398,8 +392,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	signatureService := initDigitalSignatureService()
 
-	edgeStacksService := edgestacks.NewService(dataStore, fileService)
-
 	sslService, err := initSSLService(*flags.AddrHTTPS, *flags.TLSCert, *flags.TLSKey, fileService, dataStore, shutdownTrigger)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
@@ -409,11 +401,9 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		log.Fatal().Err(err).Msg("failed initializing key pair")
 	}
 
-	reverseTunnelService := chisel.NewService(dataStore, shutdownCtx, fileService)
+	dockerClientFactory := dockerclient.NewClientFactory(signatureService)
 
-	dockerClientFactory := dockerclient.NewClientFactory(signatureService, reverseTunnelService)
-
-	kubernetesClientFactory, err := kubecli.NewClientFactory(signatureService, reverseTunnelService, dataStore, instanceID, *flags.AddrHTTPS, settings.UserSessionTimeout)
+	kubernetesClientFactory, err := kubecli.NewClientFactory(signatureService, dataStore, instanceID, *flags.AddrHTTPS, settings.UserSessionTimeout)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing Kubernetes Client Factory service")
 	}
@@ -425,13 +415,11 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	proxyManager := proxy.NewManager(kubernetesClientFactory)
 
-	reverseTunnelService.ProxyManager = proxyManager
-
 	composeDeployer := compose.NewComposeDeployer()
 
 	composeStackManager := exec.NewComposeStackManager(composeDeployer, proxyManager)
 
-	kubernetesDeployer := initKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager)
+	kubernetesDeployer := initKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, signatureService, proxyManager)
 
 	pendingActionsService := pendingactions.NewService(dataStore, kubernetesClientFactory)
 	pendingActionsService.RegisterHandler(actions.CleanNAPWithOverridePolicies, handlers.NewHandlerCleanNAPWithOverridePolicies(authorizationService, dataStore))
@@ -446,7 +434,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	snapshotService.Start(shutdownCtx)
 
-	proxyManager.NewProxyFactory(dataStore, signatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
+	proxyManager.NewProxyFactory(dataStore, signatureService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
 
 	applicationStatus := initStatus(instanceID)
 
@@ -467,10 +455,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	localOperatorReady <- struct{}{}
 
 	go endpointutils.InitEndpoint(shutdownCtx, localOperatorReady, flags, dataStore, snapshotService)
-
-	if err := reverseTunnelService.StartTunnelServer(*flags.TunnelAddr, *flags.TunnelPort, snapshotService); err != nil {
-		log.Fatal().Err(err).Msg("failed starting tunnel server")
-	}
 
 	sched := scheduler.NewScheduler(shutdownCtx)
 	stackDeployer := deployments.NewStackDeployer(composeStackManager, dockerClientFactory, dataStore)
@@ -536,7 +520,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	return &http.Server{
 		AuthorizationService:        authorizationService,
-		ReverseTunnelService:        reverseTunnelService,
 		Status:                      applicationStatus,
 		BindAddress:                 *flags.Addr,
 		BindAddressHTTPS:            *flags.AddrHTTPS,
@@ -544,7 +527,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		HTTPEnabled:                 sslDBSettings.HTTPEnabled,
 		AssetsPath:                  *flags.Assets,
 		DataStore:                   dataStore,
-		EdgeStacksService:           edgeStacksService,
 		ComposeStackManager:         composeStackManager,
 		KubernetesDeployer:          kubernetesDeployer,
 		CryptoService:               cryptoService,

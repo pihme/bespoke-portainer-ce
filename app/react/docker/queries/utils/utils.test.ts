@@ -54,12 +54,12 @@ describe('container query helpers', () => {
       'snapshot',
       'containers',
     ]);
-    expect(containerQueryKeys.containersQuery(1, { edgeStackId: 9 })).toEqual([
+    expect(containerQueryKeys.containersQuery(1, {})).toEqual([
       'docker',
       1,
       'snapshot',
       'containers',
-      { edgeStackId: 9 },
+      {},
     ]);
     expect(containerQueryKeys.container(1, 'cid')).toEqual([
       'docker',

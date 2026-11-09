@@ -347,7 +347,7 @@ func TestREQ_VOL_01_GetDockerIDFromSnapshotAndRemote(t *testing.T) {
 
 		transport := &Transport{
 			endpoint:            &portainer.Endpoint{ID: 4, URL: srv.URL},
-			dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+			dockerClientFactory: dockerclient.NewClientFactory(nil),
 		}
 		id, err := transport.getDockerID()
 		require.NoError(t, err)
@@ -375,7 +375,7 @@ func TestREQ_VOL_01_InheritedResourceControlFromVolumeLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil, nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -406,7 +406,7 @@ func TestREQ_NET_03_InheritedResourceControlFromNetworkLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil, nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -449,7 +449,7 @@ func TestREQ_CTR_04_InheritedResourceControlFromContainerLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil, nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -503,7 +503,7 @@ func TestREQ_USR_08_GetInheritedResourceControlFromServiceOrStack(t *testing.T) 
 
 	transport := &Transport{
 		endpoint:            &portainer.Endpoint{ID: 2, URL: srv.URL},
-		dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+		dockerClientFactory: dockerclient.NewClientFactory(nil),
 	}
 	cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, "", nil)
 	require.NoError(t, err)
@@ -813,7 +813,7 @@ func TestREQ_VOL_01_GetDockerIDFromSwarmClusterInfo(t *testing.T) {
 
 	transport := &Transport{
 		endpoint:            &portainer.Endpoint{ID: 11, URL: srv.URL},
-		dockerClientFactory: dockerclient.NewClientFactory(nil, nil),
+		dockerClientFactory: dockerclient.NewClientFactory(nil),
 	}
 	id, err := transport.getDockerID()
 	require.NoError(t, err)

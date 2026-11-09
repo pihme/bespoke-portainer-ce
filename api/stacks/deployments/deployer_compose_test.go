@@ -50,7 +50,7 @@ func TestREQ_STK_02_DeployComposeStack(t *testing.T) {
 
 	_, store := datastore.MustNewTestStore(t, false, true)
 	manager := &recordingComposeManager{}
-	factory := dockerclient.NewClientFactory(nil, nil)
+	factory := dockerclient.NewClientFactory(nil)
 	deployer := NewStackDeployer(manager, factory, store)
 
 	stack := &portainer.Stack{Name: "web", Type: portainer.DockerComposeStack}

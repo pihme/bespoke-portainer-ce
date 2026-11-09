@@ -25,7 +25,7 @@ func TestEndpointDeleteEdgeGroupsConcurrently(t *testing.T) {
 	handler := NewHandler(testhelpers.NewTestRequestBouncer())
 	handler.DataStore = store
 	handler.ProxyManager = proxy.NewManager(nil)
-	handler.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	handler.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 
 	// Create all the environments and add them to the same edge group
 
@@ -95,7 +95,7 @@ func TestEndpointDeleteRemovesStaleWorkflowReference(t *testing.T) {
 	handler := NewHandler(testhelpers.NewTestRequestBouncer())
 	handler.DataStore = store
 	handler.ProxyManager = proxy.NewManager(nil)
-	handler.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	handler.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
 
 	err := store.Endpoint().Create(&portainer.Endpoint{
 		ID:   1,

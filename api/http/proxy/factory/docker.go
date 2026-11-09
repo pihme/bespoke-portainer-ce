@@ -34,16 +34,11 @@ func (factory *ProxyFactory) newDockerLocalProxy(endpoint *portainer.Endpoint) (
 }
 
 func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
-	rawURL := endpoint.URL
-	if endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
-		tunnelAddr, err := factory.reverseTunnelService.TunnelAddr(endpoint)
-		if err != nil {
-			return nil, err
-		}
-		rawURL = "http://" + tunnelAddr
+	if endpointutils.IsEdgeEndpoint(endpoint) {
+		return nil, portainer.ErrEdgeEnvironmentNotSupported
 	}
 
-	endpointURL, err := url.ParseURL(rawURL)
+	endpointURL, err := url.ParseURL(endpoint.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +46,10 @@ func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portainer.Endpoint) (h
 	endpointURL.Scheme = "http"
 
 	transportParameters := &docker.TransportParameters{
-		Endpoint:             endpoint,
-		DataStore:            factory.dataStore,
-		ReverseTunnelService: factory.reverseTunnelService,
-		SignatureService:     factory.signatureService,
-		DockerClientFactory:  factory.dockerClientFactory,
+		Endpoint:            endpoint,
+		DataStore:           factory.dataStore,
+		SignatureService:    factory.signatureService,
+		DockerClientFactory: factory.dockerClientFactory,
 	}
 
 	var innerTransport *http.Transport
@@ -67,13 +61,7 @@ func (factory *ProxyFactory) newDockerHTTPProxy(endpoint *portainer.Endpoint) (h
 
 		endpointURL.Scheme = "https"
 
-		if endpointutils.IsEdgeEndpoint(endpoint) {
-			innerTransport = ssrf.NewInternalTransport(tlsConfig)
-		} else {
-			innerTransport = ssrf.NewTransport(tlsConfig)
-		}
-	} else if endpointutils.IsEdgeEndpoint(endpoint) {
-		innerTransport = ssrf.NewInternalTransport(nil)
+		innerTransport = ssrf.NewTransport(tlsConfig)
 	} else {
 		innerTransport = ssrf.NewTransport(nil)
 	}

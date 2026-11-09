@@ -29,7 +29,6 @@ type Handler struct {
 	DataStore              dataservices.DataStore
 	FileService            portainer.FileService
 	ProxyManager           *proxy.Manager
-	ReverseTunnelService   portainer.ReverseTunnelService
 	SnapshotService        portainer.SnapshotService
 	ComposeStackManager    portainer.ComposeStackManager
 	AuthorizationService   *authorization.Service
@@ -80,10 +79,7 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 	h.Handle("/endpoints/{id}/registries/{registryId}",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryAccess))).Methods(http.MethodPut)
 
-	h.Handle("/endpoints/global-key", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointCreateGlobalKey))).Methods(http.MethodPost)
-
 	// DEPRECATED
-	h.Handle("/endpoints/{id}/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointStatusInspect))).Methods(http.MethodGet)
 	h.Handle("/endpoints", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointDeleteBatchDeprecated))).Methods(http.MethodDelete)
 
 	return h

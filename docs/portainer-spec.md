@@ -33,7 +33,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | REG | Registries |
 | K8S | Kubernetes environments (all removed, TAI-002) |
 | ACI | Azure Container Instances |
-| EDGE | Edge Compute |
+| EDGE | Edge Compute (all removed, TAI-004) |
 | SET | Global settings |
 | BKP | Backup and restore |
 | LOG | Logs and notifications |
@@ -45,12 +45,12 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## SRV – Server installation and runtime
 
-- **REQ-SRV-01 Run as a container on Docker Standalone.** Portainer Server runs as a container with the Docker socket and a `portainer_data` volume mounted; UI on HTTPS port 9443 with a self-signed certificate, optional HTTP 9000, optional tunnel port 8000 for Edge Agents. Entry: `docker run … portainer/portainer-ce`; CLI `--bind`, `--bind-https`, `--tunnel-addr`, `--tunnel-port`, `--data`, `--assets`. docs: start/install-ce/server/docker/linux
+- **REQ-SRV-01 Run as a container on Docker Standalone.** Portainer Server runs as a container with the Docker socket and a `portainer_data` volume mounted; UI on HTTPS port 9443 with a self-signed certificate, optional HTTP 9000, optional tunnel port 8000 for Edge Agents. Entry: `docker run … portainer/portainer-ce`; CLI `--bind`, `--bind-https`, `--tunnel-addr`, `--tunnel-port`, `--data`, `--assets`. docs: start/install-ce/server/docker/linux *TAI-004: no tunnel port 8000; `--tunnel-addr` and `--tunnel-port` are gone.*
 - **REQ-SRV-02 Other install targets.** Install on Docker Swarm (as a stack with the Agent), Kubernetes (Helm chart or manifests), Podman, WSL/Docker Desktop and Windows Container Service. Not tested in this repo (C-08). docs: start/install-ce/server/*, advanced/helm-chart-configuration-options
 - **REQ-SRV-03 Portainer Agent.** A separate agent container that gives the server access to a remote Docker, Swarm, Podman or Kubernetes host (needed for host browsing and volume browsing). Not tested in this repo (C-08); the server side of talking to an Agent is tested. docs: start/agent, start/architecture
 - **REQ-SRV-04 Command-line configuration.** Server behavior is set by CLI flags, among them `--host` (initial environment), `--admin-password`/`--admin-password-file`, `--hide-label`, `--logo`, `--templates`, `--snapshot-interval`, `--base-url`, `--log-level`, `--log-mode`, `--http-disabled`/`--http-enabled`, `--trusted-origins`, `--csp`, `--compact-db`, `--feat`, `--rollback`. docs: advanced/cli
 - **REQ-SRV-05 Own TLS certificate and HTTPS-only.** Serve the UI with a user-supplied certificate and key, optionally HTTPS only. Entry: CLI `--tlscert`, `--tlskey`, `--tlscacert`, `--tlsverify` (deprecated aliases `--ssl`, `--sslcert`, `--sslkey`), `--http-disabled`; UI `#!/settings` (SSL certificate); API `GET/PUT /ssl`. docs: advanced/ssl, admin/settings/general
-- **REQ-SRV-06 mTLS for Edge Agent traffic.** **BE-only.** docs: advanced/mtls
+- ~~**REQ-SRV-06 mTLS for Edge Agent traffic.** **BE-only.** docs: advanced/mtls~~ REMOVED (TAI-004)
 - **REQ-SRV-07 Database encryption.** Encrypt the BoltDB database with a secret mounted at start (not reversible). Entry: CLI `--secret-key-name`. docs: advanced/db-encryption
 - **REQ-SRV-08 Reverse proxy and sub-path.** Run behind nginx or Traefik and under a relative base URL. Entry: CLI `--base-url`, `--trusted-origins`. docs: advanced/reverse-proxy, advanced/reverse-proxy/nginx, advanced/reverse-proxy/traefik
 - **REQ-SRV-09 Update Portainer.** Update the server and agents to a newer version per platform, or roll the database back to the previous version. Entry: CLI `--rollback`. docs: start/upgrade, start/upgrade/docker, start/upgrade/edge
@@ -100,7 +100,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-ENV-12 Environment snapshots.** Portainer periodically snapshots each environment for the home screen; a snapshot can be triggered manually. Entry: API `POST /endpoints/{id}/snapshot`, `POST /endpoints/snapshot`; CLI `--snapshot-interval`; UI `#!/settings`. docs: admin/settings/general (Snapshot interval)
 - **REQ-ENV-13 Environment groups.** Create, edit and delete groups and assign environments. Entry: UI `#!/groups`, `#!/groups/new`, `#!/groups/{id}`; API `/endpoint_groups`, `PUT/DELETE /endpoint_groups/{id}/endpoints/{endpointId}`. docs: admin/environments/groups
 - **REQ-ENV-14 Tags.** Create and delete tags and tag environments. Entry: UI `#!/tags`; API `GET/POST /tags`, `DELETE /tags/{id}`. docs: admin/environments/tags
-- **REQ-ENV-15 Scheduled environment update and rollback.** Schedule Edge Agent / environment updates and rollbacks. **BE-only** (CE has the routes as upsell views). Entry: UI `#!/endpoints/update-schedules`. docs: admin/environments/update
+- ~~**REQ-ENV-15 Scheduled environment update and rollback.** Schedule Edge Agent / environment updates and rollbacks. **BE-only** (CE has the routes as upsell views). Entry: UI `#!/endpoints/update-schedules`. docs: admin/environments/update~~ REMOVED (TAI-004)
 
 ## POL – Environment policies
 
@@ -190,7 +190,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-TPL-01 App templates.** Browse the built-in list of application templates and deploy one as a container or stack with editable fields. Entry: UI `#!/{envId}/docker/templates`; API `GET /templates`, `POST /templates/{id}/file`. docs: user/docker/templates/application, …/deploy-container, …/deploy-stack *TAI-003: Swarm stack templates are not deployable.*
 - **REQ-TPL-02 Own app template source.** Point Portainer at a JSON template list (format documented). Entry: CLI `--templates`; UI `#!/settings` (App Templates). docs: advanced/app-templates, advanced/app-templates/build, advanced/app-templates/format, admin/settings/general
-- **REQ-TPL-03 Custom templates.** Create custom stack templates from the web editor, an upload or Git, edit and delete them, and deploy them. Entry: UI `#!/{envId}/docker/templates/custom`, `…/custom/new`, `…/custom/{id}`; API `/custom_templates`, `POST /custom_templates/create/{string|file|repository}`, `PUT /custom_templates/{id}/git_fetch`. docs: user/docker/templates/custom *TAI-003: new templates default to Compose; Swarm custom templates cannot be deployed from the Docker UI (the type stays for Edge, TAI-004).*
+- **REQ-TPL-03 Custom templates.** Create custom stack templates from the web editor, an upload or Git, edit and delete them, and deploy them. Entry: UI `#!/{envId}/docker/templates/custom`, `…/custom/new`, `…/custom/{id}`; API `/custom_templates`, `POST /custom_templates/create/{string|file|repository}`, `PUT /custom_templates/{id}/git_fetch`. docs: user/docker/templates/custom *TAI-003: new templates default to Compose; Swarm custom templates cannot be deployed from the Docker UI (the type stays for Edge, TAI-004).* *TAI-004: custom templates are Compose only; Swarm and Edge templates are rejected on create and update, and leftover Edge templates are hidden.*
 - **REQ-TPL-04 Template variables.** Variables in custom templates that the user fills at deploy time (CE, C-02: create, validate and fill). docs: user/docker/templates/custom (Variables in templates)
 
 ## GIT – App Delivery
@@ -238,17 +238,17 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## EDGE – Edge Compute
 
-- **REQ-EDGE-01 Enable Edge Compute and its settings.** Toggle Edge features, API server URL and tunnel address, deployment sync options, Edge access. Entry: UI `#!/settings/edge`; CLI `--edge-compute`, `--edge-portainer-url`, `--edge-trust-on-first-connect`, `--tunnel-addr`, `--tunnel-port`. docs: admin/settings/edge, start/install-ce/server/setup (Set up Edge Compute)
-- **REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode and in async mode (CE in the current tree, C-04). Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async *TAI-002: the wizard no longer offers Kubernetes (Agent, Edge Agent or kubeconfig import); the server-side Edge Agent on Kubernetes stays until TAI-004.*
-- **REQ-EDGE-03 Auto onboarding script.** Generate a script that onboards many Edge Agents. Entry: UI `#!/endpoints/aeec`. docs: admin/environments/aeec
-- **REQ-EDGE-04 Prestage an Edge Agent.** docs: advanced/how-to-prestage-an-edge-agent-environment
-- **REQ-EDGE-05 Edge groups.** Static and dynamic (tag-based) groups of Edge environments. Entry: UI `#!/edge/groups`, `…/new`, `…/{groupId}`; API `/edge_groups`. docs: user/edge/groups
-- **REQ-EDGE-06 Edge stacks.** Deploy Compose, Kubernetes manifests or Helm charts to Edge groups, with per-environment status. Entry: UI `#!/edge/stacks`, `…/new`, `…/{stackId}`; API `/edge_stacks`, `POST /edge_stacks/create/{string|file|repository}`. docs: user/edge/stacks and sub-pages
-- **REQ-EDGE-07 Edge jobs.** Run scheduled or one-off scripts on Edge hosts and collect logs. Entry: UI `#!/edge/jobs`, `…/new`, `…/{id}`; API `/edge_jobs`. docs: user/edge/jobs
-- **REQ-EDGE-08 Edge templates.** Application and custom templates for Edge stacks. Entry: UI `#!/edge/templates`, `#!/edge/templates/custom`. docs: user/edge/templates and sub-pages
-- **REQ-EDGE-09 Edge configurations.** **BE-only.** docs: user/edge/configurations
-- **REQ-EDGE-10 Waiting room.** Approve new Edge devices before they are trusted. **BE-only** (CE route `#!/edge/devices/waiting-room` exists, inferred from code). docs: user/edge/waiting-room
-- **REQ-EDGE-11 Snapshot browsing of async devices.** **BE-only** (depends on async mode). docs: user/home/snapshot
+- ~~**REQ-EDGE-01 Enable Edge Compute and its settings.** Toggle Edge features, API server URL and tunnel address, deployment sync options, Edge access. Entry: UI `#!/settings/edge`; CLI `--edge-compute`, `--edge-portainer-url`, `--edge-trust-on-first-connect`, `--tunnel-addr`, `--tunnel-port`. docs: admin/settings/edge, start/install-ce/server/setup (Set up Edge Compute)~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode and in async mode (CE in the current tree, C-04). Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async *TAI-002: the wizard no longer offers Kubernetes (Agent, Edge Agent or kubeconfig import); the server-side Edge Agent on Kubernetes stays until TAI-004.*~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-03 Auto onboarding script.** Generate a script that onboards many Edge Agents. Entry: UI `#!/endpoints/aeec`. docs: admin/environments/aeec~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-04 Prestage an Edge Agent.** docs: advanced/how-to-prestage-an-edge-agent-environment~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-05 Edge groups.** Static and dynamic (tag-based) groups of Edge environments. Entry: UI `#!/edge/groups`, `…/new`, `…/{groupId}`; API `/edge_groups`. docs: user/edge/groups~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-06 Edge stacks.** Deploy Compose, Kubernetes manifests or Helm charts to Edge groups, with per-environment status. Entry: UI `#!/edge/stacks`, `…/new`, `…/{stackId}`; API `/edge_stacks`, `POST /edge_stacks/create/{string|file|repository}`. docs: user/edge/stacks and sub-pages~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-07 Edge jobs.** Run scheduled or one-off scripts on Edge hosts and collect logs. Entry: UI `#!/edge/jobs`, `…/new`, `…/{id}`; API `/edge_jobs`. docs: user/edge/jobs~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-08 Edge templates.** Application and custom templates for Edge stacks. Entry: UI `#!/edge/templates`, `#!/edge/templates/custom`. docs: user/edge/templates and sub-pages~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-09 Edge configurations.** **BE-only.** docs: user/edge/configurations~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-10 Waiting room.** Approve new Edge devices before they are trusted. **BE-only** (CE route `#!/edge/devices/waiting-room` exists, inferred from code). docs: user/edge/waiting-room~~ REMOVED (TAI-004)
+- ~~**REQ-EDGE-11 Snapshot browsing of async devices.** **BE-only** (depends on async mode). docs: user/home/snapshot~~ REMOVED (TAI-004)
 
 ## SET – Global settings
 
@@ -302,7 +302,7 @@ Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today;
 - ~~**REQ-DED-03 Session lifetime.** Default 8 h (`DefaultUserSessionTimeout`). Any duration `time.ParseDuration` accepts is stored; there is no minimum or maximum. Relates to REQ-AUTH-07. (L-02)~~ REMOVED (TAI-001)
 - **REQ-DED-04 Snapshot interval.** Default 5 min. `--snapshot-interval` and `PUT /settings` accept any parseable duration; there is no minimum or maximum. Relates to REQ-ENV-12, REQ-SET-01, REQ-SRV-04. (L-03)
 - ~~**REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)~~ REMOVED (TAI-002)
-- **REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)
+- ~~**REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)~~ REMOVED (TAI-004)
 - **REQ-DED-07 Multipart file uploads.** Uploaded files (restore archive, stack file, `.env`, template file, TLS file) are read whole into memory; there is no size cap. Adding one would be a product change. Relates to REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04. (L-06; `pkg/libhttp/request.RetrieveMultiPartFormFile`)
 - **REQ-DED-08 Backup timeout.** A backup is aborted after 1 h by default; `PORTAINER_BACKUP_TIMEOUT` overrides it, and an invalid value falls back to the default. Relates to REQ-BKP-01. (L-07; `api/filesystem/copy.go`)
 - **REQ-DED-09 Request wait during restore.** While a restore holds the store, a request waits up to 1 minute and then fails. Relates to REQ-BKP-02. (L-08; `offlineGate.WaitingMiddleware(time.Minute, …)`)
@@ -342,6 +342,14 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (d) A leftover Swarm stack record (type 1) can be listed, inspected and deleted (teardown is a no-op); update, start, stop, Git update, Git redeploy, migrate and associate answer 400 "Docker Swarm stacks are no longer supported"; the Git auto-update job marks it errored instead of deploying it.
   - (e) The Docker dashboard API has no `services` count.
   - (f) A Docker engine that is part of a Swarm is managed as a standalone engine: the UI has no `#!/{envId}/docker/{swarm,services,tasks,nodes,configs,secrets}` states, no Swarm sidebar entries, no Swarm services tile, cluster visualizer or Swarm info panels, no Swarm stack create path, no Swarm node selectors and no "Docker Swarm" wizard option; Swarm-scoped networks are not listed.
+- **REQ-TAI-004 No Edge computing.** Added by TAI-004 (2026-11-10).
+  - (a) The removed API routes answer 404: `/edge_groups`, `/edge_stacks`, `/edge_jobs` and everything under them, `GET /endpoints/{id}/edge/status`, `/endpoints/{id}/edge/stacks/…`, `/endpoints/{id}/edge/jobs/…` and `GET /endpoints/{id}/status`; `POST /endpoints/global-key` answers 405 (the path is matched by `/endpoints/{id}`).
+  - (b) There is no tunnel server: the CLI flags `--edge-compute`, `--edge-portainer-url`, `--edge-trust-on-first-connect`, `--tunnel-addr` and `--tunnel-port` are rejected as unknown flags, and the `EDGE_*` environment variables have no effect.
+  - (c) `POST /endpoints` rejects `EndpointCreationType` 4 (Edge Agent) with "Edge Agent environments are no longer supported"; the payload has no `EdgeCheckinInterval`.
+  - (d) A leftover Edge environment record (Edge Agent on Docker or Kubernetes) stays in the database and can be listed and removed; the Docker, Agent and Kubernetes proxies and websocket exec/attach refuse it with "Edge environments are no longer supported" (400 on the proxy routes) without opening a connection.
+  - (e) `GET /settings/public` has no `EnableEdgeComputeFeatures` and no `Edge` block; `PUT /settings` ignores `EnableEdgeComputeFeatures`, `TrustOnFirstConnect`, `EnforceEdgeID`, `EdgePortainerURL`, `EdgeAgentCheckinInterval` and the `Edge` intervals.
+  - (f) Custom templates are Compose only: `EdgeTemplate` is ignored, Swarm (1) and Kubernetes (3) types answer "Invalid custom template type", and leftover Edge templates are not listed.
+  - (g) The UI has no `#!/edge/…` states, no "Edge compute" sidebar section, no `#!/settings/edge` page or "Edge Compute" settings entry, no `#!/endpoints/aeec`, no `#!/init/edge`, no update schedules, no Edge agent poll frequency, no Edge Agent wizard tabs, no "KubeSolo (Edge)" or "Set up new environments" wizard option, no Edge settings on custom templates and no Edge update badge on the home page. A leftover Edge environment shows "Edge environments are no longer supported" on its details page and is sent home instead of to a dashboard.
 
 ## Not covered as requirements
 

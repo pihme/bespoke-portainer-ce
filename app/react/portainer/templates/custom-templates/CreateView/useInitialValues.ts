@@ -4,17 +4,14 @@ import { StackType } from '@/react/common/stacks/types';
 
 import { Platform } from '../../types';
 import { useAppTemplateFile } from '../../app-templates/queries/useAppTemplateFile';
-import { getDefaultEdgeTemplateSettings } from '../types';
 
 import { FormValues, Method } from './types';
 
 export function useInitialValues({
   defaultType,
-  isEdge = false,
   buildMethods,
 }: {
   defaultType: StackType;
-  isEdge?: boolean;
   buildMethods: Array<Method>;
 }): FormValues | undefined {
   const { appTemplateId, type = defaultType } = useAppTemplateParams();
@@ -47,7 +44,6 @@ export function useInitialValues({
       ComposeFilePathInRepository: initialFilePathInRepository,
       AdditionalFiles: [],
     },
-    EdgeSettings: isEdge ? getDefaultEdgeTemplateSettings() : undefined,
   };
 }
 

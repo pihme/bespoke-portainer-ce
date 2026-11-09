@@ -397,7 +397,7 @@ func TestMigrateEnvironment_DockerSuccessEnablesGPU(t *testing.T) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 	err := migrator.MigrateEnvironment(endpoint)
 	require.NoError(t, err)
 
@@ -425,7 +425,7 @@ func TestMigrateEnvironment_DockerCreateClientError(t *testing.T) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 	err := migrator.MigrateEnvironment(endpoint)
 	require.Error(t, err)
 }
@@ -443,7 +443,7 @@ func TestMigrateEnvironment_DockerMigrateGPUsError(t *testing.T) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 	err := migrator.MigrateEnvironment(endpoint)
 	require.Error(t, err)
 }
@@ -451,7 +451,7 @@ func TestMigrateEnvironment_DockerMigrateGPUsError(t *testing.T) {
 func TestMigrateEnvironment_NonDockerNonKubernetesReturnsNil(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 
 	err := migrator.MigrateEnvironment(&portainer.Endpoint{
 		ID:   24,
@@ -477,7 +477,7 @@ func TestPostInitMigrate_LocalDockerRunsMigration(t *testing.T) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 	err := migrator.PostInitMigrate()
 	require.NoError(t, err)
 
@@ -509,7 +509,7 @@ func TestPostInitMigrate_LocalDockerMigrationErrorIsLogged(t *testing.T) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil, nil), store, "", nil)
+	migrator := NewPostInitMigrator(nil, dockerClient.NewClientFactory(nil), store, "", nil)
 	err := migrator.PostInitMigrate()
 	require.NoError(t, err)
 }

@@ -60,7 +60,7 @@ func TestNewHandlerPostInitMigrateEnvironment(t *testing.T) {
 		authorization.NewService(store),
 		store,
 		nil,
-		dockerClient.NewClientFactory(nil, nil),
+		dockerClient.NewClientFactory(nil),
 		"/assets",
 		nil,
 	)
@@ -85,7 +85,7 @@ func TestHandlerPostInitMigrateEnvironment_ExecuteLocalDocker(t *testing.T) {
 		authorization.NewService(store),
 		store,
 		nil,
-		dockerClient.NewClientFactory(nil, nil),
+		dockerClient.NewClientFactory(nil),
 		"",
 		nil,
 	)
@@ -119,7 +119,7 @@ func TestHandlerPostInitMigrateEnvironment_ExecuteDockerClientError(t *testing.T
 		authorization.NewService(store),
 		store,
 		nil,
-		dockerClient.NewClientFactory(nil, nil),
+		dockerClient.NewClientFactory(nil),
 		"",
 		nil,
 	)
@@ -136,7 +136,7 @@ func TestHandlerPostInitMigrateEnvironment_ExecuteNonDockerNoOp(t *testing.T) {
 		authorization.NewService(store),
 		store,
 		nil,
-		dockerClient.NewClientFactory(nil, nil),
+		dockerClient.NewClientFactory(nil),
 		"",
 		nil,
 	)

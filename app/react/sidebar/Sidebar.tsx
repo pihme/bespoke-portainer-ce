@@ -5,7 +5,6 @@ import { useIsEdgeAdmin, useIsPureAdmin } from '@/react/hooks/useUser';
 import { usePublicSettings } from '@/react/portainer/settings/queries';
 
 import styles from './Sidebar.module.css';
-import { EdgeComputeSidebar } from './EdgeComputeSidebar';
 import { EnvironmentSidebar } from './EnvironmentSidebar';
 import { SettingsSidebar } from './SettingsSidebar';
 import { SidebarItem } from './SidebarItem';
@@ -70,8 +69,6 @@ function InnerSidebar() {
             <EnvironmentSidebar />
 
             <AppDeliverySidebar />
-
-            {isAdmin && <EdgeComputeSidebar />}
 
             <SettingsSidebar
               isPureAdmin={isPureAdmin}

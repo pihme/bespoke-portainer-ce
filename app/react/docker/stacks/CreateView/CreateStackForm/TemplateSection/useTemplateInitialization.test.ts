@@ -249,7 +249,6 @@ function createMockCustomTemplate(
     CreatedByUserId: 5,
     Description: '',
     ProjectPath: '',
-    EdgeTemplate: false,
     EntryPoint: '',
     Note: '',
     Platform: Platform.LINUX,

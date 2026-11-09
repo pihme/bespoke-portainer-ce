@@ -12,17 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// recordingReverseTunnelService records calls to UpdateLastActivity so tests can
-// assert whether the Edge keep-alive path fired.
-type recordingReverseTunnelService struct {
-	portainer.ReverseTunnelService
-	updateLastActivityCalls []portainer.EndpointID
-}
-
-func (s *recordingReverseTunnelService) UpdateLastActivity(endpointID portainer.EndpointID) {
-	s.updateLastActivityCalls = append(s.updateLastActivityCalls, endpointID)
-}
-
 // newTestAgentTransport builds an agentTransport directly rather than through
 // NewAgentTransport, which wraps its round tripper in SSRF protections that
 // reject the loopback address httptest serves on.

@@ -10,7 +10,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
-	"github.com/portainer/portainer/api/internal/edge"
 
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/rs/zerolog/log"
@@ -29,37 +28,32 @@ var (
 // --secret-key-name is resolved against, which differs between CE and EE.
 func CLIFlags(secretsDir string) *portainer.CLIFlags {
 	return &portainer.CLIFlags{
-		Addr:                      kingpin.Flag("bind", "Address and port to serve Portainer").Default(defaultBindAddress).Short('p').String(),
-		AddrHTTPS:                 kingpin.Flag("bind-https", "Address and port to serve Portainer via https").Default(defaultHTTPSBindAddress).String(),
-		TunnelAddr:                kingpin.Flag("tunnel-addr", "Address to serve the tunnel server").Default(defaultTunnelServerAddress).String(),
-		TunnelPort:                kingpin.Flag("tunnel-port", "Port to serve the tunnel server").Default(defaultTunnelServerPort).String(),
-		Assets:                    kingpin.Flag("assets", "Path to the assets").Default(defaultAssetsDirectory).Short('a').String(),
-		Data:                      kingpin.Flag("data", "Path to the folder where the data is stored").Default(defaultDataDirectory).Short('d').String(),
-		EndpointURL:               kingpin.Flag("host", "Environment URL").Short('H').String(),
-		FeatureFlags:              kingpin.Flag("feat", "List of feature flags").Envar(portainer.FeatureFlagEnvVar).Strings(),
-		EnableEdgeComputeFeatures: kingpin.Flag("edge-compute", "Enable Edge Compute features").Envar(portainer.EdgeComputeEnvVar).Bool(),
-		NoAnalytics:               kingpin.Flag("no-analytics", "Disable Analytics in app (deprecated)").Bool(),
-		TLSSkipVerify:             kingpin.Flag("tlsskipverify", "Disable TLS server verification").Default(defaultTLSSkipVerify).Bool(),
-		HTTPDisabled:              kingpin.Flag("http-disabled", "Serve portainer only on https").Default(defaultHTTPDisabled).Bool(),
-		HTTPEnabled:               kingpin.Flag("http-enabled", "Serve portainer on http").Default(defaultHTTPEnabled).Bool(),
-		Rollback:                  kingpin.Flag("rollback", "Rollback the database to the previous backup").Bool(),
-		SnapshotInterval:          kingpin.Flag("snapshot-interval", "Duration between each environment snapshot job").String(),
-		Labels:                    pairs(kingpin.Flag("hide-label", "Hide containers with a specific label in the UI").Short('l')),
-		Logo:                      kingpin.Flag("logo", "URL for the logo displayed in the UI").String(),
-		Templates:                 kingpin.Flag("templates", "URL to the templates definitions.").Short('t').String(),
-		BaseURL:                   kingpin.Flag("base-url", "Base URL parameter such as portainer if running portainer as http://yourdomain.com/portainer/.").Short('b').Default(defaultBaseURL).String(),
-		InitialMmapSize:           kingpin.Flag("initial-mmap-size", "Initial mmap size of the database in bytes").Int(),
-		MaxBatchSize:              kingpin.Flag("max-batch-size", "Maximum size of a batch").Default(defaultMaxBatchSize).Int(),
-		MaxBatchDelay:             kingpin.Flag("max-batch-delay", "Maximum delay before a batch starts").Default(defaultMaxBatchDelay).Duration(),
-		SecretKeyName:             kingpin.Flag("secret-key-name", fmt.Sprintf("Secret key name for encryption and will be used as %s/<secret-key-name>. An absolute path is used as-is.", secretsDir)).Default(defaultSecretKeyName).String(),
-		LogLevel:                  kingpin.Flag("log-level", "Set the minimum logging level to show").Default("INFO").Enum("DEBUG", "INFO", "WARN", "ERROR"),
-		LogMode:                   kingpin.Flag("log-mode", "Set the logging output mode").Default("PRETTY").Enum("NOCOLOR", "PRETTY", "JSON"),
-		PullLimitCheckDisabled:    kingpin.Flag("pull-limit-check-disabled", "Pull limit check").Envar(portainer.PullLimitCheckDisabledEnvVar).Default(defaultPullLimitCheckDisabled).Bool(),
-		TrustedOrigins:            kingpin.Flag("trusted-origins", "List of trusted origins for CSRF protection. Separate multiple origins with a comma.").Envar(portainer.TrustedOriginsEnvVar).String(),
-		CSP:                       kingpin.Flag("csp", "Content Security Policy (CSP) header").Envar(portainer.CSPEnvVar).Default("true").Bool(),
-		CompactDB:                 kingpin.Flag("compact-db", "Enable database compaction on startup").Envar(portainer.CompactDBEnvVar).Default("false").Bool(),
-		EdgePortainerURL:          kingpin.Flag("edge-portainer-url", "HTTPS URL that edge agents connect back to, e.g. https://edge.example.com:9443. Use a hostname distinct from the web UI when edge mTLS is enabled.").Envar(portainer.EdgePortainerURLEnvVar).String(),
-		EdgeTrustOnFirstConnect:   kingpin.Flag("edge-trust-on-first-connect", "Auto-trust edge agents on first connect (disables the waiting room).").Envar(portainer.EdgeTrustOnFirstConnectEnvVar).Bool(),
+		Addr:                   kingpin.Flag("bind", "Address and port to serve Portainer").Default(defaultBindAddress).Short('p').String(),
+		AddrHTTPS:              kingpin.Flag("bind-https", "Address and port to serve Portainer via https").Default(defaultHTTPSBindAddress).String(),
+		Assets:                 kingpin.Flag("assets", "Path to the assets").Default(defaultAssetsDirectory).Short('a').String(),
+		Data:                   kingpin.Flag("data", "Path to the folder where the data is stored").Default(defaultDataDirectory).Short('d').String(),
+		EndpointURL:            kingpin.Flag("host", "Environment URL").Short('H').String(),
+		FeatureFlags:           kingpin.Flag("feat", "List of feature flags").Envar(portainer.FeatureFlagEnvVar).Strings(),
+		NoAnalytics:            kingpin.Flag("no-analytics", "Disable Analytics in app (deprecated)").Bool(),
+		TLSSkipVerify:          kingpin.Flag("tlsskipverify", "Disable TLS server verification").Default(defaultTLSSkipVerify).Bool(),
+		HTTPDisabled:           kingpin.Flag("http-disabled", "Serve portainer only on https").Default(defaultHTTPDisabled).Bool(),
+		HTTPEnabled:            kingpin.Flag("http-enabled", "Serve portainer on http").Default(defaultHTTPEnabled).Bool(),
+		Rollback:               kingpin.Flag("rollback", "Rollback the database to the previous backup").Bool(),
+		SnapshotInterval:       kingpin.Flag("snapshot-interval", "Duration between each environment snapshot job").String(),
+		Labels:                 pairs(kingpin.Flag("hide-label", "Hide containers with a specific label in the UI").Short('l')),
+		Logo:                   kingpin.Flag("logo", "URL for the logo displayed in the UI").String(),
+		Templates:              kingpin.Flag("templates", "URL to the templates definitions.").Short('t').String(),
+		BaseURL:                kingpin.Flag("base-url", "Base URL parameter such as portainer if running portainer as http://yourdomain.com/portainer/.").Short('b').Default(defaultBaseURL).String(),
+		InitialMmapSize:        kingpin.Flag("initial-mmap-size", "Initial mmap size of the database in bytes").Int(),
+		MaxBatchSize:           kingpin.Flag("max-batch-size", "Maximum size of a batch").Default(defaultMaxBatchSize).Int(),
+		MaxBatchDelay:          kingpin.Flag("max-batch-delay", "Maximum delay before a batch starts").Default(defaultMaxBatchDelay).Duration(),
+		SecretKeyName:          kingpin.Flag("secret-key-name", fmt.Sprintf("Secret key name for encryption and will be used as %s/<secret-key-name>. An absolute path is used as-is.", secretsDir)).Default(defaultSecretKeyName).String(),
+		LogLevel:               kingpin.Flag("log-level", "Set the minimum logging level to show").Default("INFO").Enum("DEBUG", "INFO", "WARN", "ERROR"),
+		LogMode:                kingpin.Flag("log-mode", "Set the logging output mode").Default("PRETTY").Enum("NOCOLOR", "PRETTY", "JSON"),
+		PullLimitCheckDisabled: kingpin.Flag("pull-limit-check-disabled", "Pull limit check").Envar(portainer.PullLimitCheckDisabledEnvVar).Default(defaultPullLimitCheckDisabled).Bool(),
+		TrustedOrigins:         kingpin.Flag("trusted-origins", "List of trusted origins for CSRF protection. Separate multiple origins with a comma.").Envar(portainer.TrustedOriginsEnvVar).String(),
+		CSP:                    kingpin.Flag("csp", "Content Security Policy (CSP) header").Envar(portainer.CSPEnvVar).Default("true").Bool(),
+		CompactDB:              kingpin.Flag("compact-db", "Enable database compaction on startup").Envar(portainer.CompactDBEnvVar).Default("false").Bool(),
 	}
 }
 
@@ -164,20 +158,7 @@ func (Service) ValidateFlags(flags *portainer.CLIFlags) error {
 		return err
 	}
 
-	if err := ValidateEdgePortainerURL(*flags.EdgePortainerURL); err != nil {
-		return err
-	}
-
 	return nil
-}
-
-func ValidateEdgePortainerURL(edgeURL string) error {
-	if edgeURL == "" {
-		return nil
-	}
-
-	_, err := edge.ParseHostForEdge(edgeURL)
-	return err
 }
 
 func displayDeprecationWarnings(flags *portainer.CLIFlags) {

@@ -119,7 +119,7 @@ describe('REQ-ENV-01 EndpointService local Docker client', () => {
     });
   });
 
-  it('createRemoteEndpoint prefixes tcp for non-edge types', async () => {
+  it('createRemoteEndpoint always prefixes tcp (REQ-TAI-004: no Edge creation type)', async () => {
     const { service, FileUploadService } = buildService();
     await service.createRemoteEndpoint(
       'remote',

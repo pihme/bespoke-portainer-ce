@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { azureHandlers } from './azure';
 import { dockerHandlers } from './docker';
-import { edgeHandlers } from './edge';
 import { endpointsHandlers } from './endpoints';
 import { gitopsHandlers } from './gitops';
 import { settingsHandlers } from './settings';
 import { templatesHandlers } from './templates';
 import { dockerImagesHandlers } from './docker/images';
+import { handlers as serverHandlers } from '../server-handlers';
 
 async function get(path: string) {
   const res = await fetch(path);
@@ -19,7 +19,6 @@ describe('shared frontend setup HTTP handlers', () => {
   it('exports handler arrays used by the suite', () => {
     expect(azureHandlers.length).toBeGreaterThan(0);
     expect(dockerHandlers.length).toBeGreaterThan(0);
-    expect(edgeHandlers.length).toBeGreaterThan(0);
     expect(endpointsHandlers.length).toBeGreaterThan(0);
     expect(gitopsHandlers.length).toBeGreaterThan(0);
     expect(settingsHandlers.length).toBeGreaterThan(0);
@@ -54,18 +53,14 @@ describe('shared frontend setup HTTP handlers', () => {
   it('serves settings and template stubs', async () => {
     await expect(get('/api/ssl')).resolves.toEqual({});
     await expect(get('/api/settings')).resolves.toEqual({});
-    await expect(get('/api/settings/edge/mtls_certificate')).resolves.toEqual(
-      {}
-    );
-    await expect(
-      get('/api/settings/edge/mtls_ca_certificate')
-    ).resolves.toEqual({});
     await expect(
       get('/api/settings/additional_functionality')
     ).resolves.toEqual({});
     await expect(get('/api/support/debug_log')).resolves.toEqual({});
     const pub = await get('/api/settings/public');
     expect(pub.Features).toEqual({});
+    // REQ-TAI-004: no Edge settings in public settings
+    expect(pub).not.toHaveProperty('Edge');
 
     await expect(get('/api/custom_templates')).resolves.toEqual([]);
     const fetchRes = await fetch('/api/custom_templates/1/git_fetch', {
@@ -92,7 +87,7 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/gitops/sources/7/workflows')).resolves.toEqual([]);
   });
 
-  it('serves azure and edge stubs used by the suite', async () => {
+  it('serves azure stubs used by the suite', async () => {
     const subs = await get('/api/endpoints/1/azure/subscriptions');
     expect(subs.value[0].subscriptionId).toBe('sub1');
 
@@ -116,23 +111,12 @@ describe('shared frontend setup HTTP handlers', () => {
     );
     expect(rgs.value).toHaveLength(2);
 
-    await expect(get('/api/edge_configurations')).resolves.toEqual([]);
-    await expect(get('/api/edge_configurations/1')).resolves.toEqual({});
-    await expect(get('/api/edge_update_schedules')).resolves.toEqual([]);
-    await expect(get('/api/edge_update_schedules/1')).resolves.toEqual({});
-    await expect(get('/api/edge_groups')).resolves.toEqual([]);
-    await expect(get('/api/edge_jobs')).resolves.toEqual([]);
-    await expect(get('/api/edge_jobs/1')).resolves.toEqual({});
-    await expect(get('/api/edge_jobs/1/file')).resolves.toEqual({
-      FileContent: '',
-    });
-    await expect(get('/api/edge_stacks')).resolves.toEqual([]);
-    await expect(get('/api/edge_stacks/1')).resolves.toEqual({});
-    await expect(get('/api/edge_stacks/1/stagger/status')).resolves.toEqual({
-      status: 'idle',
-    });
-    await expect(get('/api/edge_stacks/1/file')).resolves.toEqual({
-      StackFileContent: '',
-    });
+  });
+
+  it('REQ-TAI-004 serves no Edge API stubs', () => {
+    const paths = serverHandlers.map((h) => String(h.info.path));
+    expect(paths.filter((p) => /\/api\/(edge_|settings\/edge)/.test(p))).toEqual(
+      []
+    );
   });
 });

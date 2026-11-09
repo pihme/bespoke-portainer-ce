@@ -69,7 +69,6 @@ const template = {
   Platform: Platform.LINUX,
   Type: StackType.DockerCompose,
   Variables: [],
-  EdgeTemplate: false,
   ProjectPath: '',
   EntryPoint: '',
   CreatedByUserId: 1,

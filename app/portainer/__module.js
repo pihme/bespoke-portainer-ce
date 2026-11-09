@@ -71,11 +71,6 @@ angular
                 const endpointId = +$transition$.params().endpointId;
 
                 const endpoint = await EndpointService.endpoint(endpointId);
-                if ((endpoint.Type === 4 || endpoint.Type === 7) && !endpoint.EdgeID) {
-                  $state.go('portainer.endpoints.endpoint', { id: endpoint.Id });
-                  return;
-                }
-
                 EndpointProvider.setCurrentEndpoint(endpoint);
 
                 return endpoint;
@@ -131,19 +126,6 @@ angular
           'content@': {
             component: 'environmentsItemView',
           },
-        },
-      };
-
-      const edgeAutoCreateScript = {
-        name: 'portainer.endpoints.edgeAutoCreateScript',
-        url: '/aeec',
-        views: {
-          'content@': {
-            component: 'edgeAutoCreateScriptView',
-          },
-        },
-        data: {
-          docs: '/admin/environments/aeec',
         },
       };
 
@@ -299,16 +281,6 @@ angular
         },
       };
 
-      const initEdge = {
-        name: 'portainer.init.edge',
-        url: '/edge',
-        views: {
-          'content@': {
-            component: 'initEdgeView',
-          },
-        },
-      };
-
       var settings = {
         name: 'portainer.settings',
         url: '/settings',
@@ -320,19 +292,6 @@ angular
         data: {
           docs: '/admin/settings',
           access: AccessHeaders.Admin,
-        },
-      };
-
-      var settingsEdgeCompute = {
-        name: 'portainer.settings.edgeCompute',
-        url: '/edge',
-        views: {
-          'content@': {
-            component: 'settingsEdgeComputeView',
-          },
-        },
-        data: {
-          docs: '/admin/settings/edge',
         },
       };
 
@@ -357,7 +316,6 @@ angular
       $stateRegistryProvider.register(account);
       $stateRegistryProvider.register(endpoints);
       $stateRegistryProvider.register(endpoint);
-      $stateRegistryProvider.register(edgeAutoCreateScript);
       $stateRegistryProvider.register(groups);
       $stateRegistryProvider.register(group);
       $stateRegistryProvider.register(groupCreation);
@@ -369,9 +327,7 @@ angular
       $stateRegistryProvider.register(gitopsSourceDetail);
       $stateRegistryProvider.register(gitopsSourceCreate);
       $stateRegistryProvider.register(init);
-      $stateRegistryProvider.register(initEdge);
       $stateRegistryProvider.register(settings);
-      $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
     },
   ])

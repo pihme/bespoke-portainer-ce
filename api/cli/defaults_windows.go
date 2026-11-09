@@ -3,8 +3,6 @@ package cli
 const (
 	defaultBindAddress            = ":9000"
 	defaultHTTPSBindAddress       = ":9443"
-	defaultTunnelServerAddress    = "0.0.0.0"
-	defaultTunnelServerPort       = "8000"
 	defaultDataDirectory          = "C:\\data"
 	defaultAssetsDirectory        = "./"
 	defaultTLS                    = "false"

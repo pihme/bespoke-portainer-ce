@@ -23,7 +23,7 @@ func TestRefreshRegistry_NoPrivilegedKubeClient_ReturnsError(t *testing.T) {
 	_, store := datastore.MustNewTestStore(t, true, false)
 	endpoint := &portainer.Endpoint{ID: 1}
 
-	emptyFactory, err := cli.NewClientFactory(nil, nil, nil, "test", "", "")
+	emptyFactory, err := cli.NewClientFactory(nil, nil, "test", "", "")
 	require.NoError(t, err)
 
 	transport := &baseTransport{

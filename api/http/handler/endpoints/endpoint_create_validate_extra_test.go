@@ -166,3 +166,19 @@ func TestREQ_TAI_002_Validate_LocalKubernetesCreationType_ReturnsError(t *testin
 	require.Error(t, err)
 	require.NotContains(t, err.Error(), "Kubernetes")
 }
+
+// REQ-TAI-004: the Edge Agent environment (creation type 4) is removed with
+// Edge; the payload is rejected, with or without TLS.
+func TestREQ_TAI_004_Validate_EdgeAgentCreationType_ReturnsError(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+
+	for _, form := range []map[string][]string{
+		{"Name": {"edge"}, "EndpointCreationType": {"4"}, "URL": {"https://portainer.example:9443"}},
+		{"Name": {"edge"}, "EndpointCreationType": {"4"}, "TLS": {"true"}},
+	} {
+		p := &endpointCreatePayload{}
+		err := p.Validate(formRequest(form))
+		require.EqualError(t, err, "Edge Agent environments are no longer supported")
+	}
+}

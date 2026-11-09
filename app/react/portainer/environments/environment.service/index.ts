@@ -10,27 +10,13 @@ import {
   EnvironmentStatus,
   EnvironmentGroupId,
   PlatformType,
-  EdgeGroupId,
 } from '@/react/portainer/environments/types';
 import { type TagId } from '@/portainer/tags/types';
-import {
-  EdgeStack,
-  StatusType as EdgeStackStatusType,
-} from '@/react/edge/edge-stacks/types';
 
 import { getPublicSettings } from '../../settings/settings.service';
 import { SortType } from '../queries/useEnvironmentList';
 
 import { buildUrl, toEnvironment } from './utils';
-
-export type EdgeStackEnvironmentsQueryParams =
-  | {
-      edgeStackId?: EdgeStack['Id'];
-    }
-  | {
-      edgeStackId: EdgeStack['Id'];
-      edgeStackStatus?: EdgeStackStatusType;
-    };
 
 export interface BaseEnvironmentsQueryParams {
   search?: string;
@@ -42,23 +28,17 @@ export interface BaseEnvironmentsQueryParams {
   tagsPartialMatch?: boolean;
   groupIds?: EnvironmentGroupId[];
   status?: EnvironmentStatus[];
-  edgeAsync?: boolean;
-  edgeDeviceUntrusted?: boolean;
   excludeSnapshots?: boolean;
   name?: string;
   /** Filter environments by partial name match (case-insensitive, searches name only) */
   nameFilter?: string;
   agentVersions?: string[];
   updateInformation?: boolean;
-  edgeCheckInPassedSeconds?: number;
   platformTypes?: PlatformType[];
-  edgeGroupIds?: EdgeGroupId[];
-  excludeEdgeGroupIds?: EdgeGroupId[];
   outdated?: boolean;
 }
 
-export type EnvironmentsQueryParams = BaseEnvironmentsQueryParams &
-  EdgeStackEnvironmentsQueryParams;
+export type EnvironmentsQueryParams = BaseEnvironmentsQueryParams;
 
 export interface GetEnvironmentsOptions {
   start?: number;

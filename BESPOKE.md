@@ -416,6 +416,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-333 | Close Priority work on `images/ListView` (parent; ImagesDatatable/columns out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 66.7 % → 100 % (14 → 21 of 21; +7). Leftovers: none. Deferred-within-package: none. Package left at 100 % (21 of 21; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-334 | Close Priority work on `stacks/CreateView` (parent; CreateStackForm out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7). Leftovers: none. Deferred-within-package: none. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-335 | Close Priority work on Angular `BEFeatureIndicator`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). BE upsell URL asserted only; no upsell UI. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-336 | Close Priority work on Angular `widget`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). Leftovers: none. Deferred-within-package: none. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -842,6 +843,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-333: close Priority work on images ListView parent. Parallel isolated 66.7 % → 100 % (14 → 21 of 21; +7). Do not grind further.
 - 2026-11-09. COV-334: close Priority work on stacks CreateView parent. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Do not grind further.
 - 2026-11-09. COV-335: close Priority work on Angular BEFeatureIndicator. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
+- 2026-11-09. COV-336: close Priority work on Angular widget helpers. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

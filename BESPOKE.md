@@ -499,6 +499,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-416 | Close Priority work on `Tip/TooltipWithChildren`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). Leftovers: none. Deferred-within-package: none. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-417 | Close Priority work on `SecondaryActions`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 45.8 % → 100 % (11 → 24 of 24; +13). Leftovers: none. Deferred-within-package: none. Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-418 | Close Priority work on `RestartPolicySection`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 69.2 % → 100 % (9 → 13 of 13; +4). Leftovers: none. Deferred-within-package: none. Package left at 100 % (13 of 13; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-419 | Close Priority work on `containers/common`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 0 % → 100 % (0 → 2 of 2; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (2 of 2; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -1012,6 +1013,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-416: close Priority work on TooltipWithChildren. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
 - 2026-11-09. COV-417: close Priority work on SecondaryActions. Parallel isolated 45.8 % → 100 % (11 → 24 of 24; +13). Do not grind further.
 - 2026-11-09. COV-418: close Priority work on RestartPolicySection. Parallel isolated 69.2 % → 100 % (9 → 13 of 13; +4). Do not grind further.
+- 2026-11-09. COV-419: close Priority work on containers common. Parallel isolated 0 % → 100 % (0 → 2 of 2; +2). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -461,6 +461,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-378 | Close Priority work on `app-templates/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure remains 97.1 % (34 of 35; already covered preferred; no new commit). Thin 1-stmt leftover in `useAppTemplates`. Package left at 97.1 % (34 of 35; 1 missed). | Preferred app-templates queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-379 | Close Priority work on `option-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure remains 0 % (0 of 3; no new commit). Deferred-within-package: Swarm prune-services. Package left at 0.0 % (0 of 3; 3 missed). | Swarm prune-services deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-380 | Close Priority work on Angular `tls-fieldset`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-381 | Close Priority work on `DetailsTable`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 50.0 % → 70.0 % (5 → 7 of 10; +2). Stories deferred 3. Package left at 70.0 % (7 of 10; 3 missed). | Preferred DetailsTable covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -934,6 +935,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-378: close Priority work on app-templates queries. Parallel isolated remains 97.1 % (34 of 35; +0). Thin useAppTemplates leftover. Do not grind further.
 - 2026-11-09. COV-379: close Priority work on option-panel. Parallel isolated remains 0 % (0 of 3; +0). Deferred Swarm prune-services. Do not grind further.
 - 2026-11-09. COV-380: close Priority work on tls-fieldset. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
+- 2026-11-09. COV-381: close Priority work on DetailsTable helpers. Parallel isolated 50.0 % → 70.0 % (5 → 7 of 10; +2). Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

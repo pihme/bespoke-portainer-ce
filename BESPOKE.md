@@ -264,6 +264,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-181 | Close Priority work on `api/gitops/sources`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): status_test.go + source_access_local_test.go (5 under REQ-GIT-02). Isolated remasure: 71.4 % → 100 % (20 → 28 of 28; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (28 of 28; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-182 | Close Priority work on `api/http/errors`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): errors_test.go (3). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-183 | Close Priority work on `api/motd`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): service_local_test.go (3). Isolated remasure: 70.8 % → 100 % (17 → 24 of 24; +7). Leftovers: none. Deferred-within-package: none (MOTD helper, not BE-only upsell). Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete for MOTD helper. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-184 | Close Priority work on `api/http/handler/motd`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): handler_test.go (3). Isolated remasure: 0 % → 83.3 % (0 → 5 of 6; +5). Deferred-within-package: BE marketing. Package left at 83.3 % (5 of 6; 1 missed). | Preferred MOTD HTTP handler covered; BE marketing deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -527,6 +528,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-181: close Priority work on gitops sources. Parallel isolated 71.4 % → 100 % (20 → 28 of 28; +8). Do not grind further.
 - 2026-11-09. COV-182: close Priority work on HTTP error values. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
 - 2026-11-09. COV-183: close Priority work on MOTD helper. Parallel isolated 70.8 % → 100 % (17 → 24 of 24; +7). Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-go-batch-398` (`9865511e7`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-184: close Priority work on MOTD HTTP handler. Parallel isolated 0 % → 83.3 % (0 → 5 of 6; +5). Deferred BE marketing. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

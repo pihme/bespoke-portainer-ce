@@ -236,6 +236,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-153 | Close Priority work on `api/ws`. Parallel batch from `2-covered-parallel-go-batch-166` (`728c2677a`): no new test files; KEEP already largely covered. Isolated remasure unchanged: 82.0 % (114 of 139; +0). Leftovers: thin/hard Hijack/stream error arms. Deferred-within-package: none material. Package left at 82.0 % (114 of 139; 25 missed). | Preferred websocket helpers already largely covered; leftovers thin/hard. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-154 | Close Priority work on `pkg/libhttp/error`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): error_test.go (5). Isolated remasure: 0 % → 100 % (0 → 24 of 24; +24). Leftovers: none. Deferred-within-package: none. Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-155 | Close Priority work on `api/dataservices/webhook`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): webhook_test.go (2 under REQ-STK-09). Isolated remasure: 0 % → 87.0 % (0 → 20 of 23; +20). Leftovers: 3 thin. Deferred-within-package: none. Package left at 87.0 % (20 of 23; 3 missed). | Preferred webhook datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-156 | Close Priority work on `api/dataservices/schedule`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): schedule_test.go (1). Isolated remasure: 0 % → 95.5 % (0 → 21 of 22; +21). Leftovers: Edge job types unused. Deferred-within-package: Edge job types. Package left at 95.5 % (21 of 22; 1 missed). | Preferred schedule datastore covered; Edge job types unused. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -470,6 +471,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-153: close Priority work on websocket helpers. Isolated remains 82.0 % (114 of 139; +0). Thin/hard leftovers. Do not grind further.
 - 2026-11-09. COV-154: close Priority work on HTTP error helpers. Parallel isolated 0 % → 100 % (0 → 24 of 24; +24). Do not grind further.
 - 2026-11-09. COV-155: close Priority work on webhook datastore. Parallel isolated 0 % → 87.0 % (0 → 20 of 23; +20). Thin leftovers. Do not grind further.
+- 2026-11-09. COV-156: close Priority work on schedule datastore. Parallel isolated 0 % → 95.5 % (0 → 21 of 22; +21). Edge job types unused. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

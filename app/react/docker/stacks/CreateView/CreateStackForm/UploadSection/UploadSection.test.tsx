@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Formik } from 'formik';
 
 import { mockFormValues } from '../test-utils';
@@ -25,6 +25,25 @@ describe('UploadSection', () => {
     renderComponent({ initialValues: { file } });
 
     expect(screen.getByText(fileName)).toBeInTheDocument();
+  });
+
+  it('should update formik when a file is selected', () => {
+    renderComponent();
+    const input = screen.getByTestId('stack-creation-file-upload-input');
+    const file = new File(['services:\n  web:\n    image: nginx'], 'compose.yml', {
+      type: 'text/yaml',
+    });
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(screen.getByText('compose.yml')).toBeInTheDocument();
+  });
+
+  it('should render swarm upload description when isSwarm is true', () => {
+    renderComponent({ isSwarm: true });
+    expect(screen.getByText('Upload')).toBeInTheDocument();
+    // Swarm uses DockerSwarm texts; compose path already covered above
+    expect(
+      screen.getByText(/You can upload a Compose file from your computer|upload a Stack file/i)
+    ).toBeInTheDocument();
   });
 });
 

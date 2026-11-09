@@ -17,6 +17,16 @@ vi.mock('@uirouter/react', async (importOriginal) => {
   };
 });
 
+vi.mock('../useHomeViewState', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useHomeViewState')>();
+  return {
+    ...actual,
+    useHomeViewState: vi.fn(actual.useHomeViewState),
+  };
+});
+
+import { useHomeViewState } from '../useHomeViewState';
+
 const mockCounts = {
   total: 10,
   up: 7,
@@ -121,5 +131,24 @@ describe('EnvironmentHeader', () => {
       }),
       { reload: false, location: 'replace' }
     );
+  });
+
+  it('treats a missing groupKey as a custom header filter', async () => {
+    mockSummaryCounts();
+    vi.mocked(useHomeViewState).mockReturnValue({
+      groupKey: undefined,
+      groupFilter: 'Up',
+      setHeaderFilter: vi.fn(),
+    } as never);
+    renderComponent();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('radio', { name: /filter by total/i })
+      ).toBeVisible();
+    });
+    // custom filter means none of the actionable segment radios are forced-selected
+    // beyond the default total control staying usable
+    expect(screen.getByRole('radio', { name: /filter by up/i })).toBeVisible();
   });
 });

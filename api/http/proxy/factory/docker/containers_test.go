@@ -2,6 +2,7 @@ package docker
 
 import (
 	"bytes"
+	"io"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -297,4 +298,83 @@ func TestDecorateContainerCreationOperation_BindMountRestrictions(t *testing.T) 
 	}, map[string]any{
 		"HostConfig": map[string]any{"Binds": []string{"normalvol:/data"}},
 	}, false, false)
+}
+
+func TestREQ_CTR_01_SelectorContainerLabels(t *testing.T) {
+	t.Parallel()
+
+	listLabels := map[string]any{"com.docker.compose.project": "web"}
+	require.Equal(t, listLabels, selectorContainerLabelsFromContainerListOperation(map[string]any{
+		"Id": "abc", "Labels": listLabels,
+	}))
+	require.Nil(t, selectorContainerLabelsFromContainerListOperation(map[string]any{"Id": "abc"}))
+
+	inspectLabels := map[string]any{"hidden": "1"}
+	require.Equal(t, inspectLabels, selectorContainerLabelsFromContainerInspectOperation(map[string]any{
+		"Id": "abc",
+		"Config": map[string]any{
+			"Labels": inspectLabels,
+		},
+	}))
+	require.Nil(t, selectorContainerLabelsFromContainerInspectOperation(map[string]any{"Id": "abc"}))
+	require.Nil(t, selectorContainerLabelsFromContainerInspectOperation(map[string]any{
+		"Id":     "abc",
+		"Config": map[string]any{"Image": "nginx"},
+	}))
+}
+
+func TestREQ_CTR_01_FilterContainersWithBlackListedLabels(t *testing.T) {
+	t.Parallel()
+
+	blacklist := []portainer.Pair{{Name: "hidden", Value: "true"}}
+	containers := []any{
+		map[string]any{"Id": "keep", "Labels": map[string]any{"app": "web"}},
+		map[string]any{"Id": "drop", "Labels": map[string]any{"hidden": "true"}},
+		map[string]any{"Id": "keep-other", "Labels": map[string]any{"hidden": "false"}},
+	}
+
+	filtered, err := filterContainersWithBlackListedLabels(containers, blacklist)
+	require.NoError(t, err)
+	require.Len(t, filtered, 2)
+	require.Equal(t, "keep", filtered[0].(map[string]any)["Id"])
+	require.Equal(t, "keep-other", filtered[1].(map[string]any)["Id"])
+
+	require.False(t, containerHasBlackListedLabel(map[string]any{"app": "web"}, blacklist))
+	require.True(t, containerHasBlackListedLabel(map[string]any{"hidden": "true"}, blacklist))
+	require.False(t, containerHasBlackListedLabel(map[string]any{}, blacklist))
+}
+
+func TestREQ_CTR_01_ContainerListOperationFiltersBlacklist(t *testing.T) {
+	t.Parallel()
+
+	transport := &Transport{endpoint: &portainer.Endpoint{ID: 1}}
+	executor := &operationExecutor{
+		operationContext: &restrictedDockerOperationContext{isAdmin: true},
+		labelBlackList:   []portainer.Pair{{Name: "hidden", Value: "1"}},
+	}
+
+	resp := &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Body: io.NopCloser(bytes.NewReader(mustJSON(t, []any{
+			map[string]any{"Id": "c1", "Names": []any{"/visible"}, "Labels": map[string]any{"app": "a"}},
+			map[string]any{"Id": "c2", "Names": []any{"/hidden"}, "Labels": map[string]any{"hidden": "1"}},
+		}))),
+	}
+
+	require.NoError(t, transport.containerListOperation(resp, executor))
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var decoded []any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&decoded))
+	require.NoError(t, resp.Body.Close())
+	require.Len(t, decoded, 1)
+	require.Equal(t, "c1", decoded[0].(map[string]any)["Id"])
+}
+
+func mustJSON(t *testing.T, v any) []byte {
+	t.Helper()
+	data, err := json.Marshal(v)
+	require.NoError(t, err)
+	return data
 }

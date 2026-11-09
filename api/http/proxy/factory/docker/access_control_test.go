@@ -3,7 +3,10 @@ package docker
 import (
 	"testing"
 
+	"github.com/portainer/portainer/api/docker/consts"
+	"github.com/portainer/portainer/api/stacks/stackutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_getUniqueElements(t *testing.T) {
@@ -61,4 +64,28 @@ func Test_getUniqueElements(t *testing.T) {
 			assert.ElementsMatch(t, result, tt.expected)
 		})
 	}
+}
+
+func TestREQ_VOL_01_GetStackResourceIDFromLabels(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, "", getStackResourceIDFromLabels(nil, 1))
+	require.Equal(t, "", getStackResourceIDFromLabels(map[string]string{}, 1))
+
+	swarm := getStackResourceIDFromLabels(map[string]string{
+		consts.SwarmStackNameLabel: "swarm-app",
+	}, 7)
+	require.Equal(t, stackutils.ResourceControlID(7, "swarm-app"), swarm)
+
+	compose := getStackResourceIDFromLabels(map[string]string{
+		consts.ComposeStackNameLabel: "compose-app",
+	}, 3)
+	require.Equal(t, stackutils.ResourceControlID(3, "compose-app"), compose)
+
+	// Swarm label wins when both are present
+	both := getStackResourceIDFromLabels(map[string]string{
+		consts.SwarmStackNameLabel:   "swarm-app",
+		consts.ComposeStackNameLabel: "compose-app",
+	}, 1)
+	require.Equal(t, stackutils.ResourceControlID(1, "swarm-app"), both)
 }

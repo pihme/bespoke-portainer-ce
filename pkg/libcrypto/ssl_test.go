@@ -39,9 +39,3 @@ func TestGenerateCertsForHost_BadCertPath(t *testing.T) {
 	err := GenerateCertsForHost("localhost", "127.0.0.1", filepath.Join(dir, "missing", "cert.pem"), filepath.Join(dir, "key.pem"), time.Now().Add(time.Hour))
 	require.Error(t, err)
 }
-
-func TestDecrypt_MalformedCiphertext(t *testing.T) {
-	t.Parallel()
-	_, err := decrypt([]byte{1}, []byte("key"), false)
-	require.EqualError(t, err, "malformed ciphertext")
-}

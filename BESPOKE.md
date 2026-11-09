@@ -275,6 +275,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-192 | Close Priority work on `api/http/handler/storybook`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): handler_test.go (2). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-193 | Close Priority work on `pkg/build`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): info_test.go (3). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-194 | Close Priority work on `pkg/featureflags`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): featureflags_test.go (+2). Isolated remasure: 85.7 % → 100 % (18 → 21 of 21; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (21 of 21; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-195 | Close Priority work on `pkg/fips`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): fips_test.go (+3 Fatal subprocess). Isolated remasure: 72.7 % → 100 % (8 → 11 of 11; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (11 of 11; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -550,6 +551,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-192: close Priority work on storybook file handler. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
 - 2026-11-09. COV-193: close Priority work on build metadata. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
 - 2026-11-09. COV-194: close Priority work on feature flag map. Parallel isolated 85.7 % → 100 % (18 → 21 of 21; +3). Do not grind further.
+- 2026-11-09. COV-195: close Priority work on FIPS initialization. Parallel isolated 72.7 % → 100 % (8 → 11 of 11; +3). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

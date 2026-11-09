@@ -401,6 +401,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-318 | Close Priority work on `app/docker/react/components`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 0 % → 100 % (0 → 10 of 10; +10). Wrapper registration covered; agent/swarm leaves stubbed. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-319 | Close Priority work on `app/portainer/rest/transform`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 40.0 % → 100 % (4 → 10 of 10; +6). Leftovers: none. Deferred-within-package: none. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-320 | Close Priority work on `app/react/common` (parent; did not touch `common/stacks`). Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 59.3 % → 100 % (16 → 27 of 27; +11). Leftovers: none. Deferred-within-package: none. Package left at 100 % (27 of 27; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-321 | Close Priority work on `form-components/ColorPicker`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 74.4 % → 94.9 % (29 → 37 of 39; +8). KEEP 100 %; stories deferred. Package left at 94.9 % (37 of 39; 2 missed). | Preferred ColorPicker covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -811,6 +812,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-318: close Priority work on docker react components. Parallel isolated 0 % → 100 % (0 → 10 of 10; +10). Do not grind further.
 - 2026-11-09. COV-319: close Priority work on rest transform helpers. Parallel isolated 40.0 % → 100 % (4 → 10 of 10; +6). Do not grind further.
 - 2026-11-09. COV-320: close Priority work on react common parent. Parallel isolated 59.3 % → 100 % (16 → 27 of 27; +11). Do not grind further.
+- 2026-11-09. COV-321: close Priority work on ColorPicker helpers. Parallel isolated 74.4 % → 94.9 % (29 → 37 of 39; +8). KEEP 100 %. Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

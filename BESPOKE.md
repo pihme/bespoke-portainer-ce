@@ -437,6 +437,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-354 | Close Priority work on `docker/queries` (parent; `useDockerStorageUsageQuery` only; utils out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-355 | Close Priority work on `Badge`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 40.0 % → 100 % (2 → 5 of 5; +3). Stories deferred-within-package. Package left at 100 % (5 of 5; 0 missed). | Statement coverage complete for preferred Badge; stories deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-356 | Close Priority work on `Blocklist`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 2 of 2; +2). Stories deferred-within-package. Package left at 100 % (2 of 2; 0 missed). | Statement coverage complete for preferred Blocklist; stories deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-357 | Close Priority work on `StickyFooter`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 66.7 % → 100 % (2 → 3 of 3; +1). Stories deferred-within-package. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete for preferred StickyFooter; stories deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -885,6 +886,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-354: close Priority work on docker queries parent. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - 2026-11-09. COV-355: close Priority work on Badge helpers. Parallel isolated 40.0 % → 100 % (2 → 5 of 5; +3). Stories deferred. Do not grind further.
 - 2026-11-09. COV-356: close Priority work on Blocklist helpers. Parallel isolated 0 % → 100 % (0 → 2 of 2; +2). Stories deferred. Do not grind further.
+- 2026-11-09. COV-357: close Priority work on StickyFooter helpers. Parallel isolated 66.7 % → 100 % (2 → 3 of 3; +1). Stories deferred. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

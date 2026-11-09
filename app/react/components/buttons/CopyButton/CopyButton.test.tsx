@@ -33,3 +33,22 @@ test('CopyButton should copy text to clipboard', async () => {
   fireEvent.click(button);
   expect(writeText).toHaveBeenCalledWith(copyText);
 });
+
+test('shows the copied indicator on the left when requested', async () => {
+  const { writeText } = mockClipboard();
+  const { findByText, container } = render(
+    <CopyButton
+      copyText="side"
+      indicatorPosition="left"
+      displayText="copied-left"
+      data-cy="copy-button"
+    >
+      copy
+    </CopyButton>
+  );
+
+  fireEvent.click(await findByText('copy'));
+  expect(writeText).toHaveBeenCalledWith('side');
+  expect(await findByText('copied-left')).toBeTruthy();
+  expect(container.querySelector('.vertical-center')).toBeTruthy();
+});

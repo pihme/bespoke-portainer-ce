@@ -457,6 +457,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-374 | Close Priority work on `CreateStackForm/GitSection`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 33.3 % → 55.6 % (3 → 5 of 9; +2). Deferred-within-package: `StackRelativePathFieldset` BE (4). Package left at 55.6 % (5 of 9; 4 missed). | Preferred GitSection covered; StackRelativePathFieldset BE deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-375 | Close Priority work on `docker/stacks/common`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 61.1 % → 100 % (22 → 36 of 36; +14). Leftovers: none. Deferred-within-package: none. Package left at 100 % (36 of 36; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-376 | Close Priority work on `gitops/workflows` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 92.9 % → 96.4 % (26 → 27 of 28; +1). Deferred-within-package: edgeStack/swarm link arm. Package left at 96.4 % (27 of 28; 1 missed). | Preferred gitops workflows parent covered; edgeStack/swarm link deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-377 | Close Priority work on `gitops/workflows/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 100 % (0 → 20 of 20; +20). Leftovers: none. Deferred-within-package: none. Package left at 100 % (20 of 20; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -926,6 +927,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-374: close Priority work on GitSection helpers. Parallel isolated 33.3 % → 55.6 % (3 → 5 of 9; +2). Deferred StackRelativePathFieldset BE. Do not grind further.
 - 2026-11-09. COV-375: close Priority work on stacks common. Parallel isolated 61.1 % → 100 % (22 → 36 of 36; +14). Do not grind further.
 - 2026-11-09. COV-376: close Priority work on gitops workflows parent. Parallel isolated 92.9 % → 96.4 % (26 → 27 of 28; +1). Deferred edgeStack/swarm link arm. Do not grind further.
+- 2026-11-09. COV-377: close Priority work on workflow queries. Parallel isolated 0 % → 100 % (0 → 20 of 20; +20). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

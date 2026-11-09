@@ -336,6 +336,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-253 | Close Priority work on `app/react/portainer/services/axios`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: ~0 % → 50.0 % (0 → 25 of 50; +25). KEEP helpers covered; deferred-within-package agent headers, 401 logout, k8s cache predicate. Package left at 50.0 % (25 of 50; 25 missed). | Preferred axios helpers covered; agent/401/k8s deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-254 | Close Priority work on `ApplicationSettingsPanel`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 76.9 % (0 → 20 of 26; +20). Deferred-within-package: ScreenBanner login. Package left at 76.9 % (20 of 26; 6 missed). | Preferred application settings panel covered; ScreenBanner login deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-255 | Close Priority work on `app/react/components/Charts`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 66.7 % (2 of 3; +0; no new test commit). Leftovers: thin Tooltip formatter arm; stories outside isolation. Package left at 66.7 % (2 of 3; 1 missed). | Preferred Charts helpers covered; thin Tooltip leftover. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-256 | Close Priority work on `ImagesDatatable`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 71.4 % → 94.0 % (60 → 79 of 84; +19). Leftovers: thin force-menu / reject notify. Deferred-within-package: none. Package left at 94.0 % (79 of 84; 5 missed). | Preferred images datatable covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -675,6 +676,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-253: close Priority work on axios helpers. Parallel isolated ~0 % → 50.0 % (0 → 25 of 50; +25). Deferred agent headers/401 logout/k8s cache. Do not grind further.
 - 2026-11-09. COV-254: close Priority work on application settings panel. Parallel isolated 0 % → 76.9 % (0 → 20 of 26; +20). Deferred ScreenBanner login. Do not grind further.
 - 2026-11-09. COV-255: close Priority work on Charts helpers. Parallel isolated remains 66.7 % (2 of 3; +0). Thin Tooltip formatter arm. Do not grind further.
+- 2026-11-09. COV-256: close Priority work on images datatable. Parallel isolated 71.4 % → 94.0 % (60 → 79 of 84; +19). Thin force-menu/reject notify. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

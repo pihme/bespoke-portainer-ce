@@ -447,6 +447,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-364 | Close Priority work on `datatables/extend-options`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 100 % (0 → 20 of 20; +20). Leftovers: none. Deferred-within-package: none. Package left at 100 % (20 of 20; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-365 | Close Priority work on `ButtonSelector`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure remains 50.0 % (4 of 8; already covered preferred; no new commit). Stories deferred 4. Package left at 50.0 % (4 of 8; 4 missed). | Preferred ButtonSelector covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-366 | Close Priority work on `FormSection`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure remains 66.7 % (10 of 15; already covered preferred; no new commit). Stories deferred 5. Package left at 66.7 % (10 of 15; 5 missed). | Preferred FormSection covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-367 | Close Priority work on `portainer/common`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 100 % (0 → 15 of 15; +15). Edge usage context deferred; helpers covered. Package left at 100 % (15 of 15; 0 missed). | Statement coverage complete for preferred helpers. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -906,6 +907,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-364: close Priority work on datatable extend-options. Parallel isolated 0 % → 100 % (0 → 20 of 20; +20). Do not grind further.
 - 2026-11-09. COV-365: close Priority work on ButtonSelector helpers. Parallel isolated remains 50.0 % (4 of 8; +0). Deferred stories. Do not grind further.
 - 2026-11-09. COV-366: close Priority work on FormSection helpers. Parallel isolated remains 66.7 % (10 of 15; +0). Deferred stories. Do not grind further.
+- 2026-11-09. COV-367: close Priority work on portainer common helpers. Parallel isolated 0 % → 100 % (0 → 15 of 15; +15). Edge usage context deferred. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

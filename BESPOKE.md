@@ -465,6 +465,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-382 | Close Priority work on `InlineLoader`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 40.0 % (0 → 2 of 5; +2). Stories deferred 3. Package left at 40.0 % (2 of 5; 3 missed). | Preferred InlineLoader covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-383 | Close Priority work on `PageHeader/Breadcrumbs`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 75.0 % → 83.3 % (9 → 10 of 12; +1). Stories deferred 2. Package left at 83.3 % (10 of 12; 2 missed). | Preferred Breadcrumbs covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-384 | Close Priority work on `portainer/helpers`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 4 of 4; +4). Leftovers: none. Deferred-within-package: none. Package left at 100 % (4 of 4; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-385 | Close Priority work on `services/axios/utils`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 78.3 % → 100 % (47 → 60 of 60; +13). Leftovers: none. Deferred-within-package: none. Package left at 100 % (60 of 60; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -943,6 +944,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-383: close Priority work on Breadcrumbs helpers. Parallel isolated 75.0 % → 83.3 % (9 → 10 of 12; +1). Deferred stories. Do not grind further.
 - 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-481` (`883deb971`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-384: close Priority work on portainer helpers. Parallel isolated 0 % → 100 % (0 → 4 of 4; +4). Do not grind further.
+- 2026-11-09. COV-385: close Priority work on axios utils. Parallel isolated 78.3 % → 100 % (47 → 60 of 60; +13). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -338,6 +338,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-255 | Close Priority work on `app/react/components/Charts`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 66.7 % (2 of 3; +0; no new test commit). Leftovers: thin Tooltip formatter arm; stories outside isolation. Package left at 66.7 % (2 of 3; 1 missed). | Preferred Charts helpers covered; thin Tooltip leftover. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-256 | Close Priority work on `ImagesDatatable`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 71.4 % → 94.0 % (60 → 79 of 84; +19). Leftovers: thin force-menu / reject notify. Deferred-within-package: none. Package left at 94.0 % (79 of 84; 5 missed). | Preferred images datatable covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-257 | Close Priority work on `PaginationControls`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 96.3 % (0 → 52 of 54; +52). Leftovers: thin PageInput keyguard / boundaryLinks. Deferred-within-package: none. Package left at 96.3 % (52 of 54; 2 missed). | Preferred pagination controls covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-258 | Close Priority work on `StatusSummaryBar`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 100 % (16 of 16; +0; no new test commit). Deferred-within-package: stories. Package left at 100 % (16 of 16; 0 missed). | Statement coverage complete excluding stories. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -679,6 +680,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-255: close Priority work on Charts helpers. Parallel isolated remains 66.7 % (2 of 3; +0). Thin Tooltip formatter arm. Do not grind further.
 - 2026-11-09. COV-256: close Priority work on images datatable. Parallel isolated 71.4 % → 94.0 % (60 → 79 of 84; +19). Thin force-menu/reject notify. Do not grind further.
 - 2026-11-09. COV-257: close Priority work on pagination controls. Parallel isolated 0 % → 96.3 % (0 → 52 of 54; +52). Thin PageInput keyguard/boundaryLinks. Do not grind further.
+- 2026-11-09. COV-258: close Priority work on status summary bar. Parallel isolated remains 100 % (16 of 16; +0). Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

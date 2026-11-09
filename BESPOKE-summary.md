@@ -21,7 +21,7 @@ Only facts recorded in BESPOKE.md or verified in the repo. Say when a number was
 
 Per stage, 2 to 4 sentences on what changed in the content (what was added, tested, removed, customized, trimmed or packaged), with the decision ID range in parentheses. No process details here.
 
-**1-raw** (RAW-001 to RAW-007). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts and Business Edition advertising, and the Husky pre-commit hook.
+**1-raw** (RAW-001 to RAW-008). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook.
 
 **2-covered** (COV-001 to COV-nnn). <...>
 
@@ -48,4 +48,3 @@ Customized:
 Process issues only: commits without a decision ID, a gate that CI no longer runs, commits after a stage's exit, anything the protocol and the repo disagree on. Name the commit or decision.
 
 - This commit of portainer/portainer has no `.github/workflows`, no FUNDING file, no CODEOWNERS, and no Dependabot config, so there was nothing in those classes for the first pass to keep or drop.
-- `README.md` still links to official documentation at docs.portainer.io and still loads the banner image from portainer/portainer on `develop`. Those were not part of the contact/BE-advertising drop.

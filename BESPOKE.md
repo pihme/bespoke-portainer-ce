@@ -226,6 +226,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-143 | Close Priority work on `app/react/portainer/environments/wizard/HomeView`. Parallel batch merged from `2-covered-parallel-fe-batch-120` (`3615adb95`): HomeView + useFetchOrCreateLocalEnvironment (11 under REQ-ENV-04). Isolated remasure: 0 % → 100 % (0 → 43 of 43; +43). Deferred-within-package: K8s/Edge/Azure/agent tiles (create-fallback still exercised for Docker KEEP). Package left at 100 % (43 of 43; 0 missed). | Statement coverage complete for preferred environment wizard home. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package (tiles) close; do not grind further. |
 | COV-144 | Close Priority work on `api/dataservices/snapshot`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): snapshot_test.go (10 under REQ-ENV-12). Isolated remasure: 0 % → 97.0 % (0 → 32 of 33; +32). Leftovers: NewService SetServiceName error. Deferred-within-package: none. Package left at 97.0 % (32 of 33; 1 missed). | Preferred snapshot datastore covered; one thin leftover. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-145 | Close Priority work on `api/dataservices/allowlist`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): allowlist_coverage_test.go (6 under REQ-SET-03). Isolated remasure: 61.7 % → 86.4 % (50 → 70 of 81; +20). Leftovers: hard DB/cache-type errors. Deferred-within-package: none. Package left at 86.4 % (70 of 81; 11 missed). | Preferred allowlist datastore covered; leftovers hard. Same close pattern as prior Priority packages. | agent | Apply hard-local close; do not grind further. |
+| COV-146 | Close Priority work on `api/http/proxy/factory/github`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): client_test.go (10). Isolated remasure: 0 % → 93.5 % (0 → 29 of 31; +29). Leftovers: Body.Close / ReadAll errors. Deferred-within-package: none. Package left at 93.5 % (29 of 31; 2 missed). | Preferred GitHub proxy client covered; leftovers thin. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -450,6 +451,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. Merged `origin/2-covered-parallel-go-batch-166` (`728c2677a`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-144: close Priority work on snapshot datastore. Parallel isolated 0 % → 97.0 % (0 → 32 of 33; +32). Thin leftover. Do not grind further.
 - 2026-11-09. COV-145: close Priority work on allowlist datastore. Parallel isolated 61.7 % → 86.4 % (50 → 70 of 81; +20). Hard leftovers. Do not grind further.
+- 2026-11-09. COV-146: close Priority work on GitHub proxy client. Parallel isolated 0 % → 93.5 % (0 → 29 of 31; +29). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

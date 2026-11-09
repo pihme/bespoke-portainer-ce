@@ -109,3 +109,14 @@ func TestCloseAndLogErr_Error(t *testing.T) {
 
 	CloseAndLogErr(&stubCloser{err: errors.New("close failed")})
 }
+
+func TestConfigureLogger(t *testing.T) {
+	saveLogger(t)
+	saveGlobalLevel(t)
+
+	ConfigureLogger()
+
+	require.Equal(t, "stack_trace", zerolog.ErrorStackFieldName)
+	require.Equal(t, zerolog.TimeFormatUnix, zerolog.TimeFieldFormat)
+	require.NotNil(t, zerolog.ErrorStackMarshaler)
+}

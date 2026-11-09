@@ -100,3 +100,19 @@ func TestRunOnInterval_FnNotCalledAfterCancellation(t *testing.T) {
 
 	assert.Equal(t, int32(0), calls.Load())
 }
+
+func TestRunOnInterval_NilFnReturnsImmediately(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	var cleanupCalled atomic.Bool
+	done := run(ctx, time.Hour, nil, func() { cleanupCalled.Store(true) })
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("RunOnInterval with nil fn did not return")
+	}
+	assert.True(t, cleanupCalled.Load())
+}

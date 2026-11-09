@@ -1,6 +1,8 @@
 package librand
 
 import (
+	"crypto/rand"
+	"errors"
 	"strings"
 	"testing"
 
@@ -53,7 +55,6 @@ func TestInternalIntn(t *testing.T) {
 }
 
 func TestString(t *testing.T) {
-	t.Parallel()
 
 	const iterations = 1000
 
@@ -102,4 +103,17 @@ func TestInternalFloat64(t *testing.T) {
 			}
 		})
 	}
+}
+
+type errReader struct{}
+
+func (errReader) Read([]byte) (int, error) { return 0, errors.New("rand failed") }
+
+func TestInt64n_FIPSPanicsOnRandError(t *testing.T) {
+	// Not parallel: temporarily replaces the process-wide crypto/rand.Reader.
+	orig := rand.Reader
+	t.Cleanup(func() { rand.Reader = orig })
+	rand.Reader = errReader{}
+
+	require.Panics(t, func() { int64n(10, true) })
 }

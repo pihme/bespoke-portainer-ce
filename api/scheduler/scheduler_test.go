@@ -173,3 +173,20 @@ func Test_StartJobEvery_Concurrently(t *testing.T) {
 		<-ctx.Done()
 	})
 }
+
+func TestShutdown_NilCrontabIsNoop(t *testing.T) {
+	t.Parallel()
+
+	s := &Scheduler{}
+	require.NoError(t, s.Shutdown())
+}
+
+func TestStopJob_InvalidJobID(t *testing.T) {
+	t.Parallel()
+
+	s := NewScheduler(nil)
+	t.Cleanup(func() { _ = s.Shutdown() })
+
+	err := s.StopJob("not-a-number")
+	require.Error(t, err)
+}

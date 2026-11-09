@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -145,4 +146,34 @@ func TestEmpty(t *testing.T) {
 
 	assert.Nil(t, httpErr)
 	assert.Equal(t, http.StatusNoContent, recorder.Code)
+}
+
+type errWriter struct {
+	header http.Header
+	code   int
+}
+
+func (w *errWriter) Header() http.Header {
+	if w.header == nil {
+		w.header = make(http.Header)
+	}
+	return w.header
+}
+func (w *errWriter) Write([]byte) (int, error) { return 0, errors.New("write failed") }
+func (w *errWriter) WriteHeader(statusCode int) { w.code = statusCode }
+
+func TestJSONWithStatus_EncodeError(t *testing.T) {
+	t.Parallel()
+
+	// json.Encoder fails on channels
+	err := JSONWithStatus(&errWriter{}, make(chan int), http.StatusOK)
+	require.NotNil(t, err)
+	require.Equal(t, http.StatusInternalServerError, err.StatusCode)
+}
+
+func TestYAML_WriteErrorIsLogged(t *testing.T) {
+	t.Parallel()
+
+	err := YAML(&errWriter{}, "hello: world")
+	require.Nil(t, err)
 }

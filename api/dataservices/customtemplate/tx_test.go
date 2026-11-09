@@ -27,3 +27,17 @@ func TestCustomTemplateCreateTx(t *testing.T) {
 
 	require.Equal(t, portainer.CustomTemplateID(1), template.ID)
 }
+
+func TestGetNextIdentifierTx(t *testing.T) {
+	t.Parallel()
+	_, ds := datastore.MustNewTestStore(t, false, false)
+
+	var id1, id2 int
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		id1 = tx.CustomTemplate().GetNextIdentifier()
+		id2 = tx.CustomTemplate().GetNextIdentifier()
+		return nil
+	}))
+	require.Positive(t, id1)
+	require.Greater(t, id2, id1)
+}

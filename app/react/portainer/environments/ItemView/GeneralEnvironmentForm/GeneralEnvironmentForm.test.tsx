@@ -202,6 +202,25 @@ describe('GeneralEnvironmentForm', () => {
     });
   });
 
+  it('should update TLS values when the TLS switch is toggled', async () => {
+    const user = userEvent.setup();
+    const dockerApiEnv = createMockEnvironment({
+      Type: EnvironmentType.Docker,
+      URL: 'tcp://10.0.0.1:2375',
+    });
+    renderComponent(dockerApiEnv);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('enable-tls-switch')).toBeVisible();
+    });
+
+    await user.click(screen.getByTestId('enable-tls-switch'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('skip-verify-switch')).toBeVisible();
+    });
+  });
+
   describe('URL handling', () => {
     test.each([
       {

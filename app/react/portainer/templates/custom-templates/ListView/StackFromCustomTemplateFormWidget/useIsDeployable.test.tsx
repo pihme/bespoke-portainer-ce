@@ -67,4 +67,14 @@ describe('useIsDeployable', () => {
     expect(result.current.compose).toBe(true);
     expect(result.current.swarm).toBe(false);
   });
+
+
+  it('marks Kubernetes templates as not deployable', async () => {
+    mockInfo(null);
+    const { result } = renderHook(
+      () => useIsDeployable(StackType.Kubernetes),
+      { wrapper: withTestQueryProvider(({ children }) => <>{children}</>) }
+    );
+    await waitFor(() => expect(result.current).toBe(false));
+  });
 });

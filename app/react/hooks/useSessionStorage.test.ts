@@ -29,4 +29,12 @@ describe('useSessionStorage', () => {
     expect(sessionStorage.getItem(STORAGE_KEY)).toBe('99');
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
+
+  it('reads an existing sessionStorage value on init', () => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify('from-session'));
+
+    const { result } = renderHook(() => useSessionStorage(KEY, 'default'));
+
+    expect(result.current[0]).toBe('from-session');
+  });
 });

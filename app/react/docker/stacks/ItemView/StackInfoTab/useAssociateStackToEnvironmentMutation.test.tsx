@@ -45,7 +45,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
         environmentId: 5,
         stackId: 123,
         isOrphanedRunning: true,
-        swarmId: 'swarm-123',
       });
 
       await waitFor(() => {
@@ -55,7 +54,8 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       expect(requestUrl).toContain('/api/stacks/123/associate');
       expect(capturedParams?.get('endpointId')).toBe('5');
       expect(capturedParams?.get('orphanedRunning')).toBe('true');
-      expect(capturedParams?.get('swarmId')).toBe('swarm-123');
+      // REQ-TAI-003: no Docker Swarm id is sent
+      expect(capturedParams?.get('swarmId')).toBeNull();
     });
 
     it('REQ-TAI-001 associates without applying any ownership', async () => {
@@ -81,7 +81,7 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       expect(resourceControlCalls).not.toHaveBeenCalled();
     });
 
-    it('should handle optional swarmId parameter', async () => {
+    it('REQ-TAI-003 never sends a swarmId parameter', async () => {
       let capturedParams: URLSearchParams | undefined;
 
       server.use(
@@ -104,14 +104,12 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        // swarmId is undefined
       });
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      // swarmId should not be in params when undefined
       expect(capturedParams?.get('swarmId')).toBeNull();
     });
 

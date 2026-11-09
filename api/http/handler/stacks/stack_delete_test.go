@@ -122,37 +122,6 @@ func TestStackDelete_RecordDeletionFails_WorkflowDeletionRollsBack(t *testing.T)
 	require.NoError(t, err, "stack should survive when record deletion fails")
 }
 
-func TestDeleteExternalStack_Success_RemovesResources(t *testing.T) {
-	t.Parallel()
-	h, store, teardownService := newStackDeleteHandler(t)
-	_, err := mockCreateUser(store)
-	require.NoError(t, err)
-	endpoint, err := mockCreateEndpoint(store)
-	require.NoError(t, err)
-
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, deleteExternalStackRequest("external-stack", endpoint.ID))
-
-	require.Equal(t, http.StatusNoContent, w.Code)
-	assert.Equal(t, []portainer.StackID{0}, teardownService.torndownStacks)
-}
-
-func TestDeleteExternalStack_TeardownFails_ReturnsServerError(t *testing.T) {
-	t.Parallel()
-	h, store, teardownService := newStackDeleteHandler(t)
-	teardownService.resourceErr = errors.New("failed to remove resources")
-	_, err := mockCreateUser(store)
-	require.NoError(t, err)
-	endpoint, err := mockCreateEndpoint(store)
-	require.NoError(t, err)
-
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, deleteExternalStackRequest("external-stack", endpoint.ID))
-
-	require.Equal(t, http.StatusInternalServerError, w.Code)
-	assert.Empty(t, teardownService.torndownStacks)
-}
-
 type stubTeardown struct {
 	teardown.Service
 	torndownStacks  []portainer.StackID
@@ -220,4 +189,22 @@ func TestREQ_TAI_002_StackDeleteKubernetesByNameIsGone(t *testing.T) {
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, mockCreateStackRequestWithSecurityContext(http.MethodDelete, "/stacks/name/app?endpointId=1&namespace=ns1", nil))
 	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+// REQ-TAI-003: deleting an external (Swarm-only) stack by name is removed; the
+// request is refused with 400 and nothing is torn down.
+func TestREQ_TAI_003_DeleteExternalStackIsRejected(t *testing.T) {
+	t.Parallel()
+	h, store, teardownService := newStackDeleteHandler(t)
+	_, err := mockCreateUser(store)
+	require.NoError(t, err)
+	endpoint, err := mockCreateEndpoint(store)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, deleteExternalStackRequest("external-stack", endpoint.ID))
+
+	require.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "Deleting external stacks is no longer supported")
+	assert.Empty(t, teardownService.torndownStacks)
 }

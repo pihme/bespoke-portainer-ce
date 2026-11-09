@@ -41,7 +41,7 @@ function DockerEngineVersion({
   if (!snapshot) {
     return null;
   }
-  const type = getDockerEnvironmentType(snapshot.Swarm, isPodman);
+  const type = getDockerEnvironmentType(isPodman);
 
   return (
     <span className="small text-muted vertical-center">

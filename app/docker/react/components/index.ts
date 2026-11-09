@@ -10,23 +10,16 @@ import { GpusList } from '@/react/docker/host/SetupView/GpusList';
 import { AgentHostBrowser } from '@/react/docker/host/BrowseView/AgentHostBrowser';
 import { AgentVolumeBrowser } from '@/react/docker/volumes/BrowseView/AgentVolumeBrowser';
 import { ProcessesDatatable } from '@/react/docker/containers/StatsView/ProcessesDatatable';
-import { SecretsDatatable } from '@/react/docker/secrets/ListView/SecretsDatatable';
 import { StacksDatatable } from '@/react/docker/stacks/ListView/StacksDatatable';
 import { HostDetailsPanel } from '@/react/docker/host/HostDetailsPanel/HostDetailsPanel';
 
 import { containersModule } from './containers';
-import { servicesModule } from './services';
-import { networksModule } from './networks';
-import { swarmModule } from './swarm';
 import { volumesModule } from './volumes';
 import { templatesModule } from './templates';
 
 const ngModule = angular
   .module('portainer.docker.react.components', [
     containersModule,
-    servicesModule,
-    networksModule,
-    swarmModule,
     volumesModule,
     templatesModule,
   ])
@@ -67,14 +60,6 @@ const ngModule = angular
   .component(
     'dockerContainerProcessesDatatable',
     r2a(withUIRouter(withReactQuery(withCurrentUser(ProcessesDatatable))), [])
-  )
-  .component(
-    'dockerSecretsDatatable',
-    r2a(withUIRouter(withCurrentUser(SecretsDatatable)), [
-      'dataset',
-      'onRefresh',
-      'onRemove',
-    ])
   )
   .component(
     'dockerStacksDatatable',

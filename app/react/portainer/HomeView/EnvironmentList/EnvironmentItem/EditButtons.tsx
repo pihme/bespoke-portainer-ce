@@ -74,7 +74,7 @@ function getDockerConfigRoute(environment: Environment) {
     return '';
   }
 
-  return snapshot.Swarm ? 'docker.swarm' : 'docker.host';
+  return 'docker.host';
 }
 
 function ButtonsGrid({

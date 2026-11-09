@@ -42,28 +42,28 @@ export function useIsWindows(environmentId: EnvironmentId) {
   return !!query.data;
 }
 
+/**
+ * Docker Swarm is removed (TAI-003): every Docker environment is managed as a
+ * standalone engine, even when the engine is part of a Swarm.
+ */
 export function useIsStandalone(
   environmentId: EnvironmentId | undefined,
   { enabled }: { enabled?: boolean } = {}
 ) {
   const query = useInfo(environmentId, {
-    select: (info) => !info.Swarm?.NodeID,
+    select: () => true,
     enabled,
   });
 
   return !!query.data;
 }
 
+/** Docker Swarm is removed (TAI-003): always false. */
 export function useIsSwarm(
-  environmentId?: EnvironmentId,
-  { enabled }: { enabled?: boolean } = {}
+  _environmentId?: EnvironmentId,
+  _options: { enabled?: boolean } = {}
 ) {
-  const query = useInfo(environmentId, {
-    select: (info) => !!info.Swarm?.NodeID,
-    enabled,
-  });
-
-  return !!query.data;
+  return false;
 }
 
 export function useSystemLimits(environmentId: EnvironmentId) {
@@ -77,14 +77,10 @@ export function useSystemLimits(environmentId: EnvironmentId) {
   return { maxCpu, maxMemory };
 }
 
+/** Docker Swarm is removed (TAI-003): always false. */
 export function useIsSwarmManager(
-  environmentId?: EnvironmentId,
-  { enabled }: { enabled?: boolean } = {}
+  _environmentId?: EnvironmentId,
+  _options: { enabled?: boolean } = {}
 ) {
-  const query = useInfo(environmentId, {
-    select: (info) => !!info.Swarm?.NodeID && info.Swarm.ControlAvailable,
-    enabled,
-  });
-
-  return !!query.data;
+  return false;
 }

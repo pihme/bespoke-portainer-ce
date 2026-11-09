@@ -123,3 +123,17 @@ describe('REQ-TAI-002 no Kubernetes environment creation', () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe('REQ-TAI-003 no Docker Swarm environment creation', () => {
+  it('offers no Docker Swarm option or form title', () => {
+    const values = environmentTypes.map((t) => t.value as string);
+    expect(values).not.toContain('dockerSwarm');
+    expect(Object.keys(formTitles)).not.toContain('dockerSwarm');
+  });
+
+  it('renders no Docker Swarm box', () => {
+    renderView();
+
+    expect(screen.queryByText('Docker Swarm')).not.toBeInTheDocument();
+  });
+});

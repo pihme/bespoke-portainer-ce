@@ -14,7 +14,6 @@ interface DashboardResponse {
     healthy: number;
     unhealthy: number;
   };
-  services: number;
   images: {
     total: number;
     size: number;

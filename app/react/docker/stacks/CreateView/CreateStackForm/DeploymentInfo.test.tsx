@@ -5,13 +5,13 @@ import { DeploymentInfo } from './DeploymentInfo';
 
 describe('DeploymentInfo', () => {
   it('shows the default docker compose tip for standalone stacks', () => {
-    render(<DeploymentInfo isSwarm={false} />);
+    render(<DeploymentInfo />);
     expect(screen.getByText(/docker compose/)).toBeInTheDocument();
     expect(screen.queryByText(/docker stack deploy/)).not.toBeInTheDocument();
   });
 
   it('shows the compose v2 limitation tip when composeSyntaxMaxVersion is 2', () => {
-    render(<DeploymentInfo isSwarm={false} composeSyntaxMaxVersion={2} />);
+    render(<DeploymentInfo composeSyntaxMaxVersion={2} />);
     expect(
       screen.getByText(/Only Compose file format version/)
     ).toBeInTheDocument();

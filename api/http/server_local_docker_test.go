@@ -127,7 +127,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.UploadHandler)
 	assert.NotNil(t, h.UserHandler)
 	assert.NotNil(t, h.WebSocketHandler)
-	assert.NotNil(t, h.WebhookHandler)
 	// Cheap constructor wiring for deferred arms that fall out of Start:
 	assert.NotNil(t, h.EdgeGroupsHandler)
 	assert.NotNil(t, h.EdgeJobsHandler)
@@ -407,6 +406,52 @@ func TestREQ_TAI_002_Start_KubernetesRoutesAreGone(t *testing.T) {
 		{http.MethodPost, "/api/users/1/helm/repositories"},
 		{http.MethodDelete, "/api/users/1/helm/repositories/1"},
 		{http.MethodDelete, "/api/stacks/name/app?endpointId=1&namespace=default"},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
+	}
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+// REQ-TAI-003: Docker Swarm is removed; the service webhook API and the
+// service force-update route answer 404 on the running server.
+func TestREQ_TAI_003_Start_SwarmRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct{ method, path string }{
+		{http.MethodGet, "/api/webhooks"},
+		{http.MethodPost, "/api/webhooks"},
+		{http.MethodPut, "/api/webhooks/1"},
+		{http.MethodDelete, "/api/webhooks/1"},
+		{http.MethodPost, "/api/webhooks/0f4a5c3e-1111-2222-3333-444455556666"},
+		{http.MethodPut, "/api/endpoints/1/forceupdateservice"},
 	}
 
 	for _, route := range gone {

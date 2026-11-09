@@ -8,8 +8,9 @@ vi.mock('@/react/hooks/useUser', () => ({
   useCurrentUser: () => ({ isPureAdmin: true }),
 }));
 
+const useSref = vi.fn((..._args: unknown[]) => ({ href: '#', onClick: vi.fn() }));
 vi.mock('@uirouter/react', () => ({
-  useSref: () => ({ href: '#', onClick: vi.fn() }),
+  useSref: (...args: unknown[]) => useSref(...args),
 }));
 
 import { EditButtons } from './EditButtons';
@@ -38,5 +39,17 @@ describe('REQ-ENV-01 EditButtons', () => {
     const config = screen.getByTestId('configure-environment-link-nosnap');
     // disabled LinkButton renders as span
     expect(config.closest('button, a, span')).toBeTruthy();
+  });
+
+  it('REQ-TAI-003 links configuration to docker.host for a Swarm snapshot', () => {
+    useSref.mockClear();
+    const environment = createMockEnvironment();
+    environment.Type = EnvironmentType.Docker;
+    environment.Name = 'swarm-node';
+    environment.Snapshots = [{ Swarm: true } as never];
+    render(<EditButtons environment={environment} />);
+    const routes = useSref.mock.calls.map((call) => call[0]);
+    expect(routes).toContain('docker.host');
+    expect(routes).not.toContain('docker.swarm');
   });
 });

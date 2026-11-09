@@ -4,11 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/api/types/volume"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
@@ -29,7 +27,6 @@ type imagesCounters struct {
 
 type dashboardResponse struct {
 	Containers stats.ContainerStats `json:"containers"`
-	Services   int                  `json:"services"`
 	Images     imagesCounters       `json:"images"`
 	Volumes    int                  `json:"volumes"`
 	Networks   int                  `json:"networks"`
@@ -93,20 +90,6 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request) *httperror.H
 			return httperror.InternalServerError("Unable to retrieve Docker info", err)
 		}
 
-		isSwarmManager := info.Swarm.ControlAvailable && info.Swarm.NodeID != ""
-
-		var services []swarm.Service
-		if isSwarmManager {
-			servicesRes, err := cli.ServiceList(r.Context(), types.ServiceListOptions{})
-			if err != nil {
-				return httperror.InternalServerError("Unable to retrieve Docker services", err)
-			}
-
-			if services, err = uac.FilterByResourceControl(servicesRes, user, context.UserMemberships, uac.ServiceResourceControlGetter(tx, endpoint.ID)); err != nil {
-				return err
-			}
-		}
-
 		volumesRes, err := cli.VolumeList(r.Context(), volume.ListOptions{})
 		if err != nil {
 			return httperror.InternalServerError("Unable to retrieve Docker volumes", err)
@@ -142,7 +125,7 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request) *httperror.H
 
 		stackCount := 0
 		if environment.SecuritySettings.AllowStackManagementForRegularUsers || context.IsAdmin {
-			stacks, err := utils.GetDockerStacks(tx, context, environment.ID, containers, services)
+			stacks, err := utils.GetDockerStacks(tx, context, environment.ID, containers)
 			if err != nil {
 				return httperror.InternalServerError("Unable to retrieve stacks", err)
 			}
@@ -160,7 +143,6 @@ func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request) *httperror.H
 				Total: len(images),
 				Size:  totalSize,
 			},
-			Services:   len(services),
 			Containers: containersStats,
 			Networks:   len(networks),
 			Volumes:    len(volumes),

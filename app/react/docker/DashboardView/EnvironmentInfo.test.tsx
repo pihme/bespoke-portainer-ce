@@ -28,19 +28,7 @@ vi.mock('@/react/hooks/useCurrentEnvironment', () => ({
   useCurrentEnvironment: () => currentEnvironmentState,
 }));
 
-vi.mock('../proxy/queries/useInfo', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../proxy/queries/useInfo')>();
-  return {
-    ...actual,
-    useIsSwarmManager: vi.fn(() => false),
-  };
-});
-
-import { useIsSwarmManager } from '../proxy/queries/useInfo';
-
-function snapshot(
-  overrides: Partial<DockerSnapshot> = {}
-): DockerSnapshot {
+function snapshot(overrides: Partial<DockerSnapshot> = {}): DockerSnapshot {
   return {
     ContainerCount: 1,
     DockerVersion: '24.0.0',
@@ -76,7 +64,6 @@ function renderEnvironmentInfo() {
 
 describe('REQ-ENV-02 EnvironmentInfo', () => {
   beforeEach(() => {
-    vi.mocked(useIsSwarmManager).mockReturnValue(false);
     currentEnvironmentState.data = createMockEnvironment({
       Id: 1,
       Name: 'local-docker',
@@ -144,12 +131,22 @@ describe('REQ-ENV-02 EnvironmentInfo', () => {
     expect(screen.queryByText('edge.example')).not.toBeInTheDocument();
   });
 
-  it('shows the cluster visualizer link when the node is a swarm manager', async () => {
-    vi.mocked(useIsSwarmManager).mockReturnValue(true);
+  it('REQ-TAI-003 shows no cluster visualizer link on a Swarm manager', async () => {
+    server.use(
+      http.get('/api/endpoints/1/docker/info', () =>
+        HttpResponse.json({
+          ServerVersion: '24.0.7',
+          Swarm: { NodeID: 'node-1', ControlAvailable: true },
+        })
+      )
+    );
 
     renderEnvironmentInfo();
 
-    expect(await screen.findByTestId('cluster-visualizer')).toBeVisible();
-    expect(screen.getByText(/Go to cluster visualizer/i)).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByText(/Standalone 24.0.7/)).toBeVisible();
+    });
+    expect(screen.queryByTestId('cluster-visualizer')).not.toBeInTheDocument();
+    expect(screen.queryByText(/cluster visualizer/i)).not.toBeInTheDocument();
   });
 });

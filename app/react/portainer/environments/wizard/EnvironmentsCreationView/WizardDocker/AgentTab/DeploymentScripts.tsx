@@ -20,27 +20,8 @@ const deploymentsStandalone = [
   },
 ];
 
-const deploymentsSwarm = [
-  {
-    id: 'linux',
-    label: 'Linux & Windows WSL',
-    command: linuxSwarmCommand,
-  },
-  {
-    id: 'win',
-    label: 'Windows WCS',
-    command: winSwarmCommand,
-  },
-];
-
-interface Props {
-  isDockerStandalone?: boolean;
-}
-
-export function DeploymentScripts({ isDockerStandalone }: Props) {
-  const deployments = isDockerStandalone
-    ? deploymentsStandalone
-    : deploymentsSwarm;
+export function DeploymentScripts() {
+  const deployments = deploymentsStandalone;
   const [deployType, setDeployType] = useState(deployments[0].id);
 
   const agentDetailsQuery = useAgentDetails();
@@ -106,27 +87,6 @@ function linuxStandaloneCommand(agentVersion: string, agentSecret: string) {
 `;
 }
 
-function linuxSwarmCommand(agentVersion: string, agentSecret: string) {
-  const secret =
-    agentSecret === '' ? '' : `\\\n  -e AGENT_SECRET=${agentSecret} `;
-
-  return `docker network create \\
---driver overlay \\
-  portainer_agent_network
-
-docker service create \\
-  --name portainer_agent \\
-  --network portainer_agent_network \\
-  -p 9001:9001/tcp ${secret}\\
-  --mode global \\
-  --constraint 'node.platform.os == linux' \\
-  --mount type=bind,src=//var/run/docker.sock,dst=/var/run/docker.sock \\
-  --mount type=bind,src=//var/lib/docker/volumes,dst=/var/lib/docker/volumes \\
-  --mount type=bind,src=//,dst=/host \\
-  portainer/agent:${agentVersion}
-`;
-}
-
 function winStandaloneCommand(agentVersion: string, agentSecret: string) {
   const secret =
     agentSecret === '' ? '' : `\`\n  -e AGENT_SECRET=${agentSecret} `;
@@ -142,22 +102,3 @@ function winStandaloneCommand(agentVersion: string, agentSecret: string) {
 `;
 }
 
-function winSwarmCommand(agentVersion: string, agentSecret: string) {
-  const secret =
-    agentSecret === '' ? '' : `\`\n  -e AGENT_SECRET=${agentSecret} `;
-
-  return `docker network create \`
---driver overlay \`
-  portainer_agent_network
-
-docker service create \`
-  --name portainer_agent \`
-  --network portainer_agent_network \`
-  -p 9001:9001/tcp ${secret}\`
-  --mode global \`
-  --constraint 'node.platform.os == windows' \`
-  --mount type=npipe,src=\\\\.\\pipe\\docker_engine,dst=\\\\.\\pipe\\docker_engine \`
-  --mount type=bind,src=C:\\ProgramData\\docker\\volumes,dst=C:\\ProgramData\\docker\\volumes \`
-  portainer/agent:${agentVersion}
-`;
-}

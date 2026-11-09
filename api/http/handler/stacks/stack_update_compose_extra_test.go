@@ -127,10 +127,4 @@ func TestREQ_STK_04_UpdateStack_MissingStack_ReturnsNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestREQ_STK_04_UpdateSwarmPayload_EmptyContent_Invalid(t *testing.T) {
-	t.Parallel()
-	payload := &updateSwarmStackPayload{}
-	require.Error(t, payload.Validate(nil))
-	payload.StackFileContent = "services: {}\n"
-	require.NoError(t, payload.Validate(nil))
-}
+

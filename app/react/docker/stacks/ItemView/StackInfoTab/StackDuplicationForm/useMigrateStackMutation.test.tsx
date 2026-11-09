@@ -12,60 +12,14 @@ type MigrateRequestBody = {
   SwarmID?: string;
 };
 
-describe('Swarm stack migration', () => {
-  server.use(
-    http.get('/api/endpoints/:id/docker/swarm', () =>
-      HttpResponse.json({ ID: 'target-swarm-456' })
-    ),
-    http.post('/api/stacks/:id/migrate', () => HttpResponse.json({}))
-  );
-
-  it('should throw error if fromSwarmId is missing', async () => {
-    await expect(
-      routeMigrationRequest({
-        stackType: StackType.DockerSwarm,
-        id: 1,
-        fromEnvId: 1,
-        targetEnvId: 2,
-        name: 'test-stack',
-        fromSwarmId: undefined,
+describe('REQ-TAI-003 Swarm stack migration is gone', () => {
+  it('rejects a Docker Swarm stack without calling the API', async () => {
+    let apiCalled = false;
+    server.use(
+      http.all('/api/*', () => {
+        apiCalled = true;
+        return HttpResponse.json({});
       })
-    ).rejects.toThrow('Original Swarm ID is required');
-  });
-
-  it('should call getSwarm with targetEnvId', async () => {
-    let swarmRequestCalled = false;
-    let capturedTargetEnvId: string | undefined;
-
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', ({ params }) => {
-        swarmRequestCalled = true;
-        capturedTargetEnvId = params.id as string;
-        return HttpResponse.json({ ID: 'target-swarm-456' });
-      }),
-      http.post('/api/stacks/:id/migrate', () => HttpResponse.json({}))
-    );
-
-    await routeMigrationRequest({
-      stackType: StackType.DockerSwarm,
-      id: 1,
-      fromEnvId: 1,
-      targetEnvId: 3,
-      name: 'test-stack',
-      fromSwarmId: 'source-swarm-123',
-    });
-
-    expect(swarmRequestCalled).toBe(true);
-    expect(capturedTargetEnvId).toBe('3');
-  });
-
-  it('should throw error if target Swarm ID matches source Swarm ID', async () => {
-    const sameSwarmId = 'swarm123';
-
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', () =>
-        HttpResponse.json({ ID: sameSwarmId })
-      )
     );
 
     await expect(
@@ -74,67 +28,14 @@ describe('Swarm stack migration', () => {
         id: 1,
         fromEnvId: 1,
         targetEnvId: 2,
-        name: 'test-stack',
-        fromSwarmId: sameSwarmId,
       })
-    ).rejects.toThrow('same Swarm cluster');
-  });
-
-  it('should call migrateStack with targetSwarmId', async () => {
-    const targetSwarmId = 'target-swarm-456';
-    let migrateRequestBody: MigrateRequestBody | undefined;
-
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', () =>
-        HttpResponse.json({ ID: targetSwarmId })
-      ),
-      http.post('/api/stacks/:id/migrate', async ({ request }) => {
-        migrateRequestBody = (await request.json()) as MigrateRequestBody;
-        return HttpResponse.json({});
-      })
-    );
-
-    await routeMigrationRequest({
-      stackType: StackType.DockerSwarm,
-      id: 5,
-      fromEnvId: 1,
-      targetEnvId: 2,
-      name: 'swarm-stack',
-      fromSwarmId: 'source-swarm-123',
-    });
-
-    expect(migrateRequestBody).toBeDefined();
-    expect(migrateRequestBody?.SwarmID).toBe(targetSwarmId);
-  });
-
-  it('should include name parameter if provided', async () => {
-    let migrateRequestBody: MigrateRequestBody | undefined;
-
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', () =>
-        HttpResponse.json({ ID: 'target-swarm-456' })
-      ),
-      http.post('/api/stacks/:id/migrate', async ({ request }) => {
-        migrateRequestBody = (await request.json()) as MigrateRequestBody;
-        return HttpResponse.json({});
-      })
-    );
-
-    await routeMigrationRequest({
-      stackType: StackType.DockerSwarm,
-      id: 5,
-      fromEnvId: 1,
-      targetEnvId: 2,
-      name: 'new-stack-name',
-      fromSwarmId: 'source-swarm-123',
-    });
-
-    expect(migrateRequestBody?.Name).toBe('new-stack-name');
+    ).rejects.toThrow('Docker Swarm stacks are no longer supported');
+    expect(apiCalled).toBe(false);
   });
 });
 
 describe('Standalone stack migration', () => {
-  it('should call migrateStack without targetSwarmId for standalone stacks', async () => {
+  it('should call migrateStack without a Swarm ID for standalone stacks', async () => {
     let migrateRequestBody: MigrateRequestBody | undefined;
 
     server.use(
@@ -186,28 +87,6 @@ describe('Standalone stack migration', () => {
     expect(migrateRequestBody?.Name).toBe('my-stack');
     expect(migrateRequestParams?.endpointId).toBe('4');
   });
-
-  it('should not call getSwarm for standalone stacks', async () => {
-    let swarmRequestCalled = false;
-
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', () => {
-        swarmRequestCalled = true;
-        return HttpResponse.json({ ID: 'swarm123' });
-      }),
-      http.post('/api/stacks/:id/migrate', () => HttpResponse.json({}))
-    );
-
-    await routeMigrationRequest({
-      stackType: StackType.DockerCompose,
-      id: 3,
-      fromEnvId: 1,
-      targetEnvId: 2,
-      name: 'compose-stack',
-    });
-
-    expect(swarmRequestCalled).toBe(false);
-  });
 });
 
 describe('API request structure', () => {
@@ -231,7 +110,7 @@ describe('API request structure', () => {
     expect(requestPath).toBe('/api/stacks/123/migrate');
   });
 
-  it('should include EndpointID, Name, SwarmID in request body', async () => {
+  it('should include EndpointID and Name in request body', async () => {
     let requestBody: MigrateRequestBody | undefined;
 
     server.use(
@@ -294,24 +173,6 @@ describe('error handling', () => {
         id: 999,
         fromEnvId: 1,
         targetEnvId: 2,
-      })
-    ).rejects.toThrow();
-  });
-
-  it('should propagate errors from getSwarm', async () => {
-    server.use(
-      http.get('/api/endpoints/:id/docker/swarm', () =>
-        HttpResponse.json({ message: 'Swarm not available' }, { status: 503 })
-      )
-    );
-
-    await expect(
-      routeMigrationRequest({
-        stackType: StackType.DockerSwarm,
-        id: 1,
-        fromEnvId: 1,
-        targetEnvId: 2,
-        fromSwarmId: 'swarm123',
       })
     ).rejects.toThrow();
   });

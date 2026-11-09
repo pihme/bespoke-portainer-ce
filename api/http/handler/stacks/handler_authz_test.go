@@ -75,7 +75,9 @@ func TestREQ_STK_04_UpdateComposePayload_EmptyContent_Invalid(t *testing.T) {
 	require.NoError(t, payload.Validate(nil))
 }
 
-func TestREQ_STK_02_CreateSwarm_InvalidMethod_ReturnsBadRequest(t *testing.T) {
+// REQ-TAI-003: Docker Swarm stack creation (string, repository, file) is
+// removed; "swarm" is now an invalid stack type and is rejected with 400.
+func TestREQ_TAI_003_CreateSwarmStackIsRejected(t *testing.T) {
 	t.Parallel()
 	h, store := newStackCreateHandler(t)
 	_, err := mockCreateUser(store)
@@ -83,10 +85,17 @@ func TestREQ_STK_02_CreateSwarm_InvalidMethod_ReturnsBadRequest(t *testing.T) {
 	endpoint, err := mockCreateEndpoint(store)
 	require.NoError(t, err)
 	body, _ := json.Marshal(map[string]string{"Name": "x"})
-	url := fmt.Sprintf("/stacks/create/swarm/ftp?endpointId=%d", endpoint.ID)
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, stackCreateRequestWithToken(http.MethodPost, url, body))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	for _, method := range []string{"string", "repository", "file"} {
+		url := fmt.Sprintf("/stacks/create/swarm/%s?endpointId=%d", method, endpoint.ID)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, stackCreateRequestWithToken(http.MethodPost, url, body))
+		assert.Equal(t, http.StatusBadRequest, w.Code, method)
+		assert.Contains(t, w.Body.String(), "Invalid value for query parameter: type", method)
+	}
+
+	stacks, err := store.Stack().ReadAll()
+	require.NoError(t, err)
+	assert.Empty(t, stacks)
 }
 
 // REQ-TAI-002: Kubernetes stack creation (string, repository, URL) is removed;
@@ -204,11 +213,11 @@ func TestREQ_STK_02_CheckUniqueStackNameInDocker_WithoutFactory_UsesDB(t *testin
 	require.NoError(t, err)
 	require.NoError(t, store.Stack().Create(&portainer.Stack{ID: 1, Name: "db-only", EndpointID: endpoint.ID}))
 
-	unique, err := h.checkUniqueStackNameInDocker(endpoint, "db-only", 0, false)
+	unique, err := h.checkUniqueStackNameInDocker(endpoint, "db-only", 0)
 	require.NoError(t, err)
 	assert.False(t, unique)
 
-	unique, err = h.checkUniqueStackNameInDocker(endpoint, "free-name", 0, false)
+	unique, err = h.checkUniqueStackNameInDocker(endpoint, "free-name", 0)
 	require.NoError(t, err)
 	assert.True(t, unique)
 }

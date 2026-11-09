@@ -10,7 +10,6 @@ import { useUpdateStackResourcesOnDeployment } from '@/react/docker/stacks/ItemV
 import { PageHeader } from '@@/PageHeader';
 
 import { StackDetails } from './StackDetails';
-import { StackServicesDatatable } from './StackServicesDatatable';
 
 export function ItemView() {
   const {
@@ -66,9 +65,6 @@ export function ItemView() {
             {stackType === StackType.DockerCompose && (
               <StackContainersDatatable stackName={stackName} />
             )}
-            {stackType === StackType.DockerSwarm && (
-              <StackServicesDatatable name={stackName} />
-            )}
           </>
         )}
       </div>
@@ -90,8 +86,7 @@ function isInvalidStackType({
   return (
     (isExternal || (isOrphaned && isOrphanedRunning)) &&
     (!stackType ||
-      (stackType !== StackType.DockerSwarm &&
-        stackType !== StackType.DockerCompose))
+      stackType !== StackType.DockerCompose)
   );
 }
 

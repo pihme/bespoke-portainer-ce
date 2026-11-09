@@ -13,7 +13,6 @@ import EdgeAgentAsyncIcon from '@/react/edge/components/edge-agent-async.svg?c';
 
 import { BoxSelector, type BoxSelectorOption } from '@@/BoxSelector';
 import { BadgeIcon } from '@@/BadgeIcon';
-import { Alert } from '@@/Alert';
 import { FormSection } from '@@/form-components/FormSection';
 import { Badge } from '@@/Badge';
 import { ExternalLink } from '@@/ExternalLink';
@@ -28,7 +27,6 @@ import { SocketTab } from './SocketTab';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
-  isDockerStandalone?: boolean;
 }
 
 type CreationType =
@@ -96,7 +94,7 @@ const legacyOptions: BoxSelectorOption<CreationType>[] = [
 
 const containerEngine = ContainerEngine.Docker;
 
-export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
+export function WizardDocker({ onCreate }: Props) {
   const edgeAgentDocsUrl = useDocsUrl(
     '/faqs/getting-started/why-do-we-recommend-using-the-edge-agent-instead-of-the-traditional-agent'
   );
@@ -108,17 +106,6 @@ export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
 
   return (
     <div className="form-horizontal">
-      {!isDockerStandalone && (
-        <Alert color="warn" className="col-sm-12 mb-2">
-          <div>
-            Only do this <b>once</b> for your environment, regardless of how
-            many nodes are in the cluster. You do <b>not</b> need to add each
-            node as an individual environment in Portainer. Adding just one node
-            (we recommend the manager node) will allow Portainer to manage the
-            entire cluster.
-          </div>
-        </Alert>
-      )}
       <BoxSelector
         onChange={(v) => setCreationType(v)}
         options={primaryOptions}
@@ -163,7 +150,6 @@ export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
         return (
           <AgentTab
             onCreate={(environment) => onCreate(environment, 'dockerAgent')}
-            isDockerStandalone={isDockerStandalone}
           />
         );
       case 'api':
@@ -185,12 +171,8 @@ export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
               onCreate(environment, 'dockerEdgeAgentStandard')
             }
             commands={{
-              linux: isDockerStandalone
-                ? [commandsTabs.standaloneLinux]
-                : [commandsTabs.swarmLinux],
-              win: isDockerStandalone
-                ? [commandsTabs.standaloneWindow]
-                : [commandsTabs.swarmWindows],
+              linux: [commandsTabs.standaloneLinux],
+              win: [commandsTabs.standaloneWindow],
             }}
             containerEngine={containerEngine}
           />
@@ -203,12 +185,8 @@ export function WizardDocker({ onCreate, isDockerStandalone }: Props) {
               onCreate(environment, 'dockerEdgeAgentAsync')
             }
             commands={{
-              linux: isDockerStandalone
-                ? [commandsTabs.standaloneLinux]
-                : [commandsTabs.swarmLinux],
-              win: isDockerStandalone
-                ? [commandsTabs.standaloneWindow]
-                : [commandsTabs.swarmWindows],
+              linux: [commandsTabs.standaloneLinux],
+              win: [commandsTabs.standaloneWindow],
             }}
             containerEngine={containerEngine}
           />

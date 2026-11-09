@@ -193,11 +193,7 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
       config.ConfigFrom = {
         Network: selectedNetworkConfig.Name,
       };
-      if ($scope.applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE') {
-        config.Scope = 'swarm';
-      } else {
-        config.Scope = 'local';
-      }
+      config.Scope = 'local';
     }
 
     $scope.onChangeInternal = function (enable) {
@@ -244,10 +240,6 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
         reload: true,
       };
 
-      if ($scope.applicationState.endpoint.mode.agentProxy && $scope.applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE' && $scope.config.Driver === 'overlay') {
-        creationContext.managerOperation = true;
-      }
-
       if ($scope.config.Driver === 'macvlan') {
         if ($scope.formValues.Macvlan.Scope === 'local') {
           modifyNetworkConfigurationForMacvlanConfigOnly(networkConfiguration);
@@ -258,21 +250,7 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
         }
       }
 
-      if (
-        $scope.config.Driver === 'macvlan' &&
-        $scope.formValues.Macvlan.Scope === 'local' &&
-        $scope.applicationState.endpoint.mode.agentProxy &&
-        $scope.applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE'
-      ) {
-        var selectedNodes = $scope.formValues.Macvlan.DatatableState.selectedItems;
-        selectedNodes.forEach(function (node, idx) {
-          creationContext.nodeName = node.Hostname;
-          creationContext.reload = idx === selectedNodes.length - 1 ? true : false;
-          createNetwork(creationContext);
-        });
-      } else {
-        createNetwork(creationContext);
-      }
+      createNetwork(creationContext);
     };
 
     function initView() {

@@ -37,7 +37,7 @@ function renderComponent({
     { onMutationError }
   );
 
-  return render(<Wrapped environmentId={1} isSwarm={false} swarmId="" />);
+  return render(<Wrapped environmentId={1} />);
 }
 
 describe('CreateStackForm', () => {

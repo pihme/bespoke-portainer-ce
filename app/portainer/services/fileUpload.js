@@ -7,7 +7,6 @@ function FileUploadFactory($q, Upload) {
   var service = {
     // createSchedule, // edge jobs service
     // uploadBackup, // backup service
-    // createSwarmStack, // stack service
     // createComposeStack, // stack service
     // createEdgeStack, // edge stack service
     // createCustomTemplate, // custom template service
@@ -43,20 +42,6 @@ function FileUploadFactory($q, Upload) {
       url: 'api/restore',
       data: { file, password },
       headers: setupToken ? { 'X-Setup-Token': setupToken } : {},
-    });
-  };
-
-  service.createSwarmStack = function (stackName, swarmId, file, env, endpointId, webhook) {
-    return Upload.upload({
-      url: `api/stacks/create/swarm/file?endpointId=${endpointId}`,
-      data: {
-        file: file,
-        Name: stackName,
-        SwarmID: swarmId,
-        Env: Upload.json(env),
-        Webhook: webhook,
-      },
-      ignoreLoadingBar: true,
     });
   };
 

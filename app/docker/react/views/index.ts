@@ -8,7 +8,6 @@ import { DashboardView } from '@/react/docker/DashboardView/DashboardView';
 import { ListView } from '@/react/docker/events/ListView';
 
 import { containersModule } from './containers';
-import { configsModule } from './configs';
 import { imagesModule } from './images';
 import { stacksModule } from './stacks';
 import { networksModule } from './networks';
@@ -16,7 +15,6 @@ import { networksModule } from './networks';
 export const viewsModule = angular
   .module('portainer.docker.react.views', [
     containersModule,
-    configsModule,
     imagesModule,
     stacksModule,
     networksModule,

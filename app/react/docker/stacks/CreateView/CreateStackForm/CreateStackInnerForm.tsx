@@ -27,12 +27,10 @@ import { FormValues } from './types';
 const buildMethods = [editor, upload, git, customTemplate];
 
 export function CreateStackInnerForm({
-  isSwarm = false,
   isDeploying,
   isSaved,
   webhookId,
 }: {
-  isSwarm: boolean | undefined;
   isDeploying: boolean;
   isSaved: boolean;
   webhookId: string;
@@ -62,10 +60,7 @@ export function CreateStackInnerForm({
         errors={errors.name}
       />
 
-      <DeploymentInfo
-        isSwarm={isSwarm}
-        composeSyntaxMaxVersion={composeSyntaxMaxVersion}
-      />
+      <DeploymentInfo composeSyntaxMaxVersion={composeSyntaxMaxVersion} />
 
       <FormSection title="Build method">
         <BoxSelector
@@ -77,15 +72,14 @@ export function CreateStackInnerForm({
         />
       </FormSection>
 
-      {values.method === 'upload' && <UploadSection isSwarm={isSwarm} />}
+      {values.method === 'upload' && <UploadSection />}
 
       {values.method === 'repository' && (
-        <GitSection isDockerStandalone={!isSwarm} webhookId={webhookId} />
+        <GitSection isDockerStandalone webhookId={webhookId} />
       )}
 
       {values.method === 'template' && (
         <TemplateSection
-          isSwarm={isSwarm}
           schema={dockerComposeSchema}
           isSaved={isSaved}
         />
@@ -94,7 +88,6 @@ export function CreateStackInnerForm({
       {values.method === 'editor' && (
         <EditorSection
           schema={dockerComposeSchema}
-          isSwarm={isSwarm}
           isSaved={isSaved}
         />
       )}

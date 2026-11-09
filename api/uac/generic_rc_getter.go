@@ -3,7 +3,6 @@ package uac
 import (
 	"strings"
 
-	"github.com/docker/docker/api/types/swarm"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/docker/consts"
@@ -74,7 +73,7 @@ func genericResourcControlGetter[
 
 		if serviceId, ok := labels[consts.SwarmServiceIDLabel]; ok {
 			if rc, err := tx.ResourceControl().ResourceControlByResourceIDAndType(
-				ServiceResourceControlID(swarm.Service{ID: serviceId}),
+				serviceId,
 				portainer.ServiceResourceControl,
 			); err != nil && !dataservices.IsErrObjectNotFound(err) {
 				return nil, err

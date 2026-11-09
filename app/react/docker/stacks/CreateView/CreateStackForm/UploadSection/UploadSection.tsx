@@ -7,9 +7,8 @@ import { FileUploadForm } from '@@/form-components/FileUpload';
 
 import { FormValues } from '../types';
 
-export function UploadSection({ isSwarm }: { isSwarm: boolean }) {
-  const texts =
-    textByType[isSwarm ? StackType.DockerSwarm : StackType.DockerCompose];
+export function UploadSection() {
+  const texts = textByType[StackType.DockerCompose];
   const { values, errors, setFieldValue } = useFormikContext<FormValues>();
 
   return (

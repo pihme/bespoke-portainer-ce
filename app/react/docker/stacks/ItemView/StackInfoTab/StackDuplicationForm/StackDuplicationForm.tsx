@@ -159,7 +159,6 @@ export function StackDuplicationForm({
         fromEnvId: currentEnvironmentId,
         id: stack.Id,
         targetEnvId: environmentId,
-        fromSwarmId: stack.SwarmId,
       },
       {
         onSuccess() {

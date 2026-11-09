@@ -8,7 +8,6 @@ import { BoxSelectorOption } from '@@/BoxSelector';
 
 export type EnvironmentOptionValue =
   | 'dockerStandalone'
-  | 'dockerSwarm'
   | 'podman'
   | 'aci'
   | 'kubesolo';
@@ -25,14 +24,6 @@ export const existingEnvironmentTypes: EnvironmentOption[] = [
     icon: Docker,
     iconType: 'logo',
     description: 'Connect to Docker Standalone via URL/IP, API or Socket',
-  },
-  {
-    id: 'dockerSwarm',
-    value: 'dockerSwarm',
-    label: 'Docker Swarm',
-    icon: Docker,
-    iconType: 'logo',
-    description: 'Connect to Docker Swarm via URL/IP, API or Socket',
   },
   {
     id: 'podman',
@@ -73,7 +64,6 @@ export const environmentTypes: EnvironmentOption[] = [
 
 export const formTitles: Record<EnvironmentOptionValue, string> = {
   dockerStandalone: 'Connect to your Docker Standalone environment',
-  dockerSwarm: 'Connect to your Docker Swarm environment',
   podman: 'Connect to your Podman environment',
   aci: 'Connect to your ACI environment',
   kubesolo: 'Deploy a KubeSolo edge environment',

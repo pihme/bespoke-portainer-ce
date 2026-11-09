@@ -81,6 +81,8 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+	} else if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return httpErr
 	} else if stack.WorkflowID == 0 {
 		msg := "No Git config in the found stack"
 		return httperror.InternalServerError(msg, errors.New(msg))
@@ -192,10 +194,6 @@ func (handler *Handler) stackUpdateGit(w http.ResponseWriter, r *http.Request) *
 	stack.Env = payload.Env
 	stack.UpdatedBy = user.Username
 	stack.UpdateDate = time.Now().Unix()
-
-	if stack.Type == portainer.DockerSwarmStack {
-		stack.Option = &portainer.StackOption{Prune: payload.Prune}
-	}
 
 	userContext := source.NewUserContext(securityContext.User, securityContext.UserMemberships)
 

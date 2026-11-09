@@ -5,12 +5,10 @@ angular.module('portainer.docker').controller('VolumesController', [
   '$scope',
   '$state',
   'VolumeService',
-  'ServiceService',
-  'VolumeHelper',
   'Notifications',
   'Authentication',
   'endpoint',
-  function ($q, $scope, $state, VolumeService, ServiceService, VolumeHelper, Notifications, Authentication, endpoint) {
+  function ($q, $scope, $state, VolumeService, Notifications, Authentication, endpoint) {
     $scope.removeAction = async function (selectedItems) {
       async function doRemove(volume) {
         return VolumeService.remove(volume.Name, volume.NodeName)
@@ -30,16 +28,11 @@ angular.module('portainer.docker').controller('VolumesController', [
 
     $scope.getVolumes = getVolumes;
     function getVolumes() {
-      var endpointProvider = $scope.applicationState.endpoint.mode.provider;
-      var endpointRole = $scope.applicationState.endpoint.mode.role;
-
       $q.all({
         attached: VolumeService.volumes({ dangling: ['false'] }),
         dangling: VolumeService.volumes({ dangling: ['true'] }),
-        services: endpointProvider === 'DOCKER_SWARM_MODE' && endpointRole === 'MANAGER' ? ServiceService.services() : [],
       })
         .then(function success(data) {
-          var services = data.services;
           $scope.volumes = data.attached
             .map(function (volume) {
               volume.dangling = false;
@@ -48,9 +41,6 @@ angular.module('portainer.docker').controller('VolumesController', [
             .concat(
               data.dangling.map(function (volume) {
                 volume.dangling = true;
-                if (VolumeHelper.isVolumeUsedByAService(volume, services)) {
-                  volume.dangling = false;
-                }
                 return volume;
               })
             );

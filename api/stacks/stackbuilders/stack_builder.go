@@ -126,13 +126,3 @@ func (b *StackBuilder) initComposeDeployment(secCtx *security.RestrictedRequestC
 	return nil
 }
 
-func (b *StackBuilder) initSwarmDeployment(secCtx *security.RestrictedRequestContext, endpoint *portainer.Endpoint) error {
-	config, err := deployments.CreateSwarmStackDeploymentConfigTx(b.dataStore, secCtx, b.stack, endpoint, b.fileService, b.stackDeployer, false, true)
-	if err != nil {
-		return fmt.Errorf("failed to create swarm deployment config: %w", err)
-	}
-
-	b.deploymentConfiger = config
-
-	return nil
-}

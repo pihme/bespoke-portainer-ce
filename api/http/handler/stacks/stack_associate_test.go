@@ -146,3 +146,38 @@ func TestREQ_STK_10_AssociateMissingStack_ReturnsNotFound(t *testing.T) {
 
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
+
+func TestREQ_TAI_003_AssociateSwarmStackIsRejected(t *testing.T) {
+	t.Parallel()
+	h, store := newStackAssociateHandler(t)
+	_, err := mockCreateUser(store)
+	require.NoError(t, err)
+
+	oldEndpoint := &portainer.Endpoint{ID: 1, Name: "old", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
+	require.NoError(t, store.Endpoint().Create(oldEndpoint))
+	newEndpoint := &portainer.Endpoint{ID: 2, Name: "new", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
+	require.NoError(t, store.Endpoint().Create(newEndpoint))
+
+	stack := &portainer.Stack{
+		ID:         6,
+		EndpointID: oldEndpoint.ID,
+		Type:       portainer.DockerSwarmStack,
+		Name:       "legacy-swarm",
+		SwarmID:    "swarm-1",
+		Status:     portainer.StackStatusInactive,
+	}
+	require.NoError(t, store.Stack().Create(stack))
+
+	url := "/stacks/" + strconv.Itoa(int(stack.ID)) + "/associate?endpointId=" + strconv.Itoa(int(newEndpoint.ID)) + "&swarmId=swarm-2&orphanedRunning=true"
+	req := mockCreateStackRequestWithSecurityContext(http.MethodPut, url, nil)
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "Docker Swarm")
+
+	unchanged, err := store.Stack().Read(stack.ID)
+	require.NoError(t, err)
+	assert.Equal(t, oldEndpoint.ID, unchanged.EndpointID)
+	assert.Equal(t, "swarm-1", unchanged.SwarmID)
+}

@@ -16,17 +16,11 @@ const (
 	OperationUndeploy      StackRemoteOperation = "compose-undeploy"
 	OperationComposeStart  StackRemoteOperation = "compose-start"
 	OperationComposeStop   StackRemoteOperation = "compose-stop"
-	OperationSwarmDeploy   StackRemoteOperation = "swarm-deploy"
-	OperationSwarmUndeploy StackRemoteOperation = "swarm-undeploy"
-	OperationSwarmStart    StackRemoteOperation = "swarm-start"
-	OperationSwarmStop     StackRemoteOperation = "swarm-stop"
 )
 
 const (
 	UnpackerCmdDeploy        = "deploy"
 	UnpackerCmdUndeploy      = "undeploy"
-	UnpackerCmdSwarmDeploy   = "swarm-deploy"
-	UnpackerCmdSwarmUndeploy = "swarm-undeploy"
 )
 
 type unpackerCmdBuilderOptions struct {
@@ -45,10 +39,6 @@ var funcmap = map[StackRemoteOperation]buildCmdFunc{
 	OperationUndeploy:      buildUndeployCmd,
 	OperationComposeStart:  buildComposeStartCmd,
 	OperationComposeStop:   buildComposeStopCmd,
-	OperationSwarmDeploy:   buildSwarmDeployCmd,
-	OperationSwarmUndeploy: buildSwarmUndeployCmd,
-	OperationSwarmStart:    buildSwarmStartCmd,
-	OperationSwarmStop:     buildSwarmStopCmd,
 }
 
 // build the unpacker cmd for stack based on stackOperation
@@ -132,58 +122,6 @@ func buildComposeStopCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions,
 	)
 
 	return append(cmd, stack.AdditionalFiles...)
-}
-
-// swarm-deploy [-u username -p password] [--skip-tls-verify] [--force-recreate] [-f] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <git-ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildSwarmDeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
-	cmd := []string{UnpackerCmdSwarmDeploy}
-	cmd = appendGitAuthIfNeeded(cmd, opts.gitConfig)
-	cmd = appendSkipTLSVerifyIfNeeded(cmd, opts.gitConfig)
-	cmd = appendForceRecreateIfNeeded(cmd, opts.forceRecreate)
-	if opts.pullImage {
-		cmd = append(cmd, "-f")
-	}
-
-	if opts.prune {
-		cmd = append(cmd, "-r")
-	}
-
-	cmd = append(cmd, env...)
-	cmd = append(cmd, registries...)
-	cmd = append(cmd, opts.gitConfig.URL,
-		opts.gitConfig.ReferenceName,
-		stack.Name,
-		opts.composeDestination,
-		stack.EntryPoint,
-	)
-
-	return append(cmd, stack.AdditionalFiles...)
-}
-
-// swarm-undeploy [-k] <project-name> <destination>
-func buildSwarmUndeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
-	return []string{UnpackerCmdSwarmUndeploy, stack.Name, opts.composeDestination}
-}
-
-// swarm-deploy [-u username -p password] [-f] [-r] [-k] [--skip-tls-verify] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildSwarmStartCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
-	cmd := []string{UnpackerCmdSwarmDeploy, "-f", "-r", "-k"}
-	cmd = appendSkipTLSVerifyIfNeeded(cmd, opts.gitConfig)
-	cmd = append(cmd, getEnv(stack.Env)...)
-	cmd = append(cmd, registries...)
-	cmd = append(cmd, opts.gitConfig.URL,
-		opts.gitConfig.ReferenceName,
-		stack.Name,
-		opts.composeDestination,
-		stack.EntryPoint,
-	)
-
-	return append(cmd, stack.AdditionalFiles...)
-}
-
-// swarm-undeploy [-k] <project-name> <destination>
-func buildSwarmStopCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
-	return []string{UnpackerCmdSwarmUndeploy, "-k", stack.Name, opts.composeDestination}
 }
 
 func appendGitAuthIfNeeded(cmd []string, gc *gittypes.RepoConfig) []string {

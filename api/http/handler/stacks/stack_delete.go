@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -26,7 +25,6 @@ import (
 // @description **Access policy**: restricted
 // @tags stacks
 // @param id path int true "Stack identifier"
-// @param external query boolean false "Set to true to delete an external stack. Only external Swarm stacks are supported"
 // @param endpointId query int true "Environment identifier"
 // @success 204 "Success"
 // @failure 400 "Invalid request"
@@ -45,9 +43,9 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	externalStack, _ := request.RetrieveBooleanQueryParameter(r, "external", true)
-	if externalStack {
-		return handler.deleteExternalStack(r, w, stackID, securityContext)
+	// Deleting external stacks only ever covered Docker Swarm, which is removed (TAI-003).
+	if externalStack, _ := request.RetrieveBooleanQueryParameter(r, "external", true); externalStack {
+		return httperror.BadRequest("Deleting external stacks is no longer supported", errors.New("Docker Swarm is removed"))
 	}
 
 	id, err := strconv.Atoi(stackID)
@@ -137,47 +135,6 @@ func (handler *Handler) stackDelete(w http.ResponseWriter, r *http.Request) *htt
 
 	if err := handler.SourceScheduler.Reconcile(reconcileSourceID); err != nil {
 		log.Warn().Err(err).Msg("source scheduler reconcile failed after stack deletion")
-	}
-
-	return response.Empty(w)
-}
-
-func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWriter, stackName string, securityContext *security.RestrictedRequestContext) *httperror.HandlerError {
-	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
-	if err != nil {
-		return httperror.BadRequest("Invalid query parameter: endpointId", err)
-	}
-
-	if !securityContext.IsAdmin {
-		return httperror.Unauthorized("Permission denied to delete the stack", httperrors.ErrUnauthorized)
-	}
-
-	stack, err := handler.DataStore.Stack().StackByName(stackName)
-	if err != nil && !handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.InternalServerError("Unable to check for stack existence inside the database", err)
-	}
-	if stack != nil {
-		return httperror.BadRequest("A stack with this name exists inside the database. Cannot use external delete method", errors.New("A tag already exists with this name"))
-	}
-
-	endpoint, err := handler.DataStore.Endpoint().Endpoint(portainer.EndpointID(endpointID))
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find the endpoint associated to the stack inside the database", err)
-	} else if err != nil {
-		return httperror.InternalServerError("Unable to find the endpoint associated to the stack inside the database", err)
-	}
-
-	if err := handler.requestBouncer.AuthorizedEndpointOperation(r, endpoint); err != nil {
-		return httperror.Forbidden("Permission denied to access endpoint", err)
-	}
-
-	stack = &portainer.Stack{
-		Name: stackName,
-		Type: portainer.DockerSwarmStack,
-	}
-
-	if err := handler.teardownService.RemoveResources(context.TODO(), securityContext.UserID, stack, endpoint); err != nil {
-		return httperror.InternalServerError("Unable to delete stack", err)
 	}
 
 	return response.Empty(w)

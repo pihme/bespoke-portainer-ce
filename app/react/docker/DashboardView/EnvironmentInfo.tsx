@@ -2,7 +2,6 @@ import { GaugeIcon } from 'lucide-react';
 
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { stripProtocol } from '@/react/common/string-utils';
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import {
   isAgentEnvironment,
   isEdgeEnvironment,
@@ -11,19 +10,13 @@ import {
 import { DetailsTable } from '@@/DetailsTable';
 import { Widget } from '@@/Widget';
 
-import { useIsSwarmManager } from '../proxy/queries/useInfo';
-
 import { GpuInfo } from './EnvironmentInfo.GpuInfo';
 import { SnapshotStats } from './EnvironmentInfo.SnapshotStats';
 import { DockerInfo } from './EnvironmentInfo.DockerInfo';
 import { TagsInfo } from './EnvironmentInfo.TagsInfo';
-import { ClusterVisualizerLink } from './ClusterVisualizerLink';
 
 export function EnvironmentInfo() {
-  const environmentId = useEnvironmentId();
   const envQuery = useCurrentEnvironment();
-
-  const isSwarmManager = useIsSwarmManager(environmentId);
 
   if (!envQuery.data) {
     return null;
@@ -62,8 +55,6 @@ export function EnvironmentInfo() {
           />
 
           <TagsInfo ids={environment.TagIds} />
-
-          {isSwarmManager && <ClusterVisualizerLink />}
         </DetailsTable>
       </Widget.Body>
     </Widget>

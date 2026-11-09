@@ -97,18 +97,22 @@ func (transport *Transport) RoundTrip(request *http.Request) (*http.Response, er
 
 var prefixProxyFuncMap = map[string]func(*Transport, *http.Request, string) (*http.Response, error){
 	"build":      (*Transport).proxyBuildRequest,
-	"configs":    (*Transport).proxyConfigRequest,
 	"containers": (*Transport).proxyContainerRequest,
 	"exec":       (*Transport).proxyExecRequest,
 	"images":     (*Transport).proxyImageRequest,
 	"networks":   (*Transport).proxyNetworkRequest,
-	"nodes":      (*Transport).proxyNodeRequest,
-	"secrets":    (*Transport).proxySecretRequest,
-	"services":   (*Transport).proxyServiceRequest,
-	"swarm":      (*Transport).proxySwarmRequest,
-	"tasks":      (*Transport).proxyTaskRequest,
 	"v2":         (*Transport).proxyAgentRequest,
 	"volumes":    (*Transport).proxyVolumeRequest,
+}
+
+// swarmOnlyPrefixes are the Docker API paths that exist only for Docker Swarm.
+var swarmOnlyPrefixes = map[string]bool{
+	"configs":  true,
+	"nodes":    true,
+	"secrets":  true,
+	"services": true,
+	"swarm":    true,
+	"tasks":    true,
 }
 
 type route struct {
@@ -167,6 +171,11 @@ func (transport *Transport) proxyDockerRequest(request *http.Request, fipsMode b
 	// pick    : [ containers, {id}, json ][0]
 	// prefix  : containers
 	prefix := strings.Split(strings.TrimPrefix(unversionedPath, "/"), "/")[0]
+
+	// Docker Swarm is removed (TAI-003): its API never reaches the daemon.
+	if swarmOnlyPrefixes[prefix] {
+		return utils.WriteNotFoundResponse("Docker Swarm is not supported")
+	}
 
 	if proxyFunc := prefixProxyFuncMap[prefix]; proxyFunc != nil {
 		return proxyFunc(transport, request, unversionedPath)
@@ -252,31 +261,6 @@ func (transport *Transport) proxyAgentRequest(r *http.Request, unversionedPath s
 	return transport.executeDockerRequest(r)
 }
 
-func (transport *Transport) proxyConfigRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	switch requestPath {
-	case "/configs/create":
-		return transport.decorateGenericResourceCreationOperation(request, configObjectIdentifier, portainer.ConfigResourceControl)
-
-	case "/configs":
-		return transport.rewriteOperation(request, transport.configListOperation)
-
-	default:
-		// Assume /configs/{id}
-		configID := path.Base(requestPath)
-
-		switch request.Method {
-		case http.MethodGet:
-			return transport.rewriteOperation(request, transport.configInspectOperation)
-		case http.MethodDelete:
-			return transport.executeGenericResourceDeletionOperation(request, configID, configID, portainer.ConfigResourceControl)
-		}
-
-		return transport.restrictedResourceOperation(request, configID, configID, portainer.ConfigResourceControl, false)
-	}
-}
-
 func (transport *Transport) proxyContainerRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
 	requestPath := unversionedPath
 
@@ -342,50 +326,6 @@ func (transport *Transport) proxyExecRequest(request *http.Request, unversionedP
 	return transport.restrictedResourceOperation(request, execInspect.ContainerID, execInspect.ContainerID, portainer.ContainerResourceControl, false)
 }
 
-func (transport *Transport) proxyServiceRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	switch requestPath {
-	case "/services/create":
-		return transport.decorateServiceCreationOperation(request)
-
-	case "/services":
-		return transport.rewriteOperation(request, transport.serviceListOperation)
-
-	default:
-		// This section assumes /services/**
-		if match, _ := path.Match("/services/*/*", requestPath); match {
-			// Handle /services/{id}/{action} requests
-			serviceID := path.Base(path.Dir(requestPath))
-			action := path.Base(requestPath)
-
-			if action == "update" {
-				return transport.decorateServiceUpdateOperation(request, serviceID)
-			}
-
-			if err := transport.decorateRegistryAuthenticationHeader(request); err != nil {
-				return nil, err
-			}
-
-			return transport.restrictedResourceOperation(request, serviceID, serviceID, portainer.ServiceResourceControl, false)
-		} else if match, _ := path.Match("/services/*", requestPath); match {
-			// Handle /services/{id} requests
-			serviceID := path.Base(requestPath)
-
-			switch request.Method {
-			case http.MethodGet:
-				return transport.rewriteOperation(request, transport.serviceInspectOperation)
-			case http.MethodDelete:
-				return transport.executeGenericResourceDeletionOperation(request, serviceID, serviceID, portainer.ServiceResourceControl)
-			}
-
-			return transport.restrictedResourceOperation(request, serviceID, serviceID, portainer.ServiceResourceControl, false)
-		}
-
-		return transport.executeDockerRequest(request)
-	}
-}
-
 func (transport *Transport) proxyVolumeRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
 	requestPath := unversionedPath
 
@@ -437,66 +377,6 @@ func (transport *Transport) proxyNetworkRequest(request *http.Request, unversion
 	// Assume /networks/{id}
 	networkID := path.Base(requestPath)
 	return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl, false)
-}
-
-func (transport *Transport) proxySecretRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	switch requestPath {
-	case "/secrets/create":
-		return transport.decorateGenericResourceCreationOperation(request, secretObjectIdentifier, portainer.SecretResourceControl)
-
-	case "/secrets":
-		return transport.rewriteOperation(request, transport.secretListOperation)
-
-	default:
-		// Assume /secrets/{id}
-		secretID := path.Base(requestPath)
-
-		switch request.Method {
-		case http.MethodGet:
-			return transport.rewriteOperation(request, transport.secretInspectOperation)
-		case http.MethodDelete:
-			return transport.executeGenericResourceDeletionOperation(request, secretID, secretID, portainer.SecretResourceControl)
-		}
-
-		return transport.restrictedResourceOperation(request, secretID, secretID, portainer.SecretResourceControl, false)
-	}
-}
-
-func (transport *Transport) proxyNodeRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	// Assume /nodes/{id}
-	if path.Base(requestPath) != "nodes" {
-		return transport.administratorOperation(request)
-	}
-
-	return transport.executeDockerRequest(request)
-}
-
-func (transport *Transport) proxySwarmRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	switch requestPath {
-	case "/swarm":
-		return transport.rewriteOperation(request, swarmInspectOperation)
-	default:
-		// Assume /swarm/{action}
-		return transport.administratorOperation(request)
-	}
-}
-
-func (transport *Transport) proxyTaskRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
-	requestPath := unversionedPath
-
-	switch requestPath {
-	case "/tasks":
-		return transport.rewriteOperation(request, transport.taskListOperation)
-	default:
-		// Assume /tasks/{id}
-		return transport.executeDockerRequest(request)
-	}
 }
 
 func (transport *Transport) proxyBuildRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
@@ -566,7 +446,7 @@ func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Re
 		return nil, err
 	}
 
-	return transport.decorateGenericResourceCreationOperation(request, serviceObjectIdentifier, portainer.ServiceResourceControl)
+	return transport.decorateGenericResourceCreationOperation(request, "ID", portainer.ServiceResourceControl)
 }
 
 func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.Request) error {

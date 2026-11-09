@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
-	"github.com/portainer/portainer/pkg/libstack/swarm"
 )
 
 // Note that we discard any non-canonical headers by design
@@ -23,12 +22,11 @@ var allowedHeaders = map[string]struct{}{
 	"Upgrade":         {},
 	"User-Agent":      {},
 
-	"X-Portaineragent-Target":                             {},
-	http.CanonicalHeaderKey(swarm.ManagerOperationHeader): {},
-	"X-Portainer-Volumename":                              {},
-	"X-Registry-Auth":                                     {},
-	"X-Registry-Config":                                   {},
-	"X-Stream-Protocol-Version":                           {},
+	"X-Portaineragent-Target":   {},
+	"X-Portainer-Volumename":    {},
+	"X-Registry-Auth":           {},
+	"X-Registry-Config":         {},
+	"X-Stream-Protocol-Version": {},
 
 	// WebSocket headers those are required for kubectl exec/attach/port-forward operations
 	"Sec-Websocket-Key":        {},

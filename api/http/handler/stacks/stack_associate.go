@@ -23,7 +23,6 @@ import (
 // @produce json
 // @param id path int true "Stack identifier"
 // @param endpointId query int true "Environment identifier"
-// @param swarmId query int true "Swarm identifier"
 // @param orphanedRunning query boolean true "Indicates whether the stack is orphaned"
 // @success 200 {object} portainer.Stack "Success"
 // @failure 400 "Invalid request"
@@ -40,11 +39,6 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 	endpointID, err := request.RetrieveNumericQueryParameter(r, "endpointId", false)
 	if err != nil {
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
-	}
-
-	swarmId, err := request.RetrieveQueryParameter(r, "swarmId", true)
-	if err != nil {
-		return httperror.BadRequest("Invalid query parameter: swarmId", err)
 	}
 
 	orphanedRunning, err := request.RetrieveBooleanQueryParameter(r, "orphanedRunning", false)
@@ -67,6 +61,10 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 		return httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+	}
+
+	if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return httpErr
 	}
 
 	resourceControl, err := handler.DataStore.ResourceControl().ResourceControlByResourceIDAndType(stackutils.ResourceControlID(stack.EndpointID, stack.Name), portainer.StackResourceControl)
@@ -100,7 +98,6 @@ func (handler *Handler) stackAssociate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	stack.EndpointID = portainer.EndpointID(endpointID)
-	stack.SwarmID = swarmId
 
 	if orphanedRunning {
 		stack.Status = portainer.StackStatusActive

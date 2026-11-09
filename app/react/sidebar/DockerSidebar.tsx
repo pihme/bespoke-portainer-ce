@@ -3,10 +3,7 @@ import {
   Clock,
   Layers,
   List,
-  Lock,
-  Shuffle,
   Trello,
-  Clipboard,
   Edit,
   Network,
   Database,
@@ -17,8 +14,6 @@ import {
   type EnvironmentId,
 } from '@/react/portainer/environments/types';
 import { Authorized, useIsEnvironmentAdmin } from '@/react/hooks/useUser';
-import { useInfo } from '@/react/docker/proxy/queries/useInfo';
-import { useApiVersion } from '@/react/docker/proxy/queries/useVersion';
 
 import { SidebarItem } from './SidebarItem';
 import { DashboardLink } from './items/DashboardLink';
@@ -38,34 +33,17 @@ export function DockerSidebar({ environmentId, environment }: Props) {
     isEnvironmentAdmin ||
     environment.SecuritySettings.allowStackManagementForRegularUsers;
 
-  const envInfoQuery = useInfo(environmentId, {
-    select: (info) => !!info.Swarm?.NodeID && !!info.Swarm?.ControlAvailable,
-  });
+  // Docker Swarm is removed (TAI-003): every Docker engine shows the Host
+  // area and no Swarm services, configs or secrets.
+  const setupSubMenuProps = {
+    label: 'Host',
+    icon: Trello,
+    to: 'docker.host',
+    dataCy: 'portainerSidebar-host',
+  };
 
-  const apiVersion = useApiVersion(environmentId);
-
-  const isSwarmManager = envInfoQuery.data;
-
-  const setupSubMenuProps = isSwarmManager
-    ? {
-        label: 'Swarm',
-        icon: Trello,
-        to: 'docker.swarm',
-        dataCy: 'portainerSidebar-swarm',
-      }
-    : {
-        label: 'Host',
-        icon: Trello,
-        to: 'docker.host',
-        dataCy: 'portainerSidebar-host',
-      };
-
-  const featSubMenuTo = isSwarmManager
-    ? 'docker.swarm.featuresConfiguration'
-    : 'docker.host.featuresConfiguration';
-  const registrySubMenuTo = isSwarmManager
-    ? 'docker.swarm.registries'
-    : 'docker.host.registries';
+  const featSubMenuTo = 'docker.host.featuresConfiguration';
+  const registrySubMenuTo = 'docker.host.registries';
 
   return (
     <>
@@ -109,15 +87,6 @@ export function DockerSidebar({ environmentId, environment }: Props) {
         />
       )}
 
-      {isSwarmManager && (
-        <SidebarItem
-          to="docker.services"
-          params={{ endpointId: environmentId }}
-          icon={Shuffle}
-          label="Services"
-          data-cy="dockerSidebar-services"
-        />
-      )}
 
       <SidebarItem
         to="docker.containers"
@@ -151,27 +120,9 @@ export function DockerSidebar({ environmentId, environment }: Props) {
         data-cy="dockerSidebar-volumes"
       />
 
-      {apiVersion >= 1.3 && isSwarmManager && (
-        <SidebarItem
-          to="docker.configs"
-          params={{ endpointId: environmentId }}
-          icon={Clipboard}
-          label="Configs"
-          data-cy="dockerSidebar-configs"
-        />
-      )}
 
-      {apiVersion >= 1.25 && isSwarmManager && (
-        <SidebarItem
-          to="docker.secrets"
-          params={{ endpointId: environmentId }}
-          icon={Lock}
-          label="Secrets"
-          data-cy="dockerSidebar-secrets"
-        />
-      )}
 
-      {!isSwarmManager && isEnvironmentAdmin && (
+      {isEnvironmentAdmin && (
         <SidebarItem
           to="docker.events"
           params={{ endpointId: environmentId }}

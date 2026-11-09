@@ -39,7 +39,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
-	"github.com/portainer/portainer/api/http/handler/webhooks"
 	"github.com/portainer/portainer/api/http/handler/websocket"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/offlinegate"
@@ -80,7 +79,6 @@ type Server struct {
 	DataStore                   dataservices.DataStore
 	GitService                  portainer.GitService
 	JWTService                  portainer.JWTService
-	SwarmStackManager           portainer.SwarmStackManager
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
 	Handler                     *handler.Handler
@@ -183,14 +181,13 @@ func (server *Server) Start(ctx context.Context) error {
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
 
-	teardownService := teardown.NewService(server.FileService, server.SwarmStackManager, server.ComposeStackManager, server.StackDeployer)
+	teardownService := teardown.NewService(server.FileService, server.ComposeStackManager, server.StackDeployer)
 	var stackHandler = stacks.NewHandler(requestBouncer, teardownService)
 	stackHandler.DataStore = server.DataStore
 	stackHandler.DockerClientFactory = server.DockerClientFactory
 	stackHandler.FileService = server.FileService
 	stackHandler.GitService = server.GitService
 	stackHandler.SourceScheduler = server.SourceScheduler
-	stackHandler.SwarmStackManager = server.SwarmStackManager
 	stackHandler.ComposeStackManager = server.ComposeStackManager
 	stackHandler.StackDeployer = server.StackDeployer
 
@@ -221,10 +218,6 @@ func (server *Server) Start(ctx context.Context) error {
 	websocketHandler.SignatureService = server.SignatureService
 	websocketHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var webhookHandler = webhooks.NewHandler(requestBouncer)
-	webhookHandler.DataStore = server.DataStore
-	webhookHandler.DockerClientFactory = server.DockerClientFactory
-
 	server.Handler = &handler.Handler{
 		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
@@ -250,7 +243,6 @@ func (server *Server) Start(ctx context.Context) error {
 		UploadHandler:          uploadHandler,
 		UserHandler:            userHandler,
 		WebSocketHandler:       websocketHandler,
-		WebhookHandler:         webhookHandler,
 	}
 
 	errorLogger := NewHTTPLogger()

@@ -81,16 +81,16 @@ describe('useInfo helpers (backwards compatibility)', () => {
     await waitFor(() => expect(result.current).toBe(true));
   });
 
-  it('useIsSwarm is true when Swarm NodeID is present', async () => {
-    mockInfo({ Swarm: { NodeID: 'node-1' } });
-    const { result } = wrapHook(() => useIsSwarm(1));
-    await waitFor(() => expect(result.current).toBe(true));
-  });
-
-  it('useIsSwarmManager requires NodeID and ControlAvailable', async () => {
+  it('REQ-TAI-003 treats a Swarm member as a standalone Docker engine', async () => {
     mockInfo({ Swarm: { NodeID: 'node-1', ControlAvailable: true } });
-    const { result } = wrapHook(() => useIsSwarmManager(1));
-    await waitFor(() => expect(result.current).toBe(true));
+    const { result } = wrapHook(() => ({
+      standalone: useIsStandalone(1),
+      swarm: useIsSwarm(1),
+      manager: useIsSwarmManager(1),
+    }));
+    await waitFor(() => expect(result.current.standalone).toBe(true));
+    expect(result.current.swarm).toBe(false);
+    expect(result.current.manager).toBe(false);
   });
 
   it('useSystemLimits derives maxCpu and maxMemory from info with defaults', async () => {

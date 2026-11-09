@@ -51,14 +51,12 @@ import (
 	"github.com/portainer/portainer/pkg/fips"
 	"github.com/portainer/portainer/pkg/libhttp/ssrf"
 	"github.com/portainer/portainer/pkg/libstack/compose"
-	libswarm "github.com/portainer/portainer/pkg/libstack/swarm"
 	"github.com/portainer/portainer/pkg/validate"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
-const swarmStackStatusCheckInterval = time.Minute
 
 func initCLI() *portainer.CLIFlags {
 	cliService := cli.Service{}
@@ -433,8 +431,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	composeStackManager := exec.NewComposeStackManager(composeDeployer, proxyManager)
 
-	swarmStackManager := exec.NewSwarmStackManager(libswarm.NewSwarmDeployer(), proxyManager)
-
 	kubernetesDeployer := initKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager)
 
 	pendingActionsService := pendingactions.NewService(dataStore, kubernetesClientFactory)
@@ -477,7 +473,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	}
 
 	sched := scheduler.NewScheduler(shutdownCtx)
-	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, dockerClientFactory, dataStore)
+	stackDeployer := deployments.NewStackDeployer(composeStackManager, dockerClientFactory, dataStore)
 	sourceScheduler := scheduling.NewSourceScheduler(sched, dataStore, scheduling.Deployers{
 		Stack: func(ctx context.Context, stackID portainer.StackID) error {
 			return deployments.RedeployWhenChanged(ctx, stackID, stackDeployer, dataStore, gitService, fileService)
@@ -495,10 +491,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	if err := sourceScheduler.ReconcileAll(); err != nil {
 		log.Fatal().Err(err).Msg("failed to start source scheduler")
 	}
-
-	sched.StartJobEvery(swarmStackStatusCheckInterval, func() error {
-		return deployments.ReconcileSwarmStackStatus(shutdownCtx, dataStore, swarmStackManager)
-	})
 
 	sslDBSettings, err := dataStore.SSLSettings().Settings()
 	if err != nil {
@@ -553,7 +545,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		AssetsPath:                  *flags.Assets,
 		DataStore:                   dataStore,
 		EdgeStacksService:           edgeStacksService,
-		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,
 		KubernetesDeployer:          kubernetesDeployer,
 		CryptoService:               cryptoService,

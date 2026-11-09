@@ -1,23 +1,18 @@
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useIsSwarmManager } from '@/react/docker/proxy/queries/useInfo';
 import { StackType } from '@/react/common/stacks/types';
-import { ContainerEngine } from '@/react/portainer/environments/types';
 
 import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
 
-import { TemplateViewType, useViewType } from '../useViewType';
+import { useViewType } from '../useViewType';
 
 import { CreateForm } from './CreateForm';
 
 export function CreateView() {
   const viewType = useViewType();
   const environmentId = useEnvironmentId(false);
-  // A worker defaults to a compose template; only a manager defaults to swarm.
-  const isSwarmManager = useIsSwarmManager(environmentId, {
-    enabled: viewType === ContainerEngine.Docker,
-  });
-  const defaultType = getDefaultType(viewType, isSwarmManager);
+  // Docker Swarm is removed (TAI-003): new templates default to Compose.
+  const defaultType = StackType.DockerCompose;
 
   return (
     <div>
@@ -44,16 +39,4 @@ export function CreateView() {
       </div>
     </div>
   );
-}
-
-function getDefaultType(
-  viewType: TemplateViewType,
-  isSwarm: boolean
-): StackType {
-  switch (viewType) {
-    case 'docker':
-      return isSwarm ? StackType.DockerSwarm : StackType.DockerCompose;
-    default:
-      return StackType.DockerCompose;
-  }
 }

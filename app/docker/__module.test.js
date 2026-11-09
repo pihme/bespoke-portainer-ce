@@ -245,6 +245,14 @@ describe('Docker Angular module wiring', () => {
     expect(names).not.toContain('docker.host.registries.access');
     expect(names).not.toContain('docker.swarm.registries.access');
   });
+
+  it('REQ-TAI-003 registers no Docker Swarm states', () => {
+    const names = registeredStates.map((s) => s.name);
+    const swarmStates = names.filter((name) =>
+      /^docker\.(swarm|nodes|services|tasks|configs|secrets)(\.|$)/.test(name)
+    );
+    expect(swarmStates).toEqual([]);
+  });
 });
 
 describe('REQ-HOST-01 Docker environment onEnter gate', () => {

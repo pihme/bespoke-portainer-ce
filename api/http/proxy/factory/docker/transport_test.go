@@ -1086,3 +1086,45 @@ func TestTransport_ProxyDockerRequest_rejectsEncodedSeparator(t *testing.T) {
 	require.Equal(t, http.StatusOK, r.StatusCode)
 	require.NoError(t, r.Body.Close())
 }
+
+// REQ-TAI-003: Docker Swarm is removed; the Swarm-only Docker API paths answer
+// 404 from the proxy and never reach the Docker daemon.
+func TestREQ_TAI_003_ProxyDockerRequest_SwarmPathsAreGone(t *testing.T) {
+	t.Parallel()
+
+	var reached []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reached = append(reached, r.URL.Path)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	transport := &Transport{
+		endpoint:      &portainer.Endpoint{URL: srv.URL},
+		HTTPTransport: &http.Transport{},
+	}
+
+	for _, route := range []struct{ method, path string }{
+		{http.MethodGet, "/v1.41/services"},
+		{http.MethodPost, "/v1.41/services/create"},
+		{http.MethodGet, "/v1.41/services/abc"},
+		{http.MethodPost, "/services/abc/update"},
+		{http.MethodGet, "/v1.41/tasks"},
+		{http.MethodGet, "/v1.41/nodes"},
+		{http.MethodGet, "/v1.41/swarm"},
+		{http.MethodPost, "/v1.41/swarm/init"},
+		{http.MethodGet, "/v1.41/configs"},
+		{http.MethodPost, "/v1.41/configs/create"},
+		{http.MethodGet, "/v1.41/secrets"},
+		{http.MethodDelete, "/v1.41/secrets/abc"},
+	} {
+		req := httptest.NewRequest(route.method, srv.URL+route.path, nil)
+		r, err := transport.ProxyDockerRequest(req)
+		require.NoError(t, err)
+		require.NotNil(t, r)
+		assert.Equal(t, http.StatusNotFound, r.StatusCode, "%s %s", route.method, route.path)
+		require.NoError(t, r.Body.Close())
+	}
+
+	assert.Empty(t, reached, "no Swarm request may reach the Docker daemon")
+}

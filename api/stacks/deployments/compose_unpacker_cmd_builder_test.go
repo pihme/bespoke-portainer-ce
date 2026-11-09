@@ -121,7 +121,7 @@ func TestREQ_STK_02_BuildUnpackerCmdForStack_ComposeOperations(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, false, true)
-	deployer := NewStackDeployer(nil, nil, nil, store)
+	deployer := NewStackDeployer(nil, nil, store)
 
 	stack := sampleComposeStack()
 	opts := unpackerCmdBuilderOptions{
@@ -152,7 +152,7 @@ func Test_buildUnpackerCmdForStack_UnknownOperation(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, false, true)
-	deployer := NewStackDeployer(nil, nil, nil, store)
+	deployer := NewStackDeployer(nil, nil, store)
 
 	_, err := deployer.buildUnpackerCmdForStack(sampleComposeStack(), StackRemoteOperation("no-such-op"), unpackerCmdBuilderOptions{
 		gitConfig: sampleGitConfig(false, false),

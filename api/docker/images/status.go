@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	portainer "github.com/portainer/portainer/api"
 	consts "github.com/portainer/portainer/api/docker/consts"
 
@@ -163,45 +161,6 @@ func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID str
 	statusCache.Set(imageID, s, 0)
 
 	return s, err
-}
-
-func (c *DigestClient) ServiceImageStatus(ctx context.Context, serviceID string, endpoint *portainer.Endpoint) (Status, error) {
-	cli, err := c.clientFactory.CreateClient(endpoint, "", nil)
-	if err != nil {
-		return Error, nil
-	}
-
-	containers, err := cli.ContainerList(ctx, container.ListOptions{
-		All:     true,
-		Filters: filters.NewArgs(filters.Arg("label", consts.SwarmServiceIDLabel+"="+serviceID)),
-	})
-	if err != nil {
-		log.Warn().Err(err).Str("serviceID", serviceID).Msg("cannot list container for the service")
-		return Error, err
-	}
-
-	nonExistedOrStoppedContainers := make([]types.Container, 0)
-	for _, container := range containers {
-		if container.State == "exited" || container.State == "stopped" {
-			continue
-		}
-
-		// When there is a container with the state "Created" under the service, it
-		// indicates that the Docker Swarm is replacing the existing task with
-		// a new task. At the moment, the state of the new task is "Created", and
-		// the state of the old task is "Running".
-		// Until the new task runs up, the image status should be set "Preparing"
-		if container.State == "created" {
-			return Preparing, nil
-		}
-		nonExistedOrStoppedContainers = append(nonExistedOrStoppedContainers, container)
-	}
-
-	if len(nonExistedOrStoppedContainers) == 0 {
-		return Preparing, nil
-	}
-
-	return c.ContainersImageStatus(ctx, nonExistedOrStoppedContainers, endpoint), nil
 }
 
 func (c *DigestClient) checkStatus(ctx context.Context, images []*Image, digests []digest.Digest) (Status, error) {

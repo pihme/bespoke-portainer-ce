@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios from '@/portainer/services/axios/axios';
-import { ServiceId } from '@/react/docker/services/types';
 import { ContainerId } from '@/react/docker/containers/types';
 
 import { ImageStatus, ResourceID, ResourceType } from './types';
@@ -24,10 +23,7 @@ export function useImageNotification(
       resourceId,
       'status',
     ],
-    () =>
-      resourceType === ResourceType.SERVICE
-        ? getServiceImagesStatus(environmentId, resourceId)
-        : getContainerImagesStatus(environmentId, resourceId, nodeName),
+    () => getContainerImagesStatus(environmentId, resourceId, nodeName),
     {
       enabled,
     }
@@ -53,23 +49,6 @@ async function getContainerImagesStatus(
     return {
       Status: 'unknown',
       Message: `Unable to retrieve image status for container: ${containerID}`,
-    };
-  }
-}
-
-async function getServiceImagesStatus(
-  environmentId: EnvironmentId,
-  serviceID: ServiceId
-) {
-  try {
-    const { data } = await axios.get<ImageStatus>(
-      `/docker/${environmentId}/services/${serviceID}/image_status`
-    );
-    return data;
-  } catch (e) {
-    return {
-      Status: 'unknown',
-      Message: `Unable to retrieve image status for service: ${serviceID}`,
     };
   }
 }

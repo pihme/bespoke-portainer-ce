@@ -169,26 +169,11 @@ describe('TemplateSection', () => {
     await selectEvent.clearAll(combobox, { user });
   });
 
-  it('uses swarm editor copy when isSwarm is true', async () => {
-    renderComponent({
-      isSwarm: true,
-      initialValues: {
-        selectedId: 2,
-        variables: [],
-        fileContent: '',
-      },
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('stack-creation-editor')).toBeInTheDocument();
-    });
-  });
 });
 
 function renderComponent({
   initialValues = {},
-  isSwarm = false,
-}: { initialValues?: Partial<TemplateFormValues>; isSwarm?: boolean } = {}) {
+}: { initialValues?: Partial<TemplateFormValues> } = {}) {
   const values = mockFormValues({
     method: 'template',
     template: {
@@ -203,7 +188,7 @@ function renderComponent({
     withUserProvider(
       withTestQueryProvider(() => (
         <Formik initialValues={values} onSubmit={() => {}} validateOnMount>
-          <TemplateSection isSwarm={isSwarm} isSaved={false} />
+          <TemplateSection isSaved={false} />
         </Formik>
       ))
     )

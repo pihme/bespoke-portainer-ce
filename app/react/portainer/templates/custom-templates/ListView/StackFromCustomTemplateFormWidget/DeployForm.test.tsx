@@ -35,9 +35,6 @@ vi.mock('@/react/docker/stacks/common/NameField', () => ({
     />
   ),
 }));
-vi.mock('@/react/docker/proxy/queries/useSwarm', () => ({
-  useSwarmId: () => ({ data: '' }),
-}));
 vi.mock('@/react/common/stacks/queries/useCreateStack/useCreateStack', () => ({
   useCreateStack: () => ({ mutate, isLoading: false }),
 }));

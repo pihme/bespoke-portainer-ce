@@ -130,12 +130,6 @@ func (transport *Transport) getInheritedResourceControlFromServiceOrStack(client
 		return getInheritedResourceControlFromNetworkLabels(client, transport.endpoint.ID, resourceIdentifier, resourceControls)
 	case portainer.VolumeResourceControl:
 		return getInheritedResourceControlFromVolumeLabels(client, transport.endpoint.ID, resourceIdentifier, resourceControls)
-	case portainer.ServiceResourceControl:
-		return getInheritedResourceControlFromServiceLabels(client, transport.endpoint.ID, resourceIdentifier, resourceControls)
-	case portainer.ConfigResourceControl:
-		return getInheritedResourceControlFromConfigLabels(client, transport.endpoint.ID, resourceIdentifier, resourceControls)
-	case portainer.SecretResourceControl:
-		return getInheritedResourceControlFromSecretLabels(client, transport.endpoint.ID, resourceIdentifier, resourceControls)
 	}
 
 	return nil, nil

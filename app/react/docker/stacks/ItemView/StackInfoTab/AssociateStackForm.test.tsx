@@ -7,20 +7,8 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 import { createMockUsers } from '@/react-tools/test-mocks';
-import { useSwarmId } from '@/react/docker/proxy/queries/useSwarm';
 
 import { AssociateStackForm } from './AssociateStackForm';
-
-// Mock the useSwarmId hook to avoid React Query complexity
-vi.mock('@/react/docker/proxy/queries/useSwarm', () => ({
-  useSwarmId: vi.fn(),
-}));
-
-beforeEach(() => {
-  vi.mocked(useSwarmId).mockReturnValue({
-    data: undefined,
-  } as ReturnType<typeof useSwarmId>);
-});
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -134,15 +122,16 @@ describe('form submission', () => {
   });
 });
 
-describe('swarmId integration', () => {
-  it('should pass swarmId when environment is in swarm mode', async () => {
+describe('REQ-TAI-003 no Docker Swarm association', () => {
+  it('never sends a swarmId and never asks the engine for its Swarm', async () => {
     let requestUrl = '';
-
-    vi.mocked(useSwarmId).mockReturnValue({
-      data: 'swarm-id-123',
-    } as ReturnType<typeof useSwarmId>);
+    let swarmRequested = false;
 
     server.use(
+      http.get('/api/endpoints/:id/docker/swarm', () => {
+        swarmRequested = true;
+        return HttpResponse.json({ ID: 'swarm-id-123' });
+      }),
       http.put('/api/stacks/:id/associate', async ({ request }) => {
         requestUrl = request.url;
         return HttpResponse.json(createMockStackResponse());
@@ -152,38 +141,13 @@ describe('swarmId integration', () => {
     const user = userEvent.setup();
     renderComponent({ environmentId: 1 });
 
-    const associateButton = screen.getByRole('button', { name: 'Associate' });
-    await user.click(associateButton);
+    await user.click(screen.getByRole('button', { name: 'Associate' }));
 
     await waitFor(() => {
-      expect(requestUrl).toContain('swarmId=swarm-id-123');
+      expect(requestUrl).toContain('/api/stacks/');
     });
-  });
-
-  it('should not pass swarmId when environment is not in swarm mode', async () => {
-    let requestUrl = '';
-
-    vi.mocked(useSwarmId).mockReturnValue({
-      data: undefined,
-    } as ReturnType<typeof useSwarmId>);
-
-    server.use(
-      http.put('/api/stacks/:id/associate', async ({ request }) => {
-        requestUrl = request.url;
-        return HttpResponse.json(createMockStackResponse());
-      })
-    );
-
-    const user = userEvent.setup();
-    renderComponent();
-
-    const associateButton = screen.getByRole('button', { name: 'Associate' });
-    await user.click(associateButton);
-
-    // Verify swarmId is not included in the request
-    await waitFor(() => {
-      expect(requestUrl).not.toContain('swarmId');
-    });
+    expect(requestUrl).not.toContain('swarmId');
+    expect(swarmRequested).toBe(false);
   });
 });
 

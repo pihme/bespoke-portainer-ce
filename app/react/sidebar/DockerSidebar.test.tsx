@@ -120,39 +120,17 @@ describe('DockerSidebar local Docker navigation', () => {
     expect(screen.getByTestId('dockerSidebar-stacks')).toBeInTheDocument();
   });
 
-  it('shows swarm services configs secrets and swarm setup when node is swarm manager', () => {
+  it('REQ-TAI-003 shows no Docker Swarm navigation even on a Swarm manager', () => {
     isSwarmManager = true;
     apiVersion = 1.41;
 
     renderDockerSidebar();
 
-    expect(screen.getByTestId('dockerSidebar-services')).toBeInTheDocument();
-    expect(screen.getByTestId('dockerSidebar-configs')).toBeInTheDocument();
-    expect(screen.getByTestId('dockerSidebar-secrets')).toBeInTheDocument();
-    expect(screen.getByTestId('portainerSidebar-swarm')).toBeInTheDocument();
-    expect(screen.queryByTestId('dockerSidebar-events')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('portainerSidebar-host')).not.toBeInTheDocument();
-  });
-
-  it('hides configs and secrets when api version is below swarm thresholds', () => {
-    isSwarmManager = true;
-    apiVersion = 1.2;
-
-    renderDockerSidebar();
-
+    expect(screen.queryByTestId('dockerSidebar-services')).not.toBeInTheDocument();
     expect(screen.queryByTestId('dockerSidebar-configs')).not.toBeInTheDocument();
     expect(screen.queryByTestId('dockerSidebar-secrets')).not.toBeInTheDocument();
-    expect(screen.getByTestId('dockerSidebar-services')).toBeInTheDocument();
-  });
-
-  it('shows secrets but not configs at api 1.25 before configs threshold', () => {
-    isSwarmManager = true;
-    // parseFloat("1.30") === 1.3, so configs gate at >= 1.3; secrets at >= 1.25
-    apiVersion = 1.25;
-
-    renderDockerSidebar();
-
-    expect(screen.getByTestId('dockerSidebar-secrets')).toBeInTheDocument();
-    expect(screen.queryByTestId('dockerSidebar-configs')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('portainerSidebar-swarm')).not.toBeInTheDocument();
+    expect(screen.getByTestId('portainerSidebar-host')).toBeInTheDocument();
+    expect(screen.getByTestId('dockerSidebar-events')).toBeInTheDocument();
   });
 });

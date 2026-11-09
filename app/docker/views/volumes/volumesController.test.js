@@ -65,9 +65,6 @@ function buildController(options = {}) {
   const endpoint = {
     SecuritySettings: { allowVolumeBrowserForRegularUsers },
   };
-  const VolumeHelper = {
-    isVolumeUsedByAService: vi.fn(() => false),
-  };
 
   const attachedPromise = deferred();
   const danglingPromise = deferred();
@@ -77,7 +74,6 @@ function buildController(options = {}) {
     ),
     remove: vi.fn(() => Promise.resolve()),
   };
-  const ServiceService = { services: vi.fn(() => Promise.resolve([])) };
 
   const $q = {
     all: (obj) =>
@@ -91,8 +87,6 @@ function buildController(options = {}) {
     $scope,
     $state,
     VolumeService,
-    ServiceService,
-    VolumeHelper,
     Notifications,
     Authentication,
     endpoint
@@ -111,8 +105,6 @@ function buildController(options = {}) {
     $state,
     Notifications,
     VolumeService,
-    ServiceService,
-    VolumeHelper,
     Authentication,
   };
 }
@@ -127,7 +119,7 @@ describe('REQ-VOL-01 VolumesController local Docker volumes list', () => {
   });
 
   it('merges attached and dangling volumes for a local standalone host', async () => {
-    const { $scope, VolumeService, ServiceService } = buildController();
+    const { $scope, VolumeService } = buildController();
 
     await Promise.resolve();
     await Promise.resolve();
@@ -136,12 +128,28 @@ describe('REQ-VOL-01 VolumesController local Docker volumes list', () => {
 
     expect(VolumeService.volumes).toHaveBeenCalledWith({ dangling: ['false'] });
     expect(VolumeService.volumes).toHaveBeenCalledWith({ dangling: ['true'] });
-    expect(ServiceService.services).not.toHaveBeenCalled();
     expect($scope.volumes).toEqual([
       expect.objectContaining({ Name: 'vol1', dangling: false }),
       expect.objectContaining({ Name: 'vol2', dangling: true }),
     ]);
     expect($scope.showBrowseAction).toBe(false);
+  });
+
+  it('REQ-TAI-003 lists volumes without asking for Swarm services on a Swarm manager', async () => {
+    const { $scope, VolumeService } = buildController();
+    $scope.applicationState.endpoint.mode = { provider: 'DOCKER_SWARM_MODE', role: 'MANAGER' };
+    $scope.getVolumes();
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(VolumeService.volumes).toHaveBeenCalledTimes(4);
+    expect($scope.volumes).toEqual([
+      expect.objectContaining({ Name: 'vol1', dangling: false }),
+      expect.objectContaining({ Name: 'vol2', dangling: true }),
+    ]);
   });
 
   it('shows browse for admins on an agent proxy endpoint', async () => {

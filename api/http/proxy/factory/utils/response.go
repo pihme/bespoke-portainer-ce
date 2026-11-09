@@ -72,6 +72,17 @@ func WriteAccessDeniedResponse() (*http.Response, error) {
 	return response, err
 }
 
+// WriteNotFoundResponse returns a 404 response with the given message
+func WriteNotFoundResponse(message string) (*http.Response, error) {
+	header := http.Header{}
+	header.Add("Content-Type", "application/json")
+
+	response := &http.Response{Header: header}
+	err := RewriteResponse(response, errorResponse{Message: message}, http.StatusNotFound)
+
+	return response, err
+}
+
 // RewriteAccessDeniedResponse will overwrite the existing response with an access denied response
 func RewriteAccessDeniedResponse(response *http.Response) error {
 	return RewriteResponse(response, errorResponse{Message: "access denied to resource"}, http.StatusForbidden)

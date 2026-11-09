@@ -11,10 +11,6 @@ angular.module('portainer.app').factory('StackHelper', [
       return getExternalStacksFromLabel(containers, 'com.docker.compose.project', 2);
     };
 
-    helper.getExternalStacksFromServices = function (services) {
-      return getExternalStacksFromLabel(services, 'com.docker.stack.namespace', 1);
-    };
-
     function getExternalStacksFromLabel(items, label, type) {
       return _.uniqBy(
         items.filter((item) => item.Labels && item.Labels[label]).map((item) => new ExternalStackViewModel(item.Labels[label], type, item.Created)),

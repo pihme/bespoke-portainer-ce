@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/swarm"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
@@ -40,18 +39,6 @@ func TestHandler_getDockerStacks(t *testing.T) {
 		},
 	}
 
-	services := []swarm.Service{
-		{
-			Spec: swarm.ServiceSpec{
-				Annotations: swarm.Annotations{
-					Labels: map[string]string{
-						consts.SwarmStackNameLabel: "stack3",
-					},
-				},
-			},
-		},
-	}
-
 	stack1 := portainer.Stack{
 		ID:         1,
 		Name:       "stack1",
@@ -81,9 +68,9 @@ func TestHandler_getDockerStacks(t *testing.T) {
 		stacksList, err := GetDockerStacks(tx, &security.RestrictedRequestContext{
 			IsAdmin: true,
 			UserID:  1,
-		}, environment.ID, containers, services)
+		}, environment.ID, containers)
 		require.NoError(t, err)
-		assert.Len(t, stacksList, 3)
+		assert.Len(t, stacksList, 2)
 
 		expectedStacks := []StackViewModel{
 			{
@@ -102,14 +89,6 @@ func TestHandler_getDockerStacks(t *testing.T) {
 					"io.portainer.accesscontrol.public": "true",
 				},
 			},
-			{
-				Name:       "stack3",
-				IsExternal: true,
-				Type:       portainer.DockerSwarmStack,
-				Labels: map[string]string{
-					consts.SwarmStackNameLabel: "stack3",
-				},
-			},
 		}
 
 		assert.ElementsMatch(t, expectedStacks, stacksList)
@@ -121,7 +100,7 @@ func TestHandler_getDockerStacks(t *testing.T) {
 		stacksList, err := GetDockerStacks(tx, &security.RestrictedRequestContext{
 			IsAdmin: false,
 			UserID:  2,
-		}, environment.ID, containers, services)
+		}, environment.ID, containers)
 		require.NoError(t, err)
 		assert.Len(t, stacksList, 1)
 

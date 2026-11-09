@@ -226,15 +226,6 @@ func redeployWhenChangedSecondStage(
 			if err != nil {
 				return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stack.ID)
 			}
-		case portainer.DockerSwarmStack:
-			if stackutils.IsRelativePathStack(stack) {
-				err = deployer.DeployRemoteSwarmStack(ctx, user.ID, stack, endpoint, registries, true, true)
-			} else {
-				err = deployer.DeploySwarmStack(ctx, stack, endpoint, registries, true, true)
-			}
-			if err != nil {
-				return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stack.ID)
-			}
 		default:
 			return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
 		}
@@ -270,70 +261,6 @@ func redeployWhenChangedSecondStage(
 		})
 	}); err != nil {
 		return errors.WithMessagef(err, "failed to update the stack %v", stack.ID)
-	}
-
-	return nil
-}
-
-type erroredSwarmStack struct {
-	stack    portainer.Stack
-	endpoint *portainer.Endpoint
-}
-
-// ReconcileSwarmStackStatus flips errored Swarm stacks back to active once their live services recover.
-func ReconcileSwarmStackStatus(ctx context.Context, datastore dataservices.DataStore, swarmStackManager portainer.SwarmStackManager) error {
-	var erroredStacks []erroredSwarmStack
-
-	if err := datastore.ViewTx(func(tx dataservices.DataStoreTx) error {
-		stacks, err := tx.Stack().ReadAll(func(stack portainer.Stack) bool {
-			return stack.Type == portainer.DockerSwarmStack && stack.Status == portainer.StackStatusError
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, stack := range stacks {
-			endpoint, err := tx.Endpoint().Endpoint(stack.EndpointID)
-			if err != nil {
-				log.Warn().Err(err).Int("stack_id", int(stack.ID)).Msg("Failed to find the environment for stack status check")
-				continue
-			}
-
-			erroredStacks = append(erroredStacks, erroredSwarmStack{stack: stack, endpoint: endpoint})
-		}
-
-		return nil
-	}); err != nil {
-		return errors.WithMessage(err, "failed to list errored swarm stacks")
-	}
-
-	for _, es := range erroredStacks {
-		running, err := swarmStackManager.CheckRunningStatus(ctx, &es.stack, es.endpoint)
-		if err != nil {
-			log.Warn().Err(err).Int("stack_id", int(es.stack.ID)).Msg("Failed to check swarm stack status")
-			continue
-		}
-
-		if !running {
-			continue
-		}
-
-		if err := datastore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			current, err := tx.Stack().Read(es.stack.ID)
-			if err != nil {
-				return err
-			}
-
-			if current.Status != portainer.StackStatusError {
-				return nil
-			}
-
-			stackutils.UpdateStackStatusFromDeploymentResult(current, nil)
-
-			return tx.Stack().Update(current.ID, current)
-		}); err != nil {
-			log.Error().Err(err).Int("stack_id", int(es.stack.ID)).Msg("Failed to update stack status after recovery")
-		}
 	}
 
 	return nil

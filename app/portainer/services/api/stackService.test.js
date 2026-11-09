@@ -62,27 +62,22 @@ function buildService(overrides = {}) {
     ...(overrides.FileUploadService || {}),
   };
   const StackHelper = {
-    getExternalStacksFromServices: vi.fn(() => []),
     getExternalStacksFromContainers: vi.fn(() => [{ Name: 'ext' }]),
     ...(overrides.StackHelper || {}),
   };
-  const ServiceService = { services: vi.fn(() => Promise.resolve([])), ...(overrides.ServiceService || {}) };
   const ContainerService = {
     containers: vi.fn(() => Promise.resolve([])),
     ...(overrides.ContainerService || {}),
   };
-  const SwarmService = { swarm: vi.fn(() => Promise.resolve({ ID: 'swarm' })), ...(overrides.SwarmService || {}) };
 
   const service = factoryState.factory(
     $q,
     Stack,
     FileUploadService,
     StackHelper,
-    ServiceService,
-    ContainerService,
-    SwarmService
+    ContainerService
   );
-  return { service, Stack, StackHelper, ContainerService, SwarmService, FileUploadService };
+  return { service, Stack, StackHelper, ContainerService, FileUploadService };
 }
 
 describe('REQ-STK-01 StackService local compose client', () => {
@@ -141,11 +136,27 @@ describe('REQ-STK-01 StackService local compose client', () => {
     expect(Stack.remove).toHaveBeenCalledWith({ id: 3, external: false, endpointId: 1 });
   });
 
-  it('associate for compose stack (Type != 1) skips swarm lookup', async () => {
-    const { service, Stack, SwarmService } = buildService();
+  it('associate for compose stack (Type != 1) associates without a swarm id', async () => {
+    const { service, Stack } = buildService();
     await service.associate({ Id: 2, Type: 2 }, 1, false);
-    expect(SwarmService.swarm).not.toHaveBeenCalled();
     expect(Stack.associate).toHaveBeenCalledWith({ id: 2, endpointId: 1, orphanedRunning: false });
+  });
+
+  it('REQ-TAI-003 has no Docker Swarm stack client', async () => {
+    const { service, Stack } = buildService();
+    for (const name of [
+      'swarmStacks',
+      'externalSwarmStacks',
+      'createSwarmStackFromFileUpload',
+      'createSwarmStackFromFileContent',
+      'createSwarmStackFromGitRepository',
+    ]) {
+      expect(service[name]).toBeUndefined();
+    }
+    await expect(service.associate({ Id: 4, Type: 1 }, 1, false)).rejects.toMatchObject({
+      msg: 'Unable to associate the stack',
+    });
+    expect(Stack.associate).not.toHaveBeenCalled();
   });
 });
 
@@ -243,7 +254,7 @@ describe('REQ-STK-02 StackService compose create and lifecycle', () => {
       },
     });
     // stacks() always asks composeStacks to include external compose stacks
-    const stacks = await service.stacks(true, false, 1, false);
+    const stacks = await service.stacks(true, 1, false);
     expect(stacks.map((s) => s.Name).sort()).toEqual(['ext', 'web']);
   });
 });

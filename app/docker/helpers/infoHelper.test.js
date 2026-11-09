@@ -52,15 +52,13 @@ describe('REQ-HOST-01 InfoHelper.determineEndpointMode', () => {
     expect(helper.determineEndpointMode({ Swarm: {} }, 1).agentProxy).toBe(false);
   });
 
-  // Swarm mode detection lives in the same helper; left as thin coverage of the branch.
-  // Swarm service/node packages themselves are deferred-within-package for Priority.
-  it('detects swarm manager and worker roles when NodeID is set', () => {
+  it('REQ-TAI-003 treats a Swarm manager or worker as a standalone engine', () => {
     const helper = infoHelper();
     expect(
       helper.determineEndpointMode({ Swarm: { NodeID: 'node-1', ControlAvailable: true } }, 1)
-    ).toEqual({ provider: 'DOCKER_SWARM_MODE', role: 'MANAGER', agentProxy: false });
+    ).toEqual({ provider: 'DOCKER_STANDALONE', role: '', agentProxy: false });
     expect(
       helper.determineEndpointMode({ Swarm: { NodeID: 'node-2', ControlAvailable: false } }, 1)
-    ).toEqual({ provider: 'DOCKER_SWARM_MODE', role: 'WORKER', agentProxy: false });
+    ).toEqual({ provider: 'DOCKER_STANDALONE', role: '', agentProxy: false });
   });
 });

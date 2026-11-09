@@ -2,15 +2,10 @@ import { useRouter } from '@uirouter/react';
 import { Formik, Form } from 'formik';
 
 import { notifySuccess } from '@/portainer/services/notifications';
-import {
-  SwarmCreatePayload,
-  useCreateStack,
-} from '@/react/common/stacks/queries/useCreateStack/useCreateStack';
+import { useCreateStack } from '@/react/common/stacks/queries/useCreateStack/useCreateStack';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { TemplateType } from '@/react/portainer/templates/app-templates/types';
 import { TemplateViewModel } from '@/react/portainer/templates/app-templates/view-model';
 import { NameField } from '@/react/docker/stacks/common/NameField';
-import { useSwarmId } from '@/react/docker/proxy/queries/useSwarm';
 
 import { Button } from '@@/buttons';
 import { FormActions } from '@@/form-components/FormActions';
@@ -35,7 +30,6 @@ export function StackDeployForm({
   const router = useRouter();
 
   const environmentId = useEnvironmentId();
-  const swarmIdQuery = useSwarmId(environmentId);
   const mutation = useCreateStack();
   const validation = useValidation({
     environmentId,
@@ -105,9 +99,7 @@ export function StackDeployForm({
   );
 
   function handleSubmit(values: FormValues) {
-    const type =
-      template.Type === TemplateType.ComposeStack ? 'standalone' : 'swarm';
-    const payload: SwarmCreatePayload['payload'] = {
+    const payload = {
       name: values.name,
       environmentId,
 
@@ -115,7 +107,6 @@ export function StackDeployForm({
         name,
         value,
       })),
-      swarmId: swarmIdQuery.data || '',
       git: {
         RepositoryURL: template.Repository.url,
         ComposeFilePathInRepository: template.Repository.stackfile,
@@ -125,7 +116,7 @@ export function StackDeployForm({
 
     return mutation.mutate(
       {
-        type,
+        type: 'standalone',
         method: 'git',
         payload,
       },

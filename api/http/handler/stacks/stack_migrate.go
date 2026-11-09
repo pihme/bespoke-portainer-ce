@@ -68,6 +68,10 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 	}
 
+	if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return httpErr
+	}
+
 	if stack.Type == portainer.KubernetesStack {
 		return httperror.BadRequest("Migrating a kubernetes stack is not supported", err)
 	}
@@ -138,7 +142,7 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 		stack.Name = payload.Name
 	}
 
-	isUnique, err := handler.checkUniqueStackNameInDocker(targetEndpoint, stack.Name, stack.ID, stack.SwarmID != "")
+	isUnique, err := handler.checkUniqueStackNameInDocker(targetEndpoint, stack.Name, stack.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
@@ -186,9 +190,6 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 }
 
 func (handler *Handler) migrateStack(r *http.Request, stack *portainer.Stack, next *portainer.Endpoint) *httperror.HandlerError {
-	if stack.Type == portainer.DockerSwarmStack {
-		return handler.migrateSwarmStack(r, stack, next)
-	}
 	return handler.migrateComposeStack(r, stack, next)
 }
 
@@ -220,29 +221,3 @@ func (handler *Handler) migrateComposeStack(r *http.Request, stack *portainer.St
 	return nil
 }
 
-func (handler *Handler) migrateSwarmStack(r *http.Request, stack *portainer.Stack, next *portainer.Endpoint) *httperror.HandlerError {
-	// Create swarm deployment config
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve info from request context", err)
-	}
-
-	swarmDeploymentConfig, err := deployments.CreateSwarmStackDeploymentConfigTx(handler.DataStore,
-		securityContext,
-		stack,
-		next,
-		handler.FileService,
-		handler.StackDeployer,
-		true,
-		true)
-	if err != nil {
-		return httperror.InternalServerError(err.Error(), err)
-	}
-
-	// Deploy the stack
-	if err := swarmDeploymentConfig.Deploy(context.TODO()); err != nil {
-		return httperror.InternalServerError(err.Error(), err)
-	}
-
-	return nil
-}

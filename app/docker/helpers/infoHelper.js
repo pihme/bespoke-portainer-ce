@@ -1,14 +1,14 @@
-import _ from 'lodash-es';
-
 angular.module('portainer.docker').factory('InfoHelper', [
   function InfoHelperFactory() {
     'use strict';
 
     var helper = {};
 
-    helper.determineEndpointMode = function (info, type) {
+    // Docker Swarm is removed (TAI-003): every Docker engine is managed as a
+    // standalone engine, even when it is part of a Swarm.
+    helper.determineEndpointMode = function (_info, type) {
       var mode = {
-        provider: '',
+        provider: 'DOCKER_STANDALONE',
         role: '',
         agentProxy: false,
       };
@@ -17,16 +17,6 @@ angular.module('portainer.docker').factory('InfoHelper', [
         mode.agentProxy = true;
       }
 
-      if (!info.Swarm || _.isEmpty(info.Swarm.NodeID)) {
-        mode.provider = 'DOCKER_STANDALONE';
-      } else {
-        mode.provider = 'DOCKER_SWARM_MODE';
-        if (info.Swarm.ControlAvailable) {
-          mode.role = 'MANAGER';
-        } else {
-          mode.role = 'WORKER';
-        }
-      }
       return mode;
     };
 

@@ -77,12 +77,6 @@ vi.mock('./StackContainersDatatable', () => ({
   ),
 }));
 
-vi.mock('./StackServicesDatatable', () => ({
-  StackServicesDatatable: ({ name }: { name: string }) => (
-    <div data-cy="stack-services-stub" data-stack-name={name} />
-  ),
-}));
-
 vi.mock('./useUpdateStackResourcesOnDeployment', () => ({
   useUpdateStackResourcesOnDeployment: vi.fn(),
 }));
@@ -128,29 +122,26 @@ describe('REQ-STK-04 ItemView', () => {
       'data-stack-name',
       'compose-stack'
     );
-    expect(screen.queryByTestId('stack-services-stub')).not.toBeInTheDocument();
     // REQ-TAI-001: no ownership panel
     expect(screen.queryByText('Access control')).not.toBeInTheDocument();
   });
 
-  it('shows swarm services instead of containers for a swarm stack type', async () => {
+  it('REQ-TAI-003 shows a legacy Swarm stack record without Swarm services', async () => {
     routeParams.type = String(StackType.DockerSwarm);
     const stack = createMockStack({
       Id: 12,
       Type: StackType.DockerSwarm,
-      Name: 'compose-stack',
+      Name: 'swarm-stack',
     });
     server.use(http.get('/api/stacks/:id', () => HttpResponse.json(stack)));
 
     renderComponent();
 
-    expect(await screen.findByTestId('stack-services-stub')).toHaveAttribute(
-      'data-stack-name',
-      'compose-stack'
-    );
+    expect(await screen.findByTestId('stack-details-stub')).toBeVisible();
     expect(
       screen.queryByTestId('stack-containers-stub')
     ).not.toBeInTheDocument();
+    expect(screen.queryByText(/services/i)).not.toBeInTheDocument();
   });
 
   it('hides containers for an orphaned non-running stack', async () => {

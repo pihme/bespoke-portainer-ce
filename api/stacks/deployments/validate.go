@@ -11,7 +11,7 @@ import (
 )
 
 func ValidateStackForUser(stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User, deployer BaseStackDeployer, fileService portainer.FileService) error {
-	if stack.Type != portainer.DockerComposeStack && stack.Type != portainer.DockerSwarmStack {
+	if stack.Type != portainer.DockerComposeStack {
 		return nil
 	}
 

@@ -27,7 +27,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
-	"github.com/portainer/portainer/api/http/handler/webhooks"
 	"github.com/portainer/portainer/api/http/handler/websocket"
 )
 
@@ -57,13 +56,12 @@ type Handler struct {
 	UploadHandler          *upload.Handler
 	UserHandler            *users.Handler
 	WebSocketHandler       *websocket.Handler
-	WebhookHandler         *webhooks.Handler
 }
 
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","webhooks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -144,9 +142,6 @@ type Handler struct {
 // @tag.name users
 // @tag.description Local operator UI preferences
 // @tag.x-displayName Local operator
-// @tag.name webhooks
-// @tag.description Manage webhooks
-// @tag.x-displayName Webhooks
 // @tag.name websocket
 // @tag.description Create exec sessions using websockets
 // @tag.x-displayName Websocket
@@ -210,8 +205,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.SSLHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/websocket"):
 		http.StripPrefix("/api", h.WebSocketHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/webhooks"):
-		http.StripPrefix("/api", h.WebhookHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/storybook"):
 		http.StripPrefix("/storybook", h.StorybookHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/"):

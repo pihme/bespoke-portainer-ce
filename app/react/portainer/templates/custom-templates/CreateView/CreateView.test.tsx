@@ -6,7 +6,6 @@ import { ContainerEngine } from '@/react/portainer/environments/types';
 
 const mockUseViewType = vi.fn();
 const mockUseEnvironmentId = vi.fn();
-const mockUseIsSwarmManager = vi.fn();
 
 vi.mock('../useViewType', () => ({
   useViewType: () => mockUseViewType(),
@@ -14,10 +13,6 @@ vi.mock('../useViewType', () => ({
 
 vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: (...args: unknown[]) => mockUseEnvironmentId(...args),
-}));
-
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarmManager: (...args: unknown[]) => mockUseIsSwarmManager(...args),
 }));
 
 vi.mock('@@/PageHeader', () => ({
@@ -74,13 +69,11 @@ describe('REQ-TPL-03 CreateView', () => {
   beforeEach(() => {
     mockUseViewType.mockReset();
     mockUseEnvironmentId.mockReset();
-    mockUseIsSwarmManager.mockReset();
     mockUseEnvironmentId.mockReturnValue(3);
   });
 
-  it('renders the create page chrome and compose default for docker workers', () => {
+  it('renders the create page chrome and compose default for docker', () => {
     mockUseViewType.mockReturnValue(ContainerEngine.Docker);
-    mockUseIsSwarmManager.mockReturnValue(false);
 
     render(<CreateView />);
 
@@ -96,28 +89,22 @@ describe('REQ-TPL-03 CreateView', () => {
       'data-default-type',
       String(StackType.DockerCompose)
     );
-    expect(mockUseIsSwarmManager).toHaveBeenCalledWith(3, {
-      enabled: true,
-    });
     expect(mockUseEnvironmentId).toHaveBeenCalledWith(false);
   });
 
-  it('defaults to swarm type when the docker environment is a swarm manager', () => {
+  it('REQ-TAI-003 never defaults to a Docker Swarm template', () => {
     mockUseViewType.mockReturnValue('docker');
-    mockUseIsSwarmManager.mockReturnValue(true);
 
     render(<CreateView />);
 
     expect(screen.getByTestId('create-form')).toHaveAttribute(
       'data-default-type',
-      String(StackType.DockerSwarm)
+      String(StackType.DockerCompose)
     );
   });
 
-
   it('falls back to compose for unknown view types', () => {
     mockUseViewType.mockReturnValue('edge');
-    mockUseIsSwarmManager.mockReturnValue(false);
     mockUseEnvironmentId.mockReturnValue(undefined);
 
     render(<CreateView />);

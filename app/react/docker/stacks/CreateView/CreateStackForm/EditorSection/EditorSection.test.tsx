@@ -48,8 +48,7 @@ describe('EditorSection', () => {
 
 function renderComponent({
   initialValues,
-  isSwarm = false,
-}: { initialValues?: Partial<EditorFormValues>; isSwarm?: boolean } = {}) {
+}: { initialValues?: Partial<EditorFormValues> } = {}) {
   const values = mockFormValues({
     method: 'editor',
     editor: {
@@ -62,7 +61,7 @@ function renderComponent({
 
   return render(
     <Formik initialValues={values} onSubmit={() => {}} validateOnMount>
-      <Wrapped isSwarm={isSwarm} isSaved={false} />
+      <Wrapped isSaved={false} />
     </Formik>
   );
 }

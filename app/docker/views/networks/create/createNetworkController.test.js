@@ -399,6 +399,29 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     expect(ctx.$state.go).toHaveBeenCalledWith('docker.networks', {}, { reload: true });
   });
 
+  it('REQ-TAI-003 creates overlay and macvlan-from-config networks as plain local Docker networks', async () => {
+    const ctx = buildController();
+    await ctx.settlePlugins();
+    ctx.$scope.applicationState.endpoint.mode = {
+      agentProxy: true,
+      provider: 'DOCKER_SWARM_MODE',
+    };
+
+    ctx.$scope.config.Name = 'overlay-net';
+    ctx.$scope.config.Driver = 'overlay';
+    ctx.$scope.create();
+    expect(ctx.NetworkService.create.mock.calls[0][1].agentManagerOperation).toBe(false);
+
+    ctx.$scope.config.Name = 'macvlan-from';
+    ctx.$scope.config.Driver = 'macvlan';
+    ctx.$scope.formValues.Macvlan.Scope = 'swarm';
+    ctx.$scope.formValues.Macvlan.SelectedNetworkConfig = { Name: 'cfg-net' };
+    ctx.$scope.create();
+    expect(ctx.NetworkService.create.mock.calls[1][0].Scope).toBe('local');
+    expect(ctx.NetworkService.create).toHaveBeenCalledTimes(2);
+    await ctx.settleCreate();
+  });
+
   it('creates a plain bridge network without IPAM when no subnet is set', async () => {
     const ctx = buildController();
     await ctx.settlePlugins();

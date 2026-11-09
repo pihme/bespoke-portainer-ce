@@ -55,31 +55,11 @@ vi.mock('@/react/docker/volumes/BrowseView/AgentVolumeBrowser', () => ({
 vi.mock('@/react/docker/containers/StatsView/ProcessesDatatable', () => ({
   ProcessesDatatable: () => null,
 }));
-vi.mock('@/react/docker/secrets/ListView/SecretsDatatable', () => ({
-  SecretsDatatable: () => null,
-}));
 vi.mock('@/react/docker/stacks/ListView/StacksDatatable', () => ({
   StacksDatatable: () => null,
 }));
 vi.mock('@/react/docker/host/HostDetailsPanel/HostDetailsPanel', () => ({
   HostDetailsPanel: () => null,
-}));
-vi.mock(
-  '@/react/docker/networks/CreateView/MacvlanNodesSelector/MacvlanNodesSelector',
-  () => ({ MacvlanNodesSelector: () => null })
-);
-vi.mock('@/react/docker/services/ListView/ServicesDatatable', () => ({
-  ServicesDatatable: () => null,
-}));
-vi.mock('@/react/docker/services/ItemView/TasksDatatable', () => ({
-  TasksDatatable: () => null,
-}));
-vi.mock('@/react/docker/services/ItemView/PortMappingField', () => ({
-  PortsMappingField: () => null,
-  portsMappingUtils: { validation: () => ({}) },
-}));
-vi.mock('@/react/docker/swarm/SwarmView/NodesDatatable', () => ({
-  NodesDatatable: () => null,
 }));
 vi.mock('@/react/docker/volumes/ListView/VolumesDatatable', () => ({
   VolumesDatatable: () => null,
@@ -93,7 +73,6 @@ describe('docker react component wrappers', () => {
 
   it('registers KEEP local Docker wrapper modules and components', async () => {
     await import('./containers');
-    await import('./networks');
     await import('./volumes');
     await import('./templates');
     const { componentsModule } = await import('./index');
@@ -103,7 +82,6 @@ describe('docker react component wrappers', () => {
     expect(names).toEqual(
       expect.arrayContaining([
         'portainer.docker.react.components.containers',
-        'portainer.docker.react.components.networks',
         'portainer.docker.react.components.volumes',
         'portainer.docker.react.components.templates',
         'portainer.docker.react.components',
@@ -122,5 +100,19 @@ describe('docker react component wrappers', () => {
         'hostDetailsPanel',
       ])
     );
+  });
+
+  it('REQ-TAI-003 registers no Docker Swarm wrapper modules or components', async () => {
+    await import('./index');
+
+    const names = modules.map((m) => m.name);
+    expect(names).not.toContain('portainer.docker.react.components.services');
+    expect(names).not.toContain('portainer.docker.react.components.swarm');
+    expect(names).not.toContain('portainer.docker.react.components.networks');
+
+    const components = modules.flatMap((m) => m.components);
+    expect(
+      components.filter((c) => /secret|service|swarm|node|task|config/i.test(c))
+    ).toEqual([]);
   });
 });

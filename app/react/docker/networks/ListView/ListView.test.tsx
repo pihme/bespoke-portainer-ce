@@ -34,22 +34,6 @@ vi.mock('@@/Link', () => ({
   ),
 }));
 
-vi.mock('../../proxy/queries/useIsSwarmAgent', () => ({
-  useIsSwarmAgent: () => false,
-}));
-
-vi.mock(
-  '../../proxy/queries/useInfo',
-  async (importOriginal: () => Promise<object>) => {
-    const actual =
-      await importOriginal<typeof import('../../proxy/queries/useInfo')>();
-    return {
-      ...actual,
-      useIsSwarm: () => false,
-    };
-  }
-);
-
 function localNetwork(overrides: Record<string, unknown> = {}) {
   return {
     Id: 'net-bridge',
@@ -113,5 +97,30 @@ describe('REQ-NET-01 Networks ListView for local Docker', () => {
     expect(
       document.querySelector('[data-cy="network-addNetworkButton"]')
     ).toBeTruthy();
+  });
+
+  it('REQ-TAI-003 lists no Swarm-scoped networks', async () => {
+    server.use(
+      http.get('/api/endpoints/:id/docker/networks', () =>
+        HttpResponse.json([
+          localNetwork(),
+          localNetwork({
+            Id: 'net-ingress',
+            Name: 'ingress',
+            Scope: 'swarm',
+            Driver: 'overlay',
+          }),
+        ])
+      )
+    );
+    renderList();
+    await waitFor(() => {
+      expect(
+        document.querySelector('[data-cy="network-link-bridge"]')
+      ).toBeTruthy();
+    });
+    expect(
+      document.querySelector('[data-cy="network-link-ingress"]')
+    ).toBeNull();
   });
 });

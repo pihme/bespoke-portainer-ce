@@ -21,7 +21,6 @@ import (
 	"github.com/portainer/portainer/api/stacks/teardown"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -37,7 +36,6 @@ type Handler struct {
 	DockerClientFactory *dockerclient.ClientFactory
 	FileService         portainer.FileService
 	GitService          portainer.GitService
-	SwarmStackManager   portainer.SwarmStackManager
 	ComposeStackManager portainer.ComposeStackManager
 	SourceScheduler     *scheduling.SourceScheduler
 	StackDeployer       deployments.StackDeployer
@@ -160,7 +158,7 @@ func (handler *Handler) checkUniqueStackName(endpoint *portainer.Endpoint, name 
 	return true, nil
 }
 
-func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portainer.Endpoint, name string, stackID portainer.StackID, swarmMode bool) (bool, error) {
+func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portainer.Endpoint, name string, stackID portainer.StackID) (bool, error) {
 	isUniqueStackName, err := handler.checkUniqueStackName(endpoint, name, stackID)
 	if err != nil {
 		return false, err
@@ -175,20 +173,6 @@ func (handler *Handler) checkUniqueStackNameInDocker(endpoint *portainer.Endpoin
 		return false, err
 	}
 	defer logs.CloseAndLogErr(dockerClient)
-	if swarmMode {
-		services, err := dockerClient.ServiceList(context.Background(), types.ServiceListOptions{})
-		if err != nil {
-			return false, err
-		}
-
-		for _, service := range services {
-			serviceNS, ok := service.Spec.Labels["com.docker.stack.namespace"]
-			if ok && serviceNS == name {
-				return false, nil
-			}
-		}
-	}
-
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{All: true})
 	if err != nil {
 		return false, err
@@ -211,4 +195,16 @@ func (handler *Handler) checkUniqueWebhookID(tx dataservices.DataStoreTx, webhoo
 		return true, nil
 	}
 	return false, err
+}
+
+var errSwarmStackRemoved = errors.New("Docker Swarm stacks are no longer supported")
+
+// rejectSwarmStack refuses operations on a leftover Docker Swarm stack record.
+// Docker Swarm is removed (TAI-003); such a record can only be deleted.
+func rejectSwarmStack(stack *portainer.Stack) *httperror.HandlerError {
+	if stack.Type == portainer.DockerSwarmStack {
+		return httperror.BadRequest(errSwarmStackRemoved.Error(), errSwarmStackRemoved)
+	}
+
+	return nil
 }

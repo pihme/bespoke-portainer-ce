@@ -34,7 +34,6 @@ type Service interface {
 
 type service struct {
 	fileService         portainer.FileService
-	swarmStackManager   portainer.SwarmStackManager
 	composeStackManager portainer.ComposeStackManager
 	stackDeployer       deployments.StackDeployer
 }
@@ -42,13 +41,11 @@ type service struct {
 // NewService creates a stack teardown service.
 func NewService(
 	fileService portainer.FileService,
-	swarmStackManager portainer.SwarmStackManager,
 	composeStackManager portainer.ComposeStackManager,
 	stackDeployer deployments.StackDeployer,
 ) Service {
 	return &service{
 		fileService:         fileService,
-		swarmStackManager:   swarmStackManager,
 		composeStackManager: composeStackManager,
 		stackDeployer:       stackDeployer,
 	}
@@ -57,13 +54,11 @@ func NewService(
 func (s *service) RemoveResources(ctx context.Context, userID portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
 	switch stack.Type {
 	case portainer.DockerSwarmStack:
-		stack.Name = s.swarmStackManager.NormalizeStackName(stack.Name)
+		// Docker Swarm is removed (TAI-003): only the leftover stack record and
+		// files are removed; the Swarm services stay in place.
+		log.Warn().Int("stack_id", int(stack.ID)).Msg("Docker Swarm is no longer supported; leaving the stack's Swarm services in place")
 
-		if stackutils.IsRelativePathStack(stack) {
-			return s.stackDeployer.UndeployRemoteSwarmStack(ctx, userID, stack, endpoint)
-		}
-
-		return s.swarmStackManager.Remove(ctx, stack, endpoint)
+		return nil
 
 	case portainer.DockerComposeStack:
 		stack.Name = s.composeStackManager.NormalizeStackName(stack.Name)

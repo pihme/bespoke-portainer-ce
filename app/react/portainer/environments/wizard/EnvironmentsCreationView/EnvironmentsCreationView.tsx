@@ -68,7 +68,6 @@ export function EnvironmentCreationView() {
   const isLastStep = currentStepIndex === steps.length - 1;
   const Component = getComponent(currentStep.id);
 
-  const isDockerStandalone = currentStep.id === 'dockerStandalone';
 
   return (
     <div className="pb-20">
@@ -94,7 +93,6 @@ export function EnvironmentCreationView() {
             <FormSection title={formTitles[currentStep.id]}>
               <Component
                 onCreate={handleCreateEnvironment}
-                isDockerStandalone={isDockerStandalone}
               />
             </FormSection>
           </WidgetBody>
@@ -185,7 +183,6 @@ function useParamEnvironmentTypes(): EnvironmentOptionValue[] {
 function getComponent(id: EnvironmentOptionValue) {
   switch (id) {
     case 'dockerStandalone':
-    case 'dockerSwarm':
       return WizardDocker;
     case 'podman':
       return WizardPodman;

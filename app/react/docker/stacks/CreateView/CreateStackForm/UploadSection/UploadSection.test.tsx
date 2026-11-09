@@ -37,22 +37,12 @@ describe('UploadSection', () => {
     expect(screen.getByText('compose.yml')).toBeInTheDocument();
   });
 
-  it('should render swarm upload description when isSwarm is true', () => {
-    renderComponent({ isSwarm: true });
-    expect(screen.getByText('Upload')).toBeInTheDocument();
-    // Swarm uses DockerSwarm texts; compose path already covered above
-    expect(
-      screen.getByText(/You can upload a Compose file from your computer|upload a Stack file/i)
-    ).toBeInTheDocument();
-  });
 });
 
 function renderComponent({
   initialValues = {},
-  isSwarm = false,
 }: {
   initialValues?: Partial<UploadFormValues>;
-  isSwarm?: boolean;
 } = {}) {
   const values = mockFormValues({
     method: 'upload',
@@ -64,7 +54,7 @@ function renderComponent({
 
   return render(
     <Formik initialValues={values} onSubmit={() => {}} validateOnMount>
-      <UploadSection isSwarm={isSwarm} />
+      <UploadSection />
     </Formik>
   );
 }

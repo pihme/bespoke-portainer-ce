@@ -10,15 +10,12 @@ import { FormValues } from '../types';
 
 export function EditorSection({
   schema,
-  isSwarm,
   isSaved,
 }: {
-  isSwarm: boolean;
   schema?: JSONSchema7;
   isSaved: boolean;
 }) {
-  const texts =
-    textByType[isSwarm ? StackType.DockerSwarm : StackType.DockerCompose];
+  const texts = textByType[StackType.DockerCompose];
   const { values, errors, setFieldValue, isSubmitting, initialValues } =
     useFormikContext<FormValues>();
 

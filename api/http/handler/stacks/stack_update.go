@@ -47,29 +47,6 @@ func (payload *updateComposeStackPayload) Validate(r *http.Request) error {
 	return nil
 }
 
-type updateSwarmStackPayload struct {
-	// New content of the Stack file
-	StackFileContent string `example:"version: 3\n services:\n web:\n image:nginx"`
-	// A list of environment(endpoint) variables used during stack deployment
-	Env []portainer.Pair
-	// Prune services that are no longer referenced
-	Prune bool `example:"true"`
-	// RepullImageAndRedeploy indicates whether to force repulling images and redeploying the stack
-	RepullImageAndRedeploy bool
-
-	// Deprecated(2.36): use RepullImageAndRedeploy instead for cleaner responsibility
-	// Force a pulling to current image with the original tag though the image is already the latest
-	PullImage bool `example:"false"`
-}
-
-func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
-	if len(payload.StackFileContent) == 0 {
-		return errors.New("Invalid stack file content")
-	}
-
-	return nil
-}
-
 // @id StackUpdate
 // @summary Update a stack
 // @description Update a stack, only for file based stacks.
@@ -79,7 +56,7 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 // @produce json
 // @param id path int true "Stack identifier"
 // @param endpointId query int true "Environment identifier"
-// @param body body updateSwarmStackPayload true "Stack details"
+// @param body body updateComposeStackPayload true "Stack details"
 // @success 200 {object} portainer.Stack "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -147,6 +124,10 @@ func (handler *Handler) updateStackInTx(tx dataservices.DataStoreTx, r *http.Req
 		return nil, nil, nil, httperror.NotFound("Unable to find a stack with the specified identifier inside the database", err)
 	} else if err != nil {
 		return nil, nil, nil, httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
+	}
+
+	if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return nil, nil, nil, httpErr
 	}
 
 	if stack.Status == portainer.StackStatusDeploying {
@@ -225,10 +206,6 @@ func (handler *Handler) updateStackInTx(tx dataservices.DataStoreTx, r *http.Req
 
 func (handler *Handler) updateAndDeployStack(tx dataservices.DataStoreTx, r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) (deployments.StackDeploymentConfiger, postDeployFunc, *httperror.HandlerError) {
 	switch stack.Type {
-	case portainer.DockerSwarmStack:
-		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
-
-		return handler.updateSwarmStack(tx, r, stack, endpoint)
 	case portainer.DockerComposeStack:
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
@@ -316,84 +293,6 @@ func (handler *Handler) updateComposeStack(tx dataservices.DataStoreTx, r *http.
 	}
 
 	return composeDeploymentConfig, postDeploy, nil
-}
-
-func (handler *Handler) updateSwarmStack(tx dataservices.DataStoreTx, r *http.Request, stack *portainer.Stack, endpoint *portainer.Endpoint) (deployments.StackDeploymentConfiger, postDeployFunc, *httperror.HandlerError) {
-	// Must not be git based stack. stop the auto update job if there is any
-	if stack.AutoUpdate != nil {
-		stack.AutoUpdate = nil
-	}
-	if stack.WorkflowID != 0 {
-		stack.FromAppTemplate = true
-	}
-
-	var payload updateSwarmStackPayload
-	if err := request.DecodeAndValidateJSONPayload(r, &payload); err != nil {
-		return nil, nil, httperror.BadRequest("Invalid request payload", err)
-	}
-	payload.RepullImageAndRedeploy = payload.RepullImageAndRedeploy || payload.PullImage
-	stack.Env = payload.Env
-
-	if stack.WorkflowID != 0 {
-		oldWorkflowID := stack.WorkflowID
-		stack.WorkflowID = 0
-		if err := workflows.DetachStackArtifact(tx, oldWorkflowID, stack.ID); err != nil {
-			return nil, nil, httperror.InternalServerError("Unable to remove git workflow records from database", err)
-		}
-	}
-
-	stackFolder := strconv.Itoa(int(stack.ID))
-	if _, err := handler.FileService.UpdateStoreStackFileFromBytes(stackFolder, stack.EntryPoint, []byte(payload.StackFileContent)); err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
-
-		return nil, nil, httperror.InternalServerError("Unable to persist updated Compose file on disk", err)
-	}
-
-	// Create swarm deployment config
-	securityContext, err := security.RetrieveRestrictedRequestContext(r)
-	if err != nil {
-		return nil, nil, httperror.InternalServerError("Unable to retrieve info from request context", err)
-	}
-
-	swarmDeploymentConfig, err := deployments.CreateSwarmStackDeploymentConfigTx(tx, securityContext,
-		stack,
-		endpoint,
-		handler.FileService,
-		handler.StackDeployer,
-		payload.Prune,
-		payload.RepullImageAndRedeploy)
-	if err != nil {
-		if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-			log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-		}
-
-		return nil, nil, httperror.InternalServerError(err.Error(), err)
-	}
-
-	if stack.Option != nil {
-		stack.Option.Prune = payload.Prune
-	} else {
-		stack.Option = &portainer.StackOption{
-			Prune: payload.Prune,
-		}
-	}
-
-	postDeploy := func(ctx context.Context, deployErr error) {
-		if deployErr != nil {
-			if rollbackErr := handler.FileService.RollbackStackFile(stackFolder, stack.EntryPoint); rollbackErr != nil {
-				log.Warn().Err(rollbackErr).Msg("rollback stack file error")
-			}
-			return
-		}
-
-		if err := handler.FileService.RemoveStackFileBackup(stackFolder, stack.EntryPoint); err != nil {
-			log.Warn().Err(err).Msg("remove stack file backup error")
-		}
-	}
-
-	return swarmDeploymentConfig, postDeploy, nil
 }
 
 func stackDeploy(dataStore dataservices.DataStore, stackID portainer.StackID, stackDeploymentConfig deployments.StackDeploymentConfiger, postDeploy postDeployFunc) {

@@ -7,10 +7,8 @@ angular.module('portainer.app').factory('StackService', [
   'Stack',
   'FileUploadService',
   'StackHelper',
-  'ServiceService',
   'ContainerService',
-  'SwarmService',
-  function StackServiceFactory($q, Stack, FileUploadService, StackHelper, ServiceService, ContainerService, SwarmService) {
+  function StackServiceFactory($q, Stack, FileUploadService, StackHelper, ContainerService) {
     'use strict';
     var service = {
       updateGit,
@@ -45,15 +43,13 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    service.stacks = function (compose, swarm, endpointId, includeOrphanedStacks = false) {
+    // Docker Swarm is removed (TAI-003): only Compose stacks are listed.
+    service.stacks = function (compose, endpointId, includeOrphanedStacks = false) {
       var deferred = $q.defer();
 
       var queries = [];
       if (compose) {
         queries.push(service.composeStacks(endpointId, true, { EndpointID: endpointId, IncludeOrphanedStacks: includeOrphanedStacks }));
-      }
-      if (swarm) {
-        queries.push(service.swarmStacks(endpointId, true, { IncludeOrphanedStacks: includeOrphanedStacks }));
       }
 
       $q.all(queries)
@@ -62,27 +58,10 @@ angular.module('portainer.app').factory('StackService', [
           if (data[0]) {
             stacks = stacks.concat(data[0]);
           }
-          if (data[1]) {
-            stacks = stacks.concat(data[1]);
-          }
           deferred.resolve(stacks);
         })
         .catch(function error(err) {
           deferred.reject({ msg: 'Unable to retrieve stacks', err: err });
-        });
-
-      return deferred.promise;
-    };
-
-    service.externalSwarmStacks = function () {
-      var deferred = $q.defer();
-
-      ServiceService.services()
-        .then(function success(services) {
-          deferred.resolve(StackHelper.getExternalStacksFromServices(services));
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to retrieve external stacks', err: err });
         });
 
       return deferred.promise;
@@ -140,35 +119,6 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    service.swarmStacks = function (endpointId, includeExternalStacks, filters = {}) {
-      var deferred = $q.defer();
-
-      SwarmService.swarm(endpointId)
-        .then(function success(data) {
-          var swarm = data;
-          filters = { SwarmID: swarm.ID, ...filters };
-
-          return $q.all({
-            stacks: Stack.query({ filters: filters }).$promise,
-            externalStacks: includeExternalStacks ? service.externalSwarmStacks() : [],
-          });
-        })
-        .then(function success(data) {
-          var stacks = data.stacks.map(function (item) {
-            return new StackViewModel(item, item.EndpointId != endpointId);
-          });
-
-          var externalStacks = data.externalStacks;
-          const result = service.unionStacks(stacks, externalStacks);
-          deferred.resolve(result);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to retrieve stacks', err: err });
-        });
-
-      return deferred.promise;
-    };
-
     service.remove = function (stack, external, endpointId) {
       var deferred = $q.defer();
 
@@ -187,26 +137,17 @@ angular.module('portainer.app').factory('StackService', [
       var deferred = $q.defer();
 
       if (stack.Type == 1) {
-        SwarmService.swarm(endpointId)
-          .then(function success(data) {
-            const swarm = data;
-            return Stack.associate({ id: stack.Id, endpointId: endpointId, swarmId: swarm.ID, orphanedRunning }).$promise;
-          })
-          .then(function success(data) {
-            deferred.resolve(data);
-          })
-          .catch(function error(err) {
-            deferred.reject({ msg: 'Unable to associate the stack', err: err });
-          });
-      } else {
-        Stack.associate({ id: stack.Id, endpointId: endpointId, orphanedRunning })
-          .$promise.then(function success(data) {
-            deferred.resolve(data);
-          })
-          .catch(function error(err) {
-            deferred.reject({ msg: 'Unable to associate the stack', err: err });
-          });
+        deferred.reject({ msg: 'Unable to associate the stack', err: new Error('Docker Swarm stacks are no longer supported') });
+        return deferred.promise;
       }
+
+      Stack.associate({ id: stack.Id, endpointId: endpointId, orphanedRunning })
+        .$promise.then(function success(data) {
+          deferred.resolve(data);
+        })
+        .catch(function error(err) {
+          deferred.reject({ msg: 'Unable to associate the stack', err: err });
+        });
 
       return deferred.promise;
     };
@@ -228,23 +169,6 @@ angular.module('portainer.app').factory('StackService', [
       return FileUploadService.createComposeStack(name, stackFile, env, endpointId);
     };
 
-    service.createSwarmStackFromFileUpload = function (name, stackFile, env, endpointId) {
-      var deferred = $q.defer();
-
-      SwarmService.swarm(endpointId)
-        .then(function success(data) {
-          var swarm = data;
-          return FileUploadService.createSwarmStack(name, swarm.ID, stackFile, env, endpointId);
-        })
-        .then(function success(data) {
-          deferred.resolve(data.data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to create the stack', err: err });
-        });
-
-      return deferred.promise;
-    };
     service.createComposeStackFromFileContent = function (name, stackFileContent, env, endpointId) {
       var payload = {
         Name: name,
@@ -252,29 +176,6 @@ angular.module('portainer.app').factory('StackService', [
         Env: env,
       };
       return Stack.create({ endpointId: endpointId }, { method: 'string', type: 'standalone', ...payload }).$promise;
-    };
-
-    service.createSwarmStackFromFileContent = function (name, stackFileContent, env, endpointId) {
-      var deferred = $q.defer();
-
-      SwarmService.swarm(endpointId)
-        .then(function success(swarm) {
-          var payload = {
-            Name: name,
-            SwarmID: swarm.ID,
-            StackFileContent: stackFileContent,
-            Env: env,
-          };
-          return Stack.create({ endpointId: endpointId }, { method: 'string', type: 'swarm', ...payload }).$promise;
-        })
-        .then(function success(data) {
-          deferred.resolve(data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to create the stack', err: err });
-        });
-
-      return deferred.promise;
     };
 
     service.createComposeStackFromGitRepository = function (name, repositoryOptions, env, endpointId) {
@@ -297,43 +198,6 @@ angular.module('portainer.app').factory('StackService', [
       }
 
       return Stack.create({ endpointId: endpointId }, { method: 'repository', type: 'standalone', ...payload }).$promise;
-    };
-
-    service.createSwarmStackFromGitRepository = function (name, repositoryOptions, env, endpointId) {
-      var deferred = $q.defer();
-
-      SwarmService.swarm(endpointId)
-        .then(function success(data) {
-          var swarm = data;
-          var payload = {
-            Name: name,
-            SwarmID: swarm.ID,
-            RepositoryURL: repositoryOptions.RepositoryURL,
-            RepositoryReferenceName: repositoryOptions.RepositoryReferenceName,
-            ComposeFile: repositoryOptions.ComposeFilePathInRepository,
-            AdditionalFiles: repositoryOptions.AdditionalFiles,
-            RepositoryAuthentication: repositoryOptions.RepositoryAuthentication,
-            RepositoryUsername: repositoryOptions.RepositoryUsername,
-            RepositoryPassword: repositoryOptions.RepositoryPassword,
-            Env: env,
-            FromAppTemplate: repositoryOptions.FromAppTemplate,
-            TLSSkipVerify: repositoryOptions.TLSSkipVerify,
-          };
-
-          if (repositoryOptions.AutoUpdate) {
-            payload.AutoUpdate = repositoryOptions.AutoUpdate;
-          }
-
-          return Stack.create({ endpointId: endpointId }, { method: 'repository', type: 'swarm', ...payload }).$promise;
-        })
-        .then(function success(data) {
-          deferred.resolve(data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to create the stack', err: err });
-        });
-
-      return deferred.promise;
     };
 
     service.start = start;

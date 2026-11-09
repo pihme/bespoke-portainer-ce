@@ -3,7 +3,6 @@ import { Form, Formik, useFormikContext } from 'formik';
 import { useRouter } from '@uirouter/react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
-import { useSwarmId } from '@/react/docker/proxy/queries/useSwarm';
 import { notifySuccess } from '@/portainer/services/notifications';
 
 import { LoadingButton } from '@@/buttons';
@@ -23,9 +22,7 @@ export function AssociateStackForm({
   isOrphanedRunning: boolean | undefined;
 }) {
   const router = useRouter();
-  const swarmIdQuery = useSwarmId(environmentId);
   const mutation = useAssociateStackToEnvironmentMutation();
-
 
   return (
     <FormSection title="Associate to this environment">
@@ -40,7 +37,6 @@ export function AssociateStackForm({
           mutation.mutate(
             {
               environmentId,
-              swarmId: swarmIdQuery.data,
               isOrphanedRunning,
               stackId,
             },

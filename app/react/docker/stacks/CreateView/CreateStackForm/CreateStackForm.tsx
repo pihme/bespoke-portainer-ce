@@ -17,11 +17,9 @@ import { CreateStackInnerForm } from './CreateStackInnerForm';
 
 interface Props {
   environmentId: EnvironmentId;
-  isSwarm: boolean;
-  swarmId: string;
 }
 
-export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
+export function CreateStackForm({ environmentId }: Props) {
   const router = useRouter();
   const {
     params: { yaml },
@@ -63,7 +61,6 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
     >
       <CreateStackInnerForm
         isDeploying={createStackMutation.isLoading}
-        isSwarm={isSwarm}
         isSaved={createStackMutation.isSuccess}
         webhookId={webhookId}
       />
@@ -71,13 +68,9 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
   );
 
   async function handleSubmit(values: FormValues) {
-    const stackType = isSwarm ? 'swarm' : 'standalone';
-
     const payload = buildCreateStackPayload({
       values,
       environmentId,
-      stackType,
-      swarmId,
       webhookId,
     });
 
@@ -97,15 +90,11 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
 
 function buildCreateStackPayload({
   environmentId,
-  stackType,
-  swarmId,
   values,
   webhookId,
 }: {
   values: FormValues;
   environmentId: EnvironmentId;
-  stackType: 'swarm' | 'standalone';
-  swarmId: string;
   webhookId: string;
 }): CreateStackPayload {
   const basePayload = {
@@ -117,18 +106,6 @@ function buildCreateStackPayload({
 
   switch (values.method) {
     case 'editor':
-      if (stackType === 'swarm') {
-        return {
-          type: 'swarm',
-          method: 'string',
-          payload: {
-            ...basePayload,
-            swarmId,
-            fileContent: values.editor.fileContent,
-            webhook: values.enableWebhook ? webhookId : undefined,
-          },
-        };
-      }
       return {
         type: 'standalone',
         method: 'string',
@@ -143,18 +120,6 @@ function buildCreateStackPayload({
       if (!values.upload.file) {
         throw new Error('File is required for upload method');
       }
-      if (stackType === 'swarm') {
-        return {
-          type: 'swarm',
-          method: 'file',
-          payload: {
-            ...basePayload,
-            swarmId,
-            file: values.upload.file,
-            webhook: values.enableWebhook ? webhookId : undefined,
-          },
-        };
-      }
       return {
         type: 'standalone',
         method: 'file',
@@ -166,28 +131,6 @@ function buildCreateStackPayload({
       };
 
     case 'repository':
-      if (stackType === 'swarm') {
-        return {
-          type: 'swarm',
-          method: 'git',
-          payload: {
-            ...basePayload,
-            webhook: webhookId,
-            swarmId,
-            git: values.git,
-            relativePathSettings: values.git.SupportRelativePath
-              ? {
-                  SupportRelativePath: true,
-                  FilesystemPath: values.git.FilesystemPath,
-                  SupportPerDeviceConfigs: false,
-                  PerDeviceConfigsPath: '',
-                  PerDeviceConfigsMatchType: '',
-                  PerDeviceConfigsGroupMatchType: '',
-                }
-              : undefined,
-          },
-        };
-      }
       return {
         type: 'standalone',
         method: 'git',
@@ -209,19 +152,6 @@ function buildCreateStackPayload({
       };
 
     case 'template':
-      if (stackType === 'swarm') {
-        return {
-          type: 'swarm',
-          method: 'string',
-          payload: {
-            ...basePayload,
-            swarmId,
-            fileContent: values.template.fileContent,
-            webhook: values.enableWebhook ? webhookId : undefined,
-            fromAppTemplate: true,
-          },
-        };
-      }
       return {
         type: 'standalone',
         method: 'string',

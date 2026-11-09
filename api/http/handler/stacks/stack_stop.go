@@ -49,6 +49,10 @@ func (handler *Handler) stackStop(w http.ResponseWriter, r *http.Request) *httpe
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 	}
 
+	if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return httpErr
+	}
+
 	if stack.Type == portainer.KubernetesStack {
 		return httperror.BadRequest("Stopping a kubernetes stack is not supported", err)
 	}
@@ -140,14 +144,6 @@ func (handler *Handler) stopStack(ctx context.Context, userId portainer.UserID, 
 		}
 
 		return handler.StackDeployer.UndeployComposeStack(ctx, stack, endpoint)
-	case portainer.DockerSwarmStack:
-		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
-
-		if stackutils.IsRelativePathStack(stack) {
-			return handler.StackDeployer.StopRemoteSwarmStack(ctx, userId, stack, endpoint)
-		}
-
-		return handler.SwarmStackManager.Remove(ctx, stack, endpoint)
 	}
 
 	return nil

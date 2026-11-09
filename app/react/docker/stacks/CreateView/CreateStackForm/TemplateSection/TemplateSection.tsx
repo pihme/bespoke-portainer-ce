@@ -27,16 +27,13 @@ import { FormValues } from '../types';
 import { useTemplateInitialization } from './useTemplateInitialization';
 
 export function TemplateSection({
-  isSwarm,
   schema,
   isSaved,
 }: {
-  isSwarm: boolean;
   schema?: JSONSchema7;
   isSaved: boolean;
 }) {
-  const texts =
-    textByType[isSwarm ? StackType.DockerSwarm : StackType.DockerCompose];
+  const texts = textByType[StackType.DockerCompose];
   const { values, errors, setFieldValue, isSubmitting } =
     useFormikContext<FormValues>();
 

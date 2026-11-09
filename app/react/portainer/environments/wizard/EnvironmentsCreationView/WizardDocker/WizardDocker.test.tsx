@@ -30,7 +30,7 @@ function renderWizard() {
     )
   );
   const Wrapped = withTestQueryProvider(
-    withTestRouter(() => <WizardDocker onCreate={() => {}} isDockerStandalone />)
+    withTestRouter(() => <WizardDocker onCreate={() => {}} />)
   );
   return render(<Wrapped />);
 }

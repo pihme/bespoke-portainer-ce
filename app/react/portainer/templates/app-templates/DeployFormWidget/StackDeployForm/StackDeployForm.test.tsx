@@ -35,9 +35,6 @@ vi.mock('@/react/docker/stacks/common/NameField', () => ({
     />
   ),
 }));
-vi.mock('@/react/docker/proxy/queries/useSwarm', () => ({
-  useSwarmId: () => ({ data: 'swarm-1' }),
-}));
 vi.mock('@/react/common/stacks/queries/useCreateStack/useCreateStack', () => ({
   useCreateStack: () => ({ mutate, isLoading: false }),
 }));
@@ -116,7 +113,6 @@ describe('REQ-TPL-01 StackDeployForm for compose templates', () => {
         payload: expect.objectContaining({
           name: 'stack',
           environmentId: 3,
-          swarmId: 'swarm-1',
           fromAppTemplate: true,
           git: {
             RepositoryURL: 'https://example.com/repo.git',
@@ -127,6 +123,8 @@ describe('REQ-TPL-01 StackDeployForm for compose templates', () => {
       },
       expect.any(Object)
     );
+    // REQ-TAI-003: no Docker Swarm id in the payload
+    expect(mutate.mock.calls[0][0].payload).not.toHaveProperty('swarmId');
     expect(notifySuccess).toHaveBeenCalledWith('Success', 'Stack created');
     expect(go).toHaveBeenCalledWith('docker.stacks');
   });

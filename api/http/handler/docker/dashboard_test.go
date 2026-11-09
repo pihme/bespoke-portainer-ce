@@ -203,10 +203,14 @@ func TestDashboard_LocalDocker_EmptyResources_OK(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &got))
 	require.Equal(t, 0, got.Images.Total)
 	require.Equal(t, int64(0), got.Images.Size)
-	require.Equal(t, 0, got.Services)
 	require.Equal(t, 0, got.Volumes)
 	require.Equal(t, 0, got.Networks)
 	require.Equal(t, 1, got.Stacks)
+
+	// REQ-TAI-003: Docker Swarm is removed; the dashboard has no services counter.
+	var raw map[string]any
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &raw))
+	require.NotContains(t, raw, "services")
 }
 
 func TestDashboard_LocalDocker_CountsImagesAndVolumes(t *testing.T) {

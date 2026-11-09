@@ -32,11 +32,10 @@ function StacksController($scope, $state, Notifications, StackService, Authentic
   $scope.getStacks = getStacks;
 
   function getStacks() {
-    const endpointMode = $scope.applicationState.endpoint.mode;
     const endpointId = endpoint.Id;
 
     const includeOrphanedStacks = Authentication.isAdmin();
-    StackService.stacks(true, endpointMode.provider === 'DOCKER_SWARM_MODE' && endpointMode.role === 'MANAGER', endpointId, includeOrphanedStacks)
+    StackService.stacks(true, endpointId, includeOrphanedStacks)
       .then(function success(stacks) {
         $scope.stacks = stacks;
       })

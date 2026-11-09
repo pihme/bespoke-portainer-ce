@@ -37,7 +37,6 @@ vi.mock('@/react-tools/withUIRouter', () => ({
   withUIRouter: (c: unknown) => c,
 }));
 
-vi.mock('@/react/docker/configs/ListView/ListView', () => ({ ListView: () => null }));
 vi.mock('@/react/docker/containers/ListView', () => ({ ListView: () => null }));
 vi.mock('@/react/docker/containers/LogView', () => ({ LogView: () => null }));
 vi.mock('@/react/docker/containers/CreateView', () => ({ CreateView: () => null }));
@@ -60,8 +59,7 @@ describe('docker react views wrappers', () => {
     hoisted.register.mockClear();
   });
 
-  it('registers configs images networks stacks containers and parent views', async () => {
-    await import('./configs');
+  it('registers images networks stacks containers and parent views', async () => {
     await import('./images');
     await import('./networks');
     await import('./stacks');
@@ -71,7 +69,6 @@ describe('docker react views wrappers', () => {
     const names = hoisted.component.mock.calls.map((c) => c[0]);
     expect(names).toEqual(
       expect.arrayContaining([
-        'configsListView',
         'imagesListView',
         'networksListView',
         'stackItemView',
@@ -88,5 +85,12 @@ describe('docker react views wrappers', () => {
       ])
     );
     expect(hoisted.register).toHaveBeenCalled();
+  });
+
+  it('REQ-TAI-003 registers no Docker Swarm configs view', async () => {
+    await import('./index');
+
+    const names = hoisted.component.mock.calls.map((c) => c[0]);
+    expect(names).not.toContain('configsListView');
   });
 });

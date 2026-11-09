@@ -16,7 +16,7 @@ func TestGetDockerStacks_UserNotFound(t *testing.T) {
 	_, store := datastore.MustNewTestStore(t, false, false)
 
 	err := store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		_, err := GetDockerStacks(tx, &security.RestrictedRequestContext{UserID: 999}, 1, nil, nil)
+		_, err := GetDockerStacks(tx, &security.RestrictedRequestContext{UserID: 999}, 1, nil)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "Unable to retrieve user")
 		return nil
@@ -33,7 +33,7 @@ func TestGetDockerStacks_StackReadError(t *testing.T) {
 	require.NoError(t, store.Close())
 
 	err := store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		_, err := GetDockerStacks(tx, &security.RestrictedRequestContext{UserID: 1}, 1, nil, nil)
+		_, err := GetDockerStacks(tx, &security.RestrictedRequestContext{UserID: 1}, 1, nil)
 		if err != nil {
 			require.Contains(t, err.Error(), "Unable to retrieve")
 		}

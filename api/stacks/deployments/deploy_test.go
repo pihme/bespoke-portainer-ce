@@ -91,9 +91,6 @@ func (s noopDeployer) GetDockerClientFactory() *dockerclient.ClientFactory {
 }
 
 // without unpacker
-func (s noopDeployer) DeploySwarmStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, pullImage bool) error {
-	return nil
-}
 
 func (s noopDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
 	return nil
@@ -118,18 +115,6 @@ func (s noopDeployer) StartRemoteComposeStack(_ context.Context, userId portaine
 	return nil
 }
 func (s noopDeployer) StopRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
-	return nil
-}
-func (s noopDeployer) DeployRemoteSwarmStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, pullImage bool) error {
-	return nil
-}
-func (s noopDeployer) UndeployRemoteSwarmStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
-	return nil
-}
-func (s noopDeployer) StartRemoteSwarmStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error {
-	return nil
-}
-func (s noopDeployer) StopRemoteSwarmStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
 	return nil
 }
 
@@ -342,13 +327,24 @@ func Test_redeployWhenChanged_DockerComposeStack(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func Test_redeployWhenChanged_DockerSwarmStack(t *testing.T) {
+// REQ-TAI-003: Docker Swarm is removed; a leftover Swarm stack is never
+// redeployed by the Git auto-update and is marked as failed instead.
+func TestREQ_TAI_003_RedeployWhenChanged_SwarmStackIsNotDeployed(t *testing.T) {
 	t.Parallel()
 
 	store, stackID := setupRedeployStore(t, portainer.DockerSwarmStack, 5)
 
 	err := RedeployWhenChanged(t.Context(), stackID, noopDeployer{}, store, testhelpers.NewGitService(nil, "newHash"), nil)
+	require.NoError(t, err, "a failed deploy is recorded on the stack, not returned as a scheduler error")
+
+	var updated *portainer.Stack
+	err = store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var rerr error
+		updated, rerr = tx.Stack().Read(stackID)
+		return rerr
+	})
 	require.NoError(t, err)
+	assert.Equal(t, portainer.StackStatusError, updated.Status)
 }
 
 func Test_redeployWhenChanged_KubernetesStack(t *testing.T) {
@@ -394,120 +390,6 @@ func Test_redeployWhenChanged_KubernetesStack_DeployFailure_DoesNotAdvanceArtifa
 	require.Len(t, workflows[0].Artifacts, 1)
 	require.Len(t, workflows[0].Artifacts[0].Files, 1)
 	assert.Empty(t, workflows[0].Artifacts[0].Files[0].Hash, "artifact hash should stay at its old value (empty, in this fixture) since the deploy failed - the UI's git banner reads this field")
-}
-
-type stubSwarmStackManager struct {
-	portainer.SwarmStackManager
-
-	running map[portainer.StackID]bool
-	errs    map[portainer.StackID]error
-}
-
-func (f *stubSwarmStackManager) CheckRunningStatus(_ context.Context, stack *portainer.Stack, _ *portainer.Endpoint) (bool, error) {
-	if err, ok := f.errs[stack.ID]; ok {
-		return false, err
-	}
-
-	return f.running[stack.ID], nil
-}
-
-func Test_ReconcileSwarmStackStatus(t *testing.T) {
-	t.Parallel()
-
-	newEndpoint := func(t *testing.T, store dataservices.DataStore, id portainer.EndpointID) {
-		t.Helper()
-		err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return tx.Endpoint().Create(&portainer.Endpoint{ID: id})
-		})
-		require.NoError(t, err, "error creating environment")
-	}
-
-	newSwarmStack := func(t *testing.T, store dataservices.DataStore, id portainer.StackID, endpointID portainer.EndpointID, stackType portainer.StackType, status portainer.StackStatus) *portainer.Stack {
-		t.Helper()
-		stack := &portainer.Stack{
-			ID:         id,
-			EndpointID: endpointID,
-			Type:       stackType,
-			Status:     status,
-		}
-		err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return tx.Stack().Create(stack)
-		})
-		require.NoError(t, err, "error creating stack")
-
-		return stack
-	}
-
-	t.Run("flips a recovered errored swarm stack back to active", func(t *testing.T) {
-		t.Parallel()
-		_, store := datastore.MustNewTestStore(t, false, true)
-		newEndpoint(t, store, 1)
-		stack := newSwarmStack(t, store, 1, 1, portainer.DockerSwarmStack, portainer.StackStatusError)
-
-		manager := &stubSwarmStackManager{running: map[portainer.StackID]bool{1: true}}
-
-		err := ReconcileSwarmStackStatus(t.Context(), store, manager)
-		require.NoError(t, err)
-
-		result, err := store.Stack().Read(stack.ID)
-		require.NoError(t, err)
-		assert.Equal(t, portainer.StackStatusActive, result.Status)
-		require.NotEmpty(t, result.DeploymentStatus)
-		assert.Equal(t, portainer.StackStatusActive, result.DeploymentStatus[len(result.DeploymentStatus)-1].Status)
-	})
-
-	t.Run("leaves a still-failing swarm stack in the error state", func(t *testing.T) {
-		t.Parallel()
-		_, store := datastore.MustNewTestStore(t, false, true)
-		newEndpoint(t, store, 1)
-		stack := newSwarmStack(t, store, 1, 1, portainer.DockerSwarmStack, portainer.StackStatusError)
-
-		manager := &stubSwarmStackManager{running: map[portainer.StackID]bool{1: false}}
-
-		err := ReconcileSwarmStackStatus(t.Context(), store, manager)
-		require.NoError(t, err)
-
-		result, err := store.Stack().Read(stack.ID)
-		require.NoError(t, err)
-		assert.Equal(t, portainer.StackStatusError, result.Status)
-	})
-
-	t.Run("continues past a stack whose live check errors", func(t *testing.T) {
-		t.Parallel()
-		_, store := datastore.MustNewTestStore(t, false, true)
-		newEndpoint(t, store, 1)
-		stack := newSwarmStack(t, store, 1, 1, portainer.DockerSwarmStack, portainer.StackStatusError)
-
-		manager := &stubSwarmStackManager{errs: map[portainer.StackID]error{1: errors.New("agent unreachable")}}
-
-		err := ReconcileSwarmStackStatus(t.Context(), store, manager)
-		require.NoError(t, err, "a single stack's check failing should not fail the whole reconcile pass")
-
-		result, err := store.Stack().Read(stack.ID)
-		require.NoError(t, err)
-		assert.Equal(t, portainer.StackStatusError, result.Status, "status should be left untouched when the check itself failed")
-	})
-
-	t.Run("ignores stacks that aren't swarm stacks or aren't in the error state", func(t *testing.T) {
-		t.Parallel()
-		_, store := datastore.MustNewTestStore(t, false, true)
-		newEndpoint(t, store, 1)
-		composeStack := newSwarmStack(t, store, 1, 1, portainer.DockerComposeStack, portainer.StackStatusError)
-		activeSwarmStack := newSwarmStack(t, store, 2, 1, portainer.DockerSwarmStack, portainer.StackStatusActive)
-
-		manager := &stubSwarmStackManager{running: map[portainer.StackID]bool{1: true, 2: true}}
-
-		err := ReconcileSwarmStackStatus(t.Context(), store, manager)
-		require.NoError(t, err)
-
-		result, err := store.Stack().Read(composeStack.ID)
-		require.NoError(t, err)
-		assert.Equal(t, portainer.StackStatusError, result.Status, "non-swarm stacks must not be touched")
-
-		result, err = store.Stack().Read(activeSwarmStack.ID)
-		require.NoError(t, err)
-		assert.Equal(t, portainer.StackStatusActive, result.Status, "stacks that aren't in error must not be touched")
-	})
 }
 
 func Test_getUserRegistries(t *testing.T) {

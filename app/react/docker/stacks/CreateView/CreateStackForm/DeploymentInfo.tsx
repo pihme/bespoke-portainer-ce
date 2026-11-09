@@ -1,24 +1,10 @@
 import { TextTip } from '@@/Tip/TextTip';
 
 interface Props {
-  isSwarm: boolean;
   composeSyntaxMaxVersion?: number;
 }
 
-export function DeploymentInfo({ isSwarm, composeSyntaxMaxVersion }: Props) {
-  if (isSwarm) {
-    return (
-      <div className="form-group">
-        <div className="col-sm-12">
-          <span className="text-muted small">
-            This stack will be deployed using the equivalent of the{' '}
-            <code>docker stack deploy</code> command.
-          </span>
-        </div>
-      </div>
-    );
-  }
-
+export function DeploymentInfo({ composeSyntaxMaxVersion }: Props) {
   if (composeSyntaxMaxVersion === 2) {
     return (
       <div className="form-group">

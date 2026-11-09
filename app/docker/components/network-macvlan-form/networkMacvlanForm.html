@@ -36,25 +36,6 @@
         </div>
       </div>
       <!-- network-card-input -->
-      <!-- nodes-selector -->
-      <div ng-if="$ctrl.applicationState.endpoint.mode.agentProxy && $ctrl.applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE'">
-        <macvlan-nodes-selector
-          dataset="$ctrl.nodes"
-          is-ip-column-visible="$ctrl.applicationState.endpoint.apiVersion >= 1.25"
-          have-access-to-node="$ctrl.isAdmin"
-          value="$ctrl.data.DatatableState.selectedItems"
-          on-change="($ctrl.onChangeSelectedNodes)"
-        ></macvlan-nodes-selector>
-
-        <div class="form-group" ng-show="macvlanConfigurationForm.node_selector.$invalid">
-          <div class="col-sm-12 small text-warning">
-            <div ng-messages="macvlanConfigurationForm.node_selector.$error">
-              <p ng-message="required" class="vertical-center"> <pr-icon icon="'alert-triangle'" mode="'warning'"></pr-icon> At least one node must be selected.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- !nodes-selector -->
     </div>
     <!-- configuration-inputs -->
     <!-- deploy-inputs -->

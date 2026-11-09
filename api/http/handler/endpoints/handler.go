@@ -81,8 +81,6 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryAccess))).Methods(http.MethodPut)
 
 	h.Handle("/endpoints/global-key", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointCreateGlobalKey))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/forceupdateservice",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointForceUpdateService))).Methods(http.MethodPut)
 
 	// DEPRECATED
 	h.Handle("/endpoints/{id}/status", bouncer.PublicAccess(httperror.LoggerHandler(h.endpointStatusInspect))).Methods(http.MethodGet)

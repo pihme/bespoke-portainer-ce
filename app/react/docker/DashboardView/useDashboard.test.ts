@@ -17,7 +17,6 @@ const dashboardPayload = {
     healthy: 2,
     unhealthy: 1,
   },
-  services: 0,
   images: { total: 4, size: 1024 },
   volumes: 2,
   networks: 3,

@@ -20,10 +20,8 @@ import {
   CustomTemplatesVariablesField,
   getVariablesFieldDefaultValues,
 } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesField';
-import { StackType } from '@/react/common/stacks/types';
 import { toGitFormModel } from '@/react/portainer/gitops/types';
 import { AdvancedSettings } from '@/react/portainer/templates/app-templates/DeployFormWidget/AdvancedSettings';
-import { useSwarmId } from '@/react/docker/proxy/queries/useSwarm';
 
 import { Button } from '@@/buttons';
 import { FormActions } from '@@/form-components/FormActions';
@@ -45,7 +43,6 @@ export function DeployForm({
 }) {
   const router = useRouter();
   const environmentId = useEnvironmentId();
-  const swarmIdQuery = useSwarmId(environmentId);
   const mutation = useCreateStack();
   const validation = useValidation({
     isDeployable,
@@ -165,58 +162,30 @@ export function DeployForm({
   }
 
   function getPayload(values: FormValues): CreateStackPayload {
-    const type =
-      template.Type === StackType.DockerCompose ? 'standalone' : 'swarm';
-    const isGit = !!template.GitConfig;
-    if (isGit) {
-      return type === 'standalone'
-        ? {
-            type,
-            method: 'git',
-            payload: {
-              name: values.name,
-              environmentId,
-              git: toGitFormModel(
-                getTemplateSourceId(template),
-                template.GitConfig
-              ),
-            },
-          }
-        : {
-            type,
-            method: 'git',
-            payload: {
-              name: values.name,
-              environmentId,
-              swarmId: swarmIdQuery.data || '',
-              git: toGitFormModel(
-                getTemplateSourceId(template),
-                template.GitConfig
-              ),
-            },
-          };
+    if (template.GitConfig) {
+      return {
+        type: 'standalone',
+        method: 'git',
+        payload: {
+          name: values.name,
+          environmentId,
+          git: toGitFormModel(
+            getTemplateSourceId(template),
+            template.GitConfig
+          ),
+        },
+      };
     }
 
-    return type === 'standalone'
-      ? {
-          type,
-          method: 'string',
-          payload: {
-            name: values.name,
-            environmentId,
-            fileContent: values.fileContent,
-          },
-        }
-      : {
-          type,
-          method: 'string',
-          payload: {
-            name: values.name,
-            environmentId,
-            swarmId: swarmIdQuery.data || '',
-            fileContent: values.fileContent,
-          },
-        };
+    return {
+      type: 'standalone',
+      method: 'string',
+      payload: {
+        name: values.name,
+        environmentId,
+        fileContent: values.fileContent,
+      },
+    };
   }
 }
 

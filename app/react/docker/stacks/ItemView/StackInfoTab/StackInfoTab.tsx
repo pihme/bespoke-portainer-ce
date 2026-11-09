@@ -13,7 +13,6 @@ import { Alert } from '@@/Alert';
 import { Icon } from '@@/Icon';
 import { FormSection } from '@@/form-components/FormSection';
 
-import { useSwarmStackResources } from '../useSwarmStackServices';
 import { useComposeStackContainers } from '../useComposeStackContainers';
 
 import { StackDuplicationForm } from './StackDuplicationForm/StackDuplicationForm';
@@ -210,9 +209,6 @@ function useStackStatus({
   type: Stack['Type'] | undefined;
   environmentId: EnvironmentId;
 }) {
-  const servicesQuery = useSwarmStackResources(name, {
-    enabled: type === StackType.DockerSwarm && !status,
-  });
   const containersQuery = useComposeStackContainers(
     { environmentId, stackName: name },
     {
@@ -220,14 +216,9 @@ function useStackStatus({
     }
   );
 
-  const derivedSwarmStatus = servicesQuery.data?.length
+  const derivedStatus = containersQuery.data?.length
     ? StackStatus.Active
     : StackStatus.Inactive;
-  const derivedComposeStatus = containersQuery.data?.length
-    ? StackStatus.Active
-    : StackStatus.Inactive;
-  const derivedStatus =
-    type === StackType.DockerSwarm ? derivedSwarmStatus : derivedComposeStatus;
 
   return status || derivedStatus;
 }

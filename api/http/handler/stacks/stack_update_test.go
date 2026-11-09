@@ -222,7 +222,7 @@ func TestStackUpdate(t *testing.T) {
 		EntryPoint:  "docker-compose.yml",
 		EndpointID:  endpoint.ID,
 		ProjectPath: fileService.GetDatastorePath() + fmt.Sprintf("/compose/%d", 1),
-		Type:        portainer.DockerSwarmStack,
+		Type:        portainer.DockerComposeStack,
 	}
 
 	err = store.Stack().Create(stack)
@@ -252,7 +252,6 @@ func TestStackUpdate(t *testing.T) {
 	handler.FileService = fileService
 	handler.StackDeployer = testhelpers.NewTestStackDeployer()
 	handler.ComposeStackManager = testhelpers.NewComposeStackManager()
-	handler.SwarmStackManager = swarmStackManager{}
 
 	payload := &updateComposeStackPayload{
 		StackFileContent: "version: '3'\nservices:\n  web:\n    image: nginx:latest",
@@ -321,7 +320,7 @@ type updateStackInTxTestSetup struct {
 }
 
 type testUpdateStackPayload interface {
-	*updateComposeStackPayload | *updateSwarmStackPayload
+	*updateComposeStackPayload
 }
 
 func setupUpdateStackInTxTest[T testUpdateStackPayload](t *testing.T, stack *portainer.Stack, payload T) *updateStackInTxTestSetup {
@@ -429,88 +428,34 @@ func Test_updateComposeStack_WorkflowAlreadyDeleted_StillUpdatesStack(t *testing
 	assert.Zero(t, stored.WorkflowID, "stack should be detached from the now-gone Workflow")
 }
 
-// Test_updateSwarmStack_WorkflowAlreadyDeleted_StillUpdatesStack mirrors
-// Test_updateComposeStack_WorkflowAlreadyDeleted_StillUpdatesStack for Swarm stacks.
-func Test_updateSwarmStack_WorkflowAlreadyDeleted_StillUpdatesStack(t *testing.T) {
+// REQ-TAI-003: Docker Swarm is removed; updating a leftover Swarm stack record
+// is refused with 400 and nothing is deployed.
+func TestREQ_TAI_003_UpdateStackInTx_SwarmStackIsRejected(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
 
-	payload := &updateSwarmStackPayload{
+	payload := &updateComposeStackPayload{
 		StackFileContent: "version: '3'\nservices:\n  web:\n    image: nginx:latest",
 	}
 	stack := &portainer.Stack{
 		ID:         1,
-		Name:       "test-stack-workflow-gone",
+		Name:       "test-stack-swarm",
 		EntryPoint: "docker-compose.yml",
 		Type:       portainer.DockerSwarmStack,
-		WorkflowID: 999,
 	}
 	setup := setupUpdateStackInTxTest(t, stack, payload)
-	setup.handler.SwarmStackManager = swarmStackManager{}
 
 	var handlerErr *httperror.HandlerError
-	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		_, _, _, handlerErr = setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
-		return nil
-	})
-	require.NoError(t, err)
-	require.Nil(t, handlerErr, "stack update should succeed even though its Workflow was already gone")
-
-	stored, err := setup.store.Stack().Read(setup.stack.ID)
-	require.NoError(t, err)
-	assert.Zero(t, stored.WorkflowID, "stack should be detached from the now-gone Workflow")
-}
-
-type swarmStackManager struct {
-	portainer.SwarmStackManager
-}
-
-func (manager swarmStackManager) NormalizeStackName(name string) string {
-	return name
-}
-
-func Test_updateSwarmStack_Prune(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-
-	payload := &updateSwarmStackPayload{
-		StackFileContent: "version: '3'\nservices:\n  web:\n    image: nginx:latest",
-		Prune:            true,
-	}
-	stack := &portainer.Stack{
-		ID:         1,
-		Name:       "test-stack-prune",
-		EntryPoint: "docker-compose.yml",
-		Type:       portainer.DockerSwarmStack,
-	}
-	setup := setupUpdateStackInTxTest(t, stack, payload)
-	setup.handler.SwarmStackManager = swarmStackManager{}
-	deployer := testhelpers.NewTestStackDeployer()
-	setup.handler.StackDeployer = deployer
-
 	var deploymentConfig deployments.StackDeploymentConfiger
-	var postDeploy postDeployFunc
 	err := setup.store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		var handlerErr *httperror.HandlerError
-		_, deploymentConfig, postDeploy, handlerErr = setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
-		if handlerErr != nil {
-			return handlerErr
-		}
+		_, deploymentConfig, _, handlerErr = setup.handler.updateStackInTx(tx, setup.req, setup.stack.ID, setup.endpoint.ID)
 		return nil
 	})
-	require.NoError(t, err, "handler should accept Prune=true and succeed")
-
-	stored, err := setup.store.Stack().Read(setup.stack.ID)
 	require.NoError(t, err)
-	require.NotNil(t, stored.Option, "stack.Option should not be nil")
-	assert.True(t, stored.Option.Prune, "stack.Option.Prune should be persisted as true")
-
-	go stackDeploy(setup.store, setup.stack.ID, deploymentConfig, postDeploy)
-
-	require.Eventually(t, func() bool {
-		return deployer.DeploySwarmCallCount == 1
-	}, 5*time.Second, 10*time.Millisecond, "DeploySwarmStack should be called exactly once")
-	assert.True(t, deployer.LastPrune, "deployer should be invoked with prune=true")
+	require.NotNil(t, handlerErr)
+	assert.Equal(t, http.StatusBadRequest, handlerErr.StatusCode)
+	assert.Contains(t, handlerErr.Message, "Docker Swarm stacks are no longer supported")
+	assert.Nil(t, deploymentConfig)
 }
 
 func Test_updateComposeStack_Prune(t *testing.T) {

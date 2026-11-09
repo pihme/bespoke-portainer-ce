@@ -21,7 +21,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/tags"
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
-	"github.com/portainer/portainer/api/http/handler/webhooks"
 	"github.com/portainer/portainer/api/http/handler/websocket"
 
 	"github.com/gorilla/mux"
@@ -42,7 +41,7 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 		seenCustom, seenDocker, seenGroups, seenEndpoints, seenProxy string
 		seenGitops, seenMotd, seenSettings, seenStacks               string
 		seenSystem, seenTags, seenTemplates, seenUpload, seenSSL     string
-		seenWS, seenWebhooks, seenStorybook                          string
+		seenWS, seenStorybook                                        string
 	)
 
 	h := &Handler{
@@ -61,7 +60,6 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 		UploadHandler:          &upload.Handler{Router: recordingMux(&seenUpload, http.StatusOK)},
 		SSLHandler:             &ssl.Handler{Router: recordingMux(&seenSSL, http.StatusOK)},
 		WebSocketHandler:       &websocket.Handler{Router: recordingMux(&seenWS, http.StatusOK)},
-		WebhookHandler:         &webhooks.Handler{Router: recordingMux(&seenWebhooks, http.StatusOK)},
 		FileHandler:            file.NewHandler(t.TempDir(), false),
 		StorybookHandler: &storybook.Handler{Handler: http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			seenStorybook = req.URL.Path
@@ -92,7 +90,6 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 		{"/api/upload/tls/1/ca", func(t *testing.T) { require.Equal(t, "/upload/tls/1/ca", seenUpload) }},
 		{"/api/ssl", func(t *testing.T) { require.Equal(t, "/ssl", seenSSL) }},
 		{"/api/websocket", func(t *testing.T) { require.Equal(t, "/websocket", seenWS) }},
-		{"/api/webhooks", func(t *testing.T) { require.Equal(t, "/webhooks", seenWebhooks) }},
 		{"/storybook/index.html", func(t *testing.T) { require.Equal(t, "/index.html", seenStorybook) }},
 		{"/index.html", nil},
 	}

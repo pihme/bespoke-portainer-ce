@@ -27,7 +27,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | NET | Docker networks |
 | VOL | Docker volumes |
 | STK | Docker stacks (Compose) |
-| SWM | Docker Swarm: cluster, services, configs, secrets |
+| SWM | Docker Swarm: cluster, services, configs, secrets (all removed, TAI-003) |
 | TPL | App templates and custom templates |
 | GIT | App Delivery (GitOps workflows and sources) |
 | REG | Registries |
@@ -91,7 +91,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-ENV-03 Manage environments.** List, edit (name, URL, public IP, group, tags, TLS) and remove environments. Entry: UI `#!/endpoints`, `#!/endpoints/{id}`; API `GET/POST /endpoints`, `GET/PUT/DELETE /endpoints/{id}`, `POST /endpoints/delete`. docs: admin/environments/environments
 - **REQ-ENV-04 Add the local Docker environment.** Connect the Docker daemon on the Portainer host through the mounted socket. Entry: UI `#!/wizard/endpoints/create`; CLI `--host`. docs: admin/environments/add/local, admin/environments/add/docker/socket
 - **REQ-ENV-05 Add a remote Docker Standalone environment.** Via Portainer Agent, Docker API (with optional TLS) or socket. docs: admin/environments/add/docker, …/docker/agent, …/docker/api
-- **REQ-ENV-06 Add a Docker Swarm environment.** Via Agent, API or socket. docs: admin/environments/add/swarm and sub-pages
+- ~~**REQ-ENV-06 Add a Docker Swarm environment.** Via Agent, API or socket. docs: admin/environments/add/swarm and sub-pages~~ REMOVED (TAI-003)
 - **REQ-ENV-07 Add a Podman environment.** Via Agent or Podman socket. docs: admin/environments/add/podman and sub-pages
 - ~~**REQ-ENV-08 Add a Kubernetes environment.** Via Agent. docs: admin/environments/add/kubernetes, …/kubernetes/agent~~ REMOVED (TAI-002)
 - ~~**REQ-ENV-09 Import a Kubernetes cluster from kubeconfig.** **BE-only.** docs: admin/environments/add/kubernetes/import~~ REMOVED (TAI-002)
@@ -108,10 +108,10 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## HOST – Docker environment dashboard, host and events
 
-- **REQ-HOST-01 Docker dashboard.** Environment info and summary tiles (stacks, containers, images, volumes, networks, GPUs, Swarm services) with links into the lists. Entry: UI `#!/{envId}/docker/dashboard`; API `GET /docker/{environmentId}/dashboard`. docs: user/docker/dashboard
+- **REQ-HOST-01 Docker dashboard.** Environment info and summary tiles (stacks, containers, images, volumes, networks, GPUs, Swarm services) with links into the lists. Entry: UI `#!/{envId}/docker/dashboard`; API `GET /docker/{environmentId}/dashboard`. docs: user/docker/dashboard *TAI-003: no Swarm services tile and no Swarm cluster info panels; the GPU tile shows on standalone engines.*
 - **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details
 - **REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem)
-- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup
+- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.*
 - **REQ-HOST-05 Docker events.** List engine events for the environment. Entry: UI `#!/{envId}/docker/events`. docs: user/docker/events
 
 ## CTR – Docker containers
@@ -147,7 +147,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## NET – Docker networks
 
 - **REQ-NET-01 List networks.** Entry: UI `#!/{envId}/docker/networks`. docs: user/docker/networks
-- **REQ-NET-02 Create a network.** Drivers bridge, overlay, macvlan, ipvlan and others, IPv4/IPv6 configuration, labels, internal/attachable options, access control. Entry: UI `#!/{envId}/docker/networks/new`. docs: user/docker/networks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
+- **REQ-NET-02 Create a network.** Drivers bridge, overlay, macvlan, ipvlan and others, IPv4/IPv6 configuration, labels, internal/attachable options, access control. Entry: UI `#!/{envId}/docker/networks/new`. docs: user/docker/networks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).* *TAI-003: no Swarm node selection or per-node macvlan creation; Swarm-scoped networks are not listed.*
 - **REQ-NET-03 Network details.** Options, IPAM and connected containers (disconnect a container). Entry: UI `#!/{envId}/docker/networks/{id}`. docs: user/docker/networks
 - **REQ-NET-04 Remove a network.** docs: user/docker/networks/remove
 
@@ -156,41 +156,41 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-VOL-01 List volumes.** With used/unused state, driver and mount point. Entry: UI `#!/{envId}/docker/volumes`. docs: user/docker/volumes
 - **REQ-VOL-02 Create a volume.** Local, NFS, CIFS and tmpfs volumes, driver options, access control. Entry: UI `#!/{envId}/docker/volumes/new`. docs: user/docker/volumes/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-VOL-03 Volume details.** Driver, mount point, options and containers using the volume. Entry: UI `#!/{envId}/docker/volumes/{id}`. docs: user/docker/volumes
-- **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse
+- **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse *TAI-003: browsing no longer comes from Swarm.*
 - **REQ-VOL-05 Remove a volume.** docs: user/docker/volumes/remove
 
 ## STK – Docker stacks
 
 - **REQ-STK-01 List stacks.** Stacks created in Portainer (full control) and external stacks (limited control; control column inferred from code: `StacksDatatable/columns/control.tsx`). Entry: UI `#!/{envId}/docker/stacks`; API `GET /stacks`. docs: user/docker/stacks
-- **REQ-STK-02 Deploy a stack from the web editor or an upload.** Compose file in the web editor or uploaded, environment variables (incl. `.env` upload), access control. Entry: UI `#!/{envId}/docker/stacks/newstack`; API `POST /stacks/create/standalone/string`, `…/standalone/file` (Swarm: `…/swarm/string`, `…/swarm/file`). docs: user/docker/stacks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
-- **REQ-STK-03 Deploy a stack from Git.** Repository URL, reference, compose path and additional files, authentication, automatic updates (polling or webhook), TLS skip, relative path volumes (BE). Entry: same UI; API `POST /stacks/create/standalone/repository`, `…/swarm/repository`. docs: user/docker/stacks/add, advanced/relative-paths
-- **REQ-STK-04 Inspect and edit a stack.** See containers/services of a stack, edit the compose file and environment variables, update (optionally re-pull images), redeploy from Git, change Git settings. Entry: UI `#!/{envId}/docker/stacks/{name}`; API `GET/PUT /stacks/{id}`, `GET /stacks/{id}/file`, `POST /stacks/{id}/git`, `PUT /stacks/{id}/git/redeploy`. docs: user/docker/stacks/edit
+- **REQ-STK-02 Deploy a stack from the web editor or an upload.** Compose file in the web editor or uploaded, environment variables (incl. `.env` upload), access control. Entry: UI `#!/{envId}/docker/stacks/newstack`; API `POST /stacks/create/standalone/string`, `…/standalone/file` (Swarm: `…/swarm/string`, `…/swarm/file`). docs: user/docker/stacks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).* *TAI-003: the Swarm paths are removed; `POST /stacks/create/swarm/…` answers 400.*
+- **REQ-STK-03 Deploy a stack from Git.** Repository URL, reference, compose path and additional files, authentication, automatic updates (polling or webhook), TLS skip, relative path volumes (BE). Entry: same UI; API `POST /stacks/create/standalone/repository`, `…/swarm/repository`. docs: user/docker/stacks/add, advanced/relative-paths *TAI-003: the Swarm path is removed; `…/swarm/repository` answers 400.*
+- **REQ-STK-04 Inspect and edit a stack.** See containers/services of a stack, edit the compose file and environment variables, update (optionally re-pull images), redeploy from Git, change Git settings. Entry: UI `#!/{envId}/docker/stacks/{name}`; API `GET/PUT /stacks/{id}`, `GET /stacks/{id}/file`, `POST /stacks/{id}/git`, `PUT /stacks/{id}/git/redeploy`. docs: user/docker/stacks/edit *TAI-003: a stack shows containers only; a leftover Swarm stack record can be inspected and deleted, every other operation answers 400.*
 - **REQ-STK-05 Start and stop a stack.** Entry: UI stack page; API `POST /stacks/{id}/start`, `POST /stacks/{id}/stop`. docs: user/docker/stacks/edit
 - **REQ-STK-06 Create a template from a stack.** Entry: UI stack page. docs: user/docker/stacks/template
-- **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate
-- **REQ-STK-08 Remove a stack.** Entry: API `DELETE /stacks/{id}`, `DELETE /stacks/name/{name}`. docs: user/docker/stacks/remove
+- **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate *TAI-003: Swarm stacks cannot be migrated or duplicated.*
+- **REQ-STK-08 Remove a stack.** Entry: API `DELETE /stacks/{id}`, `DELETE /stacks/name/{name}`. docs: user/docker/stacks/remove *TAI-003: removing an external (Swarm) stack via `external=true` answers 400.*
 - **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL (CE, C-01; the CE create and edit forms set webhook IDs for editor and Git stacks). Pull prevention and environment variables on the webhook call are **BE-only**. Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks
-- **REQ-STK-10 Associate orphaned stacks.** Re-attach a stack to an environment. Entry: API `PUT /stacks/{id}/associate` (inferred from code; no docs page).
+- **REQ-STK-10 Associate orphaned stacks.** Re-attach a stack to an environment. Entry: API `PUT /stacks/{id}/associate` (inferred from code; no docs page). *TAI-003: no `swarmId`; Swarm stacks cannot be associated.*
 
 ## SWM – Docker Swarm
 
-- **REQ-SWM-01 Swarm cluster details.** Cluster status and node list; node details with labels, availability and engine info; browse a node (Agent). Entry: UI `#!/{envId}/docker/swarm`, `#!/{envId}/docker/nodes/{id}`, `…/browse`. docs: user/docker/swarm/details
-- **REQ-SWM-02 Cluster visualizer.** Graphical view of nodes and tasks. Entry: UI `#!/{envId}/docker/swarm/visualizer`. docs: user/docker/swarm/cluster-visualizer
-- **REQ-SWM-03 List and add services.** Create a service with image, replicas/global mode, ports, networks, volumes, environment, labels, secrets, configs, resources, placement, restart and update policies. Entry: UI `#!/{envId}/docker/services`, `#!/{envId}/docker/services/new`. docs: user/docker/services, user/docker/services/add
-- **REQ-SWM-04 Configure a service.** Change service options after creation. Entry: UI `#!/{envId}/docker/services/{id}`. docs: user/docker/services/configure
-- **REQ-SWM-05 Scale a service.** docs: user/docker/services/scale
-- **REQ-SWM-06 Service tasks.** Task status, task details and task logs. Entry: UI `#!/{envId}/docker/tasks/{id}`, `…/logs`. docs: user/docker/services/tasks
-- **REQ-SWM-07 Service logs.** Entry: UI `#!/{envId}/docker/services/{id}/logs`. docs: user/docker/services/logs
-- **REQ-SWM-08 Roll back and force-update a service.** Entry: UI service page; API `PUT /endpoints/{id}/forceupdateservice`. docs: user/docker/services/rollback
-- **REQ-SWM-09 Service webhooks.** Redeploy a service via webhook (passing environment variables is BE-only). Entry: API `GET/POST /webhooks`, `POST /webhooks/{id}`, `PUT/DELETE /webhooks/{id}`. docs: user/docker/services/webhooks
-- **REQ-SWM-10 Configs.** List, add and remove Swarm configs. Entry: UI `#!/{envId}/docker/configs`, `…/new`, `…/{id}`. docs: user/docker/configs, …/add, …/remove
-- **REQ-SWM-11 Secrets.** List, add and remove Swarm secrets. Entry: UI `#!/{envId}/docker/secrets`, `…/new`, `…/{id}`. docs: user/docker/secrets, …/add, …/remove
+- ~~**REQ-SWM-01 Swarm cluster details.** Cluster status and node list; node details with labels, availability and engine info; browse a node (Agent). Entry: UI `#!/{envId}/docker/swarm`, `#!/{envId}/docker/nodes/{id}`, `…/browse`. docs: user/docker/swarm/details~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-02 Cluster visualizer.** Graphical view of nodes and tasks. Entry: UI `#!/{envId}/docker/swarm/visualizer`. docs: user/docker/swarm/cluster-visualizer~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-03 List and add services.** Create a service with image, replicas/global mode, ports, networks, volumes, environment, labels, secrets, configs, resources, placement, restart and update policies. Entry: UI `#!/{envId}/docker/services`, `#!/{envId}/docker/services/new`. docs: user/docker/services, user/docker/services/add~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-04 Configure a service.** Change service options after creation. Entry: UI `#!/{envId}/docker/services/{id}`. docs: user/docker/services/configure~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-05 Scale a service.** docs: user/docker/services/scale~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-06 Service tasks.** Task status, task details and task logs. Entry: UI `#!/{envId}/docker/tasks/{id}`, `…/logs`. docs: user/docker/services/tasks~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-07 Service logs.** Entry: UI `#!/{envId}/docker/services/{id}/logs`. docs: user/docker/services/logs~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-08 Roll back and force-update a service.** Entry: UI service page; API `PUT /endpoints/{id}/forceupdateservice`. docs: user/docker/services/rollback~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-09 Service webhooks.** Redeploy a service via webhook (passing environment variables is BE-only). Entry: API `GET/POST /webhooks`, `POST /webhooks/{id}`, `PUT/DELETE /webhooks/{id}`. docs: user/docker/services/webhooks~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-10 Configs.** List, add and remove Swarm configs. Entry: UI `#!/{envId}/docker/configs`, `…/new`, `…/{id}`. docs: user/docker/configs, …/add, …/remove~~ REMOVED (TAI-003)
+- ~~**REQ-SWM-11 Secrets.** List, add and remove Swarm secrets. Entry: UI `#!/{envId}/docker/secrets`, `…/new`, `…/{id}`. docs: user/docker/secrets, …/add, …/remove~~ REMOVED (TAI-003)
 
 ## TPL – Templates
 
-- **REQ-TPL-01 App templates.** Browse the built-in list of application templates and deploy one as a container or stack with editable fields. Entry: UI `#!/{envId}/docker/templates`; API `GET /templates`, `POST /templates/{id}/file`. docs: user/docker/templates/application, …/deploy-container, …/deploy-stack
+- **REQ-TPL-01 App templates.** Browse the built-in list of application templates and deploy one as a container or stack with editable fields. Entry: UI `#!/{envId}/docker/templates`; API `GET /templates`, `POST /templates/{id}/file`. docs: user/docker/templates/application, …/deploy-container, …/deploy-stack *TAI-003: Swarm stack templates are not deployable.*
 - **REQ-TPL-02 Own app template source.** Point Portainer at a JSON template list (format documented). Entry: CLI `--templates`; UI `#!/settings` (App Templates). docs: advanced/app-templates, advanced/app-templates/build, advanced/app-templates/format, admin/settings/general
-- **REQ-TPL-03 Custom templates.** Create custom stack templates from the web editor, an upload or Git, edit and delete them, and deploy them. Entry: UI `#!/{envId}/docker/templates/custom`, `…/custom/new`, `…/custom/{id}`; API `/custom_templates`, `POST /custom_templates/create/{string|file|repository}`, `PUT /custom_templates/{id}/git_fetch`. docs: user/docker/templates/custom
+- **REQ-TPL-03 Custom templates.** Create custom stack templates from the web editor, an upload or Git, edit and delete them, and deploy them. Entry: UI `#!/{envId}/docker/templates/custom`, `…/custom/new`, `…/custom/{id}`; API `/custom_templates`, `POST /custom_templates/create/{string|file|repository}`, `PUT /custom_templates/{id}/git_fetch`. docs: user/docker/templates/custom *TAI-003: new templates default to Compose; Swarm custom templates cannot be deployed from the Docker UI (the type stays for Edge, TAI-004).*
 - **REQ-TPL-04 Template variables.** Variables in custom templates that the user fills at deploy time (CE, C-02: create, validate and fill). docs: user/docker/templates/custom (Variables in templates)
 
 ## GIT – App Delivery
@@ -203,7 +203,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-REG-01 Manage registries.** Add, edit and remove registries: Docker Hub account, AWS ECR, Quay.io, ProGet, Azure, GitLab, custom; GitHub (ghcr) is BE-only; OCI registries are BE-only. Entry: UI `#!/registries`, `#!/registries/new`, `#!/registries/{id}`; API `/registries`, `POST /registries/{id}/configure`, `POST /registries/ping`. docs: admin/registries, admin/registries/add and sub-pages
 - **REQ-REG-02 Hide anonymous Docker Hub.** **BE-only** (CE flag `HIDE_DOCKER_HUB_ANONYMOUS`, inferred from code). docs: admin/registries
-- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.* *TAI-002: the Kubernetes registries view and its namespace "Manage access" are removed; `PUT /endpoints/{id}/registries/{registryId}` no longer takes `Namespaces`, and `GET /endpoints/{id}/registries` ignores `namespace`.*
+- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.* *TAI-002: the Kubernetes registries view and its namespace "Manage access" are removed; `PUT /endpoints/{id}/registries/{registryId}` no longer takes `Namespaces`, and `GET /endpoints/{id}/registries` ignores `namespace`.* *TAI-003: no `#!/{envId}/docker/swarm/registries`; every Docker engine uses the host page.*
 - **REQ-REG-04 Browse and manage registry content.** Browse repositories, add, retag and remove tags. **BE-only.** docs: admin/registries/browse, admin/registries/manage
 - **REQ-REG-05 Docker Hub pull-limit check.** Show remaining Docker Hub pulls. Entry: API `GET /endpoints/{id}/dockerhub/{registryId}`; CLI `--pull-limit-check-disabled` (inferred from code).
 
@@ -335,6 +335,13 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (f) `PUT /settings` ignores `KubeconfigExpiry`, `HelmRepositoryURL` and `KubectlShellImage`; `GET /settings/public` has no `KubeconfigExpiry`.
   - (g) Removing a leftover Kubernetes stack record does not touch any cluster: the teardown is a no-op and the record is deleted.
   - (h) The UI has no `#!/{envId}/kubernetes/…` states, no Kubernetes sidebar, no kubectl shell, kubeconfig button or kubeconfig panel, no Kubernetes or "Create Kubernetes cluster" wizard option, no Kubernetes or Helm settings panels, no Helm repositories on `#!/account` and no `#!/account/helm-repository/new`, no Kubernetes custom template view and no registry "Manage access"; the first-start wizard never tries to create a local Kubernetes environment. A leftover Kubernetes environment opens its details page instead of a dashboard.
+- **REQ-TAI-003 No Docker Swarm.** Added by TAI-003 (2026-11-09).
+  - (a) The removed API routes answer 404: `GET`/`POST /webhooks`, `PUT`/`DELETE /webhooks/{id}`, `POST /webhooks/{token}` and `PUT /endpoints/{id}/forceupdateservice`.
+  - (b) The Docker API proxy answers 404 "Docker Swarm is not supported" for `/configs`, `/nodes`, `/secrets`, `/services`, `/swarm` and `/tasks` without contacting the engine.
+  - (c) `POST /stacks/create/swarm/{string|file|repository}` answers 400 ("Value must be standalone"); `DELETE /stacks/{id}?external=true` answers 400.
+  - (d) A leftover Swarm stack record (type 1) can be listed, inspected and deleted (teardown is a no-op); update, start, stop, Git update, Git redeploy, migrate and associate answer 400 "Docker Swarm stacks are no longer supported"; the Git auto-update job marks it errored instead of deploying it.
+  - (e) The Docker dashboard API has no `services` count.
+  - (f) A Docker engine that is part of a Swarm is managed as a standalone engine: the UI has no `#!/{envId}/docker/{swarm,services,tasks,nodes,configs,secrets}` states, no Swarm sidebar entries, no Swarm services tile, cluster visualizer or Swarm info panels, no Swarm stack create path, no Swarm node selectors and no "Docker Swarm" wizard option; Swarm-scoped networks are not listed.
 
 ## Not covered as requirements
 

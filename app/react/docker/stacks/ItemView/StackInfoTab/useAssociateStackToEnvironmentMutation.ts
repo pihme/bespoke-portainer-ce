@@ -16,31 +16,26 @@ async function associateStackToEnvironmentMutation({
   environmentId,
   stackId,
   isOrphanedRunning,
-  swarmId,
 }: {
   environmentId: number;
   stackId: number;
   isOrphanedRunning?: boolean;
-  swarmId?: string;
 }) {
   await associate({
     environmentId,
     stackId,
     isOrphanedRunning,
-    swarmId,
-  });
+    });
 }
 
 async function associate({
   environmentId,
   stackId,
   isOrphanedRunning,
-  swarmId,
 }: {
   environmentId: number;
   stackId: number;
   isOrphanedRunning?: boolean;
-  swarmId?: string;
 }) {
   const { data } = await axios.put<Stack>(
     buildStackUrl(stackId, 'associate'),
@@ -49,8 +44,7 @@ async function associate({
       params: {
         endpointId: environmentId,
         orphanedRunning: isOrphanedRunning ?? false,
-        swarmId,
-      },
+            },
     }
   );
 

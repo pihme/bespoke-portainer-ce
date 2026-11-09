@@ -86,6 +86,10 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 			return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 		}
 
+		if httpErr := rejectSwarmStack(stack); httpErr != nil {
+			return httpErr
+		}
+
 		if stack.WorkflowID == 0 {
 			return httperror.BadRequest("Stack is not created from git", errors.New("stack has no git workflow"))
 		}
@@ -289,21 +293,6 @@ func (handler *Handler) stackGitRedeploy(w http.ResponseWriter, r *http.Request)
 // asynchronously.
 func (handler *Handler) deployStack(r *http.Request, stack *portainer.Stack, pullImage bool, endpoint *portainer.Endpoint) (deployments.StackDeploymentConfiger, *httperror.HandlerError) {
 	switch stack.Type {
-	case portainer.DockerSwarmStack:
-		securityContext, err := security.RetrieveRestrictedRequestContext(r)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to retrieve info from request context", err)
-		}
-
-		prune := stack.Option != nil && stack.Option.Prune
-
-		deploymentConfiger, err := deployments.CreateSwarmStackDeploymentConfigTx(handler.DataStore, securityContext, stack, endpoint, handler.FileService, handler.StackDeployer, prune, pullImage)
-		if err != nil {
-			return nil, httperror.InternalServerError(err.Error(), err)
-		}
-
-		return deploymentConfiger, nil
-
 	case portainer.DockerComposeStack:
 		securityContext, err := security.RetrieveRestrictedRequestContext(r)
 		if err != nil {

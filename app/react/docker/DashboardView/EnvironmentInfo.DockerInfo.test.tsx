@@ -70,7 +70,7 @@ describe('EnvironmentInfo.DockerInfo', () => {
     expect(screen.getByText('Agent')).toBeVisible();
   });
 
-  it('shows Swarm when the info report has a NodeID', async () => {
+  it('REQ-TAI-003 shows a Swarm member as Standalone', async () => {
     server.use(
       http.get('/api/endpoints/1/docker/info', () =>
         HttpResponse.json({
@@ -83,7 +83,7 @@ describe('EnvironmentInfo.DockerInfo', () => {
     renderDockerInfo(false);
 
     await waitFor(() => {
-      expect(screen.getByText(/Swarm 24.0.7/)).toBeVisible();
+      expect(screen.getByText(/Standalone 24.0.7/)).toBeVisible();
     });
   });
 

@@ -156,8 +156,6 @@ describe('CreateStackForm - Webhook ID Integration', () => {
 
     renderFullComponent({
       environmentId: 1,
-      isSwarm: false,
-      swarmId: '',
     });
 
     await waitFor(() => {
@@ -185,8 +183,6 @@ describe('CreateStackForm - Webhook ID Integration', () => {
 
     renderFullComponent({
       environmentId: 1,
-      isSwarm: false,
-      swarmId: '',
     });
 
     const nameInput = await screen.findByRole('textbox', { name: /name/i });
@@ -241,8 +237,6 @@ describe('CreateStackForm - Webhook ID Integration', () => {
 
     renderFullComponent({
       environmentId: 1,
-      isSwarm: false,
-      swarmId: '',
     });
 
     const nameInput = await screen.findByRole('textbox', { name: /name/i });
@@ -292,7 +286,6 @@ function renderComponent({
           validateOnMount
         >
           <CreateStackInnerForm
-            isSwarm={false}
             isDeploying={false}
             isSaved={false}
             webhookId={webhookId}
@@ -308,12 +301,8 @@ function renderComponent({
 
 function renderFullComponent({
   environmentId,
-  isSwarm,
-  swarmId,
 }: {
   environmentId: number;
-  isSwarm: boolean;
-  swarmId: string;
 }) {
   const user = createMockUsers(1, Role.Admin)[0];
 
@@ -322,8 +311,6 @@ function renderFullComponent({
       withTestQueryProvider(() => (
         <CreateStackForm
           environmentId={environmentId}
-          isSwarm={isSwarm}
-          swarmId={swarmId}
         />
       )),
       user

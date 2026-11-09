@@ -83,12 +83,6 @@
           </div>
           <volumes-cifs-form data="formValues.CIFSData" ng-show="formValues.Driver === 'local'"></volumes-cifs-form>
           <!-- !cifs-management -->
-          <div ng-if="applicationState.endpoint.mode.agentProxy && applicationState.endpoint.mode.provider === 'DOCKER_SWARM_MODE' && formValues.Driver === 'local'">
-            <div class="col-sm-12 form-section-title"> Deployment </div>
-            <!-- node-selection -->
-            <node-selector model="formValues.NodeName" endpoint-id="endpoint.Id"> </node-selector>
-            <!-- !node-selection -->
-          </div>
           <!-- actions -->
           <div class="col-sm-12 form-section-title"> Actions </div>
           <div class="form-group">

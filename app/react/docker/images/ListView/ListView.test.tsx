@@ -5,11 +5,8 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 
-import { useIsSwarmAgent } from '../../proxy/queries/useIsSwarmAgent';
-
 import { ListView } from './ListView';
 
-vi.mock('../../proxy/queries/useIsSwarmAgent');
 vi.mock('./PullImageFormWidget', () => ({
   PullImageFormWidget: ({ isNodeVisible }: { isNodeVisible: boolean }) => (
     <div data-cy="pull-image-form-widget">
@@ -36,8 +33,6 @@ describe('ListView', () => {
 
   describe('Rendering', () => {
     it('should render all main sections', async () => {
-      vi.mocked(useIsSwarmAgent).mockReturnValue(false);
-
       renderComponent();
 
       // PageHeader with title
@@ -53,36 +48,15 @@ describe('ListView', () => {
     });
   });
 
-  describe('Swarm Agent Integration', () => {
-    it('should pass isNodeVisible=false to child components when not swarm agent', async () => {
-      vi.mocked(useIsSwarmAgent).mockReturnValue(false);
-
+  describe('REQ-TAI-003 Docker Swarm is removed', () => {
+    it('never shows the Swarm node selector or host column', async () => {
       renderComponent();
 
-      // Verify PullImageFormWidget receives isNodeVisible={false}
       expect(screen.getByTestId('pull-image-form-widget')).toHaveTextContent(
         'isNodeVisible: false'
       );
-
-      // Verify ImagesDatatable receives isHostColumnVisible={false}
       expect(screen.getByTestId('images-datatable')).toHaveTextContent(
         'isHostColumnVisible: false'
-      );
-    });
-
-    it('should pass isNodeVisible=true to child components when swarm agent', async () => {
-      vi.mocked(useIsSwarmAgent).mockReturnValue(true);
-
-      renderComponent();
-
-      // Verify PullImageFormWidget receives isNodeVisible={true}
-      expect(screen.getByTestId('pull-image-form-widget')).toHaveTextContent(
-        'isNodeVisible: true'
-      );
-
-      // Verify ImagesDatatable receives isHostColumnVisible={true}
-      expect(screen.getByTestId('images-datatable')).toHaveTextContent(
-        'isHostColumnVisible: true'
       );
     });
   });

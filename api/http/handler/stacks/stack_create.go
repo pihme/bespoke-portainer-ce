@@ -64,13 +64,11 @@ func (handler *Handler) stackCreate(w http.ResponseWriter, r *http.Request) *htt
 	}
 
 	switch stackType {
-	case "swarm":
-		return handler.createSwarmStack(w, r, method, endpoint, tokenData.ID)
 	case "standalone":
 		return handler.createComposeStack(w, r, method, endpoint, tokenData.ID)
 	}
 
-	return httperror.BadRequest("Invalid value for query parameter: type. Value must be one of: 1 (Swarm stack) or 2 (Compose stack)", errors.New(request.ErrInvalidQueryParameter))
+	return httperror.BadRequest("Invalid value for query parameter: type. Value must be standalone (Docker Swarm stacks are removed)", errors.New(request.ErrInvalidQueryParameter))
 }
 
 func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
@@ -81,19 +79,6 @@ func (handler *Handler) createComposeStack(w http.ResponseWriter, r *http.Reques
 		return handler.createComposeStackFromGitRepository(w, r, endpoint, userID)
 	case "file":
 		return handler.createComposeStackFromFileUpload(w, r, endpoint, userID)
-	}
-
-	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string, repository or file", errors.New(request.ErrInvalidQueryParameter))
-}
-
-func (handler *Handler) createSwarmStack(w http.ResponseWriter, r *http.Request, method string, endpoint *portainer.Endpoint, userID portainer.UserID) *httperror.HandlerError {
-	switch method {
-	case "string":
-		return handler.createSwarmStackFromFileContent(w, r, endpoint, userID)
-	case "repository":
-		return handler.createSwarmStackFromGitRepository(w, r, endpoint, userID)
-	case "file":
-		return handler.createSwarmStackFromFileUpload(w, r, endpoint, userID)
 	}
 
 	return httperror.BadRequest("Invalid value for query parameter: method. Value must be one of: string, repository or file", errors.New(request.ErrInvalidQueryParameter))

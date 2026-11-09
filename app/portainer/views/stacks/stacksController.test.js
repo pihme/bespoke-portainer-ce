@@ -108,7 +108,7 @@ describe('REQ-STK-01 StacksController local Compose stacks list', () => {
     expect(Authentication.isAdmin).toHaveBeenCalled();
     expect($scope.createEnabled).toBe(true);
     expect($state.go).not.toHaveBeenCalled();
-    expect(StackService.stacks).toHaveBeenCalledWith(true, false, 3, true);
+    expect(StackService.stacks).toHaveBeenCalledWith(true, 3, true);
     expect($scope.stacks).toEqual([{ Name: 'web', External: false }]);
   });
 
@@ -206,6 +206,6 @@ describe('REQ-STK-01 StacksController local Compose stacks list', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(StackService.stacks).toHaveBeenCalledWith(true, false, 3, false);
+    expect(StackService.stacks).toHaveBeenCalledWith(true, 3, false);
   });
 });

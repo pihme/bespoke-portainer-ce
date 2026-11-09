@@ -42,11 +42,6 @@ type RemoteStackDeployer interface {
 	UndeployRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
 	StartRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error
 	StopRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
-	// swarm
-	DeployRemoteSwarmStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune bool, pullImage bool) error
-	UndeployRemoteSwarmStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
-	StartRemoteSwarmStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error
-	StopRemoteSwarmStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
 }
 
 // Deploy a compose stack on remote environment using a https://github.com/portainer/compose-unpacker container
@@ -127,75 +122,6 @@ func (d *stackDeployer) StopRemoteComposeStack(
 	endpoint *portainer.Endpoint,
 ) error {
 	return d.remoteStack(ctx, userId, stack, endpoint, OperationComposeStop, unpackerCmdBuilderOptions{})
-}
-
-// Deploy a swarm stack on remote environment using a https://github.com/portainer/compose-unpacker container
-func (d *stackDeployer) DeployRemoteSwarmStack(
-	ctx context.Context,
-	userId portainer.UserID,
-	stack *portainer.Stack,
-	endpoint *portainer.Endpoint,
-	registries []portainer.Registry,
-	prune bool,
-	pullImage bool,
-) error {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-
-	return d.remoteStack(ctx, userId, stack, endpoint, OperationSwarmDeploy, unpackerCmdBuilderOptions{
-		pullImage:     pullImage,
-		prune:         prune,
-		forceRecreate: stack.AutoUpdate != nil && stack.AutoUpdate.ForceUpdate,
-		registries:    registries,
-	})
-}
-
-// Undeploy a swarm stack on remote environment using a https://github.com/portainer/compose-unpacker container
-func (d *stackDeployer) UndeployRemoteSwarmStack(
-	ctx context.Context,
-	userId portainer.UserID,
-	stack *portainer.Stack,
-	endpoint *portainer.Endpoint,
-) error {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-
-	return d.remoteStack(ctx, userId, stack, endpoint, OperationSwarmUndeploy, unpackerCmdBuilderOptions{})
-}
-
-// Start a swarm stack on remote environment using a https://github.com/portainer/compose-unpacker container
-func (d *stackDeployer) StartRemoteSwarmStack(
-	ctx context.Context,
-	userId portainer.UserID,
-	stack *portainer.Stack,
-	endpoint *portainer.Endpoint,
-	registries []portainer.Registry,
-) error {
-	return d.remoteStack(
-		ctx,
-		userId,
-		stack,
-		endpoint,
-		OperationSwarmStart,
-		unpackerCmdBuilderOptions{registries: registries},
-	)
-}
-
-// Stop a swarm stack on remote environment using a https://github.com/portainer/compose-unpacker container
-func (d *stackDeployer) StopRemoteSwarmStack(
-	ctx context.Context,
-	userId portainer.UserID,
-	stack *portainer.Stack,
-	endpoint *portainer.Endpoint,
-) error {
-	return d.remoteStack(
-		ctx,
-		userId,
-		stack,
-		endpoint,
-		OperationSwarmStop,
-		unpackerCmdBuilderOptions{},
-	)
 }
 
 // Does all the heavy lifting:

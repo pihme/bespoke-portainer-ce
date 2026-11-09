@@ -19,8 +19,7 @@ export function DockerInfo({ isAgent }: { isAgent: boolean }) {
 
   const info = infoQuery.data;
 
-  const isSwarm = info.Swarm !== undefined && info.Swarm?.NodeID !== '';
-  const type = getDockerEnvironmentType(isSwarm, isPodman);
+  const type = getDockerEnvironmentType(isPodman);
 
   return (
     <span className="small text-muted inline-flex gap-x-2">

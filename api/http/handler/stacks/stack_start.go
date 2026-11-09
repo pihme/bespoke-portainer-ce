@@ -53,6 +53,10 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 		return httperror.InternalServerError("Unable to find a stack with the specified identifier inside the database", err)
 	}
 
+	if httpErr := rejectSwarmStack(stack); httpErr != nil {
+		return httpErr
+	}
+
 	if stack.Type == portainer.KubernetesStack {
 		return httperror.BadRequest("Starting a kubernetes stack is not supported", err)
 	}
@@ -102,7 +106,7 @@ func (handler *Handler) stackStart(w http.ResponseWriter, r *http.Request) *http
 		return httperror.Forbidden(errMsg, errors.New(errMsg))
 	}
 
-	isUnique, err := handler.checkUniqueStackNameInDocker(endpoint, stack.Name, stack.ID, stack.SwarmID != "")
+	isUnique, err := handler.checkUniqueStackNameInDocker(endpoint, stack.Name, stack.ID)
 	if err != nil {
 		return httperror.InternalServerError("Unable to check for name collision", err)
 	}
@@ -192,14 +196,6 @@ func (handler *Handler) startStack(
 		}
 
 		return handler.StackDeployer.DeployComposeStack(ctx, stack, endpoint, filteredRegistries, false, false, false)
-	case portainer.DockerSwarmStack:
-		stack.Name = handler.SwarmStackManager.NormalizeStackName(stack.Name)
-
-		if stackutils.IsRelativePathStack(stack) {
-			return handler.StackDeployer.StartRemoteSwarmStack(ctx, userID, stack, endpoint, filteredRegistries)
-		}
-
-		return handler.StackDeployer.DeploySwarmStack(ctx, stack, endpoint, filteredRegistries, true, true)
 	}
 
 	return nil

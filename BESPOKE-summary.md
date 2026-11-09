@@ -5,8 +5,8 @@
 ## What this project is
 
 - A tailored fork of https://github.com/portainer/portainer, following tag 2.45.3 at upstream commit 0fa764dc81c76bb7914d65d8e62b026d7c746899.
-- Vision: <one or two sentences from BESPOKE.md>.
-- Constraints: <the Do-not-touch items, short>.
+- Vision: A single-user, locally reachable Portainer for Docker on the same machine, without user management, login, Kubernetes, Swarm, edge, or registries, plus a maintenance screen for unused containers and images, and no commercial-edition advertising.
+- Constraints: Do not touch the core functionality for managing local Docker resources.
 
 ## Current state at a glance
 
@@ -21,7 +21,7 @@ Only facts recorded in BESPOKE.md or verified in the repo. Say when a number was
 
 Per stage, 2 to 4 sentences on what changed in the content (what was added, tested, removed, customized, trimmed or packaged), with the decision ID range in parentheses. No process details here.
 
-**1-raw** (RAW-001 to RAW-009). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009).
+**1-raw** (RAW-001 to RAW-010). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009).
 
 **2-covered** (COV-001 to COV-nnn). <...>
 

@@ -291,6 +291,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-208 | Close Priority work on `app/react/docker/networks/ListView`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 22.7 % → 87.9 % (15 → 58 of 66; +43). Leftovers: 8 thin. Deferred-within-package: none. Package left at 87.9 % (58 of 66; 8 missed). | Preferred Docker networks list view covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-209 | Close Priority work on `custom-templates/components`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 16.3 % → 86.0 % (14 → 74 of 86; +60). Leftovers: 12 thin. Deferred-within-package: none. Package left at 86.0 % (74 of 86; 12 missed). | Preferred custom template components covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-210 | Close Priority work on `app/react/portainer/feature-flags`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 98.9 % (0 → 93 of 94; +93). Leftovers: 1 thin. Deferred-within-package: none. Package left at 98.9 % (93 of 94; 1 missed). | Preferred UI feature flags covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-211 | Close Priority work on `app/react/docker/images/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 19.0 % → 88.1 % (16 → 74 of 84; +58). Leftovers: 10 thin. Deferred-within-package: none. Package left at 88.1 % (74 of 84; 10 missed). | Preferred Docker image queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -583,6 +584,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-208: close Priority work on Docker networks list view. Parallel isolated 22.7 % → 87.9 % (15 → 58 of 66; +43). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-209: close Priority work on custom template components. Parallel isolated 16.3 % → 86.0 % (14 → 74 of 86; +60). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-210: close Priority work on UI feature flags. Parallel isolated 0 % → 98.9 % (0 → 93 of 94; +93). Thin leftover. Do not grind further.
+- 2026-11-09. COV-211: close Priority work on Docker image queries. Parallel isolated 19.0 % → 88.1 % (16 → 74 of 84; +58). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

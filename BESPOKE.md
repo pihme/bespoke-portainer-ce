@@ -483,6 +483,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-400 | Close Priority work on `common/utils`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 94.4 % → 100 % (17 → 18 of 18; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (18 of 18; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-401 | Close Priority work on `StackVersionSelector`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-402 | Close Priority work on `TagButton`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 2 of 2; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (2 of 2; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-403 | Close Priority work on `Tip/SliderTooltip`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 5 of 5; +5). Leftovers: none. Deferred-within-package: none. Package left at 100 % (5 of 5; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -979,6 +980,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-400: close Priority work on common utils. Parallel isolated 94.4 % → 100 % (17 → 18 of 18; +1). Do not grind further.
 - 2026-11-09. COV-401: close Priority work on StackVersionSelector. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
 - 2026-11-09. COV-402: close Priority work on TagButton. Parallel isolated 0 % → 100 % (0 → 2 of 2; +2). Do not grind further.
+- 2026-11-09. COV-403: close Priority work on SliderTooltip. Parallel isolated 0 % → 100 % (0 → 5 of 5; +5). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

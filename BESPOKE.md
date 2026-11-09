@@ -455,6 +455,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-372 | Close Priority work on `Tip/Tooltip`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 66.7 % (0 → 6 of 9; +6). Stories deferred 3. Package left at 66.7 % (6 of 9; 3 missed). | Preferred Tooltip covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-373 | Close Priority work on `ViewLoading`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 0 % → 25.0 % (0 → 1 of 4; +1). Stories deferred 3. Package left at 25.0 % (1 of 4; 3 missed). | Preferred ViewLoading covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-374 | Close Priority work on `CreateStackForm/GitSection`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 33.3 % → 55.6 % (3 → 5 of 9; +2). Deferred-within-package: `StackRelativePathFieldset` BE (4). Package left at 55.6 % (5 of 9; 4 missed). | Preferred GitSection covered; StackRelativePathFieldset BE deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-375 | Close Priority work on `docker/stacks/common`. Parallel batch merged from `2-covered-parallel-fe-batch-415` (`0055f3b79`). Isolated remasure: 61.1 % → 100 % (22 → 36 of 36; +14). Leftovers: none. Deferred-within-package: none. Package left at 100 % (36 of 36; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -922,6 +923,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-372: close Priority work on Tooltip helpers. Parallel isolated 0 % → 66.7 % (0 → 6 of 9; +6). Deferred stories. Do not grind further.
 - 2026-11-09. COV-373: close Priority work on ViewLoading helpers. Parallel isolated 0 % → 25.0 % (0 → 1 of 4; +1). Deferred stories. Do not grind further.
 - 2026-11-09. COV-374: close Priority work on GitSection helpers. Parallel isolated 33.3 % → 55.6 % (3 → 5 of 9; +2). Deferred StackRelativePathFieldset BE. Do not grind further.
+- 2026-11-09. COV-375: close Priority work on stacks common. Parallel isolated 61.1 % → 100 % (22 → 36 of 36; +14). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

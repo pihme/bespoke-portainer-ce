@@ -85,3 +85,11 @@ func createNewRegistry(domain, username string, auth bool) portainer.Registry {
 
 	return registry
 }
+
+func TestFindBestMatchRegistry_NoMatch(t *testing.T) {
+	t.Parallel()
+
+	_, err := findBestMatchRegistry("unique-no-match-repo/app:latest", nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no registries matched")
+}

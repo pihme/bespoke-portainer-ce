@@ -368,6 +368,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-285 | Close Priority work on `app/react/portainer/system`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 41 of 41; +41). BE Edition branch thin; upgrade covered. Package left at 100 % (41 of 41; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-286 | Close Priority work on `VolumesDatatable` (parent; columns/ out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 16 of 16; +16). Leftovers: none. Deferred-within-package: none. Package left at 100 % (16 of 16; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-287 | Close Priority work on `app/react/common/stacks` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 30 of 30; +30). Deferred-within-package: K8s label / Swarm prune. Package left at 100 % (30 of 30; 0 missed). | Preferred stacks parent helpers covered; K8s label/Swarm prune deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-288 | Close Priority work on `SwitchField`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure remains 100 % (7 of 7; tests extended). Deferred-within-package: stories; BE featureId branch. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete excluding stories. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -744,6 +745,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-285: close Priority work on system helpers. Parallel isolated 0 % → 100 % (0 → 41 of 41; +41). Do not grind further.
 - 2026-11-09. COV-286: close Priority work on VolumesDatatable parent. Parallel isolated 0 % → 100 % (0 → 16 of 16; +16). Do not grind further.
 - 2026-11-09. COV-287: close Priority work on stacks parent helpers. Parallel isolated 0 % → 100 % (0 → 30 of 30; +30). Deferred K8s label/Swarm prune. Do not grind further.
+- 2026-11-09. COV-288: close Priority work on SwitchField helpers. Parallel isolated remains 100 % (7 of 7). Deferred stories/BE featureId. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

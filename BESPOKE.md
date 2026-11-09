@@ -281,6 +281,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-198 | Close Priority work on `pkg/libhttp/response`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): response_test.go (+2). Isolated remasure: 94.6 % → 100 % (35 → 37 of 37; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (37 of 37; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-199 | Close Priority work on `pkg/librand`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): rand_test.go (+1). Isolated remasure: 88.9 % → 94.4 % (16 → 17 of 18; +1). Leftovers: 1 thin. Deferred-within-package: none. Package left at 94.4 % (17 of 18; 1 missed). | Preferred crypto rand helper covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-200 | Close Priority work on `api/docker/stats`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): container_stats_test.go (+1 under REQ-CTR-04). Isolated remasure: 98.2 % → 100 % (55 → 56 of 56; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (56 of 56; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-201 | Close Priority work on `api/roar`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): no new tests. Isolated remasure remains 98.1 % (51 of 52; +0). Leftover ToBase64/MarshalJSON error arm unreachable without production changes (bytes.Buffer.Write never errors). KEEP thin-local close. Package left at 98.1 % (51 of 52; 1 missed). | Preferred roar bitmap helper covered; unreachable error arm left. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -562,6 +563,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-198: close Priority work on libhttp response helpers. Parallel isolated 94.6 % → 100 % (35 → 37 of 37; +2). Do not grind further.
 - 2026-11-09. COV-199: close Priority work on crypto rand helper. Parallel isolated 88.9 % → 94.4 % (16 → 17 of 18; +1). Thin leftover. Do not grind further.
 - 2026-11-09. COV-200: close Priority work on Docker container stats. Parallel isolated 98.2 % → 100 % (55 → 56 of 56; +1). Do not grind further.
+- 2026-11-09. COV-201: close Priority work on roar bitmap helper. Parallel isolated remains 98.1 % (51 of 52; +0). Unreachable ToBase64/MarshalJSON error arm. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

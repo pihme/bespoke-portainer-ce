@@ -363,6 +363,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-280 | Close Priority work on `containers/components`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 94.7 % (0 → 18 of 19; +18). Deferred-within-package: Podman bridge rename. Package left at 94.7 % (18 of 19; 1 missed). | Preferred container components covered; Podman bridge rename deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-281 | Close Priority work on `app/react/docker/images` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 14.3 % → 73.8 % (6 → 31 of 42; +25). Deferred-within-package: GitHub/GitLab/Quay registry URI builders. Package left at 73.8 % (31 of 42; 11 missed). | Preferred images parent covered; registry URI builders deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-282 | Close Priority work on `CreateStackForm`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 78.5 % (117 of 149; +0; no new test commit). Deferred-within-package: Edge relative-path fieldset + thin template/webhook arms. Package left at 78.5 % (117 of 149; 32 missed). | Preferred CreateStackForm covered; Edge relative-path and thin template/webhook deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-283 | Close Priority work on `WizardDocker/SocketTab`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 100 % (17 of 17; +0; existing tests; no new test commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (17 of 17; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -730,6 +731,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-280: close Priority work on container components. Parallel isolated 0 % → 94.7 % (0 → 18 of 19; +18). Deferred Podman bridge rename. Do not grind further.
 - 2026-11-09. COV-281: close Priority work on images parent. Parallel isolated 14.3 % → 73.8 % (6 → 31 of 42; +25). Deferred GitHub/GitLab/Quay URI builders. Do not grind further.
 - 2026-11-09. COV-282: close Priority work on CreateStackForm. Parallel isolated remains 78.5 % (117 of 149; +0). Deferred Edge relative-path/template/webhook. Do not grind further.
+- 2026-11-09. COV-283: close Priority work on WizardDocker SocketTab. Parallel isolated remains 100 % (17 of 17; +0). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

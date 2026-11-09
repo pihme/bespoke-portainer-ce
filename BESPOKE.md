@@ -50,6 +50,7 @@ This project is a tailored version of an upstream open-source project, built wit
 | RAW-006 | Strip upstream contacts and Portainer Business Edition advertising from `README.md`. Keep the Community Edition description, intended-use text that is not a BE upsell, Getting started documentation links, and the licensing section. | The user asked to strip contacts and BE advertising from the README. | user | Do not put back Take3/BE links, contribute@portainer.io, the careers pitch, or links to portainer/portainer issues and releases. |
 | RAW-007 | Remove the `.husky` pre-commit hook. | The user asked to drop the hook that forced `pnpm lint-staged` on every commit. | user | Do not restore `.husky`. Leave `lint-staged.config.js` and the husky devDependency; they are unused hook wiring, not this drop. |
 | RAW-008 | Remove the upstream banner image and the docs.portainer.io Getting started links from `README.md`. | The user asked to drop the remaining upstream README links. | user | Do not restore the banner URL or the documentation links. |
+| RAW-009 | Add the optional zlib acknowledgment (that this software is based on Portainer Community Edition by Portainer.io) in the last stage, `6-bespoke` (shrink-wrap). | The user asked to include that courtesy credit at the end of the line, not earlier. | user | Do it in shrink-wrap. Do not add the credit in raw, covered, tailored, customized, or trimmed. Keep `LICENSE` as required by the license notice rule. |
 
 ### Interventions
 

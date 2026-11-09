@@ -17,7 +17,11 @@ import { PageHeader } from '@@/PageHeader';
 import { DashboardGrid } from '@@/DashboardItem/DashboardGrid';
 import { DashboardItem } from '@@/DashboardItem';
 
-import { useIsSwarm, useIsSwarmManager } from '../proxy/queries/useInfo';
+import {
+  useIsStandalone,
+  useIsSwarm,
+  useIsSwarmManager,
+} from '../proxy/queries/useInfo';
 
 import { NonAgentSwarmInfo } from './NonAgentSwarmInfo';
 import { ClusterAgentInfo } from './ClusterAgentInfo';
@@ -31,7 +35,7 @@ export function DashboardView() {
   const envQuery = useCurrentEnvironment();
   const isEnvAdminQuery = useIsEnvironmentAdmin();
   const isSwarmManager = useIsSwarmManager(envId);
-  const isStandalone = useIsSwarm(envId);
+  const isStandalone = useIsStandalone(envId);
   const dashboardStatsQuery = useDashboard(envId);
 
   if (!envQuery.data || !dashboardStatsQuery.data) {

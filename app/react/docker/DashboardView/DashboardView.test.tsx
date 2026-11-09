@@ -59,6 +59,7 @@ vi.mock('@/react/hooks/useUser', async (importOriginal: () => Promise<object>) =
 vi.mock('../proxy/queries/useInfo', () => ({
   useIsSwarmManager: () => isSwarmManager,
   useIsSwarm: () => isSwarm,
+  useIsStandalone: () => !isSwarm,
   useInfo: () => ({ data: undefined }),
 }));
 
@@ -239,9 +240,8 @@ describe('Docker DashboardView', () => {
     expect(service).toHaveTextContent('7');
   });
 
-  it('shows the GPU tile when GPU management is enabled and useIsSwarm is true', async () => {
-    // Production names the flag isStandalone but calls useIsSwarm — assert observed behaviour.
-    isSwarm = true;
+  it('REQ-HOST-01 shows the GPU tile on a standalone engine when GPU management is enabled', async () => {
+    isSwarm = false;
     envState.data = createMockEnvironment({
       Id: 1,
       Type: EnvironmentType.Docker,

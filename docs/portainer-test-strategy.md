@@ -340,7 +340,7 @@ The full ranking of all packages with missed statements (Priority then Deferred)
 
 ### Order and status
 
-Phase C works Priority from rank 1 down, one whole package at a time (skill step 4 to 6), then Deferred. Test files only; new tests named `TestREQ_<AREA>_<NN>_…` where a requirement applies and listed under "Backwards compatibility tests" in the test spec otherwise. First Priority package: `api/http/handler/stacks` (1,159 missed). No test was added in the COV-009 remeasurement commit itself; tests for that package follow under COV-010.
+Phase C works Priority from rank 1 down, one whole package at a time (skill step 4 to 6), then Deferred. Test files only; new tests named `TestREQ_<AREA>_<NN>_…` where a requirement applies and listed under "Backwards compatibility tests" in the test spec otherwise. First Priority package: `api/http/handler/stacks` (1,159 missed at COV-009). COV-010 added a first batch of compose-focused tests (stop, inspect, associate, response helpers): package coverage 33.0 % → 40.3 % (572 → 697 of 1,731; missed 1,159 → 1,034). The package is not finished.
 
 ## 10. Open for later phases
 

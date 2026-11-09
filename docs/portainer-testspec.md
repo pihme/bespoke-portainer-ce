@@ -197,16 +197,16 @@ Mapped on 2026-11-09 at `2-covered@af382f49d`, by reading test names, test files
 
 | ID | Status | Tests | Notes |
 |----|--------|-------|-------|
-| REQ-STK-01 | partial | `api/http/handler/stacks/stack_list_test.go`: `TestFilterStacks`; `api/http/handler/docker/utils/get_stacks_test.go`: `TestHandler_getDockerStacks`; `react/docker/stacks/ItemView/StackInfoTab/StackInfoTab.test.tsx` ("external and orphaned warnings") | The stacks datatable and its control column have no test. |
+| REQ-STK-01 | partial | `api/http/handler/stacks/stack_list_test.go`: `TestFilterStacks`; `api/http/handler/stacks/stack_inspect_test.go`: `TestREQ_STK_01_Inspect*` (COV-010); `api/http/handler/docker/utils/get_stacks_test.go`: `TestHandler_getDockerStacks`; `react/docker/stacks/ItemView/StackInfoTab/StackInfoTab.test.tsx` ("external and orphaned warnings") | The stacks datatable and its control column have no test. |
 | REQ-STK-02 | direct | `react/docker/stacks/CreateView/CreateStackForm/**` (`CreateStackForm`, `validation`, `EditorSection` and its validation, `UploadSection` and its validation); `react/docker/stacks/common/*.test.ts`; `api/stacks/stackutils/validation_test.go`, `env_test.go`; `api/exec/compose_stack_test.go`: `Test_createEnvFile*`; `api/stacks/stackbuilders/director_test.go`; `pkg/libstack/compose/composeplugin_test.go`: `Test_Validate`, `Test_Config`, `Test_MaxConcurrency`; `Test_UpAndDown*` *(gated)* | |
 | REQ-STK-03 | direct | `react/docker/stacks/CreateView/CreateStackForm/GitSection/*.test.ts*`; `api/http/handler/stacks/create_compose_stack_test.go`, `create_swarm_stack_test.go` (`…GitPayload_Validate*`); `api/stacks/stackbuilders/stack_git_builder_test.go`; `api/stacks/deployments/deploy_test.go`: `Test_redeployWhenChanged_*`; `api/git/update/validate_test.go`: `Test_ValidateAutoUpdate`; `api/http/handler/stacks/webhook_invoke_test.go`: `TestHandler_webhookInvoke`; `api/git/*_test.go` (clone, refs, files; GitHub/Azure *(gated)*) | Relative path volumes are BE. |
 | REQ-STK-04 | direct | `react/docker/stacks/ItemView/StackEditorTab/*.test.tsx`; `react/common/stacks/EditGitSettings/EditGitSettingsModal.test.tsx`; `api/http/handler/stacks/stack_update_test.go`, `stack_file_test.go`, `stack_update_git_redeploy_test.go`, `stack_update_git_test.go` | |
-| REQ-STK-05 | partial | `api/http/handler/stacks/stack_start_test.go`: `TestStackStart_*` (6) | Stop (`POST /stacks/{id}/stop`) has no test. |
+| REQ-STK-05 | partial | `api/http/handler/stacks/stack_start_test.go`: `TestStackStart_*` (6); `api/http/handler/stacks/stack_stop_test.go`: `TestREQ_STK_05_*` (7, COV-010) | Compose stop success/failure and conflict paths covered; Swarm stop path and remote relative-path stop still thin. |
 | REQ-STK-06 | untested | none | |
 | REQ-STK-07 | direct | `react/docker/stacks/ItemView/StackInfoTab/StackDuplicationForm/**` (6 files incl. `useMigrateStackMutation`, `useDuplicateStackMutation`) | `POST /stacks/{id}/migrate` (handler) has no test. |
 | REQ-STK-08 | direct | `api/http/handler/stacks/stack_delete_test.go`: `TestStackDelete_*`, `TestDeleteExternalStack_*`, `TestStackDeleteKubernetesByName_*`; `api/stacks/teardown/teardown_test.go` | |
 | REQ-STK-09 | loose | `api/http/handler/stacks/webhook_invoke_test.go`: `TestHandler_webhookInvoke`; `react/docker/stacks/CreateView/CreateStackForm/CreateStackForm.webhook.test.tsx`; `react/docker/stacks/ItemView/StackEditorTab/StackEditorTab.webhook.test.tsx` | CE requirement since C-01 (the spec was too narrow). The invoke handler and the form wiring are touched; nothing asserts the redeploy itself. Pull prevention and env vars stay BE-only (not tested). |
-| REQ-STK-10 | partial | `react/docker/stacks/ItemView/StackInfoTab/AssociateStackForm.test.tsx`, `useAssociateStackToEnvironmentMutation.test.tsx` | `PUT /stacks/{id}/associate` (handler) has no test. |
+| REQ-STK-10 | partial | `react/docker/stacks/ItemView/StackInfoTab/AssociateStackForm.test.tsx`, `useAssociateStackToEnvironmentMutation.test.tsx`; `api/http/handler/stacks/stack_associate_test.go`: `TestREQ_STK_10_*` (4, COV-010) | Handler associate for compose stacks covered; swarmId edge cases still thin. |
 
 ### SWM – Docker Swarm
 
@@ -443,7 +443,7 @@ Questions raised while mapping. The user decides; an empty Decision means open. 
 
 ## Coverage plan (phase C)
 
-Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `0769c07f2`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 % (open point; bar unchanged; Deferred tests not started in this slice). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added.
+Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `0769c07f2`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 % (open point; bar unchanged; Deferred tests not started in this slice). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added. COV-010 started Priority package `api/http/handler/stacks` (first batch: stop/inspect/associate/response; package coverage 33.0 % → 40.3 %, missed 1,159 → 1,034).
 
 ### Uncoverable methods and functions
 
@@ -455,7 +455,11 @@ Observed behaviour that existing tests pin but that no requirement states. It is
 
 ### Backwards compatibility tests
 
-To be filled in phase C. Candidates found while mapping:
+Phase C additions:
+
+- `api/http/handler/stacks/response_test.go`: `TestNewStackResponse_WithoutWorkflow_ReturnsStackOnly`, `TestFillStackGitConfig_WithoutWorkflow_IsNoop` (COV-010) — stack JSON helpers when no GitOps workflow is attached.
+
+Candidates found while mapping:
 
 - Database migrations per version (`api/datastore/migrate_*_test.go`, `api/datastore/migrator/*_test.go`, `api/datastore/postinit`, `api/datastore/pendingactions_test.go`).
 - Deprecated API routes and their redirects (`api/http/middlewares/deprecated_test.go`).

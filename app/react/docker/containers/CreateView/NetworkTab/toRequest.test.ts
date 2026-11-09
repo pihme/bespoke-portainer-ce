@@ -80,3 +80,48 @@ describe('toRequest', () => {
     });
   });
 });
+
+describe('REQ-CTR-03 network toRequest container mode', () => {
+  const mockOldConfig: CreateContainerRequest = {
+    Hostname: 'old-hostname',
+    Domainname: 'old-domain',
+    MacAddress: '',
+    HostConfig: {
+      NetworkMode: 'bridge',
+      Dns: [],
+      ExtraHosts: [],
+    },
+    NetworkingConfig: {
+      EndpointsConfig: {
+        'container:other': {
+          Aliases: ['container-123', 'alias-keep'],
+        },
+      },
+    },
+  };
+
+  it('uses container network mode and clears hostname', () => {
+    const result = toRequest(
+      mockOldConfig,
+      {
+        networkMode: 'container',
+        hostname: 'should-clear',
+        domain: '',
+        macAddress: '',
+        ipv4Address: '',
+        ipv6Address: '',
+        primaryDns: '',
+        secondaryDns: '',
+        hostsFileEntries: [],
+        container: 'other',
+      },
+      'container-123'
+    );
+
+    expect(result.HostConfig.NetworkMode).toBe('container:other');
+    expect(result.Hostname).toBe('');
+    expect(
+      result.NetworkingConfig.EndpointsConfig?.['container:other'].Aliases
+    ).toEqual(['alias-keep']);
+  });
+});

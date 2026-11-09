@@ -21,7 +21,9 @@ type stubBuilder struct {
 	store      *datastore.Store
 	savedStack *portainer.Stack
 	saveErr    error
+	prepareErr error
 	deployErr  error
+	postErr    error
 	hookCalled atomic.Bool
 }
 
@@ -38,7 +40,7 @@ func (s *stubBuilder) setGeneralInfo(_ *portainer.Endpoint) {
 }
 
 func (s *stubBuilder) prepare(_ context.Context, _ *StackPayload, _ portainer.UserID) error {
-	return nil
+	return s.prepareErr
 }
 
 func (s *stubBuilder) saveStack() (*portainer.Stack, error) {
@@ -56,7 +58,7 @@ func (s *stubBuilder) deploy(_ context.Context, _ *portainer.Endpoint) error {
 func (s *stubBuilder) postDeploy(_ context.Context, _ *portainer.Stack) error {
 	s.hookCalled.Store(true)
 
-	return nil
+	return s.postErr
 }
 
 func (s *stubBuilder) cleanUp() error {
@@ -222,4 +224,60 @@ func TestBuildAndDeploy_PostDeployHook_NotCalledOnDeployFailure(t *testing.T) {
 	require.NotNil(t, herr)
 
 	assert.False(t, builder.hookCalled.Load(), "post-deploy hook should not be called after a failed deployment")
+}
+
+func TestBuildAndAsyncDeploy_PrepareError_ReturnsInternalServerError(t *testing.T) {
+	t.Parallel()
+	builder := &stubBuilder{prepareErr: errors.New("prepare failed")}
+
+	_, herr := BuildAndAsyncDeploy(t.Context(), nil, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
+
+	require.NotNil(t, herr)
+	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	assert.Contains(t, herr.Message, "Failed to prepare stack")
+}
+
+func TestBuildAndDeploy_PrepareError_ReturnsInternalServerError(t *testing.T) {
+	t.Parallel()
+	builder := &stubBuilder{prepareErr: errors.New("prepare failed")}
+
+	_, herr := BuildAndDeploy(t.Context(), nil, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
+
+	require.NotNil(t, herr)
+	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	assert.Contains(t, herr.Message, "Failed to prepare stack")
+}
+
+func TestBuildAndDeploy_SaveErrorAfterDeploy_ReturnsInternalServerError(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+	builder := &stubBuilder{
+		store:      store,
+		savedStack: &portainer.Stack{ID: 1, Name: "s", EndpointID: 1},
+		saveErr:    errors.New("db write failed"),
+	}
+
+	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{ID: 1}, 0)
+
+	require.NotNil(t, herr)
+	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	assert.Contains(t, herr.Message, "Failed to save stack")
+}
+
+func TestBuildAndDeploy_PostDeployError_ReturnsInternalServerError(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+	builder := &stubBuilder{
+		store:      store,
+		savedStack: &portainer.Stack{ID: 3, Name: "s", EndpointID: 1, Status: portainer.StackStatusDeploying},
+		postErr:    errors.New("hook failed"),
+	}
+
+	stack, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{ID: 1}, 0)
+
+	require.NotNil(t, stack)
+	require.NotNil(t, herr)
+	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	assert.Contains(t, herr.Message, "Failed to run post-deployment hook")
+	assert.True(t, builder.hookCalled.Load())
 }

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
@@ -95,6 +95,16 @@ describe('RemoveAccessButton', () => {
       expect(
         screen.getByText(/are you sure you want to unauthorized/i)
       ).toBeVisible();
+
+      // The dialog is mounted outside the render container, so RTL cleanup does
+      // not remove it. Close it so it does not leak into the next test.
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      await waitFor(() =>
+        expect(
+          screen.queryByText(/are you sure you want to unauthorized/i)
+        ).not.toBeInTheDocument()
+      );
+      expect(mockOnClick).not.toHaveBeenCalled();
     });
   });
 });

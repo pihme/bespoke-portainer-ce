@@ -5,8 +5,15 @@ import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 
 import { LicenseType } from '../licenses/types';
+import { resetState as resetLicenseInfoCache } from '../licenses/license.service';
 
 import { LicenseNodePanel } from './LicenseNodePanel';
+
+// getLicenseInfo caches the response in a module-level store for 30 seconds,
+// so without a reset the second test reads the license of the first one.
+beforeEach(() => {
+  resetLicenseInfoCache();
+});
 
 test('when user is using more nodes then allowed he should see message', async () => {
   const allowed = 2;

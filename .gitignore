@@ -20,3 +20,6 @@ go.work.sum
 
 .vitest
 
+# test coverage output (make test-server / make test-client)
+/coverage.out
+/coverage

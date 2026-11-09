@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createColumnHelper,
   createTable,
@@ -57,6 +57,12 @@ function DatatableWithStore(props: Omit<Props<MockData>, 'settingsManager'>) {
 }
 
 describe('Datatable', () => {
+  // useTableState keeps the search text in sessionStorage under the shared
+  // storageKey, so a search typed in one test would filter rows in the next one.
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
   it('renders the table with correct data', () => {
     render(
       <DatatableWithStore

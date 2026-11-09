@@ -28,7 +28,8 @@ export default defineConfig({
     // The default includes package.json, which made `--changed` run the whole suite for
     // any edit to it. Dependency changes move pnpm-lock.yaml, so key off that instead.
     forceRerunTriggers: ['**/pnpm-lock.yaml', '**/{vitest,vite}.config.*'],
-    bail: 2,
+    // Do not stop after the first failures: a full run must report every failing test.
+    bail: 0,
     include: ['./app/**/*.test.ts', './app/**/*.test.tsx', './app/**/*.test.js'],
     env: {
       PORTAINER_EDITION: 'CE',

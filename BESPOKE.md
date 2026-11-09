@@ -434,6 +434,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-351 | Close Priority work on `docker/components/datatable`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 94.4 % (0 → 17 of 18; +17). Deferred-within-package: BE image-notification tooltip. Package left at 94.4 % (17 of 18; 1 missed). | Preferred docker datatable helpers covered; BE tooltip deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-352 | Close Priority work on `containers/InspectView`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-353 | Close Priority work on `containers/LogView`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-354 | Close Priority work on `docker/queries` (parent; `useDockerStorageUsageQuery` only; utils out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -879,6 +880,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-351: close Priority work on docker datatable helpers. Parallel isolated 0 % → 94.4 % (0 → 17 of 18; +17). Deferred BE image-notification tooltip. Do not grind further.
 - 2026-11-09. COV-352: close Priority work on InspectView. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - 2026-11-09. COV-353: close Priority work on LogView. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
+- 2026-11-09. COV-354: close Priority work on docker queries parent. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

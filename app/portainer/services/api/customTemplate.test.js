@@ -116,4 +116,31 @@ describe('REQ-TPL-03 CustomTemplateService', () => {
     const service = build();
     await service.updateCustomTemplate(1, { Title: 'new' });
   });
+
+  it('createCustomTemplateFromFileContent wraps create failures', async () => {
+    const service = build({
+      CustomTemplates: { create: vi.fn(() => rejectResource(new Error('bad'))) },
+    });
+    await expect(
+      service.createCustomTemplateFromFileContent({ Title: 't' })
+    ).rejects.toMatchObject({ msg: 'Unable to create the customTemplate' });
+  });
+
+  it('createCustomTemplateFromFileUpload wraps upload failures', async () => {
+    const service = build({
+      FileUploadService: { createCustomTemplate: vi.fn(() => Promise.reject(new Error('up'))) },
+    });
+    await expect(service.createCustomTemplateFromFileUpload({ Title: 'u' })).rejects.toMatchObject({
+      msg: 'Unable to create the customTemplate',
+    });
+  });
+
+  it('createCustomTemplateFromGitRepository wraps create failures', async () => {
+    const service = build({
+      CustomTemplates: { create: vi.fn(() => rejectResource(new Error('git'))) },
+    });
+    await expect(
+      service.createCustomTemplateFromGitRepository({ Title: 'g' })
+    ).rejects.toMatchObject({ msg: 'Unable to create the customTemplate' });
+  });
 });

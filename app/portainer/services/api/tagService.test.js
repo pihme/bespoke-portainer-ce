@@ -66,4 +66,18 @@ describe('REQ-ENV-14 TagService', () => {
     const service = build({ query: vi.fn(() => rejectResource(new Error('x'))) });
     await expect(service.tags()).rejects.toMatchObject({ msg: 'Unable to retrieve tags' });
   });
+
+  it('tagNames rejects with a clear message on failure', async () => {
+    const service = build({ query: vi.fn(() => rejectResource(new Error('x'))) });
+    await expect(service.tagNames()).rejects.toMatchObject({ msg: 'Unable to retrieve tags' });
+  });
+
+  it('createTag wraps create failures', async () => {
+    const service = build({
+      query: vi.fn(),
+      create: vi.fn(() => rejectResource(new Error('dup'))),
+      remove: vi.fn(),
+    });
+    await expect(service.createTag('dev')).rejects.toMatchObject({ msg: 'Unable to create tag' });
+  });
 });

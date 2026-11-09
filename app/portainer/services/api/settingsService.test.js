@@ -101,4 +101,14 @@ describe('REQ-SET-01 SettingsService', () => {
     expect(pub.RequiredPasswordLength).toBe(12);
     expect(Settings.checkLDAPConnectivity).toHaveBeenCalled();
   });
+
+  it('publicSettings rejects with a clear message on failure', async () => {
+    const Settings = {
+      publicSettings: vi.fn(() => rejectResource(new Error('down'))),
+    };
+    const service = buildService(Settings);
+    await expect(service.publicSettings()).rejects.toMatchObject({
+      msg: 'Unable to retrieve application settings',
+    });
+  });
 });

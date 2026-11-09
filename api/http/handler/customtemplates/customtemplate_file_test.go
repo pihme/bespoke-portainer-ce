@@ -182,3 +182,64 @@ func TestCustomTemplateFile_GitTemplate(t *testing.T) {
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&res))
 	require.Equal(t, templateContent, res.FileContent)
 }
+
+func TestREQ_TPL_03_CustomTemplateFile_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/nope/file", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "nope"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateFile(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateFile_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, fs := newTestHandler(t)
+
+	path, err := fs.StoreCustomTemplateFileFromBytes("1", "docker-compose.yml", []byte("services: {}\n"))
+	require.NoError(t, err)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "compose", Type: portainer.DockerComposeStack,
+			EntryPoint: "docker-compose.yml", ProjectPath: path, CreatedByUserID: 1,
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/1/file", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateFile(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateFile_MissingDiskFile(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "compose", Type: portainer.DockerComposeStack,
+			EntryPoint: "docker-compose.yml", ProjectPath: t.TempDir() + "/gone", CreatedByUserID: 1,
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/1/file", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateFile(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}

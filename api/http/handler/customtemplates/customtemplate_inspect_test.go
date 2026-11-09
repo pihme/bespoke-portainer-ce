@@ -210,3 +210,75 @@ func TestInspectHandler_GitConfigPopulatedFromSource(t *testing.T) {
 	require.Equal(t, "docker-compose.yml", template.GitConfig.ConfigFilePath)
 	require.Equal(t, "abc123", template.GitConfig.ConfigHash)
 }
+
+func TestREQ_TPL_03_CustomTemplateInspect_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/abc", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "abc"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateInspect(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateInspect_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "compose", Type: portainer.DockerComposeStack, CreatedByUserID: 1,
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/1", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateInspect(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateInspect_LocalComposeSuccess(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, fs := newTestHandler(t)
+
+	path, err := fs.StoreCustomTemplateFileFromBytes("1", "docker-compose.yml", []byte("services:\n  web:\n    image: nginx\n"))
+	require.NoError(t, err)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "nginx-compose", Description: "local compose", Type: portainer.DockerComposeStack,
+			Platform: portainer.CustomTemplatePlatformLinux, EntryPoint: "docker-compose.yml",
+			ProjectPath: path, CreatedByUserID: 1,
+		}))
+		require.NoError(t, tx.ResourceControl().Create(&portainer.ResourceControl{
+			ID: 1, ResourceID: "1", Type: portainer.CustomTemplateResourceControl, Public: true,
+		}))
+		return nil
+	}))
+
+	r := httptest.NewRequest(http.MethodGet, "/custom_templates/1", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{
+		UserID: 2, IsAdmin: false, User: &portainer.User{ID: 2, Role: portainer.StandardUserRole},
+	}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateInspect(rr, r)
+	require.Nil(t, herr)
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var tmpl portainer.CustomTemplate
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
+	require.Equal(t, "nginx-compose", tmpl.Title)
+	require.Equal(t, portainer.DockerComposeStack, tmpl.Type)
+}

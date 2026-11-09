@@ -426,6 +426,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-343 | Close Priority work on `DropdownMenu`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 53.3 % → 66.7 % (8 → 10 of 15; +2). KEEP 10/10; stories deferred 0/5. Package left at 66.7 % (10 of 15; 5 missed). | Preferred DropdownMenu covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-344 | Close Priority work on `networks/ListView/columns`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 10 of 10; +10). Leftovers: none. Deferred-within-package: none. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-345 | Close Priority work on `CreateStackForm/TemplateSection`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 72.5 % → 100 % (29 → 40 of 40; +11). Leftovers: none. Deferred-within-package: none. Package left at 100 % (40 of 40; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-346 | Close Priority work on `gitops/sources/components`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 26.3 % → 100 % (5 → 19 of 19; +14). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -863,6 +864,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-350` (`75b4b2867`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-344: close Priority work on network list columns. Parallel isolated 0 % → 100 % (0 → 10 of 10; +10). Do not grind further.
 - 2026-11-09. COV-345: close Priority work on CreateStackForm TemplateSection. Parallel isolated 72.5 % → 100 % (29 → 40 of 40; +11). Do not grind further.
+- 2026-11-09. COV-346: close Priority work on gitops source components. Parallel isolated 26.3 % → 100 % (5 → 19 of 19; +14). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

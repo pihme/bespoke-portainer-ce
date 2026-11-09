@@ -4,9 +4,9 @@ This project is a tailored version of an upstream open-source project, built wit
 
 ## Source
 
-- Upstream repo: <url>
-- Following: <branch or tag>
-- Upstream commit: <sha>
+- Upstream repo: https://github.com/portainer/portainer
+- Following: tag 2.45.3
+- Upstream commit: 0fa764dc81c76bb7914d65d8e62b026d7c746899
 
 ## Vision / North Star
 
@@ -23,7 +23,7 @@ This project is a tailored version of an upstream open-source project, built wit
 
 ## 1 raw
 
-- Upstream commit: <sha>
+- Upstream commit: 0fa764dc81c76bb7914d65d8e62b026d7c746899
 - Built from: upstream
 - Skill: fork
 - Gate: <command(s) that must pass at the end of this stage>

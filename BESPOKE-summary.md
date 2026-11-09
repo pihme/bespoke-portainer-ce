@@ -4,7 +4,7 @@
 
 ## What this project is
 
-- A tailored fork of <upstream repo>, following <branch> at upstream commit <short sha>.
+- A tailored fork of https://github.com/portainer/portainer, following tag 2.45.3 at upstream commit 0fa764dc81c76bb7914d65d8e62b026d7c746899.
 - Vision: <one or two sentences from BESPOKE.md>.
 - Constraints: <the Do-not-touch items, short>.
 

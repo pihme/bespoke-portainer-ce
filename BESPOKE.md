@@ -243,6 +243,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-160 | Close Priority work on `api` (parent pending-action helpers). Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): pending_action_test.go (4). Isolated remasure: 0 % → 95.0 % (0 → 19 of 20; +19). Leftovers: K8s default only asserted shallowly. Deferred-within-package: none material. Package left at 95.0 % (19 of 20; 1 missed). | Preferred top-level API pending-action helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-161 | Close Priority work on `api/dataservices/settings`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): settings_test.go (1 under REQ-SET-01). Isolated remasure: 0 % → 89.5 % (0 → 17 of 19; +17). Leftovers: 2 thin. Deferred-within-package: none. Package left at 89.5 % (17 of 19; 2 missed). | Preferred settings datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-162 | Close Priority work on `api/dataservices/ssl`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): ssl_test.go (1 under REQ-SET-04). Isolated remasure: 0 % → 89.5 % (0 → 17 of 19; +17). Leftovers: 2 thin. Deferred-within-package: none. Package left at 89.5 % (17 of 19; 2 missed). | Preferred SSL datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-163 | Close Priority work on `pkg/libhttp/ssrf`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): builder_test.go (2 under REQ-SET-03). Isolated remasure: 85.5 % → 93.5 % (106 → 116 of 124; +10). Leftovers: 8 thin. Deferred-within-package: none. Package left at 93.5 % (116 of 124; 8 missed). | Preferred SSRF HTTP helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -484,6 +485,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-160: close Priority work on top-level API pending actions. Parallel isolated 0 % → 95.0 % (0 → 19 of 20; +19). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-161: close Priority work on settings datastore. Parallel isolated 0 % → 89.5 % (0 → 17 of 19; +17). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-162: close Priority work on SSL datastore. Parallel isolated 0 % → 89.5 % (0 → 17 of 19; +17). Thin leftovers. Do not grind further.
+- 2026-11-09. COV-163: close Priority work on SSRF HTTP helpers. Parallel isolated 85.5 % → 93.5 % (106 → 116 of 124; +10). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

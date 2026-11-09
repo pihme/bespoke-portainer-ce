@@ -1,19 +1,10 @@
 {
   "author": "Portainer.io",
   "name": "@portainer/ce",
-  "homepage": "http://portainer.io",
   "version": "2.45.3",
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:portainer/portainer.git"
-  },
-  "bugs": {
-    "url": "https://github.com/portainer/portainer/issues"
-  },
   "licenses": [
     {
-      "type": "Zlib",
-      "url": "https://raw.githubusercontent.com/portainer/portainer/develop/LICENSE"
+      "type": "Zlib"
     }
   ],
   "scripts": {

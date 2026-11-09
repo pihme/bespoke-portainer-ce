@@ -1,0 +1,151 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+/**
+ * Phase C coverage for KEEP local-Docker Angular $resource factories under
+ * app/portainer/rest. Deferred: user/team, registries, backup/restore, gitlab, auth.
+ */
+
+function installAngularCapture() {
+  const factories = {};
+  const moduleApi = {
+    factory: vi.fn((name, depsOrFn) => {
+      factories[name] = Array.isArray(depsOrFn)
+        ? depsOrFn[depsOrFn.length - 1]
+        : depsOrFn;
+      return moduleApi;
+    }),
+  };
+  const angularMock = {
+    module: vi.fn(() => moduleApi),
+    fromJson: (data) => JSON.parse(data),
+  };
+  globalThis.angular = angularMock;
+  return { factories, angularMock };
+}
+
+function mockResource() {
+  const calls = [];
+  const $resource = vi.fn((url, params, actions) => {
+    calls.push({ url, params, actions });
+    return { url, params, actions };
+  });
+  return { $resource, calls };
+}
+
+describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it('Endpoints wires query transform and local environment actions', async () => {
+    const { factories } = installAngularCapture();
+    vi.doMock('angular', () => ({
+      default: globalThis.angular,
+      module: globalThis.angular.module,
+    }));
+    await import('./endpoint.js');
+    const { $resource, calls } = mockResource();
+    factories.Endpoints($resource, '/api/endpoints');
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe('/api/endpoints/:id/:action');
+    expect(calls[0].actions.query.method).toBe('GET');
+    expect(typeof calls[0].actions.query.transformResponse).toBe('function');
+    expect(calls[0].actions.get).toMatchObject({ method: 'GET' });
+    expect(calls[0].actions.update).toMatchObject({ method: 'PUT' });
+    expect(calls[0].actions.remove).toMatchObject({ method: 'DELETE' });
+    expect(calls[0].actions.snapshots).toMatchObject({ method: 'POST' });
+    expect(calls[0].actions.snapshot).toMatchObject({ method: 'POST' });
+    expect(calls[0].actions.status).toMatchObject({ method: 'GET' });
+    expect(calls[0].actions.updateSecuritySettings).toMatchObject({
+      method: 'PUT',
+    });
+  });
+
+  it('Stack and StackByName expose compose lifecycle actions', async () => {
+    const { factories } = installAngularCapture();
+    vi.doMock('angular', () => ({
+      default: globalThis.angular,
+      module: globalThis.angular.module,
+    }));
+    await import('./stack.js');
+    const { $resource, calls } = mockResource();
+    factories.Stack($resource, '/api/stacks');
+    factories.StackByName($resource, '/api/stacks');
+
+    expect(calls[0].url).toBe('/api/stacks/:id/:action/:subaction');
+    expect(calls[0].actions.create.method).toBe('POST');
+    expect(calls[0].actions.start.method).toBe('POST');
+    expect(calls[0].actions.stop.method).toBe('POST');
+    expect(calls[0].actions.getStackFile.method).toBe('GET');
+    expect(calls[0].actions.updateGit.method).toBe('PUT');
+    expect(calls[1].url).toBe('/api/stacks/name/:name');
+    expect(calls[1].actions.remove.method).toBe('DELETE');
+  });
+
+  it('CustomTemplates exposes create/query/file/gitFetch', async () => {
+    const { factories } = installAngularCapture();
+    vi.doMock('angular', () => ({
+      default: globalThis.angular,
+      module: globalThis.angular.module,
+    }));
+    await import('./customTemplate.js');
+    const { $resource, calls } = mockResource();
+    factories.CustomTemplates($resource, '/api/custom_templates');
+    expect(calls[0].actions.create.method).toBe('POST');
+    expect(calls[0].actions.file.params).toMatchObject({ action: 'file' });
+    expect(calls[0].actions.gitFetch.params).toMatchObject({
+      action: 'git_fetch',
+    });
+  });
+
+  it('Settings, SSL, Tags, EndpointGroups, ResourceControl, Templates, Support and Webhooks wire local actions', async () => {
+    const { factories } = installAngularCapture();
+    vi.doMock('angular', () => ({
+      default: globalThis.angular,
+      module: globalThis.angular.module,
+    }));
+
+    await import('./settings.js');
+    await import('./ssl.js');
+    await import('./tag.js');
+    await import('./group.js');
+    await import('./resourceControl.js');
+    await import('./template.js');
+    await import('./support.js');
+    await import('./webhooks.js');
+
+    const { $resource, calls } = mockResource();
+
+    factories.Settings($resource, '/api/settings');
+    factories.SSL($resource);
+    factories.Tags($resource, '/api/tags');
+    factories.EndpointGroups($resource, '/api/endpoint_groups');
+    factories.ResourceControl($resource, '/api/resource_controls');
+    factories.Templates($resource, '/api/templates');
+    factories.Support($resource, '/api/support');
+    factories.Webhooks($resource, '/api/webhooks');
+
+    expect(calls.map((c) => c.url)).toEqual([
+      '/api/settings/:subResource/:action',
+      'api/ssl',
+      '/api/tags/:id',
+      '/api/endpoint_groups/:id/:action',
+      '/api/resource_controls/:id',
+      '/api/templates/:action',
+      '/api/support',
+      '/api/webhooks/:id',
+    ]);
+    expect(calls[0].actions.publicSettings.params).toMatchObject({
+      subResource: 'public',
+    });
+    expect(calls[1].actions.upload.method).toBe('PUT');
+    expect(calls[2].actions.create.method).toBe('POST');
+    expect(calls[3].actions.addEndpoint.method).toBe('PUT');
+    expect(calls[4].actions.update.method).toBe('PUT');
+    expect(calls[5].actions.file.params).toMatchObject({ action: 'file' });
+    expect(calls[6].actions.get.isArray).toBe(true);
+    expect(calls[7].actions.query.isArray).toBe(true);
+  });
+});

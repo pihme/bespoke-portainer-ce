@@ -469,6 +469,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-386 | Close Priority work on `setup-handlers/docker`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-387 | Close Priority work on `host-overview`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-388 | Close Priority work on `devices-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-389 | Close Priority work on `disks-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -951,6 +952,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-386: close Priority work on docker setup-handlers. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
 - 2026-11-09. COV-387: close Priority work on host-overview. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - 2026-11-09. COV-388: close Priority work on devices-panel. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
+- 2026-11-09. COV-389: close Priority work on disks-panel. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

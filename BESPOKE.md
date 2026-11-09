@@ -294,6 +294,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-211 | Close Priority work on `app/react/docker/images/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 19.0 % → 88.1 % (16 → 74 of 84; +58). Leftovers: 10 thin. Deferred-within-package: none. Package left at 88.1 % (74 of 84; 10 missed). | Preferred Docker image queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-212 | Close Priority work on `Stepper`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 39.1 % → 82.8 % (25 → 53 of 64; +28). Deferred-within-package: stories. Package left at 82.8 % (53 of 64; 11 missed). | Preferred stepper wizard covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-213 | Close Priority work on `app/react/docker/stacks/view-models`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 36 of 36; +36). Leftovers: none. Deferred-within-package: none. Package left at 100 % (36 of 36; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-214 | Close Priority work on `gitops/sources/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 87.5 % (0 → 42 of 48; +42). Leftovers: 6 thin. Deferred-within-package: none. Package left at 87.5 % (42 of 48; 6 missed). | Preferred gitops source queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -589,6 +590,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-211: close Priority work on Docker image queries. Parallel isolated 19.0 % → 88.1 % (16 → 74 of 84; +58). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-212: close Priority work on stepper wizard. Parallel isolated 39.1 % → 82.8 % (25 → 53 of 64; +28). Deferred stories. Do not grind further.
 - 2026-11-09. COV-213: close Priority work on stack view-models. Parallel isolated 0 % → 100 % (0 → 36 of 36; +36). Do not grind further.
+- 2026-11-09. COV-214: close Priority work on gitops source queries. Parallel isolated 0 % → 87.5 % (0 → 42 of 48; +42). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

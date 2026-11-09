@@ -494,6 +494,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-411 | Close Priority work on `gitops/workflows/ItemView`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 94.3 % → 100 % (50 → 53 of 53; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (53 of 53; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-412 | Close Priority work on Angular `web-editor-form`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 0 % → 100 % (0 → 2 of 2; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (2 of 2; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-413 | Close Priority work on `common/stacks/common` (not `docker/stacks/common`, COV-375). Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 0 % → 100 % (0 → 4 of 4; +4). Leftovers: none. Deferred-within-package: none. Package left at 100 % (4 of 4; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-414 | Close Priority work on `HelpLink`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 0 % → 100 % (0 → 2 of 2; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (2 of 2; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -1002,6 +1003,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-411: close Priority work on gitops workflows ItemView. Parallel isolated 94.3 % → 100 % (50 → 53 of 53; +3). Do not grind further.
 - 2026-11-09. COV-412: close Priority work on web-editor-form. Parallel isolated 0 % → 100 % (0 → 2 of 2; +2). Do not grind further.
 - 2026-11-09. COV-413: close Priority work on common stacks helpers. Parallel isolated 0 % → 100 % (0 → 4 of 4; +4). Do not grind further.
+- 2026-11-09. COV-414: close Priority work on HelpLink. Parallel isolated 0 % → 100 % (0 → 2 of 2; +2). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

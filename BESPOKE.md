@@ -269,6 +269,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-186 | Close Priority work on `api/stacks/teardown`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): teardown_test.go (+2 under REQ-STK-01). Isolated remasure: 84.4 % → 90.6 % (27 → 29 of 32; +2). Deferred-within-package: relative Swarm/Compose; K8s success return. Package left at 90.6 % (29 of 32; 3 missed). | Preferred stack teardown covered; Swarm/Compose relative and K8s success deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-187 | Close Priority work on `api/exec/exectest`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): kubernetes_mocks_test.go (1). Isolated remasure: 0 % → 100 % (0 → 4 of 4; +4). Leftovers: none. Deferred-within-package: none. Package left at 100 % (4 of 4; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-188 | Close Priority work on `api/scheduler`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): scheduler_test.go (+2). Isolated remasure: 92.9 % → 96.4 % (52 → 54 of 56; +2). Leftovers: 2 thin. Deferred-within-package: none. Package left at 96.4 % (54 of 56; 2 missed). | Preferred scheduler covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-189 | Close Priority work on `api/dataservices/customtemplate`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): customtemplate_test.go + tx_test.go (+3 under REQ-TPL-03). Isolated remasure: 70.0 % → 100 % (7 → 10 of 10; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -538,6 +539,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-186: close Priority work on stack teardown. Parallel isolated 84.4 % → 90.6 % (27 → 29 of 32; +2). Deferred Swarm/Compose relative and K8s success. Do not grind further.
 - 2026-11-09. COV-187: close Priority work on kubernetes exec test helpers. Parallel isolated 0 % → 100 % (0 → 4 of 4; +4). Do not grind further.
 - 2026-11-09. COV-188: close Priority work on scheduler. Parallel isolated 92.9 % → 96.4 % (52 → 54 of 56; +2). Thin leftovers. Do not grind further.
+- 2026-11-09. COV-189: close Priority work on custom template datastore. Parallel isolated 70.0 % → 100 % (7 → 10 of 10; +3). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

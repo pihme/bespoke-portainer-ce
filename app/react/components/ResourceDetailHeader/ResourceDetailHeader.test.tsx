@@ -91,3 +91,24 @@ describe('ResourceDetailHeader', () => {
     expect(screen.queryByText('Add Environment')).not.toBeInTheDocument();
   });
 });
+
+  it('shows an error alert and hides the body content when errorMessage is set', () => {
+    renderComponent({
+      errorMessage: 'Failed to load resource',
+      actionBar: <span>Add Environment</span>,
+    });
+
+    expect(screen.getByText('Failed to load resource')).toBeVisible();
+    expect(screen.queryByText('Test Group')).not.toBeInTheDocument();
+    expect(screen.queryByText('Add Environment')).not.toBeInTheDocument();
+  });
+
+  it('hides the action bar while loading', () => {
+    renderComponent({
+      isLoading: true,
+      actionBar: <span>Add Environment</span>,
+    });
+
+    expect(screen.queryByText('Add Environment')).not.toBeInTheDocument();
+  });
+

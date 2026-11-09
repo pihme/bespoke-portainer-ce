@@ -128,4 +128,91 @@ describe('SortByGroup', () => {
       });
     });
   });
+
+  describe('sort direction badges', () => {
+    test('shows custom ascending and descending labels on the active option', () => {
+      const onChange = vi.fn();
+      const Wrapped = withTestQueryProvider(
+        withTestRouter(() => (
+          <SortByGroup
+            value={{ group: 'Name', groupValue: null }}
+            onChange={onChange}
+            sortOptions={[
+              {
+                key: 'Name',
+                label: 'Name',
+                ascendingLabel: 'A-Z',
+                descendingLabel: 'Z-A',
+              },
+            ]}
+            sortDesc={false}
+            dataCy="test"
+          />
+        ))
+      );
+      const { rerender } = render(<Wrapped />);
+      expect(screen.getByRole('button', { name: /Name/i })).toHaveTextContent(
+        'A-Z'
+      );
+
+      const DescWrapped = withTestQueryProvider(
+        withTestRouter(() => (
+          <SortByGroup
+            value={{ group: 'Name', groupValue: null }}
+            onChange={onChange}
+            sortOptions={[
+              {
+                key: 'Name',
+                label: 'Name',
+                ascendingLabel: 'A-Z',
+                descendingLabel: 'Z-A',
+              },
+            ]}
+            sortDesc
+            dataCy="test"
+          />
+        ))
+      );
+      rerender(<DescWrapped />);
+      expect(screen.getByRole('button', { name: /Name/i })).toHaveTextContent(
+        'Z-A'
+      );
+    });
+
+    test('falls back to Asc/Desc when custom labels are omitted', () => {
+      const Wrapped = withTestQueryProvider(
+        withTestRouter(() => (
+          <SortByGroup
+            value={{ group: 'Name', groupValue: null }}
+            onChange={vi.fn()}
+            sortOptions={[{ key: 'Name', label: 'Name' }]}
+            sortDesc
+            dataCy="test"
+          />
+        ))
+      );
+      render(<Wrapped />);
+      expect(screen.getByRole('button', { name: /Name/i })).toHaveTextContent(
+        'Desc'
+      );
+    });
+
+    test('shows no badge for an unknown active group filter value', () => {
+      const Wrapped = withTestQueryProvider(
+        withTestRouter(() => (
+          <SortByGroup
+            value={{ group: 'Group', groupValue: 'Missing' }}
+            onChange={vi.fn()}
+            sortOptions={sortOptions}
+            groupOptions={groupOptions}
+            sortDesc={false}
+            dataCy="test"
+          />
+        ))
+      );
+      render(<Wrapped />);
+      const btn = screen.getByRole('button', { name: /^Group/i });
+      expect(btn).not.toHaveTextContent('Missing');
+    });
+  });
 });

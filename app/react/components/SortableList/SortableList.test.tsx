@@ -220,6 +220,118 @@ describe('SortableList', () => {
     });
   });
 
+
+  it('uses getItemKey for list item keys when provided', () => {
+    const getItemKey = vi.fn((item: Item) => `id-${item.id}`);
+    renderList({ getItemKey });
+    expect(getItemKey).toHaveBeenCalled();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+  });
+
+  it('prefers groupBy over sortBy when resolving the active sort key', () => {
+    renderList({
+      groups: makeStatusGroups(ITEMS),
+      state: {
+        groupBy: 'status',
+        sortBy: { id: 'name', desc: false },
+      },
+      groupOptions: {
+        status: [{ key: 'healthy' }, { key: 'error' }, { key: 'syncing' }],
+      },
+      showGroupHeaders: true,
+    });
+
+    expect(screen.getByText('Healthy')).toBeInTheDocument();
+  });
+
+  it('renders headerButtons next to the search bar', () => {
+    renderList({
+      headerButtons: <button type="button">Extra</button>,
+    });
+    expect(screen.getByRole('button', { name: 'Extra' })).toBeInTheDocument();
+  });
+
+  it('shows the loading skeleton when isLoading and groups are empty', () => {
+    const { container } = render(
+      <SortableList
+        tableState={createMockState()}
+        sortOptions={SORT_OPTIONS}
+        groups={[]}
+        totalCount={0}
+        renderItem={(item: Item) => <div>{item.name}</div>}
+        isLoading
+        data-cy="sortable-list"
+      />
+    );
+    expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+  });
+
+  it('shows blurred groups with a spinner when isLoading with data', () => {
+    const { container } = render(
+      <SortableList
+        tableState={createMockState()}
+        sortOptions={SORT_OPTIONS}
+        groups={makeGroups(ITEMS.slice(0, 2))}
+        totalCount={2}
+        renderItem={(item: Item) => <div>{item.name}</div>}
+        isLoading
+        data-cy="sortable-list"
+      />
+    );
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+    expect(container.querySelector('.blur-sm')).toBeInTheDocument();
+  });
+
+  it('calls setPageSize from the pager page-size select', async () => {
+    const user = userEvent.setup();
+    const setPageSize = vi.fn();
+    const setPage = vi.fn();
+    renderList({
+      state: { pageSize: 10, page: 1, setPageSize, setPage },
+      groups: makeGroups(ITEMS),
+      totalCount: 40,
+    });
+
+    await user.selectOptions(screen.getByRole('combobox'), '25');
+    expect(setPageSize).toHaveBeenCalledWith(25);
+    expect(setPage).toHaveBeenCalledWith(0);
+  });
+
+  it('hides pager nav when totalCount fits on one page', () => {
+    renderList({
+      groups: makeGroups(ITEMS.slice(0, 3)),
+      totalCount: 3,
+      state: { pageSize: 10, page: 0 },
+    });
+    expect(screen.queryByTitle('Next page')).not.toBeInTheDocument();
+  });
+
+  it('clamps an out-of-range page down to the last page', () => {
+    renderList({
+      groups: makeGroups(ITEMS.slice(0, 5)),
+      totalCount: 20,
+      state: { pageSize: 5, page: 99 },
+    });
+    // last page (index 3) shows 16–20
+    expect(screen.getByText(/Showing/)).toHaveTextContent('16–20');
+  });
+
+
+  it('treats a missing sort key as no active group headers', () => {
+    renderList({
+      groups: makeStatusGroups(ITEMS),
+      state: { sortBy: undefined, groupBy: null },
+      groupOptions: {
+        status: [{ key: 'healthy' }, { key: 'error' }, { key: 'syncing' }],
+      },
+      showGroupHeaders: true,
+    });
+
+    // activeKey is '' so groupOptions[activeKey] is undefined → headers hidden
+    expect(screen.queryByText('Healthy')).not.toBeInTheDocument();
+    expect(screen.getByText('Alpha')).toBeInTheDocument();
+  });
+
   it('renders the group description in the group header', () => {
     const groups: SortableGroup<Item>[] = [
       {
@@ -253,6 +365,7 @@ function renderList({
   getItemKey,
   searchPlaceholder,
   actionButton,
+  headerButtons,
   isLoading,
 }: {
   state?: Partial<SortableListState>;
@@ -266,6 +379,7 @@ function renderList({
   getItemKey?: (item: Item, index: number) => string | number;
   searchPlaceholder?: string;
   actionButton?: ReactNode;
+  headerButtons?: ReactNode;
   isLoading?: boolean;
 } = {}) {
   const tableState = createMockState(state);
@@ -284,6 +398,7 @@ function renderList({
       getItemKey={getItemKey}
       searchPlaceholder={searchPlaceholder}
       actionButton={actionButton}
+      headerButtons={headerButtons}
       isLoading={isLoading}
       data-cy="sortable-list"
     />

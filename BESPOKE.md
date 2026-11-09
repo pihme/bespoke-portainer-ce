@@ -301,6 +301,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-218 | Close Priority work on `HomeView` (parent; not EnvironmentList/EnvironmentItem). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 28.6 % → 85.7 % (16 → 48 of 56; +32). Deferred-within-package: Edge-redirect. Package left at 85.7 % (48 of 56; 8 missed). | Preferred home view shell covered; Edge-redirect deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-219 | Close Priority work on `log-viewer`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 34 of 34; +34). Leftovers: none. Deferred-within-package: none. Package left at 100 % (34 of 34; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-220 | Close Priority work on `network-macvlan-form`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 34 of 34; +34). Leftovers: none. Deferred-within-package: none. Package left at 100 % (34 of 34; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-221 | Close Priority work on `endpointSecurity`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 34 of 34; +34). Leftovers: none. Deferred-within-package: none. Package left at 100 % (34 of 34; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -603,6 +604,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-218: close Priority work on home view shell. Parallel isolated 28.6 % → 85.7 % (16 → 48 of 56; +32). Deferred Edge-redirect. Do not grind further.
 - 2026-11-09. COV-219: close Priority work on container log viewer. Parallel isolated 0 % → 100 % (0 → 34 of 34; +34). Do not grind further.
 - 2026-11-09. COV-220: close Priority work on macvlan network form. Parallel isolated 0 % → 100 % (0 → 34 of 34; +34). Do not grind further.
+- 2026-11-09. COV-221: close Priority work on endpoint TLS security form. Parallel isolated 0 % → 100 % (0 → 34 of 34; +34). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

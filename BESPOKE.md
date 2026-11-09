@@ -414,6 +414,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-331 | Close Priority work on `TLSFieldset`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 12 of 12; +12). Leftovers: none. Deferred-within-package: none. Package left at 100 % (12 of 12; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-332 | Close Priority work on `host/SetupView`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7; GpusList only). Leftovers: none. Deferred-within-package: none. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-333 | Close Priority work on `images/ListView` (parent; ImagesDatatable/columns out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 66.7 % → 100 % (14 → 21 of 21; +7). Leftovers: none. Deferred-within-package: none. Package left at 100 % (21 of 21; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-334 | Close Priority work on `stacks/CreateView` (parent; CreateStackForm out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7). Leftovers: none. Deferred-within-package: none. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -838,6 +839,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-331: close Priority work on TLSFieldset. Parallel isolated 0 % → 100 % (0 → 12 of 12; +12). Do not grind further.
 - 2026-11-09. COV-332: close Priority work on host SetupView. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Do not grind further.
 - 2026-11-09. COV-333: close Priority work on images ListView parent. Parallel isolated 66.7 % → 100 % (14 → 21 of 21; +7). Do not grind further.
+- 2026-11-09. COV-334: close Priority work on stacks CreateView parent. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -143,4 +143,33 @@ describe('CommandPalette', () => {
     renderSearchBar({ value: '', renderDropdown });
     expect(renderDropdown).not.toHaveBeenCalled();
   });
+
+  it('forwards a callback ref and an object ref to the search input', () => {
+    const callbackRef = vi.fn();
+    const objectRef = { current: null as HTMLInputElement | null };
+
+    const { unmount } = render(
+      <CommandPalette
+        ref={callbackRef}
+        value=""
+        onChange={vi.fn()}
+        onCompletion={vi.fn()}
+        allFilePaths={allFilePaths}
+      />
+    );
+    expect(callbackRef).toHaveBeenCalled();
+    expect(callbackRef.mock.calls[0][0]).toBeInstanceOf(HTMLInputElement);
+    unmount();
+
+    render(
+      <CommandPalette
+        ref={objectRef}
+        value=""
+        onChange={vi.fn()}
+        onCompletion={vi.fn()}
+        allFilePaths={allFilePaths}
+      />
+    );
+    expect(objectRef.current).toBeInstanceOf(HTMLInputElement);
+  });
 });

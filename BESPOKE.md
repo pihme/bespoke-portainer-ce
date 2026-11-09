@@ -257,6 +257,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-174 | Close Priority work on `api/http/handler/docker/utils`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): get_client_test.go + get_stacks_errors_test.go (5). Isolated remasure: 71.4 % → 97.1 % (25 → 34 of 35; +9). Leftovers: 1 thin. Deferred-within-package: none. Package left at 97.1 % (34 of 35; 1 missed). | Preferred Docker handler utils covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-175 | Close Priority work on `api/http/utils/filters`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): extended sort_test.go (+2 tests). Isolated remasure: 80.4 % → 100 % (41 → 51 of 51; +10). Leftovers: none. Deferred-within-package: none. Package left at 100 % (51 of 51; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-176 | Close Priority work on `api/internal/nodes`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): nodes_test.go (4 under REQ-HOST-01). Isolated remasure: 0 % → 100 % (0 → 10 of 10; +10). Leftovers: none. Deferred-within-package: none (k8s shape only asserted shallowly). Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-177 | Close Priority work on `api/http/proxy` (parent). Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): manager_local_test.go (3). Isolated remasure: 59.1 % → 90.9 % (13 → 20 of 22; +7). Deferred-within-package: k8s cleanup. Package left at 90.9 % (20 of 22; 2 missed). | Preferred HTTP proxy manager covered; k8s cleanup deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -513,6 +514,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-174: close Priority work on Docker handler utils. Parallel isolated 71.4 % → 97.1 % (25 → 34 of 35; +9). Thin leftover. Do not grind further.
 - 2026-11-09. COV-175: close Priority work on HTTP filter helpers. Parallel isolated 80.4 % → 100 % (41 → 51 of 51; +10). Do not grind further.
 - 2026-11-09. COV-176: close Priority work on node helpers. Parallel isolated 0 % → 100 % (0 → 10 of 10; +10). Do not grind further.
+- 2026-11-09. COV-177: close Priority work on HTTP proxy manager. Parallel isolated 59.1 % → 90.9 % (13 → 20 of 22; +7). Deferred k8s cleanup. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

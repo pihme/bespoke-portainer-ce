@@ -49,6 +49,29 @@ describe('REQ-TPL-03 / REQ-TPL-04 useValidation', () => {
     ).rejects.toThrow(/Template is required/i);
   });
 
+  it('REQ-TAI-002 rejects the Kubernetes template type', async () => {
+    const { result } = renderHook(
+      () => useValidation({ viewType: 'docker', deployMethod: 'compose' }),
+      { wrapper }
+    );
+
+    await expect(
+      result.current.validate({
+        Title: 'k8s',
+        Description: 'manifest',
+        Note: '',
+        Logo: '',
+        Platform: Platform.LINUX,
+        Type: StackType.Kubernetes,
+        Method: 'editor',
+        FileContent: 'apiVersion: v1',
+        File: undefined,
+        Git: {},
+        Variables: [],
+      })
+    ).rejects.toThrow(/Type must be one of/i);
+  });
+
   it('accepts a local editor compose template with variables', async () => {
     const { result } = renderHook(
       () => useValidation({ viewType: 'docker', deployMethod: 'compose' }),

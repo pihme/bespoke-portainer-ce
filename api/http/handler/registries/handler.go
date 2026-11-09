@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/registryutils/access"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/pendingactions"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -45,7 +44,6 @@ type Handler struct {
 	DataStore             dataservices.DataStore
 	FileService           portainer.FileService
 	ProxyManager          *proxy.Manager
-	K8sClientFactory      *cli.ClientFactory
 	PendingActionsService *pendingactions.PendingActionsService
 }
 
@@ -136,10 +134,8 @@ func (handler *Handler) userHasRegistryAccess(r *http.Request, registry *portain
 		return false, false, err
 	}
 
-	// Use the enhanced registry access utility function that includes namespace validation
 	_, err = access.GetAccessibleRegistry(
 		handler.DataStore,
-		handler.K8sClientFactory,
 		securityContext.UserID,
 		endpointId,
 		registry.ID,

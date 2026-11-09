@@ -28,8 +28,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
-	"github.com/portainer/portainer/api/http/handler/helm"
-	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
 	"github.com/portainer/portainer/api/http/handler/settings"
@@ -53,14 +51,12 @@ import (
 	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/ssl"
 	"github.com/portainer/portainer/api/internal/upgrade"
-	k8s "github.com/portainer/portainer/api/kubernetes"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 	motdservice "github.com/portainer/portainer/api/motd"
 	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/teardown"
-	libhelmtypes "github.com/portainer/portainer/pkg/libhelm/types"
 
 	"github.com/rs/zerolog/log"
 )
@@ -87,13 +83,11 @@ type Server struct {
 	SwarmStackManager           portainer.SwarmStackManager
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
-	KubeClusterAccessService    k8s.KubeClusterAccessService
 	Handler                     *handler.Handler
 	SSLService                  *ssl.Service
 	DockerClientFactory         *dockerclient.ClientFactory
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portainer.KubernetesDeployer
-	HelmPackageManager          libhelmtypes.HelmPackageManager
 	SourceScheduler             *scheduling.SourceScheduler
 	ShutdownTrigger             context.CancelFunc
 	StackDeployer               deployments.StackDeployer
@@ -142,7 +136,6 @@ func (server *Server) Start(ctx context.Context) error {
 	endpointHandler.FileService = server.FileService
 	endpointHandler.ProxyManager = server.ProxyManager
 	endpointHandler.SnapshotService = server.SnapshotService
-	endpointHandler.K8sClientFactory = server.KubernetesClientFactory
 	endpointHandler.DockerClientFactory = server.DockerClientFactory
 	endpointHandler.ReverseTunnelService = server.ReverseTunnelService
 	endpointHandler.ComposeStackManager = server.ComposeStackManager
@@ -164,19 +157,13 @@ func (server *Server) Start(ctx context.Context) error {
 	endpointProxyHandler.ProxyManager = server.ProxyManager
 	endpointProxyHandler.ReverseTunnelService = server.ReverseTunnelService
 
-	var kubernetesHandler = kubehandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.JWTService, server.KubeClusterAccessService, server.KubernetesClientFactory, nil)
-
 	containerService := docker.NewContainerService(server.DockerClientFactory, server.DataStore)
 
 	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory, containerService)
 
 	var fileHandler = file.NewHandler(filesystem.JoinPaths(server.AssetsPath, "public"), server.CSP)
 
-	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService)
-
 	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService, server.KubernetesClientFactory, server.SourceScheduler)
-
-	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
 
 	motdSvc := motdservice.NewService(portainer.MessageOfTheDayURL)
 	motdSvc.Start(ctx)
@@ -187,7 +174,6 @@ func (server *Server) Start(ctx context.Context) error {
 	registryHandler.DataStore = server.DataStore
 	registryHandler.FileService = server.FileService
 	registryHandler.ProxyManager = server.ProxyManager
-	registryHandler.K8sClientFactory = server.KubernetesClientFactory
 
 	var settingsHandler = settings.NewHandler(requestBouncer)
 	settingsHandler.DataStore = server.DataStore
@@ -197,13 +183,11 @@ func (server *Server) Start(ctx context.Context) error {
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
 
-	teardownService := teardown.NewService(server.FileService, server.SwarmStackManager, server.ComposeStackManager, server.StackDeployer, server.KubernetesDeployer)
+	teardownService := teardown.NewService(server.FileService, server.SwarmStackManager, server.ComposeStackManager, server.StackDeployer)
 	var stackHandler = stacks.NewHandler(requestBouncer, teardownService)
 	stackHandler.DataStore = server.DataStore
 	stackHandler.DockerClientFactory = server.DockerClientFactory
 	stackHandler.FileService = server.FileService
-	stackHandler.KubernetesClientFactory = server.KubernetesClientFactory
-	stackHandler.KubernetesDeployer = server.KubernetesDeployer
 	stackHandler.GitService = server.GitService
 	stackHandler.SourceScheduler = server.SourceScheduler
 	stackHandler.SwarmStackManager = server.SwarmStackManager
@@ -232,11 +216,10 @@ func (server *Server) Start(ctx context.Context) error {
 	var userHandler = users.NewHandler(requestBouncer)
 	userHandler.DataStore = server.DataStore
 
-	var websocketHandler = websocket.NewHandler(server.KubernetesTokenCacheManager, requestBouncer)
+	var websocketHandler = websocket.NewHandler(requestBouncer)
 	websocketHandler.DataStore = server.DataStore
 	websocketHandler.SignatureService = server.SignatureService
 	websocketHandler.ReverseTunnelService = server.ReverseTunnelService
-	websocketHandler.KubernetesClientFactory = server.KubernetesClientFactory
 
 	var webhookHandler = webhooks.NewHandler(requestBouncer)
 	webhookHandler.DataStore = server.DataStore
@@ -251,13 +234,10 @@ func (server *Server) Start(ctx context.Context) error {
 		EdgeStacksHandler:      edgeStacksHandler,
 		EndpointGroupHandler:   endpointGroupHandler,
 		EndpointHandler:        endpointHandler,
-		EndpointHelmHandler:    endpointHelmHandler,
 		EndpointEdgeHandler:    endpointEdgeHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
 		GitOperationHandler:    gitOperationHandler,
 		FileHandler:            fileHandler,
-		HelmTemplatesHandler:   helmTemplatesHandler,
-		KubernetesHandler:      kubernetesHandler,
 		MOTDHandler:            motdHandler,
 		RegistryHandler:        registryHandler,
 		SettingsHandler:        settingsHandler,

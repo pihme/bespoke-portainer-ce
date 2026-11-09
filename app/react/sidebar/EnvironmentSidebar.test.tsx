@@ -52,10 +52,6 @@ vi.mock('./AzureSidebar', () => ({
   AzureSidebar: () => <div data-cy="stub-azure-sidebar">Azure</div>,
 }));
 
-vi.mock('./KubernetesSidebar', () => ({
-  KubernetesSidebar: () => <div data-cy="stub-k8s-sidebar">K8s</div>,
-}));
-
 function renderEnvSidebar(sidebarState = { isOpen: true, toggle: vi.fn() }) {
   const Wrapped = withUserProvider(
     withTestRouter(EnvironmentSidebar),

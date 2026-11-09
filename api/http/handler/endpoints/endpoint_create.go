@@ -20,7 +20,6 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type endpointCreatePayload struct {
@@ -52,7 +51,7 @@ const (
 	agentEnvironment
 	azureEnvironment
 	edgeAgentEnvironment
-	localKubernetesEnvironment
+	// 5 was the local Kubernetes environment, removed with Kubernetes (TAI-002).
 )
 
 func (payload *endpointCreatePayload) Validate(r *http.Request) error {
@@ -63,8 +62,8 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 	payload.Name = name
 
 	endpointCreationType, err := request.RetrieveNumericMultiPartFormValue(r, "EndpointCreationType", false)
-	if err != nil || endpointCreationType == 0 {
-		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment), 2 (Agent environment), 3 (Azure environment), 4 (Edge Agent environment) or 5 (Local Kubernetes environment)")
+	if err != nil || endpointCreationType < int(localDockerEnvironment) || endpointCreationType > int(edgeAgentEnvironment) {
+		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment), 2 (Agent environment), 3 (Azure environment) or 4 (Edge Agent environment)")
 	}
 	payload.EndpointCreationType = endpointCreationEnum(endpointCreationType)
 
@@ -194,7 +193,7 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name that will be used to identify this environment(endpoint) (example: my-environment)"
-// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 2 (Agent environment), 3 (Azure environment), 4 (Edge agent environment) or 5 (Local Kubernetes Environment)" Enum(1,2,3,4,5)
+// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 2 (Agent environment), 3 (Azure environment), 4 (Edge agent environment)" Enum(1,2,3,4)
 // @param ContainerEngine formData string false "Container engine used by the environment(endpoint). Value must be one of: 'docker' or 'podman'"
 // @param URL formData string false "URL or IP address of a Docker host (example: docker.mydomain.tld:2375). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine). Cannot be empty if EndpointCreationType is set to 4 (Edge agent environment)"
 // @param PublicURL formData string false "URL or IP address where exposed containers will be reachable. Defaults to URL if not specified (example: docker.mydomain.tld:2375)"
@@ -262,15 +261,6 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		for _, stackID := range relatedEdgeStacks {
 			relationObject.EdgeStacks[stackID] = true
 		}
-	} else if endpointutils.IsKubernetesEndpoint(endpoint) {
-		if err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			endpointutils.InitialIngressClassDetection(tx, endpoint, handler.K8sClientFactory)
-			endpointutils.InitialMetricsDetection(tx, endpoint, handler.K8sClientFactory)
-			endpointutils.InitialStorageDetection(tx, handler.DataStore, endpoint, handler.K8sClientFactory)
-			return nil
-		}); err != nil {
-			log.Err(err).Msg("failed to persist initial kube detection")
-		}
 	}
 
 	if err := handler.DataStore.EndpointRelation().Create(relationObject); err != nil {
@@ -287,9 +277,6 @@ func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *end
 
 	case edgeAgentEnvironment:
 		return handler.createEdgeAgentEndpoint(tx, payload)
-
-	case localKubernetesEnvironment:
-		return handler.createKubernetesEndpoint(tx, payload)
 	}
 
 	endpointType := portainer.DockerEnvironment
@@ -309,8 +296,7 @@ func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *end
 		if agentPlatform == portainer.AgentPlatformDocker {
 			endpointType = portainer.AgentOnDockerEnvironment
 		} else if agentPlatform == portainer.AgentPlatformKubernetes {
-			endpointType = portainer.AgentOnKubernetesEnvironment
-			payload.URL = strings.TrimPrefix(payload.URL, "tcp://")
+			return nil, httperror.BadRequest("Kubernetes environments are not supported", errors.New("kubernetes environments are not supported"))
 		}
 	}
 
@@ -455,40 +441,6 @@ func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, pay
 	return endpoint, nil
 }
 
-func (handler *Handler) createKubernetesEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {
-	if payload.URL == "" {
-		payload.URL = "https://kubernetes.default.svc"
-	}
-
-	endpointID := tx.Endpoint().GetNextIdentifier()
-
-	endpoint := &portainer.Endpoint{
-		ID:        portainer.EndpointID(endpointID),
-		Name:      payload.Name,
-		URL:       payload.URL,
-		Type:      portainer.KubernetesLocalEnvironment,
-		GroupID:   portainer.EndpointGroupID(payload.GroupID),
-		PublicURL: payload.PublicURL,
-		Gpus:      payload.Gpus,
-		TLSConfig: portainer.TLSConfiguration{
-			TLS:           payload.TLS,
-			TLSSkipVerify: payload.TLSSkipVerify,
-		},
-		UserAccessPolicies: portainer.UserAccessPolicies{},
-		TeamAccessPolicies: portainer.TeamAccessPolicies{},
-		TagIDs:             payload.TagIDs,
-		Status:             portainer.EndpointStatusUp,
-		Snapshots:          []portainer.DockerSnapshot{},
-		Kubernetes:         portainer.KubernetesDefault(),
-	}
-
-	if err := handler.snapshotAndPersistEndpoint(tx, endpoint); err != nil {
-		return nil, err
-	}
-
-	return endpoint, nil
-}
-
 func (handler *Handler) createTLSSecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload, endpointType portainer.EndpointType, agentVersion string) (*portainer.Endpoint, *httperror.HandlerError) {
 	endpointID := tx.Endpoint().GetNextIdentifier()
 	endpoint := &portainer.Endpoint{
@@ -533,8 +485,7 @@ func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, 
 	}
 
 	if err := snapshotService.SnapshotEndpointTx(tx, endpoint); err != nil {
-		if (endpoint.Type == portainer.AgentOnDockerEnvironment && strings.Contains(err.Error(), "Invalid request signature")) ||
-			(endpoint.Type == portainer.AgentOnKubernetesEnvironment && strings.Contains(err.Error(), "unknown")) {
+		if endpoint.Type == portainer.AgentOnDockerEnvironment && strings.Contains(err.Error(), "Invalid request signature") {
 			err = errors.New("agent already paired with another Portainer instance")
 		}
 

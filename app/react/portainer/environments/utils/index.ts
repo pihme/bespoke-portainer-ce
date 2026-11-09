@@ -120,6 +120,15 @@ export function getDashboardRoute(environment: Environment) {
     }
   }
 
+  if (getPlatformType(environment.Type) === PlatformType.Kubernetes) {
+    // Kubernetes management is removed (TAI-002): leftover Kubernetes
+    // environments open their details page instead of a dashboard.
+    return {
+      to: 'portainer.endpoints.endpoint',
+      params: { id: environment.Id },
+    };
+  }
+
   const params = { endpointId: environment.Id };
   const to = getPlatformRoute();
 
@@ -132,8 +141,6 @@ export function getDashboardRoute(environment: Environment) {
         return 'azure.dashboard';
       case PlatformType.Docker:
         return 'docker.dashboard';
-      case PlatformType.Kubernetes:
-        return 'kubernetes.dashboard';
       default:
         throw new Error(`Unsupported platform ${platform}`);
     }

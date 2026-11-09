@@ -18,9 +18,6 @@ import { createSwarmStackFromFileContent } from './createSwarmStackFromFileConte
 import { createStandaloneStackFromFile } from './createStandaloneStackFromFile';
 import { createStandaloneStackFromGit } from './createStandaloneStackFromGit';
 import { createStandaloneStackFromFileContent } from './createStandaloneStackFromFileContent';
-import { createKubernetesStackFromUrl } from './createKubernetesStackFromUrl';
-import { createKubernetesStackFromGit } from './createKubernetesStackFromGit';
-import { createKubernetesStackFromFileContent } from './createKubernetesStackFromFileContent';
 
 export function useCreateStack() {
   const queryClient = useQueryClient();
@@ -42,11 +39,6 @@ type DockerBasePayload = BasePayload & {
 
 type SwarmBasePayload = DockerBasePayload & {
   swarmId: string;
-};
-
-type KubernetesBasePayload = BasePayload & {
-  namespace: string;
-  composeFormat: boolean;
 };
 
 export type SwarmCreatePayload =
@@ -109,35 +101,9 @@ type StandaloneCreatePayload =
       };
     };
 
-type KubernetesCreatePayload =
-  | {
-      method: 'string';
-      payload: KubernetesBasePayload & {
-        /** Content of the Stack file */
-        fileContent: string;
-        /** Optional webhook configuration */
-        webhook?: string;
-      };
-    }
-  | {
-      method: 'git';
-      payload: KubernetesBasePayload & {
-        git: GitFormModel;
-        relativePathSettings?: RelativePathModel;
-        webhook?: string;
-      };
-    }
-  | {
-      method: 'url';
-      payload: KubernetesBasePayload & {
-        manifestUrl: string;
-      };
-    };
-
 export type CreateStackPayload =
   | ({ type: 'swarm' } & SwarmCreatePayload)
-  | ({ type: 'standalone' } & StandaloneCreatePayload)
-  | ({ type: 'kubernetes' } & KubernetesCreatePayload);
+  | ({ type: 'standalone' } & StandaloneCreatePayload);
 
 function createStack(payload: CreateStackPayload) {
   return createActualStack(payload);
@@ -149,8 +115,6 @@ function createActualStack(payload: CreateStackPayload) {
       return createSwarmStack(payload);
     case 'standalone':
       return createStandaloneStack(payload);
-    case 'kubernetes':
-      return createKubernetesStack(payload);
     default:
       throw new Error('Invalid type');
   }
@@ -243,47 +207,6 @@ function createStandaloneStack({ method, payload }: StandaloneCreatePayload) {
         webhook: payload.webhook,
         fromAppTemplate: payload.fromAppTemplate,
         registries: payload.registries,
-      });
-    default:
-      throw new Error('Invalid method');
-  }
-}
-
-function createKubernetesStack({ method, payload }: KubernetesCreatePayload) {
-  switch (method) {
-    case 'string':
-      return createKubernetesStackFromFileContent({
-        stackName: payload.name,
-
-        environmentId: payload.environmentId,
-        stackFileContent: payload.fileContent,
-        composeFormat: payload.composeFormat,
-        namespace: payload.namespace,
-      });
-    case 'git':
-      return createKubernetesStackFromGit({
-        stackName: payload.name,
-
-        sourceId: payload.git.SourceId,
-        repositoryReferenceName: payload.git.RepositoryReferenceName,
-        manifestFile: payload.git.ComposeFilePathInRepository,
-
-        autoUpdate: transformAutoUpdateViewModel(
-          payload.git.AutoUpdate,
-          payload.webhook
-        ),
-        environmentId: payload.environmentId,
-        additionalFiles: payload.git.AdditionalFiles,
-        composeFormat: payload.composeFormat,
-        namespace: payload.namespace,
-      });
-    case 'url':
-      return createKubernetesStackFromUrl({
-        stackName: payload.name,
-        composeFormat: payload.composeFormat,
-        environmentId: payload.environmentId,
-        manifestURL: payload.manifestUrl,
-        namespace: payload.namespace,
       });
     default:
       throw new Error('Invalid method');

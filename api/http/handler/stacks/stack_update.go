@@ -132,17 +132,6 @@ func (handler *Handler) stackUpdate(w http.ResponseWriter, r *http.Request) *htt
 		return response.JSON(w, stack)
 	}
 
-	if stack.Type == portainer.KubernetesStack {
-		if httpErr := handler.stackDeployInline(stack, deploymentConfig, postDeploy); httpErr != nil {
-			return httpErr
-		}
-
-		if err := handler.SourceScheduler.Reconcile(reconcileSourceID); err != nil {
-			log.Warn().Err(err).Msg("source scheduler reconcile failed after stack update")
-		}
-		return response.JSON(w, stack)
-	}
-
 	if err := handler.SourceScheduler.Reconcile(reconcileSourceID); err != nil {
 		log.Warn().Err(err).Msg("source scheduler reconcile failed after stack update")
 	}
@@ -244,8 +233,6 @@ func (handler *Handler) updateAndDeployStack(tx dataservices.DataStoreTx, r *htt
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
 		return handler.updateComposeStack(tx, r, stack, endpoint)
-	case portainer.KubernetesStack:
-		return handler.updateKubernetesStack(tx, r, stack, endpoint)
 	}
 
 	return nil, nil, httperror.InternalServerError("Unsupported stack", errors.Errorf("unsupported stack type: %v", stack.Type))
@@ -474,45 +461,4 @@ func stackDeploy(dataStore dataservices.DataStore, stackID portainer.StackID, st
 	if postDeploy != nil {
 		postDeploy(ctx, deployErr)
 	}
-}
-
-// stackDeployInline must be called with no transaction held, and with the stack's status already
-// transitioned to Deploying and persisted (see updateStackInTx's Kubernetes branch).
-func (handler *Handler) stackDeployInline(stack *portainer.Stack, stackDeploymentConfig deployments.StackDeploymentConfiger, postDeploy postDeployFunc) *httperror.HandlerError {
-	deployCtx, cancel := context.WithTimeout(context.Background(), stackutils.InlineDeployTimeout)
-	defer cancel()
-
-	if deployErr := stackDeploymentConfig.Deploy(deployCtx); deployErr != nil {
-		stackutils.UpdateStackStatusFromDeploymentResult(stack, deployErr)
-
-		if err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return tx.Stack().Update(stack.ID, stack)
-		}); err != nil {
-			log.Error().Err(err).
-				AnErr("deploy_error", deployErr).
-				Int("stack_id", int(stack.ID)).
-				Str("context", "stackDeployInline").
-				Msg("Failed to persist stack deployment status after failed inline deploy")
-		}
-
-		if postDeploy != nil {
-			postDeploy(deployCtx, deployErr)
-		}
-
-		return httperror.InternalServerError("Failed to deploy stack", deployErr)
-	}
-
-	stackutils.UpdateStackStatusFromDeploymentResult(stack, nil)
-
-	if err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return tx.Stack().Update(stack.ID, stack)
-	}); err != nil {
-		return httperror.InternalServerError("Failed to persist stack deployment status", err)
-	}
-
-	if postDeploy != nil {
-		postDeploy(deployCtx, nil)
-	}
-
-	return nil
 }

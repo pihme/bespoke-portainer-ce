@@ -45,10 +45,6 @@ vi.mock('./ApplicationSettingsPanel', () => ({
   ),
 }));
 
-vi.mock('./KubeSettingsPanel', () => ({
-  KubeSettingsPanel: () => null,
-}));
-
 vi.mock('./BackupSettingsView', () => ({
   BackupSettingsPanel: () => null,
 }));
@@ -59,10 +55,6 @@ vi.mock('./HiddenContainersPanel/HiddenContainersPanel', () => ({
 
 vi.mock('./SSLSettingsPanel/SSLSettingsPanel', () => ({
   SSLSettingsPanelWrapper: () => <div>ssl-settings</div>,
-}));
-
-vi.mock('./HelmCertPanel', () => ({
-  HelmCertPanel: () => <div>helm-cert</div>,
 }));
 
 vi.mock('./ExperimentalFeatures', () => ({
@@ -126,5 +118,14 @@ describe('REQ-SET-01 SettingsView parent chrome', () => {
     renderComponent();
     await waitFor(() => expect(target.scrollIntoView).toHaveBeenCalled());
     document.body.removeChild(target);
+  });
+
+  it('REQ-TAI-002 shows no Kubernetes or Helm settings', async () => {
+    setupMocks();
+    renderComponent();
+    await waitFor(() => expect(screen.getByText('sync-settings')).toBeVisible());
+    expect(screen.queryByText(/kubernetes/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/kubeconfig/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/helm/i)).not.toBeInTheDocument();
   });
 });

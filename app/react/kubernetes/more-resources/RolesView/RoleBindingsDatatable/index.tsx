@@ -1,1 +1,0 @@
-export { RoleBindingsDatatable } from './RoleBindingsDatatable';

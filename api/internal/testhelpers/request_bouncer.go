@@ -18,10 +18,6 @@ func (testRequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler {
 	return h
 }
 
-func (testRequestBouncer) AuthenticatedAccessAllowingKubeconfig(h http.Handler) http.Handler {
-	return h
-}
-
 func (testRequestBouncer) AdminAccess(h http.Handler) http.Handler {
 	return h
 }

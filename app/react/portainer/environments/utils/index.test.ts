@@ -61,3 +61,16 @@ describe('environments utils KEEP docker helpers', () => {
     expect(IconSizeClass.sm).toContain('h-3.5');
   });
 });
+
+describe('REQ-TAI-002 Kubernetes dashboard is gone', () => {
+  it('routes a leftover Kubernetes environment to its details page', () => {
+    expect(
+      getDashboardRoute(
+        dockerEnv({ Id: 3, Type: EnvironmentType.AgentOnKubernetes })
+      )
+    ).toEqual({
+      to: 'portainer.endpoints.endpoint',
+      params: { id: 3 },
+    });
+  });
+});

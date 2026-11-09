@@ -68,9 +68,6 @@ vi.mock('@@/form-components/PortainerSelect', () => ({
 vi.mock('@@/BETeaserButton', () => ({ BETeaserButton: () => null }));
 vi.mock('@@/CodeEditor', () => ({ CodeEditor: () => null }));
 vi.mock('@@/Tip/TextTip', () => ({ TextTip: () => null }));
-vi.mock('@/react/kubernetes/annotations/AnnotationsBeTeaser', () => ({
-  AnnotationsBeTeaser: () => null,
-}));
 vi.mock('@/react/portainer/gitops/GitForm', () => ({ GitForm: () => null }));
 vi.mock('@/react/portainer/environments/TagsView/TagsDatatable', () => ({
   TagsDatatable: () => null,
@@ -154,5 +151,11 @@ describe('portainer react components wrappers', () => {
     ]) {
       expect(names).not.toContain(gone);
     }
+  });
+
+  it('REQ-TAI-002 registers no Kubernetes components', async () => {
+    await import('./index');
+    const names = components.map((c) => c.name);
+    expect(names).not.toContain('annotationsBeTeaser');
   });
 });

@@ -1,1 +1,0 @@
-export { RegistriesFormSection } from './RegistriesFormSection';

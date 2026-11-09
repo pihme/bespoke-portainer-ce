@@ -18,8 +18,6 @@ type publicSettingsResponse struct {
 	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
 	Features map[featureflags.Feature]bool `json:"Features"`
-	// The expiry of a Kubeconfig
-	KubeconfigExpiry string `example:"24h" default:"0"`
 
 	Edge struct {
 		// The ping interval for edge agent - used in edge async mode [seconds]
@@ -60,7 +58,6 @@ func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResp
 		LogoURL:                   appSettings.LogoURL,
 		EnableEdgeComputeFeatures: appSettings.EnableEdgeComputeFeatures,
 		GlobalDeploymentOptions:   appSettings.GlobalDeploymentOptions,
-		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
 		Features:                  featureflags.FeatureFlags(),
 	}
 

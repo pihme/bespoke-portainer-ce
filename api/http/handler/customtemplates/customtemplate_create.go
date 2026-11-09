@@ -110,8 +110,7 @@ type customTemplateFromFileContentPayload struct {
 	// Type of created stack:
 	// * 1 - swarm
 	// * 2 - compose
-	// * 3 - kubernetes
-	Type portainer.StackType `example:"1" enums:"1,2,3" validate:"required"`
+	Type portainer.StackType `example:"1" enums:"1,2" validate:"required"`
 	// Content of stack file
 	FileContent string `validate:"required"`
 	// Definitions of variables in the stack file
@@ -130,11 +129,11 @@ func (payload *customTemplateFromFileContentPayload) Validate(r *http.Request) e
 	if len(payload.FileContent) == 0 {
 		return errors.New("Invalid file content")
 	}
-	if payload.Type != portainer.KubernetesStack && payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
+	if payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
 	// Platform validation is only for docker related stack (docker standalone and docker swarm)
-	if payload.Type != portainer.KubernetesStack && payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
+	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	if !IsValidNote(payload.Note) {
@@ -202,7 +201,6 @@ type customTemplateFromGitRepositoryPayload struct {
 	// Type of created stack:
 	// * 1 - swarm
 	// * 2 - compose
-	// * 3 - kubernetes
 	Type portainer.StackType `example:"1" enums:"1,2" validate:"required"`
 
 	// SourceID references an existing Source for git credentials/URL.
@@ -250,10 +248,10 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 	}
 
 	// Platform validation is only for docker related stack (docker standalone and docker swarm)
-	if payload.Type != portainer.KubernetesStack && payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
+	if payload.Platform != portainer.CustomTemplatePlatformLinux && payload.Platform != portainer.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
-	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack && payload.Type != portainer.KubernetesStack {
+	if payload.Type != portainer.DockerSwarmStack && payload.Type != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	if !IsValidNote(payload.Note) {
@@ -377,9 +375,6 @@ func (handler *Handler) createCustomTemplateFromGitRepository(r *http.Request) (
 	}
 
 	if !exists {
-		if payload.Type == portainer.KubernetesStack {
-			return nil, errors.New("Invalid Manifest file, ensure that the Manifest file path is correct")
-		}
 		return nil, errors.New("Invalid Compose file, ensure that the Compose file path is correct")
 	}
 
@@ -405,7 +400,6 @@ type customTemplateFromFileUploadPayload struct {
 	// Type of created stack:
 	// * 1 - swarm
 	// * 2 - compose
-	// * 3 - kubernetes
 	Type        portainer.StackType
 	FileContent []byte
 	// Definitions of variables in the stack file
@@ -438,7 +432,7 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 
 	typeNumeral, _ := request.RetrieveNumericMultiPartFormValue(r, "Type", true)
 	templateType := portainer.StackType(typeNumeral)
-	if templateType != portainer.KubernetesStack && templateType != portainer.DockerSwarmStack && templateType != portainer.DockerComposeStack {
+	if templateType != portainer.DockerSwarmStack && templateType != portainer.DockerComposeStack {
 		return errors.New("Invalid custom template type")
 	}
 	payload.Type = templateType
@@ -446,7 +440,7 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 	platform, _ := request.RetrieveNumericMultiPartFormValue(r, "Platform", true)
 	templatePlatform := portainer.CustomTemplatePlatform(platform)
 	// Platform validation is only for docker related stack (docker standalone and docker swarm)
-	if templateType != portainer.KubernetesStack && templatePlatform != portainer.CustomTemplatePlatformLinux && templatePlatform != portainer.CustomTemplatePlatformWindows {
+	if templatePlatform != portainer.CustomTemplatePlatformLinux && templatePlatform != portainer.CustomTemplatePlatformWindows {
 		return errors.New("Invalid custom template platform")
 	}
 
@@ -485,7 +479,7 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 // @param Description formData string true "Description of the template"
 // @param Note formData string true "A note that will be displayed in the UI. Supports HTML content"
 // @param Platform formData int true "Platform associated to the template (1 - 'linux', 2 - 'windows')" Enums(1,2)
-// @param Type formData int true "Type of created stack (1 - swarm, 2 - compose, 3 - kubernetes)" Enums(1,2,3)
+// @param Type formData int true "Type of created stack (1 - swarm, 2 - compose)" Enums(1,2)
 // @param File formData file true "File"
 // @param Logo formData string false "URL of the template's logo" example:"https://portainer.io/img/logo.svg"
 // @param Variables formData string false "A json array of variables definitions" example:"[{\"label\":\"image\",\"description\":\"Image name\",\"defaultValue\":\"nginx:latest\",\"name\":\"image\"}]"

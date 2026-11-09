@@ -10,7 +10,6 @@ import {
   createAzureEnvironment,
   createAgentEnvironment,
   createEdgeAgentEnvironment,
-  createLocalKubernetesEnvironment,
 } from '../environment.service/create';
 
 export function useCreateAzureEnvironmentMutation() {
@@ -19,10 +18,6 @@ export function useCreateAzureEnvironmentMutation() {
 
 export function useCreateLocalDockerEnvironmentMutation() {
   return useGenericCreationMutation(createLocalDockerEnvironment);
-}
-
-export function useCreateLocalKubernetesEnvironmentMutation() {
-  return useGenericCreationMutation(createLocalKubernetesEnvironment);
 }
 
 export function useCreateRemoteEnvironmentMutation(

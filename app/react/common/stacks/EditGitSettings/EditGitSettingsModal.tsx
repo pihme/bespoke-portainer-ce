@@ -19,7 +19,7 @@ interface Props {
 }
 
 export function EditGitSettingsModal({ stack, onClose }: Props) {
-  const validationSchema = useValidationSchema(stack.Type);
+  const validationSchema = useValidationSchema();
   const [webhookId] = useState(
     () => stack.AutoUpdate?.Webhook || createWebhookId()
   );
@@ -36,7 +36,6 @@ export function EditGitSettingsModal({ stack, onClose }: Props) {
   );
 
   const initialValues: FormValues = {
-    kube: { name: stack.Name },
     git: {
       ...gitModel,
       AdditionalFiles: stack.AdditionalFiles || [],

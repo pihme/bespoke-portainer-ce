@@ -23,7 +23,7 @@ export function useValidation({
   viewType,
   deployMethod,
 }: {
-  viewType: 'kube' | 'docker' | 'edge';
+  viewType: 'docker' | 'edge';
   deployMethod: DeployMethod;
 }) {
   const customTemplatesQuery = useCustomTemplates({
@@ -42,7 +42,6 @@ export function useValidation({
           .oneOf([
             StackType.DockerCompose,
             StackType.DockerSwarm,
-            StackType.Kubernetes,
           ])
           .default(StackType.DockerCompose),
         Method: string().oneOf(initialBuildMethods.map((m) => m.value)),

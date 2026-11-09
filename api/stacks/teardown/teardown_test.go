@@ -3,13 +3,11 @@ package teardown_test
 import (
 	"context"
 	"errors"
-	"os"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
-	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/teardown"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +16,7 @@ import (
 
 func TestDeleteRecords_RemovesStackAndResourceControl(t *testing.T) {
 	t.Parallel()
-	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack", ProjectPath: "/data/compose/1"}
 	require.NoError(t, store.Stack().Create(stack))
@@ -41,7 +39,7 @@ func TestDeleteRecords_RemovesStackAndResourceControl(t *testing.T) {
 // associated workflow in a single transaction.
 func TestDeleteRecords_RollsBackWithSurroundingTransaction(t *testing.T) {
 	t.Parallel()
-	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
 	require.NoError(t, store.Stack().Create(stack))
@@ -62,7 +60,7 @@ func TestDeleteRecords_RollsBackWithSurroundingTransaction(t *testing.T) {
 
 func TestDeleteRecords_StackDeletionFails_ReturnsError(t *testing.T) {
 	t.Parallel()
-	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
 	require.NoError(t, store.Stack().Create(stack))
@@ -101,7 +99,7 @@ func (s *failingStackService) Delete(portainer.StackID) error {
 func TestRemoveFiles_RemovesProjectDirectory(t *testing.T) {
 	t.Parallel()
 	fileService := &stubFileService{}
-	svc, _ := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, _ := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	require.NoError(t, svc.RemoveFiles(&portainer.Stack{ProjectPath: "/data/compose/1"}))
 
@@ -112,7 +110,7 @@ func TestRemoveFiles_ReturnsErrorWhenRemovalFails(t *testing.T) {
 	t.Parallel()
 	removeErr := errors.New("permission denied")
 	fileService := &stubFileService{removeErr: removeErr}
-	svc, _ := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, _ := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	err := svc.RemoveFiles(&portainer.Stack{ProjectPath: "/data/compose/1"})
 
@@ -121,24 +119,20 @@ func TestRemoveFiles_ReturnsErrorWhenRemovalFails(t *testing.T) {
 
 func TestRemoveResources_SwarmStack(t *testing.T) {
 	t.Parallel()
-	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, Type: portainer.DockerSwarmStack, Name: "test-stack"}
 
 	require.NoError(t, svc.RemoveResources(context.Background(), 1, stack, &portainer.Endpoint{ID: 1}))
 }
 
-// kubectl delete on a manifest whose resources were already removed (e.g. a
-// prior partial delete) errors out; if the manifest file is also gone from
-// disk, that's treated as confirmation the stack is already torn down rather
-// than a real failure.
-func TestRemoveResources_KubernetesManifestAlreadyMissing_ReturnsNil(t *testing.T) {
+// REQ-TAI-002: Kubernetes is removed; tearing down a leftover Kubernetes stack
+// record does not try to reach a cluster and succeeds.
+func TestREQ_TAI_002_RemoveResources_KubernetesStackIsANoOp(t *testing.T) {
 	t.Parallel()
-	removeErr := errors.New("kubectl delete failed")
-	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{removeErr: removeErr})
+	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
-	projectPath := t.TempDir()
-	stack := &portainer.Stack{ID: 1, Type: portainer.KubernetesStack, Name: "test-stack", ProjectPath: projectPath, EntryPoint: "docker-compose.yml"}
+	stack := &portainer.Stack{ID: 1, Type: portainer.KubernetesStack, Name: "test-stack", ProjectPath: t.TempDir(), EntryPoint: "manifest.yml"}
 
 	require.NoError(t, svc.RemoveResources(context.Background(), 1, stack, &portainer.Endpoint{ID: 1}))
 }
@@ -146,7 +140,7 @@ func TestRemoveResources_KubernetesManifestAlreadyMissing_ReturnsNil(t *testing.
 func TestRemoveResources_ComposeStack(t *testing.T) {
 	t.Parallel()
 	deployer := &stubStackDeployer{}
-	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, deployer, &stubKubernetesDeployer{})
+	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, deployer)
 
 	stack := &portainer.Stack{ID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
 
@@ -154,22 +148,9 @@ func TestRemoveResources_ComposeStack(t *testing.T) {
 	assert.True(t, deployer.composeCalled)
 }
 
-func TestRemoveResources_KubernetesManifestRemovalFails_ReturnsError(t *testing.T) {
-	t.Parallel()
-	removeErr := errors.New("kubectl delete failed")
-	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{removeErr: removeErr})
-
-	projectPath := t.TempDir()
-	require.NoError(t, os.WriteFile(filesystem.JoinPaths(projectPath, "docker-compose.yml"), []byte("---"), 0o644))
-
-	stack := &portainer.Stack{ID: 1, Type: portainer.KubernetesStack, Name: "test-stack", ProjectPath: projectPath, EntryPoint: "docker-compose.yml"}
-
-	require.Error(t, svc.RemoveResources(context.Background(), 1, stack, &portainer.Endpoint{ID: 1}))
-}
-
 func TestRemoveResources_UnsupportedStackType_ReturnsError(t *testing.T) {
 	t.Parallel()
-	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, _ := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, Type: 99, Name: "test-stack"}
 
@@ -179,7 +160,7 @@ func TestRemoveResources_UnsupportedStackType_ReturnsError(t *testing.T) {
 func TestRemoveResources_DoesNotTouchDatabaseOrFilesystem(t *testing.T) {
 	t.Parallel()
 	fileService := &stubFileService{}
-	svc, store := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, fileService, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	// An external stack is never persisted to the database.
 	stack := &portainer.Stack{Type: portainer.DockerSwarmStack, Name: "external-stack"}
@@ -219,15 +200,6 @@ func (s *stubStackDeployer) UndeployComposeStack(_ context.Context, _ *portainer
 	return s.undeployErr
 }
 
-type stubKubernetesDeployer struct {
-	portainer.KubernetesDeployer
-	removeErr error
-}
-
-func (s *stubKubernetesDeployer) Remove(_ context.Context, _ portainer.UserID, _ *portainer.Endpoint, _ []string, _ string) (string, error) {
-	return "", s.removeErr
-}
-
 type stubFileService struct {
 	portainer.FileService
 	removedPath string
@@ -239,11 +211,11 @@ func (s *stubFileService) RemoveDirectory(path string) error {
 	return s.removeErr
 }
 
-func newService(t *testing.T, fileService portainer.FileService, swarmStackManager portainer.SwarmStackManager, composeStackManager portainer.ComposeStackManager, stackDeployer deployments.StackDeployer, kubernetesDeployer portainer.KubernetesDeployer) (teardown.Service, *datastore.Store) {
+func newService(t *testing.T, fileService portainer.FileService, swarmStackManager portainer.SwarmStackManager, composeStackManager portainer.ComposeStackManager, stackDeployer deployments.StackDeployer) (teardown.Service, *datastore.Store) {
 	t.Helper()
 	_, store := datastore.MustNewTestStore(t, true, false)
 
-	return teardown.NewService(fileService, swarmStackManager, composeStackManager, stackDeployer, kubernetesDeployer), store
+	return teardown.NewService(fileService, swarmStackManager, composeStackManager, stackDeployer), store
 }
 
 // deleteRecords runs the transactional record deletion the way handlers do:
@@ -257,7 +229,7 @@ func deleteRecords(t *testing.T, store *datastore.Store, svc teardown.Service, s
 
 func TestDeleteRecords_ResourceControlLookupFails(t *testing.T) {
 	t.Parallel()
-	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
 	require.NoError(t, store.Stack().Create(stack))
@@ -271,7 +243,7 @@ func TestDeleteRecords_ResourceControlLookupFails(t *testing.T) {
 
 func TestDeleteRecords_ResourceControlDeleteFails(t *testing.T) {
 	t.Parallel()
-	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{})
 
 	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
 	require.NoError(t, store.Stack().Create(stack))

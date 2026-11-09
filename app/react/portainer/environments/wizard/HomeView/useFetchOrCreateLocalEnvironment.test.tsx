@@ -12,7 +12,6 @@ import { suppressConsoleLogs } from '@/setup-tests/suppress-console';
 import { useConnectLocalEnvironment } from './useFetchOrCreateLocalEnvironment';
 
 const createLocalDockerEnvironment = vi.fn();
-const createLocalKubernetesEnvironment = vi.fn();
 
 let environmentList: {
   environments: Environment[];
@@ -26,8 +25,6 @@ vi.mock('@/react/portainer/environments/queries/useEnvironmentList', () => ({
 vi.mock('@/react/portainer/environments/environment.service/create', () => ({
   createLocalDockerEnvironment: (...args: unknown[]) =>
     createLocalDockerEnvironment(...args),
-  createLocalKubernetesEnvironment: (...args: unknown[]) =>
-    createLocalKubernetesEnvironment(...args),
 }));
 
 function renderConnectHook() {
@@ -40,7 +37,6 @@ describe('REQ-ENV-04 useConnectLocalEnvironment', () => {
   beforeEach(() => {
     environmentList = { environments: [], isLoading: false };
     createLocalDockerEnvironment.mockReset();
-    createLocalKubernetesEnvironment.mockReset();
   });
 
   it('reuses an existing local Docker environment', async () => {
@@ -90,7 +86,6 @@ describe('REQ-ENV-04 useConnectLocalEnvironment', () => {
         } as Environment,
       ],
     };
-    createLocalKubernetesEnvironment.mockRejectedValue(new Error('no k8s'));
     createLocalDockerEnvironment
       .mockRejectedValueOnce(new Error('no podman'))
       .mockResolvedValueOnce({
@@ -116,11 +111,26 @@ describe('REQ-ENV-04 useConnectLocalEnvironment', () => {
 
   it('surfaces an error when every create attempt fails', async () => {
     const restore = suppressConsoleLogs();
-    createLocalKubernetesEnvironment.mockRejectedValue(new Error('no k8s'));
     createLocalDockerEnvironment.mockRejectedValue(new Error('no docker'));
 
     const { result } = renderConnectHook();
     await waitFor(() => expect(result.current.status).toBe('error'));
     restore();
+  });
+
+  it('REQ-TAI-002 tries only Podman then Docker, never a local Kubernetes environment', async () => {
+    createLocalDockerEnvironment.mockResolvedValueOnce({
+      Id: 4,
+      Name: 'local',
+      Type: EnvironmentType.Docker,
+    });
+
+    const { result } = renderConnectHook();
+    await waitFor(() => expect(result.current.status).toBe('success'));
+    expect(createLocalDockerEnvironment).toHaveBeenCalledTimes(1);
+    expect(createLocalDockerEnvironment).toHaveBeenCalledWith({
+      name: 'local',
+      containerEngine: ContainerEngine.Podman,
+    });
   });
 });

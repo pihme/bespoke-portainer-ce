@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/registryutils"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -15,7 +14,6 @@ import (
 type registryAccessPayload struct {
 	UserAccessPolicies portainer.UserAccessPolicies
 	TeamAccessPolicies portainer.TeamAccessPolicies
-	Namespaces         []string
 }
 
 func (payload *registryAccessPayload) Validate(r *http.Request) error {
@@ -100,85 +98,10 @@ func (handler *Handler) updateRegistryAccess(tx dataservices.DataStoreTx, r *htt
 
 	registryAccess := registry.RegistryAccesses[endpoint.ID]
 
-	if endpoint.Type == portainer.KubernetesLocalEnvironment || endpoint.Type == portainer.AgentOnKubernetesEnvironment || endpoint.Type == portainer.EdgeAgentOnKubernetesEnvironment {
-		err := handler.updateKubeAccess(endpoint, registry, registryAccess.Namespaces, payload.Namespaces)
-		if err != nil {
-			return httperror.InternalServerError("Unable to update kube access policies", err)
-		}
-
-		registryAccess.Namespaces = payload.Namespaces
-	} else {
-		registryAccess.UserAccessPolicies = payload.UserAccessPolicies
-		registryAccess.TeamAccessPolicies = payload.TeamAccessPolicies
-	}
+	registryAccess.UserAccessPolicies = payload.UserAccessPolicies
+	registryAccess.TeamAccessPolicies = payload.TeamAccessPolicies
 
 	registry.RegistryAccesses[endpointID] = registryAccess
 
 	return tx.Registry().Update(registry.ID, registry)
-}
-
-func (handler *Handler) updateKubeAccess(endpoint *portainer.Endpoint, registry *portainer.Registry, oldNamespaces, newNamespaces []string) error {
-	cli, err := handler.K8sClientFactory.GetPrivilegedKubeClient(endpoint)
-	if err != nil {
-		return err
-	}
-
-	return applyKubeRegistryAccess(cli, registry, oldNamespaces, newNamespaces)
-}
-
-func applyKubeRegistryAccess(cli portainer.KubeClient, registry *portainer.Registry, oldNamespaces, newNamespaces []string) error {
-	oldNamespacesSet := toSet(oldNamespaces)
-	newNamespacesSet := toSet(newNamespaces)
-
-	namespacesToRemove := setDifference(oldNamespacesSet, newNamespacesSet)
-	namespacesToAdd := setDifference(newNamespacesSet, oldNamespacesSet)
-
-	for namespace := range namespacesToRemove {
-		secretName := registryutils.RegistrySecretName(registry.ID)
-
-		if err := cli.RemoveImagePullSecretFromServiceAccount(namespace, "default", secretName); err != nil {
-			return err
-		}
-
-		if err := cli.DeleteRegistrySecret(registry.ID, namespace); err != nil {
-			return err
-		}
-	}
-
-	for namespace := range namespacesToAdd {
-		secretName := registryutils.RegistrySecretName(registry.ID)
-
-		if err := cli.CreateRegistrySecret(registry, namespace); err != nil {
-			return err
-		}
-
-		if err := cli.AddImagePullSecretToServiceAccount(namespace, "default", secretName); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-type stringSet map[string]bool
-
-func toSet(list []string) stringSet {
-	set := stringSet{}
-	for _, el := range list {
-		set[el] = true
-	}
-	return set
-}
-
-// setDifference returns the set difference tagsA - tagsB
-func setDifference(setA stringSet, setB stringSet) stringSet {
-	set := stringSet{}
-
-	for el := range setA {
-		if !setB[el] {
-			set[el] = true
-		}
-	}
-
-	return set
 }

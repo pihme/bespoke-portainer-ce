@@ -98,19 +98,12 @@ func (Service) ParseFlags(version string) (*portainer.CLIFlags, error) {
 	flags.TLSKey = tlsKeyFlag.String()
 	flags.TLSCacert = kingpin.Flag("tlscacert", "Path to the CA").Default(defaultTLSCACertPath).String()
 
-	var hasKubectlShellImageFlag bool
-	kubectlShellImageFlag := kingpin.Flag(
-		"kubectl-shell-image",
-		"Kubectl shell image",
-	).Envar(portainer.KubectlShellImageEnvVar).
-		Default(portainer.DefaultKubectlShellImage).
-		IsSetByUser(&hasKubectlShellImageFlag)
-	flags.KubectlShellImage = kubectlShellImageFlag.String()
+	// The --kubectl-shell-image flag and KUBECTL_SHELL_IMAGE are removed with
+	// Kubernetes (TAI-002); the stored setting keeps its default for old databases.
+	defaultKubectlShellImage := portainer.DefaultKubectlShellImage
+	flags.KubectlShellImage = &defaultKubectlShellImage
 
 	kingpin.Parse()
-
-	_, kubectlShellImageEnvVarSet := os.LookupEnv(portainer.KubectlShellImageEnvVar)
-	flags.KubectlShellImageSet = hasKubectlShellImageFlag || kubectlShellImageEnvVarSet
 
 	if !filepath.IsAbs(*flags.Assets) {
 		ex, err := os.Executable()

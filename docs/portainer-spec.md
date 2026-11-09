@@ -31,7 +31,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | TPL | App templates and custom templates |
 | GIT | App Delivery (GitOps workflows and sources) |
 | REG | Registries |
-| K8S | Kubernetes environments |
+| K8S | Kubernetes environments (all removed, TAI-002) |
 | ACI | Azure Container Instances |
 | EDGE | Edge Compute |
 | SET | Global settings |
@@ -70,7 +70,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-AUTH-10 Theme and per-user application settings.** Choose light, dark or high-contrast theme and personal UI preferences. Entry: UI `#!/account`; API `PUT /users/{id}`. docs: user/account-settings *TAI-001: kept without accounts; the preferences live on the single local operator record (`GET /users/me`, `GET`/`PUT /users/{id}` for that record only).*
 - ~~**REQ-AUTH-11 Personal access tokens.** Create and delete API access tokens for the own user. Entry: UI `#!/account`, `#!/account/tokens/new`; API `GET/POST /users/{id}/tokens`, `DELETE /users/{id}/tokens/{keyID}`. docs: user/account-settings, api/access~~ REMOVED (TAI-001)
 - ~~**REQ-AUTH-12 Saved Git credentials per user.** **BE-only.** docs: user/account-settings~~ REMOVED (TAI-001)
-- **REQ-AUTH-13 Personal Helm repositories.** Add and remove Helm repositories for the own user. Entry: UI `#!/account/helm-repository/new`; API `GET/POST /users/{id}/helm/repositories`, `DELETE /users/{id}/helm/repositories/{repositoryID}`. docs: user/account-settings
+- ~~**REQ-AUTH-13 Personal Helm repositories.** Add and remove Helm repositories for the own user. Entry: UI `#!/account/helm-repository/new`; API `GET/POST /users/{id}/helm/repositories`, `DELETE /users/{id}/helm/repositories/{repositoryID}`. docs: user/account-settings~~ REMOVED (TAI-002)
 - ~~**REQ-AUTH-14 Reset the admin password.** Reset a lost admin password with the password-reset helper container. Not tested in this repo (C-08). docs: advanced/reset-admin~~ REMOVED (TAI-001)
 
 ## USR – Users, teams and access control
@@ -93,9 +93,9 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-ENV-05 Add a remote Docker Standalone environment.** Via Portainer Agent, Docker API (with optional TLS) or socket. docs: admin/environments/add/docker, …/docker/agent, …/docker/api
 - **REQ-ENV-06 Add a Docker Swarm environment.** Via Agent, API or socket. docs: admin/environments/add/swarm and sub-pages
 - **REQ-ENV-07 Add a Podman environment.** Via Agent or Podman socket. docs: admin/environments/add/podman and sub-pages
-- **REQ-ENV-08 Add a Kubernetes environment.** Via Agent. docs: admin/environments/add/kubernetes, …/kubernetes/agent
-- **REQ-ENV-09 Import a Kubernetes cluster from kubeconfig.** **BE-only.** docs: admin/environments/add/kubernetes/import
-- **REQ-ENV-10 Create a Kubernetes cluster (Talos via Omni) and KubeSolo Edge environments.** **BE-only.** docs: admin/environments/add/kube-create, …/kube-create/omni, admin/environments/add/add-a-kubesolo-edge-environment
+- ~~**REQ-ENV-08 Add a Kubernetes environment.** Via Agent. docs: admin/environments/add/kubernetes, …/kubernetes/agent~~ REMOVED (TAI-002)
+- ~~**REQ-ENV-09 Import a Kubernetes cluster from kubeconfig.** **BE-only.** docs: admin/environments/add/kubernetes/import~~ REMOVED (TAI-002)
+- ~~**REQ-ENV-10 Create a Kubernetes cluster (Talos via Omni) and KubeSolo Edge environments.** **BE-only.** docs: admin/environments/add/kube-create, …/kube-create/omni, admin/environments/add/add-a-kubesolo-edge-environment~~ REMOVED (TAI-002, TAI-004)
 - **REQ-ENV-11 Add an environment via the API.** Entry: API `POST /endpoints`. docs: admin/environments/add/api
 - **REQ-ENV-12 Environment snapshots.** Portainer periodically snapshots each environment for the home screen; a snapshot can be triggered manually. Entry: API `POST /endpoints/{id}/snapshot`, `POST /endpoints/snapshot`; CLI `--snapshot-interval`; UI `#!/settings`. docs: admin/settings/general (Snapshot interval)
 - **REQ-ENV-13 Environment groups.** Create, edit and delete groups and assign environments. Entry: UI `#!/groups`, `#!/groups/new`, `#!/groups/{id}`; API `/endpoint_groups`, `PUT/DELETE /endpoint_groups/{id}/endpoints/{endpointId}`. docs: admin/environments/groups
@@ -195,7 +195,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## GIT – App Delivery
 
-- **REQ-GIT-01 Workflows view.** Single view of all Docker, Edge and Kubernetes workloads deployed from Git, with status counts, filters and links to the stack or application. Entry: UI `#!/gitops/workflows`, `#!/gitops/workflows/{id}`; API `GET /gitops/workflows`, `GET /gitops/workflows/{id}`, `GET /gitops/workflows/summary`. docs: user/app-delivery/workflows, …/add-a-new-workflow, …/manage-a-workflow
+- **REQ-GIT-01 Workflows view.** Single view of all Docker, Edge and Kubernetes workloads deployed from Git, with status counts, filters and links to the stack or application. Entry: UI `#!/gitops/workflows`, `#!/gitops/workflows/{id}`; API `GET /gitops/workflows`, `GET /gitops/workflows/{id}`, `GET /gitops/workflows/summary`. docs: user/app-delivery/workflows, …/add-a-new-workflow, …/manage-a-workflow *TAI-002: Kubernetes environments can no longer be managed; a leftover Kubernetes workflow target links to the environment details page.*
 - **REQ-GIT-02 Git sources.** Central list of Git repositories with credentials and connectivity status; add, test, edit, restrict access and delete. Entry: UI `#!/gitops/sources`, `…/new`, `…/{sourceId}`; API `/gitops/sources`, `POST /gitops/sources/git`, `POST /gitops/sources/test`, `PUT /gitops/sources/{id}/access`. docs: user/app-delivery/sources, user/app-delivery/sources/git *TAI-001: restricting access per user/team is removed: no access step on create, no Access tab, and `PUT /gitops/sources/{id}/access` answers 404.*
 - **REQ-GIT-03 Preview a file from a repository.** Entry: API `POST /gitops/repo/file/preview` (inferred from code).
 
@@ -203,33 +203,33 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-REG-01 Manage registries.** Add, edit and remove registries: Docker Hub account, AWS ECR, Quay.io, ProGet, Azure, GitLab, custom; GitHub (ghcr) is BE-only; OCI registries are BE-only. Entry: UI `#!/registries`, `#!/registries/new`, `#!/registries/{id}`; API `/registries`, `POST /registries/{id}/configure`, `POST /registries/ping`. docs: admin/registries, admin/registries/add and sub-pages
 - **REQ-REG-02 Hide anonymous Docker Hub.** **BE-only** (CE flag `HIDE_DOCKER_HUB_ANONYMOUS`, inferred from code). docs: admin/registries
-- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.*
+- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.* *TAI-002: the Kubernetes registries view and its namespace "Manage access" are removed; `PUT /endpoints/{id}/registries/{registryId}` no longer takes `Namespaces`, and `GET /endpoints/{id}/registries` ignores `namespace`.*
 - **REQ-REG-04 Browse and manage registry content.** Browse repositories, add, retag and remove tags. **BE-only.** docs: admin/registries/browse, admin/registries/manage
 - **REQ-REG-05 Docker Hub pull-limit check.** Show remaining Docker Hub pulls. Entry: API `GET /endpoints/{id}/dockerhub/{registryId}`; CLI `--pull-limit-check-disabled` (inferred from code).
 
 ## K8S – Kubernetes
 
-- **REQ-K8S-01 Kubernetes dashboard.** Environment info and summary tiles. Entry: UI `#!/{envId}/kubernetes/dashboard`; API `GET /kubernetes/{id}/dashboard`. docs: user/kubernetes/dashboard
-- **REQ-K8S-02 kubectl shell in the browser.** Entry: UI `#!/{envId}/kubernetes/kubectl-shell`; API `GET /websocket/kubernetes-shell`. docs: user/kubernetes/dashboard/kubectl
-- **REQ-K8S-03 Download kubeconfig.** Entry: API `GET /kubernetes/config`. docs: user/kubernetes/dashboard/kubeconfig
-- **REQ-K8S-04 Kubernetes custom templates.** Add, edit and remove manifest templates, with template variables (CE, C-02). Entry: UI `#!/{envId}/kubernetes/templates/custom`. docs: user/kubernetes/templates and sub-pages
-- **REQ-K8S-05 Namespaces.** List, add, manage (resource quota, load balancers, networking, registries, storage), set access and remove namespaces. Entry: UI `#!/{envId}/kubernetes/namespaces`, `…/new`, `…/{id}`, `…/{id}/access`; API `/kubernetes/{id}/namespaces`. docs: user/kubernetes/namespaces and sub-pages
-- **REQ-K8S-06 Applications from a form.** Deploy an application with the form (image, replicas, env, config, volumes, ports, resources, placement, auto-scaling). Entry: UI `#!/{envId}/kubernetes/applications/new`. docs: user/kubernetes/applications/add
-- **REQ-K8S-07 Applications from code.** Deploy manifests from Git, web editor, URL or custom template. Entry: UI `#!/{envId}/kubernetes/deploy`; API `POST /stacks/create/kubernetes/{repository|string|url}`, `POST /kubernetes/{id}/manifests/dry_run`. docs: user/kubernetes/applications/manifest/create
-- **REQ-K8S-08 Helm charts.** Install from a Helm repository; inspect revisions, upgrade, roll back and uninstall releases; installing from Git is BE-only. Entry: UI `#!/{envId}/kubernetes/helm`, `#!/{envId}/kubernetes/helm/{namespace}/{name}`; API `/endpoints/{id}/kubernetes/helm`, `GET /templates/helm`. docs: user/kubernetes/applications/manifest/helm, …/inspect-helm, …/edit-helm
-- **REQ-K8S-09 Inspect and edit applications.** Application, placement, events and YAML tabs; pods with logs, stats and console; edit, redeploy, roll back; scale, patch, rollback and pod restart are CE (C-03: handlers in the current tree); YAML editing is BE-only. Entry: UI `#!/{envId}/kubernetes/applications/{namespace}/{name}`, `…/edit`, `…/{pod}/{container}/logs|stats|console`; API `GET /websocket/pod`. docs: user/kubernetes/applications/inspect, user/kubernetes/applications/edit
-- **REQ-K8S-10 Application webhooks.** **BE-only.** docs: user/kubernetes/applications/webhooks
-- **REQ-K8S-11 Detach a volume and remove applications.** docs: user/kubernetes/applications/detach-volume, user/kubernetes/applications/remove
-- **REQ-K8S-12 Services and ingresses.** List services; add ingresses by form or manifest; remove ingresses. Entry: UI `#!/{envId}/kubernetes/services`, `#!/{envId}/kubernetes/ingresses`, `…/add`. docs: user/kubernetes/networking/services, user/kubernetes/networking/ingresses and sub-pages
-- **REQ-K8S-13 ConfigMaps and Secrets.** List, add, edit and remove. Entry: UI `#!/{envId}/kubernetes/configurations`, `…/configmaps/new`, `…/secrets/new`. docs: user/kubernetes/configurations and sub-pages
-- **REQ-K8S-14 Volumes and storage.** Persistent volume claims, persistent volumes and storage classes: inspect, edit (YAML, describe) and remove. Entry: UI `#!/{envId}/kubernetes/volumes`. docs: user/kubernetes/volumes, …/inspect, …/remove
-- **REQ-K8S-15 GPU.** **BE-only.** docs: user/kubernetes/gpu
-- **REQ-K8S-16 More resources.** Cron jobs and jobs, service accounts, cluster roles/bindings, roles/bindings; custom resources (BE-only for admins). Entry: UI `#!/{envId}/kubernetes/moreResources/…`. docs: user/kubernetes/more-resources and sub-pages
-- **REQ-K8S-17 Cluster details and nodes.** Node list, node details (events, YAML, applications; YAML editing BE-only), drain. Entry: UI `#!/{envId}/kubernetes/cluster`, `…/cluster/{nodeName}`; API `POST /kubernetes/{id}/nodes/{name}/drain`. docs: user/kubernetes/cluster/details, user/kubernetes/cluster/details/node
-- **REQ-K8S-18 Cluster setup.** Load balancers, ingress controllers, change window, deployment options, security, metrics and storage options. Entry: UI `#!/{envId}/kubernetes/cluster/configure`. docs: user/kubernetes/cluster/setup
-- **REQ-K8S-19 Security constraints.** Pod security constraints for the cluster. **BE-only** (CE flag `POD_SECURITY_POLICY_CONSTRAINT`, inferred from code). Entry: UI `#!/{envId}/kubernetes/cluster/securityConstraint`. docs: user/kubernetes/cluster/security
-- **REQ-K8S-20 Kubernetes global settings.** Helm repository URL, kubeconfig expiry, KubeShell image, deployment options (enforce code-based deployment etc.). Entry: UI `#!/settings`. docs: admin/settings/general (Kubernetes settings)
-- **REQ-K8S-21 Add-ons.** Install and manage Helm-based add-ons on the local Kubernetes cluster. **BE-only.** docs: admin/add-ons and sub-pages
+- ~~**REQ-K8S-01 Kubernetes dashboard.** Environment info and summary tiles. Entry: UI `#!/{envId}/kubernetes/dashboard`; API `GET /kubernetes/{id}/dashboard`. docs: user/kubernetes/dashboard~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-02 kubectl shell in the browser.** Entry: UI `#!/{envId}/kubernetes/kubectl-shell`; API `GET /websocket/kubernetes-shell`. docs: user/kubernetes/dashboard/kubectl~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-03 Download kubeconfig.** Entry: API `GET /kubernetes/config`. docs: user/kubernetes/dashboard/kubeconfig~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-04 Kubernetes custom templates.** Add, edit and remove manifest templates, with template variables (CE, C-02). Entry: UI `#!/{envId}/kubernetes/templates/custom`. docs: user/kubernetes/templates and sub-pages~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-05 Namespaces.** List, add, manage (resource quota, load balancers, networking, registries, storage), set access and remove namespaces. Entry: UI `#!/{envId}/kubernetes/namespaces`, `…/new`, `…/{id}`, `…/{id}/access`; API `/kubernetes/{id}/namespaces`. docs: user/kubernetes/namespaces and sub-pages~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-06 Applications from a form.** Deploy an application with the form (image, replicas, env, config, volumes, ports, resources, placement, auto-scaling). Entry: UI `#!/{envId}/kubernetes/applications/new`. docs: user/kubernetes/applications/add~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-07 Applications from code.** Deploy manifests from Git, web editor, URL or custom template. Entry: UI `#!/{envId}/kubernetes/deploy`; API `POST /stacks/create/kubernetes/{repository|string|url}`, `POST /kubernetes/{id}/manifests/dry_run`. docs: user/kubernetes/applications/manifest/create~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-08 Helm charts.** Install from a Helm repository; inspect revisions, upgrade, roll back and uninstall releases; installing from Git is BE-only. Entry: UI `#!/{envId}/kubernetes/helm`, `#!/{envId}/kubernetes/helm/{namespace}/{name}`; API `/endpoints/{id}/kubernetes/helm`, `GET /templates/helm`. docs: user/kubernetes/applications/manifest/helm, …/inspect-helm, …/edit-helm~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-09 Inspect and edit applications.** Application, placement, events and YAML tabs; pods with logs, stats and console; edit, redeploy, roll back; scale, patch, rollback and pod restart are CE (C-03: handlers in the current tree); YAML editing is BE-only. Entry: UI `#!/{envId}/kubernetes/applications/{namespace}/{name}`, `…/edit`, `…/{pod}/{container}/logs|stats|console`; API `GET /websocket/pod`. docs: user/kubernetes/applications/inspect, user/kubernetes/applications/edit~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-10 Application webhooks.** **BE-only.** docs: user/kubernetes/applications/webhooks~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-11 Detach a volume and remove applications.** docs: user/kubernetes/applications/detach-volume, user/kubernetes/applications/remove~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-12 Services and ingresses.** List services; add ingresses by form or manifest; remove ingresses. Entry: UI `#!/{envId}/kubernetes/services`, `#!/{envId}/kubernetes/ingresses`, `…/add`. docs: user/kubernetes/networking/services, user/kubernetes/networking/ingresses and sub-pages~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-13 ConfigMaps and Secrets.** List, add, edit and remove. Entry: UI `#!/{envId}/kubernetes/configurations`, `…/configmaps/new`, `…/secrets/new`. docs: user/kubernetes/configurations and sub-pages~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-14 Volumes and storage.** Persistent volume claims, persistent volumes and storage classes: inspect, edit (YAML, describe) and remove. Entry: UI `#!/{envId}/kubernetes/volumes`. docs: user/kubernetes/volumes, …/inspect, …/remove~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-15 GPU.** **BE-only.** docs: user/kubernetes/gpu~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-16 More resources.** Cron jobs and jobs, service accounts, cluster roles/bindings, roles/bindings; custom resources (BE-only for admins). Entry: UI `#!/{envId}/kubernetes/moreResources/…`. docs: user/kubernetes/more-resources and sub-pages~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-17 Cluster details and nodes.** Node list, node details (events, YAML, applications; YAML editing BE-only), drain. Entry: UI `#!/{envId}/kubernetes/cluster`, `…/cluster/{nodeName}`; API `POST /kubernetes/{id}/nodes/{name}/drain`. docs: user/kubernetes/cluster/details, user/kubernetes/cluster/details/node~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-18 Cluster setup.** Load balancers, ingress controllers, change window, deployment options, security, metrics and storage options. Entry: UI `#!/{envId}/kubernetes/cluster/configure`. docs: user/kubernetes/cluster/setup~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-19 Security constraints.** Pod security constraints for the cluster. **BE-only** (CE flag `POD_SECURITY_POLICY_CONSTRAINT`, inferred from code). Entry: UI `#!/{envId}/kubernetes/cluster/securityConstraint`. docs: user/kubernetes/cluster/security~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-20 Kubernetes global settings.** Helm repository URL, kubeconfig expiry, KubeShell image, deployment options (enforce code-based deployment etc.). Entry: UI `#!/settings`. docs: admin/settings/general (Kubernetes settings)~~ REMOVED (TAI-002)
+- ~~**REQ-K8S-21 Add-ons.** Install and manage Helm-based add-ons on the local Kubernetes cluster. **BE-only.** docs: admin/add-ons and sub-pages~~ REMOVED (TAI-002)
 
 ## ACI – Azure Container Instances
 
@@ -239,7 +239,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## EDGE – Edge Compute
 
 - **REQ-EDGE-01 Enable Edge Compute and its settings.** Toggle Edge features, API server URL and tunnel address, deployment sync options, Edge access. Entry: UI `#!/settings/edge`; CLI `--edge-compute`, `--edge-portainer-url`, `--edge-trust-on-first-connect`, `--tunnel-addr`, `--tunnel-port`. docs: admin/settings/edge, start/install-ce/server/setup (Set up Edge Compute)
-- **REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode and in async mode (CE in the current tree, C-04). Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async
+- **REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode and in async mode (CE in the current tree, C-04). Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async *TAI-002: the wizard no longer offers Kubernetes (Agent, Edge Agent or kubeconfig import); the server-side Edge Agent on Kubernetes stays until TAI-004.*
 - **REQ-EDGE-03 Auto onboarding script.** Generate a script that onboards many Edge Agents. Entry: UI `#!/endpoints/aeec`. docs: admin/environments/aeec
 - **REQ-EDGE-04 Prestage an Edge Agent.** docs: advanced/how-to-prestage-an-edge-agent-environment
 - **REQ-EDGE-05 Edge groups.** Static and dynamic (tag-based) groups of Edge environments. Entry: UI `#!/edge/groups`, `…/new`, `…/{groupId}`; API `/edge_groups`. docs: user/edge/groups
@@ -256,7 +256,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-SET-02 Hidden containers.** Hide containers by label from the UI. Entry: UI `#!/settings`; CLI `--hide-label`. docs: admin/settings/general (Hidden containers), advanced/cli
 - **REQ-SET-03 SSRF protection.** Control which destinations Portainer may proxy requests to. Modes off, audit and enforce; the default is off (`SSRFModeOff`, set in `api/dataservices/allowlist`). Destinations checked are those implemented: Git operations, Helm, compose file URLs and the proxy dialer (C-05, inferred from code: `pkg/libhttp/ssrf`). Entry: UI `#!/settings`. docs: admin/settings/general (SSRF)
 - **REQ-SET-04 SSL settings.** Force HTTPS only, secure cookies, upload a new certificate. Entry: UI `#!/settings`; API `GET/PUT /ssl`, `POST /upload/tls/{certificate}`. docs: admin/settings/general (SSL certificate)
-- **REQ-SET-05 Automatic patch updates, experimental features, CA file for Helm repositories, add-on settings.** **BE-only.** docs: admin/settings/general
+- **REQ-SET-05 Automatic patch updates, experimental features, CA file for Helm repositories, add-on settings.** **BE-only.** docs: admin/settings/general *TAI-002: the "CA file for Kubernetes Helm repositories" teaser is removed from `#!/settings`.*
 - **REQ-SET-06 Shared credentials (Omni, SSH, Git).** **BE-only.** docs: admin/settings/credentials and sub-pages
 - **REQ-SET-07 Support bundle and debug log.** **BE-only.** docs: admin/settings/general (Portainer support)
 - **REQ-SET-08 Message of the day.** Show Portainer news on the home screen. Entry: API `GET /motd` (inferred from code).
@@ -301,7 +301,7 @@ Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today;
 - ~~**REQ-DED-02 Admin setup timeout.** An instance whose first administrator is not created within 5 minutes of start is disabled, and the UI redirects with reason `AdminInitTimeout`. The 5 minutes are fixed. Relates to REQ-AUTH-01. (L-01; `api/http/server.go`, `api/adminmonitor`)~~ REMOVED (TAI-001)
 - ~~**REQ-DED-03 Session lifetime.** Default 8 h (`DefaultUserSessionTimeout`). Any duration `time.ParseDuration` accepts is stored; there is no minimum or maximum. Relates to REQ-AUTH-07. (L-02)~~ REMOVED (TAI-001)
 - **REQ-DED-04 Snapshot interval.** Default 5 min. `--snapshot-interval` and `PUT /settings` accept any parseable duration; there is no minimum or maximum. Relates to REQ-ENV-12, REQ-SET-01, REQ-SRV-04. (L-03)
-- **REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)
+- ~~**REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)~~ REMOVED (TAI-002)
 - **REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)
 - **REQ-DED-07 Multipart file uploads.** Uploaded files (restore archive, stack file, `.env`, template file, TLS file) are read whole into memory; there is no size cap. Adding one would be a product change. Relates to REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04. (L-06; `pkg/libhttp/request.RetrieveMultiPartFormFile`)
 - **REQ-DED-08 Backup timeout.** A backup is aborted after 1 h by default; `PORTAINER_BACKUP_TIMEOUT` overrides it, and an invalid value falls back to the default. Relates to REQ-BKP-01. (L-07; `api/filesystem/copy.go`)
@@ -326,6 +326,15 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (e) The CLI flags `--admin-password`, `--admin-password-file`, `--setup-token` and `--no-setup-token` are rejected as unknown flags.
   - (f) The UI has no `#!/auth`, `#!/logout`, `#!/init/admin`, `#!/settings/auth`, `#!/users`, `#!/teams`, `#!/roles`, account token or environment/registry access states, no "Log out" menu item, no user-related or authentication sidebar entries and no ownership columns or access control forms; no route redirects to a login page.
   - (g) Creating containers, networks, volumes, stacks, custom templates and Git sources sends no ownership and calls no `/resource_controls` endpoint.
+- **REQ-TAI-002 No Kubernetes.** Added by TAI-002 (2026-11-09).
+  - (a) The removed API routes answer 404: everything under `/kubernetes/…` (including `GET /kubernetes/config`, dashboards, namespaces, manifests dry-run, node drain), the Kubernetes API proxy `/endpoints/{id}/kubernetes/…` and `/endpoints/{id}/agent/kubernetes/…`, `/endpoints/{id}/kubernetes/helm`, `GET /templates/helm`, `GET /websocket/kubernetes-shell`, `GET /websocket/pod`, `GET`/`POST /users/{id}/helm/repositories`, `DELETE /users/{id}/helm/repositories/{repositoryID}` and `DELETE /stacks/name/{name}`.
+  - (b) `POST /stacks/create/kubernetes/{string|repository|url}` answers 400 "Invalid value for query parameter: type".
+  - (c) `POST /endpoints` rejects `EndpointCreationType` 5 (local Kubernetes) as invalid; an Agent that reports the Kubernetes platform is refused with 400 "Kubernetes environments are not supported".
+  - (d) Custom templates of type 3 (Kubernetes manifest) are rejected on create and update ("Invalid custom template type"); the UI offers only Compose and Swarm templates.
+  - (e) The CLI flag `--kubectl-shell-image` is rejected as unknown; the stored KubeShell image setting is left as it is.
+  - (f) `PUT /settings` ignores `KubeconfigExpiry`, `HelmRepositoryURL` and `KubectlShellImage`; `GET /settings/public` has no `KubeconfigExpiry`.
+  - (g) Removing a leftover Kubernetes stack record does not touch any cluster: the teardown is a no-op and the record is deleted.
+  - (h) The UI has no `#!/{envId}/kubernetes/…` states, no Kubernetes sidebar, no kubectl shell, kubeconfig button or kubeconfig panel, no Kubernetes or "Create Kubernetes cluster" wizard option, no Kubernetes or Helm settings panels, no Helm repositories on `#!/account` and no `#!/account/helm-repository/new`, no Kubernetes custom template view and no registry "Manage access"; the first-start wizard never tries to create a local Kubernetes environment. A leftover Kubernetes environment opens its details page instead of a dashboard.
 
 ## Not covered as requirements
 

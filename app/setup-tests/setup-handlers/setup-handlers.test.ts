@@ -5,7 +5,6 @@ import { dockerHandlers } from './docker';
 import { edgeHandlers } from './edge';
 import { endpointsHandlers } from './endpoints';
 import { gitopsHandlers } from './gitops';
-import { kubernetesHandlers } from './kubernetes';
 import { settingsHandlers } from './settings';
 import { templatesHandlers } from './templates';
 import { dockerImagesHandlers } from './docker/images';
@@ -23,7 +22,6 @@ describe('shared frontend setup HTTP handlers', () => {
     expect(edgeHandlers.length).toBeGreaterThan(0);
     expect(endpointsHandlers.length).toBeGreaterThan(0);
     expect(gitopsHandlers.length).toBeGreaterThan(0);
-    expect(kubernetesHandlers.length).toBeGreaterThan(0);
     expect(settingsHandlers.length).toBeGreaterThan(0);
     expect(templatesHandlers.length).toBeGreaterThan(0);
     expect(dockerImagesHandlers.length).toBeGreaterThan(0);
@@ -70,7 +68,6 @@ describe('shared frontend setup HTTP handlers', () => {
     expect(pub.Features).toEqual({});
 
     await expect(get('/api/custom_templates')).resolves.toEqual([]);
-    await expect(get('/api/templates/helm/values')).resolves.toEqual({});
     const fetchRes = await fetch('/api/custom_templates/1/git_fetch', {
       method: 'PUT',
     });
@@ -95,7 +92,7 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/gitops/sources/7/workflows')).resolves.toEqual([]);
   });
 
-  it('serves azure edge and kubernetes stubs used by the suite', async () => {
+  it('serves azure and edge stubs used by the suite', async () => {
     const subs = await get('/api/endpoints/1/azure/subscriptions');
     expect(subs.value[0].subscriptionId).toBe('sub1');
 
@@ -137,37 +134,5 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/edge_stacks/1/file')).resolves.toEqual({
       StackFileContent: '',
     });
-
-    await expect(
-      get('/api/kubernetes/1/metrics/pods/namespace/default')
-    ).resolves.toEqual({});
-    await expect(
-      get('/api/kubernetes/1/namespaces/default/events')
-    ).resolves.toEqual([]);
-    await expect(get('/api/kubernetes/1/namespaces/default')).resolves.toEqual(
-      {}
-    );
-    await expect(get('/api/kubernetes/1/ingresses')).resolves.toEqual({});
-    await expect(get('/api/kubernetes/1/namespaces')).resolves.toEqual([]);
-    await expect(
-      get('/api/kubernetes/1/customresourcedefinitions')
-    ).resolves.toEqual({});
-    await expect(get('/api/kubernetes/1/rbac_enabled')).resolves.toBe(false);
-    await expect(
-      get('/api/kubernetes/1/customresourcedefinitions/crd')
-    ).resolves.toEqual({});
-    await expect(
-      get('/api/kubernetes/1/namespaces/portainer/configmaps/cm')
-    ).resolves.toEqual({});
-    await expect(get('/api/kubernetes/1/max_resource_limits')).resolves.toEqual(
-      {}
-    );
-    await expect(get('/api/kubernetes/1/ingresscontrollers')).resolves.toEqual(
-      []
-    );
-    await expect(
-      get('/api/kubernetes/1/namespaces/ns/ingresscontrollers')
-    ).resolves.toEqual([]);
-    await expect(get('/api/kubernetes/1/nodes')).resolves.toEqual([]);
   });
 });

@@ -24,7 +24,6 @@ import {
 
 import { WizardDocker } from './WizardDocker';
 import { WizardAzure } from './WizardAzure';
-import { WizardKubernetes } from './WizardKubernetes';
 import { AnalyticsState, AnalyticsStateKey } from './types';
 import styles from './EnvironmentsCreationView.module.css';
 import { WizardEndpointsList } from './WizardEndpointsList';
@@ -192,8 +191,6 @@ function getComponent(id: EnvironmentOptionValue) {
       return WizardPodman;
     case 'aci':
       return WizardAzure;
-    case 'kubernetes':
-      return WizardKubernetes;
     default:
       throw new Error(`Unknown environment type ${id}`);
   }
@@ -209,9 +206,6 @@ function useAnalyticsState() {
     podmanEdgeAgentAsync: 0,
     podmanEdgeAgentStandard: 0,
     podmanLocalEnvironment: 0,
-    kubernetesAgent: 0,
-    kubernetesEdgeAgentAsync: 0,
-    kubernetesEdgeAgentStandard: 0,
     kubesoloEdgeAgentStandard: 0,
     kubesoloEdgeAgentAsync: 0,
     aciApi: 0,

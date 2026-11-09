@@ -174,15 +174,15 @@ describe('REQ-TPL-03 CreateForm', () => {
     expect(screen.getByTestId('form-title')).toHaveTextContent('my-template');
   });
 
-  it('uses manifest deploy method for kubernetes default type', () => {
+  it('REQ-TAI-002 never uses the Kubernetes manifest deploy method', () => {
     renderForm({
       defaultType: StackType.Kubernetes,
-      viewType: 'kube',
+      viewType: 'docker',
     });
 
     expect(mockUseValidation).toHaveBeenCalledWith({
-      viewType: 'kube',
-      deployMethod: 'manifest',
+      viewType: 'docker',
+      deployMethod: 'compose',
     });
   });
 
@@ -205,8 +205,8 @@ describe('REQ-TPL-03 CreateForm', () => {
 
     renderForm({
       environmentId: 9,
-      viewType: 'kube',
-      defaultType: StackType.Kubernetes,
+      viewType: 'docker',
+      defaultType: StackType.DockerCompose,
     });
 
     expect(mockUseEnvironmentDeploymentOptions).toHaveBeenCalledWith(9);

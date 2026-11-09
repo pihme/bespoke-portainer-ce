@@ -22,7 +22,6 @@ func TestREQ_SET_01_SettingsPublic_ReturnsLocalPublicFields(t *testing.T) {
 	settings, err := store.Settings().Settings()
 	require.NoError(t, err)
 	settings.LogoURL = "https://example.com/public-logo.png"
-	settings.KubeconfigExpiry = "24h"
 	settings.IsDockerDesktopExtension = false
 	require.NoError(t, store.Settings().UpdateSettings(settings))
 
@@ -35,7 +34,6 @@ func TestREQ_SET_01_SettingsPublic_ReturnsLocalPublicFields(t *testing.T) {
 	var got publicSettingsResponse
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&got))
 	assert.Equal(t, "https://example.com/public-logo.png", got.LogoURL)
-	assert.Equal(t, "24h", got.KubeconfigExpiry)
 	assert.False(t, got.IsDockerDesktopExtension)
 }
 
@@ -44,7 +42,6 @@ func TestREQ_SET_01_GeneratePublicSettings_LocalFields(t *testing.T) {
 
 	settings := &portainer.Settings{
 		LogoURL:                  "https://example.com/logo.png",
-		KubeconfigExpiry:         "0",
 		EdgeAgentCheckinInterval: 5,
 		Edge: portainer.Edge{
 			PingInterval:     10,
@@ -63,6 +60,7 @@ func TestREQ_SET_01_GeneratePublicSettings_LocalFields(t *testing.T) {
 
 // TAI-001: the public settings no longer announce a login method, OAuth URLs,
 // a password policy, team sync or a setup-token requirement.
+// TAI-002: nor a kubeconfig expiry.
 func TestREQ_TAI_001_SettingsPublic_HasNoLoginFields(t *testing.T) {
 	t.Parallel()
 
@@ -78,7 +76,7 @@ func TestREQ_TAI_001_SettingsPublic_HasNoLoginFields(t *testing.T) {
 	var got map[string]any
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&got))
 
-	for _, key := range []string{"AuthenticationMethod", "RequiredPasswordLength", "OAuthLoginURI", "OAuthLogoutURI", "TeamSync", "RequiresSetupToken"} {
+	for _, key := range []string{"AuthenticationMethod", "RequiredPasswordLength", "OAuthLoginURI", "OAuthLogoutURI", "TeamSync", "RequiresSetupToken", "KubeconfigExpiry"} {
 		assert.NotContains(t, got, key)
 	}
 	assert.Contains(t, got, "LogoURL")

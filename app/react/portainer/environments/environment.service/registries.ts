@@ -8,22 +8,6 @@ import { EnvironmentId } from '../types';
 
 import { buildUrl } from './utils';
 
-interface RegistryAccess {
-  Namespaces: string[];
-}
-
-export async function updateEnvironmentRegistryAccess(
-  environmentId: EnvironmentId,
-  registryId: RegistryId,
-  access: Partial<RegistryAccess>
-) {
-  try {
-    await axios.put<void>(buildRegistryUrl(environmentId, registryId), access);
-  } catch (e) {
-    throw parseAxiosError(e);
-  }
-}
-
 export async function getEnvironmentRegistries(
   id: EnvironmentId,
   namespace: string

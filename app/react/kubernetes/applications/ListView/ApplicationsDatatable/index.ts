@@ -1,1 +1,0 @@
-export { ApplicationsDatatable } from './ApplicationsDatatable';

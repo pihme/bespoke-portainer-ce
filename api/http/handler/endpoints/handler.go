@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/pendingactions"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
@@ -32,7 +31,6 @@ type Handler struct {
 	ProxyManager           *proxy.Manager
 	ReverseTunnelService   portainer.ReverseTunnelService
 	SnapshotService        portainer.SnapshotService
-	K8sClientFactory       *cli.ClientFactory
 	ComposeStackManager    portainer.ComposeStackManager
 	AuthorizationService   *authorization.Service
 	DockerClientFactory    *dockerclient.ClientFactory

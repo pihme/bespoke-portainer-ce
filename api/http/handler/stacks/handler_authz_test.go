@@ -89,7 +89,9 @@ func TestREQ_STK_02_CreateSwarm_InvalidMethod_ReturnsBadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestREQ_STK_02_CreateKubernetes_InvalidMethod_ReturnsBadRequest(t *testing.T) {
+// REQ-TAI-002: Kubernetes stack creation (string, repository, URL) is removed;
+// "kubernetes" is now an invalid stack type and is rejected with 400.
+func TestREQ_TAI_002_CreateKubernetesStackIsRejected(t *testing.T) {
 	t.Parallel()
 	h, store := newStackCreateHandler(t)
 	_, err := mockCreateUser(store)
@@ -97,10 +99,13 @@ func TestREQ_STK_02_CreateKubernetes_InvalidMethod_ReturnsBadRequest(t *testing.
 	endpoint, err := mockCreateEndpoint(store)
 	require.NoError(t, err)
 	body, _ := json.Marshal(map[string]string{"Name": "x"})
-	url := fmt.Sprintf("/stacks/create/kubernetes/ftp?endpointId=%d", endpoint.ID)
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, stackCreateRequestWithToken(http.MethodPost, url, body))
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	for _, method := range []string{"string", "repository", "url"} {
+		url := fmt.Sprintf("/stacks/create/kubernetes/%s?endpointId=%d", method, endpoint.ID)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, stackCreateRequestWithToken(http.MethodPost, url, body))
+		assert.Equal(t, http.StatusBadRequest, w.Code, method)
+		assert.Contains(t, w.Body.String(), "Invalid value for query parameter: type", method)
+	}
 }
 
 func TestREQ_STK_05_StartMissingEndpoint_ReturnsNotFound(t *testing.T) {

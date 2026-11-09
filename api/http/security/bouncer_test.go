@@ -86,7 +86,6 @@ func TestREQ_TAI_001_AccessLevelsServeTheLocalOperatorWithoutLogin(t *testing.T)
 		"admin":         bouncer.AdminAccess,
 		"restricted":    bouncer.RestrictedAccess,
 		"authenticated": bouncer.AuthenticatedAccess,
-		"kubeconfig":    bouncer.AuthenticatedAccessAllowingKubeconfig,
 	}
 
 	headers := map[string]map[string]string{

@@ -7,9 +7,6 @@ export interface AnalyticsState {
   podmanEdgeAgentStandard: number;
   podmanEdgeAgentAsync: number;
   podmanLocalEnvironment: number; // podman socket
-  kubernetesAgent: number;
-  kubernetesEdgeAgentStandard: number;
-  kubernetesEdgeAgentAsync: number;
   kubesoloEdgeAgentStandard: number;
   kubesoloEdgeAgentAsync: number;
   aciApi: number;

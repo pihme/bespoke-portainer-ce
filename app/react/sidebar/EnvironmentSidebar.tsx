@@ -20,7 +20,6 @@ import { getPlatformIconByEnvironment } from '../portainer/environments/utils/ge
 import styles from './EnvironmentSidebar.module.css';
 import { AzureSidebar } from './AzureSidebar';
 import { DockerSidebar } from './DockerSidebar';
-import { KubernetesSidebar } from './KubernetesSidebar';
 import { SidebarSection, SidebarSectionTitle } from './SidebarSection';
 import { useSidebarState } from './useSidebarState';
 
@@ -86,7 +85,7 @@ function Content({ environment, onClear }: ContentProps) {
       [PlatformType.Azure]: AzureSidebar,
       [PlatformType.Docker]: DockerSidebar,
       [PlatformType.Podman]: DockerSidebar, // same as docker for now, until pod management is added
-      [PlatformType.Kubernetes]: KubernetesSidebar,
+      [PlatformType.Kubernetes]: null, // Kubernetes management removed (TAI-002)
     };
 
     return sidebar[platform];

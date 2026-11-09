@@ -53,8 +53,6 @@ function getDefaultType(
   switch (viewType) {
     case 'docker':
       return isSwarm ? StackType.DockerSwarm : StackType.DockerCompose;
-    case 'kube':
-      return StackType.Kubernetes;
     default:
       return StackType.DockerCompose;
   }

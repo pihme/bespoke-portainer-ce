@@ -58,11 +58,6 @@
   width: fit-content;
 }
 
-.kubeconfig-button {
-  display: inline-block;
-  width: fit-content;
-}
-
 .filterSearchbar {
   display: inline-block;
   width: 100%;

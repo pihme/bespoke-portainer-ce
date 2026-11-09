@@ -21,11 +21,10 @@ export function CreateForm({
   defaultType,
 }: {
   environmentId?: EnvironmentId;
-  viewType: 'kube' | 'docker' | 'edge';
+  viewType: 'docker' | 'edge';
   defaultType: StackType;
 }) {
-  const deployMethod: DeployMethod =
-    defaultType === StackType.Kubernetes ? 'manifest' : 'compose';
+  const deployMethod: DeployMethod = 'compose';
   const isEdge = !environmentId;
   const router = useRouter();
   const mutation = useCreateTemplateMutation();

@@ -4,18 +4,15 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	dockerclient "github.com/portainer/portainer/api/docker/client"
-	k "github.com/portainer/portainer/api/kubernetes"
 )
 
 type BaseStackDeployer interface {
 	DeploySwarmStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, pullImage bool) error
 	DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error
 	UndeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint) error
-	DeployKubernetesStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error
 	GetDockerClientFactory() *dockerclient.ClientFactory
 }
 
@@ -28,20 +25,18 @@ type stackDeployer struct {
 	lock                *sync.Mutex
 	swarmStackManager   portainer.SwarmStackManager
 	composeStackManager portainer.ComposeStackManager
-	kubernetesDeployer  portainer.KubernetesDeployer
 	ClientFactory       *dockerclient.ClientFactory
 	dataStore           dataservices.DataStore
 }
 
-// NewStackDeployer inits a stackDeployer struct with a SwarmStackManager, a ComposeStackManager and a KubernetesDeployer
+// NewStackDeployer inits a stackDeployer struct with a SwarmStackManager and a ComposeStackManager
 func NewStackDeployer(swarmStackManager portainer.SwarmStackManager, composeStackManager portainer.ComposeStackManager,
-	kubernetesDeployer portainer.KubernetesDeployer, clientFactory *dockerclient.ClientFactory, dataStore dataservices.DataStore,
+	clientFactory *dockerclient.ClientFactory, dataStore dataservices.DataStore,
 ) *stackDeployer {
 	return &stackDeployer{
 		lock:                &sync.Mutex{},
 		swarmStackManager:   swarmStackManager,
 		composeStackManager: composeStackManager,
-		kubernetesDeployer:  kubernetesDeployer,
 		ClientFactory:       clientFactory,
 		dataStore:           dataStore,
 	}
@@ -83,29 +78,4 @@ func (d *stackDeployer) UndeployComposeStack(ctx context.Context, stack *portain
 	defer d.lock.Unlock()
 
 	return d.composeStackManager.Down(ctx, stack, endpoint)
-}
-
-func (d *stackDeployer) DeployKubernetesStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-
-	appLabels := k.KubeAppLabels{
-		StackID:   int(stack.ID),
-		StackName: stack.Name,
-		Owner:     user.Username,
-	}
-
-	if stack.WorkflowID == 0 {
-		appLabels.Kind = "content"
-	} else {
-		appLabels.Kind = "git"
-	}
-
-	k8sDeploymentConfig := CreateKubernetesStackDeploymentConfig(stack, d.kubernetesDeployer, appLabels, user, endpoint)
-
-	if err := k8sDeploymentConfig.Deploy(ctx); err != nil {
-		return errors.Wrap(err, "failed to deploy kubernetes application")
-	}
-
-	return nil
 }

@@ -34,7 +34,6 @@ await import('./stackService.js');
 
 function buildService(overrides = {}) {
   const $q = mockQ();
-  const $async = (fn, ...args) => Promise.resolve(fn(...args));
   const Stack = {
     get: vi.fn(({ id }) =>
       promiseResource({
@@ -58,7 +57,6 @@ function buildService(overrides = {}) {
     updateGitStackSettings: vi.fn(() => promiseResource({})),
     ...overrides.Stack,
   };
-  const StackByName = { remove: vi.fn(() => promiseResource({})), ...(overrides.StackByName || {}) };
   const FileUploadService = {
     createComposeStack: vi.fn(() => Promise.resolve({ data: { Id: 12 } })),
     ...(overrides.FileUploadService || {}),
@@ -77,9 +75,7 @@ function buildService(overrides = {}) {
 
   const service = factoryState.factory(
     $q,
-    $async,
     Stack,
-    StackByName,
     FileUploadService,
     StackHelper,
     ServiceService,

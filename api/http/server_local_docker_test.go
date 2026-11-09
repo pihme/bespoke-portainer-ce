@@ -133,10 +133,7 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.EdgeJobsHandler)
 	assert.NotNil(t, h.EdgeStacksHandler)
 	assert.NotNil(t, h.EndpointEdgeHandler)
-	assert.NotNil(t, h.KubernetesHandler)
 	assert.NotNil(t, h.RegistryHandler)
-	assert.NotNil(t, h.EndpointHelmHandler)
-	assert.NotNil(t, h.HelmTemplatesHandler)
 }
 
 // TestREQ_SRV_01_Start_WiresLocalDockerHandlersAndListens starts the HTTP
@@ -366,6 +363,63 @@ func TestREQ_TAI_001_Start_LoginAndUserManagementRoutesAreGone(t *testing.T) {
 	require.NoError(t, err)
 	_ = resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "GET /api/users/me without credentials")
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+// TestREQ_TAI_002_Start_KubernetesRoutesAreGone starts the local server and
+// checks that the Kubernetes, Helm, kubeconfig, kubectl shell, pod console,
+// Kubernetes stack and personal Helm repository routes are not served.
+func TestREQ_TAI_002_Start_KubernetesRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct{ method, path string }{
+		{http.MethodGet, "/api/kubernetes/config"},
+		{http.MethodGet, "/api/kubernetes/1/dashboard"},
+		{http.MethodGet, "/api/kubernetes/1/namespaces"},
+		{http.MethodPost, "/api/kubernetes/1/manifests/dry_run"},
+		{http.MethodPost, "/api/kubernetes/1/nodes/n1/drain"},
+		{http.MethodGet, "/api/endpoints/1/kubernetes/api/v1/namespaces"},
+		{http.MethodGet, "/api/endpoints/1/agent/kubernetes/api/v1/namespaces"},
+		{http.MethodGet, "/api/endpoints/1/kubernetes/helm"},
+		{http.MethodPost, "/api/endpoints/1/kubernetes/helm"},
+		{http.MethodGet, "/api/templates/helm"},
+		{http.MethodGet, "/api/websocket/kubernetes-shell?endpointId=1"},
+		{http.MethodGet, "/api/websocket/pod?endpointId=1"},
+		{http.MethodGet, "/api/users/1/helm/repositories"},
+		{http.MethodPost, "/api/users/1/helm/repositories"},
+		{http.MethodDelete, "/api/users/1/helm/repositories/1"},
+		{http.MethodDelete, "/api/stacks/name/app?endpointId=1&namespace=default"},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
+	}
 
 	cancel()
 

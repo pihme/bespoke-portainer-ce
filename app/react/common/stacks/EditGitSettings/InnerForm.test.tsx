@@ -92,7 +92,6 @@ vi.mock('@@/modals/Modal', () => {
 });
 
 const initialValues: FormValues = {
-  kube: { name: 'stack' },
   git: {
     SourceId: 1,
     RepositoryReferenceName: 'main',

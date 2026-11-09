@@ -4,7 +4,6 @@ import { r2a } from '@/react-tools/react2angular';
 import { withCurrentUser } from '@/react-tools/withCurrentUser';
 import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
-import { AnnotationsBeTeaser } from '@/react/kubernetes/annotations/AnnotationsBeTeaser';
 import { withFormValidation } from '@/react-tools/withFormValidation';
 import { withControlledInput } from '@/react-tools/withControlledInput';
 
@@ -146,7 +145,6 @@ export const ngModule = angular
       'childrenWrapperClassName',
     ])
   )
-  .component('annotationsBeTeaser', r2a(AnnotationsBeTeaser, []))
   .component(
     'shellTerminal',
     r2a(Terminal, [

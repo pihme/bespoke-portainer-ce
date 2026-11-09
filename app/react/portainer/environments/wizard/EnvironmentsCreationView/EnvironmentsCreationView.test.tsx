@@ -28,10 +28,6 @@ vi.mock('./WizardAzure', () => ({
   WizardAzure: () => <div>azure</div>,
 }));
 
-vi.mock('./WizardKubernetes', () => ({
-  WizardKubernetes: () => <div>k8s</div>,
-}));
-
 vi.mock('./WizardPodman', () => ({
   WizardPodman: () => <div>podman</div>,
 }));

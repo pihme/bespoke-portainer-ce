@@ -73,6 +73,15 @@ describe('setup-tests server handlers extra arms', () => {
     }
   });
 
+  it('REQ-TAI-002 has no Kubernetes, Helm or Omni stubs', () => {
+    const paths = handlers.map(
+      (h) => (h.info as { path?: unknown }).path as string
+    );
+    for (const path of paths) {
+      expect(String(path)).not.toMatch(/\/api\/kubernetes|helm|\/api\/omni/);
+    }
+  });
+
   it('covers remaining local stub GETs', async () => {
     for (const path of [
       '/api/status',
@@ -81,7 +90,6 @@ describe('setup-tests server handlers extra arms', () => {
       '/api/endpoint_groups',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',
-      '/api/omni/1/machines',
       '/api/registries/1',
       '/api/webhooks',
       '/api/policies',

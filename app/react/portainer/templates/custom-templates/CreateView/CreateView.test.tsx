@@ -114,20 +114,6 @@ describe('REQ-TPL-03 CreateView', () => {
     );
   });
 
-  it('defaults to kubernetes type for kube view', () => {
-    mockUseViewType.mockReturnValue('kube');
-    mockUseIsSwarmManager.mockReturnValue(false);
-
-    render(<CreateView />);
-
-    expect(screen.getByTestId('create-form')).toHaveAttribute(
-      'data-default-type',
-      String(StackType.Kubernetes)
-    );
-    expect(mockUseIsSwarmManager).toHaveBeenCalledWith(3, {
-      enabled: false,
-    });
-  });
 
   it('falls back to compose for unknown view types', () => {
     mockUseViewType.mockReturnValue('edge');

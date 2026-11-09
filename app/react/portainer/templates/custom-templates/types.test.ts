@@ -1,12 +1,9 @@
-import {
-  CustomTemplateKubernetesType,
-  getDefaultEdgeTemplateSettings,
-} from './types';
-import { StackType } from '@/react/common/stacks/types';
+import * as types from './types';
+import { getDefaultEdgeTemplateSettings } from './types';
 
 describe('REQ-TPL-03 custom template types', () => {
-  it('exposes the kubernetes stack type constant', () => {
-    expect(CustomTemplateKubernetesType).toBe(StackType.Kubernetes);
+  it('REQ-TAI-002 exposes no Kubernetes template type constant', () => {
+    expect('CustomTemplateKubernetesType' in types).toBe(false);
   });
 
   it('returns undefined edge settings on CE', () => {

@@ -7,7 +7,6 @@ import { getPlatformTypeName, isEdgeEnvironment } from '../utils';
 
 import { EdgeInformationPanel } from './EdgeInformationPanel/EdgeInformationPanel';
 import { EdgeAgentDeploymentWidget } from './EdgeAgentDeploymentWidget/EdgeAgentDeploymentWidget';
-import { KubeConfigInfo } from './KubeConfigInfo/KubeConfigInfo';
 import { EnvironmentDetailsForm } from './EnvironmentDetailsForm';
 
 export function ItemView() {
@@ -50,13 +49,6 @@ export function ItemView() {
               asyncMode={environment.Edge?.AsyncMode}
             />
           ))}
-
-        <KubeConfigInfo
-          environmentId={id}
-          environmentType={environment.Type}
-          edgeId={environment.EdgeID}
-          status={environment.Status}
-        />
 
         <EnvironmentDetailsForm environment={environment} />
       </div>

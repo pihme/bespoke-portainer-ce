@@ -31,9 +31,9 @@
     <div
       id="page-wrapper"
       ng-class="{
-        open: isSidebarOpen() && ['portainer.init.edge', 'kubernetes.kubectlshell'].indexOf($state.current.name) === -1,
+        open: isSidebarOpen() && ['portainer.init.edge'].indexOf($state.current.name) === -1,
         nopadding:
-          ['portainer.init.edge', 'kubernetes.kubectlshell'].indexOf($state.current.name) > -1 ||
+          ['portainer.init.edge'].indexOf($state.current.name) > -1 ||
           applicationState.loading,
       }"
       ng-cloak

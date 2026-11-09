@@ -235,12 +235,6 @@ func redeployWhenChangedSecondStage(
 			if err != nil {
 				return errors.WithMessagef(err, "failed to deploy a docker compose stack %v", stack.ID)
 			}
-		case portainer.KubernetesStack:
-			log.Debug().Int("stack_id", int(stack.ID)).Msg("deploying a kube app")
-
-			if err := deployer.DeployKubernetesStack(ctx, stack, endpoint, user); err != nil {
-				return errors.WithMessagef(err, "failed to deploy a kubernetes app stack %v", stack.ID)
-			}
 		default:
 			return errors.Errorf("cannot update stack, type %v is unsupported", stack.Type)
 		}

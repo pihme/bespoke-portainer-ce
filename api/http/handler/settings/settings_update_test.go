@@ -22,10 +22,7 @@ func TestREQ_SET_01_SettingsUpdatePayload_Validate(t *testing.T) {
 			LogoURL:            stringPtr("https://example.com/logo.png"),
 			TemplatesURL:       stringPtr("https://example.com/templates.json"),
 			SnapshotInterval:   stringPtr("10m"),
-			KubeconfigExpiry:   stringPtr("24h"),
 			ForceSecureCookies: boolPtr(true),
-			HelmRepositoryURL:  stringPtr(""),
-			KubectlShellImage:  stringPtr("portainer/kubectl-shell:latest"),
 		}
 		require.NoError(t, payload.Validate(httptest.NewRequest(http.MethodPut, "/settings", nil)))
 	})
@@ -40,19 +37,6 @@ func TestREQ_SET_01_SettingsUpdatePayload_Validate(t *testing.T) {
 		t.Parallel()
 		payload := &settingsUpdatePayload{TemplatesURL: stringPtr("://bad")}
 		require.EqualError(t, payload.Validate(nil), "Invalid external templates URL. Must correspond to a valid URL format")
-	})
-
-	t.Run("rejects invalid helm repository URL", func(t *testing.T) {
-		t.Parallel()
-		payload := &settingsUpdatePayload{HelmRepositoryURL: stringPtr("not a url")}
-		req := httptest.NewRequest(http.MethodPut, "/settings", nil)
-		require.EqualError(t, payload.Validate(req), "Invalid Helm repository URL. Must correspond to a valid URL format")
-	})
-
-	t.Run("rejects invalid kubeconfig expiry", func(t *testing.T) {
-		t.Parallel()
-		payload := &settingsUpdatePayload{KubeconfigExpiry: stringPtr("nope")}
-		require.EqualError(t, payload.Validate(nil), "Invalid Kubeconfig Expiry")
 	})
 
 	t.Run("empty logo and templates URLs are allowed", func(t *testing.T) {
@@ -172,16 +156,13 @@ func TestREQ_SET_04_SettingsUpdate_ForceSecureCookies(t *testing.T) {
 	assert.True(t, persisted.ForceSecureCookies)
 }
 
-func TestREQ_SET_01_SettingsUpdate_HelmDefault(t *testing.T) {
+func TestREQ_SET_01_SettingsUpdate_GlobalDeploymentOptions(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
 	handler, _ := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
-		HelmRepositoryURL: stringPtr(portainer.DefaultHelmRepositoryURL),
-		KubectlShellImage: stringPtr("portainer/kubectl-shell:test"),
-		KubeconfigExpiry:  stringPtr("12h"),
 		GlobalDeploymentOptions: &portainer.GlobalDeploymentOptions{
 			HideStacksFunctionality: true,
 		},
@@ -193,33 +174,7 @@ func TestREQ_SET_01_SettingsUpdate_HelmDefault(t *testing.T) {
 
 	persisted, err := store.Settings().Settings()
 	require.NoError(t, err)
-	assert.Equal(t, portainer.DefaultHelmRepositoryURL, persisted.HelmRepositoryURL)
-	assert.Equal(t, "portainer/kubectl-shell:test", persisted.KubectlShellImage)
-	assert.Equal(t, "12h", persisted.KubeconfigExpiry)
 	assert.True(t, persisted.GlobalDeploymentOptions.HideStacksFunctionality)
-}
-
-func TestREQ_SET_01_SettingsUpdate_ClearsHelmRepositoryURL(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _ := setUpHandler(t, store)
-
-	settings, err := store.Settings().Settings()
-	require.NoError(t, err)
-	settings.HelmRepositoryURL = "https://charts.example.com/old"
-	require.NoError(t, store.Settings().UpdateSettings(settings))
-
-	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
-		HelmRepositoryURL: stringPtr(""),
-	}))
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	persisted, err := store.Settings().Settings()
-	require.NoError(t, err)
-	assert.Empty(t, persisted.HelmRepositoryURL)
 }
 
 func TestREQ_SET_01_SettingsUpdate_InvalidJSON_ReturnsBadRequest(t *testing.T) {
@@ -319,4 +274,34 @@ func TestREQ_TAI_001_SettingsUpdate_IgnoresLoginFields(t *testing.T) {
 	assert.Equal(t, before.LDAPSettings.URL, after.LDAPSettings.URL)
 	assert.Equal(t, before.OAuthSettings.ClientID, after.OAuthSettings.ClientID)
 	assert.Equal(t, before.UserSessionTimeout, after.UserSessionTimeout)
+}
+
+// TAI-002: the Kubernetes global settings (Helm repository URL, kubeconfig
+// expiry, kubectl shell image) are removed; the update ignores them.
+func TestREQ_TAI_002_SettingsUpdate_IgnoresKubernetesFields(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, false)
+	handler, _ := setUpHandler(t, store)
+
+	before, err := store.Settings().Settings()
+	require.NoError(t, err)
+
+	body := []byte(`{
+		"HelmRepositoryURL": "not a url",
+		"KubeconfigExpiry": "nope",
+		"KubectlShellImage": "example/kubectl:evil"
+	}`)
+
+	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", body))
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	after, err := store.Settings().Settings()
+	require.NoError(t, err)
+	assert.Equal(t, before.HelmRepositoryURL, after.HelmRepositoryURL)
+	assert.Equal(t, before.KubeconfigExpiry, after.KubeconfigExpiry)
+	assert.Equal(t, before.KubectlShellImage, after.KubectlShellImage)
 }

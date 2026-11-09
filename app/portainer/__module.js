@@ -108,16 +108,6 @@ angular
         },
       };
 
-      const createHelmRepository = {
-        name: 'portainer.account.createHelmRepository',
-        url: '/helm-repository/new',
-        views: {
-          'content@': {
-            component: 'createHelmRepositoryView',
-          },
-        },
-      };
-
       var endpoints = {
         name: 'portainer.endpoints',
         url: '/endpoints',
@@ -383,7 +373,6 @@ angular
       $stateRegistryProvider.register(settings);
       $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
-      $stateRegistryProvider.register(createHelmRepository);
     },
   ])
   .run(run);

@@ -60,22 +60,6 @@ export async function createLocalDockerEnvironment({
   }
 }
 
-interface CreateLocalKubernetesEnvironment {
-  name: string;
-  meta?: EnvironmentMetadata;
-}
-
-export async function createLocalKubernetesEnvironment({
-  name,
-  meta = { tagIds: [] },
-}: CreateLocalKubernetesEnvironment) {
-  return createEnvironment(
-    name,
-    EnvironmentCreationTypes.LocalKubernetesEnvironment,
-    { meta, tls: { skipClientVerify: true, skipVerify: true } }
-  );
-}
-
 interface AzureSettings {
   applicationId: string;
   tenantId: string;

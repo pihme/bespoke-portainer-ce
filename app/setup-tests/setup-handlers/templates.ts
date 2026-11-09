@@ -5,5 +5,4 @@ export const templatesHandlers = [
     HttpResponse.json({ FileContent: '' })
   ),
   http.get('/api/custom_templates', () => HttpResponse.json([])),
-  http.get('/api/templates/helm/values', () => HttpResponse.json({})),
 ];

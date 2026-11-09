@@ -3,17 +3,13 @@ package settings
 import (
 	"cmp"
 	"net/http"
-	"strings"
-	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/internal/edge"
-	"github.com/portainer/portainer/pkg/libhelm"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
-	"github.com/portainer/portainer/pkg/libhttp/ssrf"
 	"github.com/portainer/portainer/pkg/validate"
 
 	"github.com/pkg/errors"
@@ -33,12 +29,6 @@ type settingsUpdatePayload struct {
 	EdgeAgentCheckinInterval *int                               `example:"5"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures *bool `example:"true"`
-	// The expiry of a Kubeconfig
-	KubeconfigExpiry *string `example:"24h" default:"0"`
-	// Helm repository URL
-	HelmRepositoryURL *string `example:"https://charts.bitnami.com/bitnami"`
-	// Kubectl Shell Image
-	KubectlShellImage *string `example:"portainer/kubectl-shell:latest"`
 	// TrustOnFirstConnect makes Portainer accepting edge agent connection by default
 	TrustOnFirstConnect *bool `example:"false"`
 	// EnforceEdgeID makes Portainer store the Edge ID instead of accepting anyone
@@ -56,22 +46,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 
 	if payload.TemplatesURL != nil && *payload.TemplatesURL != "" && !validate.IsURL(*payload.TemplatesURL) {
 		return errors.New("Invalid external templates URL. Must correspond to a valid URL format")
-	}
-
-	if payload.HelmRepositoryURL != nil && *payload.HelmRepositoryURL != "" && !validate.IsURL(*payload.HelmRepositoryURL) {
-		return errors.New("Invalid Helm repository URL. Must correspond to a valid URL format")
-	}
-
-	if payload.HelmRepositoryURL != nil && *payload.HelmRepositoryURL != "" {
-		if err := ssrf.CheckURL(r.Context(), *payload.HelmRepositoryURL); err != nil {
-			return errors.New("Invalid Helm repository URL. Must correspond to a valid URL format")
-		}
-	}
-
-	if payload.KubeconfigExpiry != nil {
-		if _, err := time.ParseDuration(*payload.KubeconfigExpiry); err != nil {
-			return errors.New("Invalid Kubeconfig Expiry")
-		}
 	}
 
 	if payload.EdgePortainerURL != nil && *payload.EdgePortainerURL != "" {
@@ -127,21 +101,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 	// Update the global deployment options, and the environment deployment options if they have changed
 	settings.GlobalDeploymentOptions = *cmp.Or(payload.GlobalDeploymentOptions, &settings.GlobalDeploymentOptions)
 
-	if payload.HelmRepositoryURL != nil {
-		settings.HelmRepositoryURL = ""
-		if *payload.HelmRepositoryURL != "" {
-			newHelmRepo := strings.TrimSuffix(strings.ToLower(*payload.HelmRepositoryURL), "/")
-
-			if newHelmRepo != settings.HelmRepositoryURL && newHelmRepo != portainer.DefaultHelmRepositoryURL {
-				if err := libhelm.ValidateHelmRepositoryURL(*payload.HelmRepositoryURL, nil); err != nil {
-					return nil, httperror.BadRequest("Invalid Helm repository URL. Must correspond to a valid URL format", err)
-				}
-			}
-
-			settings.HelmRepositoryURL = newHelmRepo
-		}
-	}
-
 	if payload.BlackListedLabels != nil {
 		settings.BlackListedLabels = payload.BlackListedLabels
 	}
@@ -159,9 +118,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 	}
 
 	settings.EdgeAgentCheckinInterval = *cmp.Or(payload.EdgeAgentCheckinInterval, &settings.EdgeAgentCheckinInterval)
-	settings.KubeconfigExpiry = *cmp.Or(payload.KubeconfigExpiry, &settings.KubeconfigExpiry)
-
-	settings.KubectlShellImage = *cmp.Or(payload.KubectlShellImage, &settings.KubectlShellImage)
 
 	if err := tx.Settings().UpdateSettings(settings); err != nil {
 		return nil, httperror.InternalServerError("Unable to persist settings changes inside the database", err)

@@ -16,8 +16,6 @@ describe('REQ-SET-01 SettingsViewModel mapping', () => {
       EdgeAgentCheckinInterval: 5,
       EnableEdgeComputeFeatures: false,
       FeatureFlagSettings: { flag: true },
-      KubeconfigExpiry: '24h',
-      HelmRepositoryURL: 'https://charts.example',
       TrustOnFirstConnect: false,
       EnforceEdgeID: false,
       AgentSecret: 'agent-secret',
@@ -39,7 +37,6 @@ describe('REQ-SET-01 PublicSettingsViewModel mapping', () => {
       EnableEdgeComputeFeatures: true,
       EnforceEdgeID: true,
       LogoURL: '/logo.png',
-      KubeconfigExpiry: '1h',
       Features: { something: true },
       Edge: {
         CheckinInterval: 5,

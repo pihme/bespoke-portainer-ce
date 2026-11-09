@@ -55,14 +55,13 @@ describe('REQ-ENV-04 HomeView wizard entry', () => {
     expect(screen.getByText('Get Started')).toBeVisible();
   });
 
-  it('shows get-started with kubernetes icon for a local kubernetes environment', () => {
+  it('REQ-TAI-002 never labels the local environment as Kubernetes', () => {
     localState = { status: 'success', type: EnvironmentType.KubernetesLocal };
     renderView();
 
     expect(
-      screen.getByText(/connected your local environment of Kubernetes/i)
-    ).toBeVisible();
-    expect(screen.getByTestId('wizard-get-started-link')).toBeVisible();
+      screen.queryByText(/connected your local environment of Kubernetes/i)
+    ).not.toBeInTheDocument();
   });
 
   it('shows get-started label for a docker agent environment', () => {

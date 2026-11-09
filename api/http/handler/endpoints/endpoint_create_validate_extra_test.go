@@ -152,3 +152,17 @@ func TestREQ_ENV_11_SaveEndpointAndUpdateAuthorizations_WithTags(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, updated.Endpoints[ep.ID])
 }
+
+// REQ-TAI-002: the local Kubernetes environment (creation type 5) is removed
+// with Kubernetes; the payload is rejected.
+func TestREQ_TAI_002_Validate_LocalKubernetesCreationType_ReturnsError(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+	p := &endpointCreatePayload{}
+	err := p.Validate(formRequest(map[string][]string{
+		"Name":                 {"k8s"},
+		"EndpointCreationType": {"5"},
+	}))
+	require.Error(t, err)
+	require.NotContains(t, err.Error(), "Kubernetes")
+}

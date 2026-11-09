@@ -26,7 +26,6 @@ import { getPlatformIconByPlatform } from '@/react/portainer/environments/utils/
 import { getHealthIcon } from '@/react/portainer/environments/utils/get-health-icon';
 import { getGroupIcon } from '@/react/portainer/environments/utils/get-group-icon';
 import { UpdateBadge } from '@/react/portainer/HomeView/EnvironmentList/UpdateBadge';
-import { KubeconfigButton } from '@/react/portainer/HomeView/EnvironmentList/KubeconfigButton';
 import { EnvironmentCard } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentCard';
 
 import { DropdownOption } from '@@/DropdownMenu/DropdownMenu';
@@ -174,11 +173,6 @@ export function EnvironmentList({ onClickBrowse }: Props) {
 
   const headerButtons = [
     updateAvailable && <UpdateBadge key="update-badge" />,
-    <KubeconfigButton
-      key="kube-config-button"
-      environments={environments}
-      envQueryParams={listQueryParams}
-    />,
   ].filter((btn): btn is React.ReactElement => Boolean(btn));
 
   return (

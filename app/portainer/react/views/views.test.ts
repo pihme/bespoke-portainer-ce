@@ -67,9 +67,6 @@ vi.mock('@/react/portainer/init/InitEdgeView/InitEdgeView', () => ({
 vi.mock('@/react/portainer/settings/SettingsView/SettingsView', () => ({
   SettingsView: () => null,
 }));
-vi.mock('@/react/portainer/account/helm-repositories/CreateHelmRepositoryView', () => ({
-  CreateHelmRepositoriesView: () => null,
-}));
 vi.mock('@/react/portainer/environments/wizard', () => ({
   EnvironmentCreationView: () => null,
   EnvironmentTypeSelectView: () => null,
@@ -264,5 +261,11 @@ describe('portainer react view wrappers', () => {
     ]) {
       expect(names).not.toContain(gone);
     }
+  });
+
+  it('REQ-TAI-002 registers no Helm repository view', async () => {
+    await import('./index');
+    const names = components.map((c) => c.name);
+    expect(names).not.toContain('createHelmRepositoryView');
   });
 });

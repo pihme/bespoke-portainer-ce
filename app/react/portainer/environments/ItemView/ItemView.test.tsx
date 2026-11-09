@@ -49,24 +49,6 @@ vi.mock('./EdgeAgentDeploymentWidget/EdgeAgentDeploymentWidget', () => ({
   ),
 }));
 
-vi.mock('./KubeConfigInfo/KubeConfigInfo', () => ({
-  KubeConfigInfo: ({
-    environmentId,
-    environmentType,
-    edgeId,
-    status,
-  }: {
-    environmentId: number;
-    environmentType: EnvironmentType;
-    edgeId?: string;
-    status: EnvironmentStatus;
-  }) => (
-    <div data-cy="kube-config-info">
-      KubeConfigInfo: {environmentId}, {environmentType}, {edgeId}, {status}
-    </div>
-  ),
-}));
-
 vi.mock('./EnvironmentDetailsForm', () => ({
   EnvironmentDetailsForm: ({ environment }: { environment: Environment }) => (
     <div data-cy="environment-details-form">
@@ -142,7 +124,7 @@ describe('ItemView', () => {
     renderComponentWithEnvironment(environment);
 
     await waitFor(() => {
-      expect(screen.getByTestId('kube-config-info')).toBeVisible();
+      expect(screen.getByTestId('environment-details-form')).toBeVisible();
     });
 
     expect(screen.queryByTestId('edge-info-panel')).not.toBeInTheDocument();
@@ -151,7 +133,7 @@ describe('ItemView', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render KubeConfigInfo component', async () => {
+  it('REQ-TAI-002 shows no kubeconfig panel', async () => {
     const environment = createMockEnvironment({
       Type: EnvironmentType.KubernetesLocal,
       Status: EnvironmentStatus.Up,
@@ -160,11 +142,9 @@ describe('ItemView', () => {
     renderComponentWithEnvironment(environment);
 
     await waitFor(() => {
-      const kubeConfigInfo = screen.getByTestId('kube-config-info');
-      expect(kubeConfigInfo).toBeVisible();
-      expect(kubeConfigInfo).toHaveTextContent('5'); // EnvironmentType.KubernetesLocal value
-      expect(kubeConfigInfo).toHaveTextContent('1'); // Status: Up
+      expect(screen.getByTestId('environment-details-form')).toBeVisible();
     });
+    expect(screen.queryByText(/kubeconfig/i)).not.toBeInTheDocument();
   });
 
   it('should render EnvironmentDetailsForm component', async () => {

@@ -6,8 +6,6 @@ export function SettingsViewModel(data) {
   this.EdgeAgentCheckinInterval = data.EdgeAgentCheckinInterval;
   this.EnableEdgeComputeFeatures = data.EnableEdgeComputeFeatures;
   this.FeatureFlagSettings = data.FeatureFlagSettings;
-  this.KubeconfigExpiry = data.KubeconfigExpiry;
-  this.HelmRepositoryURL = data.HelmRepositoryURL;
   this.TrustOnFirstConnect = data.TrustOnFirstConnect;
   this.EnforceEdgeID = data.EnforceEdgeID;
   this.AgentSecret = data.AgentSecret;
@@ -18,7 +16,6 @@ export function PublicSettingsViewModel(settings) {
   this.EnableEdgeComputeFeatures = settings.EnableEdgeComputeFeatures;
   this.EnforceEdgeID = settings.EnforceEdgeID;
   this.LogoURL = settings.LogoURL;
-  this.KubeconfigExpiry = settings.KubeconfigExpiry;
   this.Features = settings.Features;
   this.Edge = new EdgeSettingsViewModel(settings.Edge);
   this.DefaultRegistry = settings.DefaultRegistry;

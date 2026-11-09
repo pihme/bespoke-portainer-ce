@@ -1,1 +1,0 @@
-export { HelmRepositoryDatatable } from './HelmRepositoryDatatable';

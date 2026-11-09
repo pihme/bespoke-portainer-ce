@@ -14,7 +14,7 @@ func Test_unpackerImageRegistryAuth(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
 
-	d := NewStackDeployer(nil, nil, nil, nil, store)
+	d := NewStackDeployer(nil, nil, nil, store)
 
 	err := store.Registry().Create(&portainer.Registry{
 		ID:             1,
@@ -63,7 +63,7 @@ func Test_resolveUnpackerRegistryAuth(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
 
-	d := NewStackDeployer(nil, nil, nil, nil, store)
+	d := NewStackDeployer(nil, nil, nil, store)
 
 	// no registry matches, so resolveUnpackerRegistryAuth swallows the error and returns an empty auth
 	require.Empty(t, d.resolveUnpackerRegistryAuth("unmatched.example.com/portainer/compose-unpacker:2.0.0"))

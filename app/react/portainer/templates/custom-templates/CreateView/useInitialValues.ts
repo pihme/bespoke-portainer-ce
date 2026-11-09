@@ -19,9 +19,7 @@ export function useInitialValues({
 }): FormValues | undefined {
   const { appTemplateId, type = defaultType } = useAppTemplateParams();
 
-  // don't make the file path 'docker-compose.yml' in a kube environment. Keep it empty with the existing 'manifest.yml' placeholder
-  const initialFilePathInRepository =
-    type === StackType.Kubernetes ? '' : 'docker-compose.yml';
+  const initialFilePathInRepository = 'docker-compose.yml';
 
   const {
     params: { fileContent = '' },
@@ -71,11 +69,7 @@ function useAppTemplateParams() {
     const typeNum = parseInt(type, 10);
 
     if (
-      [
-        StackType.DockerSwarm,
-        StackType.DockerCompose,
-        StackType.Kubernetes,
-      ].includes(typeNum)
+      [StackType.DockerSwarm, StackType.DockerCompose].includes(typeNum)
     ) {
       return typeNum;
     }

@@ -16,27 +16,12 @@ export function useViewParams(): {
 } {
   const viewType = useViewType();
 
-  const isAllowedDeploymentKubeQuery = useAuthorizations(
-    'K8sApplicationsAdvancedDeploymentRW'
-  );
   const isAllowedDeploymentDockerQuery = useAuthorizations([
     'DockerContainerCreate',
     'PortainerStackCreate',
   ]);
 
   switch (viewType) {
-    case 'kube':
-      return {
-        viewType,
-        params: { edge: false, type: [StackType.Kubernetes] },
-        getTemplateLinkParams: isAllowedDeploymentKubeQuery.authorized
-          ? (template: CustomTemplate) => ({
-              to: 'kubernetes.deploy',
-              params: { templateId: template.Id, templateType: 'custom' },
-            })
-          : undefined,
-        storageKey: 'kube-custom-templates',
-      };
     case 'edge':
       return {
         viewType,

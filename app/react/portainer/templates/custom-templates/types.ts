@@ -132,8 +132,6 @@ export type CustomTemplateFileContent = {
   FileContent: string;
 };
 
-export const CustomTemplateKubernetesType = StackType.Kubernetes;
-
 export function getDefaultEdgeTemplateSettings():
   | EdgeTemplateSettings
   | undefined {

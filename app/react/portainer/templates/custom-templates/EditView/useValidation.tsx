@@ -40,7 +40,6 @@ export function useValidation({
           .oneOf([
             StackType.DockerCompose,
             StackType.DockerSwarm,
-            StackType.Kubernetes,
           ])
           .default(StackType.DockerCompose),
         FileContent: string().required('Template is required.'),

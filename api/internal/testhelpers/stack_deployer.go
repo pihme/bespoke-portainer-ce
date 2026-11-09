@@ -37,10 +37,6 @@ func (d *TestStackDeployer) DeploySwarmStack(_ context.Context, stack *portainer
 	return nil
 }
 
-func (d *TestStackDeployer) DeployKubernetesStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, user *portainer.User) error {
-	return nil
-}
-
 func (d *TestStackDeployer) DeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
 	return nil
 }

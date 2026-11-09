@@ -2,7 +2,6 @@ import { Wand2, Plug2 } from 'lucide-react';
 
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import DockerIcon from '@/assets/ico/vendor/docker-icon.svg?c';
-import Kube from '@/assets/ico/kube.svg?c';
 
 import { PageHeader } from '@@/PageHeader';
 import { Widget, WidgetBody, WidgetTitle } from '@@/Widget';
@@ -70,11 +69,7 @@ export function HomeView() {
                       data-cy="wizard-get-started-link"
                     >
                       <Option
-                        icon={
-                          localEnvironmentAdded.type === EnvironmentType.Docker
-                            ? DockerIcon
-                            : Kube
-                        }
+                        icon={DockerIcon}
                         title="Get Started"
                         description="Proceed using the local environment which Portainer is running in"
                       />
@@ -107,8 +102,6 @@ function getTypeLabel(type?: EnvironmentType) {
       return 'Docker';
     case EnvironmentType.AgentOnDocker:
       return 'Docker Agent';
-    case EnvironmentType.KubernetesLocal:
-      return 'Kubernetes';
     default:
       return '';
   }

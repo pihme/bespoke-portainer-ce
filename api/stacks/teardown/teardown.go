@@ -8,7 +8,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/stackutils"
 
@@ -38,7 +37,6 @@ type service struct {
 	swarmStackManager   portainer.SwarmStackManager
 	composeStackManager portainer.ComposeStackManager
 	stackDeployer       deployments.StackDeployer
-	kubernetesDeployer  portainer.KubernetesDeployer
 }
 
 // NewService creates a stack teardown service.
@@ -47,14 +45,12 @@ func NewService(
 	swarmStackManager portainer.SwarmStackManager,
 	composeStackManager portainer.ComposeStackManager,
 	stackDeployer deployments.StackDeployer,
-	kubernetesDeployer portainer.KubernetesDeployer,
 ) Service {
 	return &service{
 		fileService:         fileService,
 		swarmStackManager:   swarmStackManager,
 		composeStackManager: composeStackManager,
 		stackDeployer:       stackDeployer,
-		kubernetesDeployer:  kubernetesDeployer,
 	}
 }
 
@@ -79,20 +75,9 @@ func (s *service) RemoveResources(ctx context.Context, userID portainer.UserID, 
 		return s.stackDeployer.UndeployComposeStack(ctx, stack, endpoint)
 
 	case portainer.KubernetesStack:
-		manifestFiles := stackutils.GetStackFilePaths(stack, true)
-
-		out, err := s.kubernetesDeployer.Remove(ctx, userID, endpoint, manifestFiles, stack.Namespace)
-		if err != nil {
-			for _, manifest := range manifestFiles {
-				if exists, fileExistsErr := filesystem.FileExists(manifest); fileExistsErr != nil || !exists {
-					// If removal has failed and one of the manifest files is missing,
-					// we can consider this stack as removed
-					log.Warn().Err(fileExistsErr).Msgf("failed to find manifest %s, but stack deletion will continue", manifest)
-					return nil
-				}
-			}
-			return fmt.Errorf("failed to remove kubernetes resources: %q. Error: %w", out, err)
-		}
+		// Kubernetes is removed (TAI-002): Portainer can no longer reach the
+		// cluster, so only the leftover stack record and files are removed.
+		log.Warn().Int("stack_id", int(stack.ID)).Msg("Kubernetes is no longer supported; leaving the stack's cluster resources in place")
 
 		return nil
 

@@ -42,7 +42,9 @@ func TestLoadEncryptionSecretKey(t *testing.T) {
 	require.Len(t, encryptionKey, 32)
 }
 
-func TestUpdateSettingsFromFlags_KubectlShellImage(t *testing.T) {
+// REQ-TAI-002: the kubectl shell image is no longer taken from the command
+// line; the stored setting is never changed at startup.
+func TestREQ_TAI_002_UpdateSettingsFromFlags_IgnoresKubectlShellImage(t *testing.T) {
 	const existingImage = "existing-image:v1"
 	const newImage = "new-image:v2"
 
@@ -63,10 +65,10 @@ func TestUpdateSettingsFromFlags_KubectlShellImage(t *testing.T) {
 			expectedKubectlShellImage: existingImage,
 		},
 		{
-			name:                      "flag set — DB image updated",
+			name:                      "leftover set flag — DB image unchanged",
 			imageSet:                  true,
 			flagImage:                 newImage,
-			expectedKubectlShellImage: newImage,
+			expectedKubectlShellImage: existingImage,
 		},
 	}
 

@@ -213,7 +213,8 @@ func TestCustomTemplateCreate_FromFileContent_NoteWithImage(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
 }
 
-func TestCustomTemplateCreate_FromFileContent_KubernetesTypeIgnoresPlatform(t *testing.T) {
+// REQ-TAI-002: Kubernetes custom templates (type 3) are removed with Kubernetes.
+func TestREQ_TAI_002_CustomTemplateCreate_FromFileContent_KubernetesTypeIsRejected(t *testing.T) {
 	t.Parallel()
 
 	handler, ds, _ := newTestHandler(t)
@@ -223,25 +224,22 @@ func TestCustomTemplateCreate_FromFileContent_KubernetesTypeIgnoresPlatform(t *t
 		Description: "A kubernetes template",
 		FileContent: "apiVersion: v1\nkind: Pod",
 		Type:        portainer.KubernetesStack,
-		Platform:    0,
+		Platform:    portainer.CustomTemplatePlatformLinux,
 	}
 
 	r := createTemplateRequest(t, "string", payload, 1, portainer.AdministratorRole)
 	rr := httptest.NewRecorder()
 
 	herr := handler.customTemplateCreate(rr, r)
-	require.Nil(t, herr)
-	require.Equal(t, http.StatusOK, rr.Code)
-
-	var tmpl portainer.CustomTemplate
-	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
-	require.Equal(t, "K8s Template", tmpl.Title)
-	require.Equal(t, portainer.KubernetesStack, tmpl.Type)
+	require.NotNil(t, herr)
+	// Pinned like the other invalid types (TestCustomTemplateCreate_FromFileContent_InvalidType).
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	require.ErrorContains(t, herr.Err, "Invalid custom template type")
 
 	err := ds.ViewTx(func(tx dataservices.DataStoreTx) error {
 		templates, err := tx.CustomTemplate().ReadAll()
 		require.NoError(t, err)
-		require.Len(t, templates, 1)
+		require.Empty(t, templates)
 
 		return nil
 	})
@@ -707,7 +705,8 @@ func TestCustomTemplateCreate_FromFileUpload_NoteWithImage(t *testing.T) {
 	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
 }
 
-func TestCustomTemplateCreate_FromFileUpload_KubernetesIgnoresPlatform(t *testing.T) {
+// REQ-TAI-002: Kubernetes custom templates (type 3) are removed with Kubernetes.
+func TestREQ_TAI_002_CustomTemplateCreate_FromFileUpload_KubernetesTypeIsRejected(t *testing.T) {
 	t.Parallel()
 
 	handler, ds, _ := newTestHandler(t)
@@ -748,18 +747,15 @@ func TestCustomTemplateCreate_FromFileUpload_KubernetesIgnoresPlatform(t *testin
 
 	rr := httptest.NewRecorder()
 	herr := handler.customTemplateCreate(rr, r)
-	require.Nil(t, herr)
-	require.Equal(t, http.StatusOK, rr.Code)
-
-	var tmpl portainer.CustomTemplate
-	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
-	require.Equal(t, "K8s Upload Template", tmpl.Title)
-	require.Equal(t, filesystem.ComposeFileDefaultName, tmpl.EntryPoint)
+	require.NotNil(t, herr)
+	// Pinned like the other invalid types (TestCustomTemplateCreate_FromFileContent_InvalidType).
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	require.ErrorContains(t, herr.Err, "Invalid custom template type")
 
 	err = ds.ViewTx(func(tx dataservices.DataStoreTx) error {
 		templates, err := tx.CustomTemplate().ReadAll()
 		require.NoError(t, err)
-		require.Len(t, templates, 1)
+		require.Empty(t, templates)
 
 		return nil
 	})

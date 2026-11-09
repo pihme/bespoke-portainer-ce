@@ -63,7 +63,7 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     });
   });
 
-  it('Stack and StackByName expose compose lifecycle actions', async () => {
+  it('Stack exposes compose lifecycle actions and REQ-TAI-002 no StackByName', async () => {
     const { factories } = installAngularCapture();
     vi.doMock('angular', () => ({
       default: globalThis.angular,
@@ -72,7 +72,6 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     await import('./stack.js');
     const { $resource, calls } = mockResource();
     factories.Stack($resource, '/api/stacks');
-    factories.StackByName($resource, '/api/stacks');
 
     expect(calls[0].url).toBe('/api/stacks/:id/:action/:subaction');
     expect(calls[0].actions.create.method).toBe('POST');
@@ -80,8 +79,8 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     expect(calls[0].actions.stop.method).toBe('POST');
     expect(calls[0].actions.getStackFile.method).toBe('GET');
     expect(calls[0].actions.updateGit.method).toBe('PUT');
-    expect(calls[1].url).toBe('/api/stacks/name/:name');
-    expect(calls[1].actions.remove.method).toBe('DELETE');
+    // REQ-TAI-002: the Kubernetes delete-by-name resource is gone.
+    expect(factories.StackByName).toBeUndefined();
   });
 
   it('CustomTemplates exposes create/query/file/gitFetch', async () => {

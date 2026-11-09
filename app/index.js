@@ -61,7 +61,6 @@ angular
     'portainer.agent',
     azureModule,
     'portainer.docker',
-    'portainer.kubernetes',
     'portainer.edge',
     'rzModule',
     constantsModule,

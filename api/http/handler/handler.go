@@ -16,8 +16,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
-	"github.com/portainer/portainer/api/http/handler/helm"
-	"github.com/portainer/portainer/api/http/handler/kubernetes"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
 	"github.com/portainer/portainer/api/http/handler/settings"
@@ -44,11 +42,8 @@ type Handler struct {
 	EndpointEdgeHandler    *endpointedge.Handler
 	EndpointGroupHandler   *endpointgroups.Handler
 	EndpointHandler        *endpoints.Handler
-	EndpointHelmHandler    *helm.Handler
 	EndpointProxyHandler   *endpointproxy.Handler
 	GitOperationHandler    *gitops.Handler
-	HelmTemplatesHandler   *helm.Handler
-	KubernetesHandler      *kubernetes.Handler
 	FileHandler            *file.Handler
 	MOTDHandler            *motd.Handler
 	RegistryHandler        *registries.Handler
@@ -63,13 +58,12 @@ type Handler struct {
 	UserHandler            *users.Handler
 	WebSocketHandler       *websocket.Handler
 	WebhookHandler         *webhooks.Handler
-	UserHelmHandler        *helm.Handler
 }
 
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","webhooks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]},{"name":"Kubernetes","tags":["helm","kubernetes"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","webhooks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -117,12 +111,6 @@ type Handler struct {
 // @tag.name gitops
 // @tag.description Operate git repository
 // @tag.x-displayName GitOps
-// @tag.name helm
-// @tag.description Manage Helm charts
-// @tag.x-displayName Helm charts
-// @tag.name kubernetes
-// @tag.description Manage Kubernetes cluster
-// @tag.x-displayName Kubernetes
 // @tag.name motd
 // @tag.description Fetch the message of the day
 // @tag.x-displayName Message of the day
@@ -182,20 +170,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.EdgeJobsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):
 		http.StripPrefix("/api", h.EndpointGroupHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/kubernetes"):
-		http.StripPrefix("/api", h.KubernetesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/docker"):
 		http.StripPrefix("/api", h.DockerHandler).ServeHTTP(w, r)
-
-	// Helm subpath under kubernetes -> /api/endpoints/{id}/kubernetes/helm
-	case strings.HasPrefix(r.URL.Path, "/api/endpoints/") && strings.Contains(r.URL.Path, "/kubernetes/helm"):
-		http.StripPrefix("/api/endpoints", h.EndpointHelmHandler).ServeHTTP(w, r)
 
 	case strings.HasPrefix(r.URL.Path, "/api/endpoints"):
 		switch {
 		case strings.Contains(r.URL.Path, "/docker/"):
-			http.StripPrefix("/api/endpoints", h.EndpointProxyHandler).ServeHTTP(w, r)
-		case strings.Contains(r.URL.Path, "/kubernetes/"):
 			http.StripPrefix("/api/endpoints", h.EndpointProxyHandler).ServeHTTP(w, r)
 		case strings.Contains(r.URL.Path, "/azure/"):
 			http.StripPrefix("/api/endpoints", h.EndpointProxyHandler).ServeHTTP(w, r)
@@ -220,8 +200,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.SystemHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/tags"):
 		http.StripPrefix("/api", h.TagHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/templates/helm"):
-		http.StripPrefix("/api", h.HelmTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/templates"):
 		http.StripPrefix("/api", h.TemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/upload"):

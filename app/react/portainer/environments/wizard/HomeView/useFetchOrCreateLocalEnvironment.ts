@@ -7,10 +7,7 @@ import {
   Environment,
   EnvironmentType,
 } from '@/react/portainer/environments/types';
-import {
-  createLocalDockerEnvironment,
-  createLocalKubernetesEnvironment,
-} from '@/react/portainer/environments/environment.service/create';
+import { createLocalDockerEnvironment } from '@/react/portainer/environments/environment.service/create';
 
 export function useConnectLocalEnvironment(): {
   status: 'error' | 'loading' | 'success';
@@ -65,7 +62,6 @@ function getStatus(
 async function createLocalEnvironment() {
   const name = 'local';
   const attempts = [
-    () => createLocalKubernetesEnvironment({ name }),
     () =>
       createLocalDockerEnvironment({
         name,
@@ -97,7 +93,6 @@ function useFetchLocalEnvironment() {
       types: [
         EnvironmentType.Docker,
         EnvironmentType.AgentOnDocker,
-        EnvironmentType.KubernetesLocal,
       ],
     },
     {

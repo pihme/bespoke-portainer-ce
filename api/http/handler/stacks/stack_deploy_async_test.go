@@ -8,6 +8,7 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
+	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/stackutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,6 +20,13 @@ type stubDeployConfiger struct {
 	undeployCalls atomic.Int32
 	deployCalls   atomic.Int32
 }
+
+type stubStackDeploymentConfiger struct {
+	deployments.StackDeploymentConfiger
+	deployErr error
+}
+
+func (s *stubStackDeploymentConfiger) Deploy(_ context.Context) error { return s.deployErr }
 
 func (s *stubDeployConfiger) Deploy(ctx context.Context) error {
 	s.deployCalls.Add(1)

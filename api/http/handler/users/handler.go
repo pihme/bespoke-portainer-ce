@@ -38,9 +38,6 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 	authenticatedRouter.Handle("/users/{id}", httperror.LoggerHandler(h.userUpdate)).Methods(http.MethodPut)
 
 	// Helm repositories
-	authenticatedRouter.Handle("/users/{id}/helm/repositories", httperror.LoggerHandler(h.userGetHelmRepos)).Methods(http.MethodGet)
-	authenticatedRouter.Handle("/users/{id}/helm/repositories", httperror.LoggerHandler(h.userCreateHelmRepo)).Methods(http.MethodPost)
-	authenticatedRouter.Handle("/users/{id}/helm/repositories/{repositoryID}", httperror.LoggerHandler(h.userDeleteHelmRepo)).Methods(http.MethodDelete)
 
 	return h
 }

@@ -54,11 +54,11 @@ function createTestComponent(role: Role) {
       createMockUsers(1, role)[0]
     ),
     {
-      route: '/kubernetes/registries',
+      route: '/docker/registries',
       stateConfig: [
         {
-          name: 'kubernetes.registries',
-          url: '/kubernetes/registries',
+          name: 'docker.host.registries',
+          url: '/docker/registries',
           params: { endpointId: '1' },
         },
       ],
@@ -67,15 +67,8 @@ function createTestComponent(role: Role) {
 }
 
 describe('EnvironmentRegistriesDatatable', () => {
-  it('shows the manage access action to admins', async () => {
+  it('REQ-TAI-002 offers no Kubernetes namespace "Manage access"', async () => {
     const TestComponent = createTestComponent(Role.Admin);
-    render(<TestComponent />);
-
-    expect(await screen.findByText('Manage access')).toBeInTheDocument();
-  });
-
-  it('hides the manage access action from standard users', async () => {
-    const TestComponent = createTestComponent(Role.Standard);
     render(<TestComponent />);
 
     expect(await screen.findByText('my-registry')).toBeInTheDocument();

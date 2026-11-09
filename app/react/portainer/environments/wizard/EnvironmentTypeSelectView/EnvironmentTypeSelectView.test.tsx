@@ -104,3 +104,22 @@ describe('EnvironmentSelector', () => {
     expect(onChange).toHaveBeenCalled();
   });
 });
+
+describe('REQ-TAI-002 no Kubernetes environment creation', () => {
+  it('offers no Kubernetes connect or Kubernetes cluster create option', () => {
+    const values = environmentTypes.map((t) => t.value as string);
+    expect(values).not.toContain('kubernetes');
+    expect(values).not.toContain('k8sInstall');
+    expect(Object.keys(formTitles)).not.toContain('kubernetes');
+    expect(Object.keys(formTitles)).not.toContain('k8sInstall');
+  });
+
+  it('renders no Kubernetes or Create Kubernetes cluster box', () => {
+    renderView();
+
+    expect(screen.queryByLabelText(/^Kubernetes/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Create Kubernetes cluster')
+    ).not.toBeInTheDocument();
+  });
+});

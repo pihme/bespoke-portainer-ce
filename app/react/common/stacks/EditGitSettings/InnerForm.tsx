@@ -8,10 +8,8 @@ import { useIsStandalone } from '@/react/docker/proxy/queries/useInfo';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { getPlatformType } from '@/react/portainer/environments/utils';
 import { PlatformType } from '@/react/portainer/environments/types';
-import { StackName } from '@/react/kubernetes/DeployView/StackName/StackName';
 
 import { Modal } from '@@/modals/Modal';
-import { TextTip } from '@@/Tip/TextTip';
 import { Button, LoadingButton } from '@@/buttons';
 import { WidgetIcon } from '@@/Widget/WidgetIcon';
 import { Checkbox } from '@@/form-components/Checkbox';
@@ -66,25 +64,6 @@ export function InnerForm({
         <div className="flex-1 overflow-y-auto px-5">
           <Modal.Body>
             <div className="form-horizontal">
-              {stackType === StackType.Kubernetes && (
-                <>
-                  <StackName
-                    stackName={values.kube?.name ?? ''}
-                    setStackName={(value) => {
-                      setFieldValue('kube.name', value);
-                      if (value && value !== stackName) {
-                        setFieldValue('redeployNow', true);
-                      }
-                    }}
-                    error={errors.kube?.name}
-                  />
-                  <TextTip color="blue" className="mb-4">
-                    Changing the stack name requires a redeploy to update the
-                    deployed resources.
-                  </TextTip>
-                </>
-              )}
-
               <GitForm
                 value={values.git}
                 onChange={(partial) => {
@@ -93,16 +72,14 @@ export function InnerForm({
                   });
                 }}
                 environmentType={getPlatformNameForGitForm()}
-                isForcePullVisible={stackType !== StackType.Kubernetes}
+                isForcePullVisible
                 baseWebhookUrl={baseStackWebhookUrl()}
                 webhookId={webhookId}
                 webhooksDocs="/user/docker/stacks/webhooks"
                 isAdditionalFilesFieldVisible
                 isAutoUpdateVisible
                 errors={errors.git}
-                deployMethod={
-                  stackType === StackType.Kubernetes ? 'manifest' : 'compose'
-                }
+                deployMethod="compose"
                 isDockerStandalone={isDockerStandalone}
               />
 
@@ -167,13 +144,9 @@ export function InnerForm({
     </Form>
   );
 
-  function getPlatformNameForGitForm(): 'DOCKER' | 'KUBERNETES' | undefined {
+  function getPlatformNameForGitForm(): 'DOCKER' | undefined {
     if (platform === PlatformType.Docker) {
       return 'DOCKER';
-    }
-
-    if (platform === PlatformType.Kubernetes) {
-      return 'KUBERNETES';
     }
 
     return undefined;

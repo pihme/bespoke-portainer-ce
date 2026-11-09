@@ -49,8 +49,6 @@ import (
 	"github.com/portainer/portainer/pkg/build"
 	"github.com/portainer/portainer/pkg/featureflags"
 	"github.com/portainer/portainer/pkg/fips"
-	"github.com/portainer/portainer/pkg/libhelm"
-	libhelmcache "github.com/portainer/portainer/pkg/libhelm/cache"
 	"github.com/portainer/portainer/pkg/libhttp/ssrf"
 	"github.com/portainer/portainer/pkg/libstack/compose"
 	libswarm "github.com/portainer/portainer/pkg/libstack/swarm"
@@ -244,10 +242,6 @@ func updateSettingsFromFlags(dataStore dataservices.DataStore, flags *portainer.
 	settings.TrustOnFirstConnect = cmp.Or(*flags.EdgeTrustOnFirstConnect, settings.TrustOnFirstConnect)
 	settings.TemplatesURL = cmp.Or(*flags.Templates, settings.TemplatesURL)
 
-	if flags.KubectlShellImageSet {
-		settings.KubectlShellImage = *flags.KubectlShellImage
-	}
-
 	if *flags.Labels != nil {
 		settings.BlackListedLabels = *flags.Labels
 	}
@@ -413,20 +407,11 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		log.Fatal().Err(err).Msg("")
 	}
 
-	sslSettings, err := sslService.GetSSLSettings()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to get SSL settings")
-	}
-
 	if err := initKeyPair(fileService, signatureService); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing key pair")
 	}
 
 	reverseTunnelService := chisel.NewService(dataStore, shutdownCtx, fileService)
-
-	if err := libhelmcache.Initialize(settings.UserSessionTimeout); err != nil {
-		log.Fatal().Err(err).Msg("failed initializing Helm registry cache")
-	}
 
 	dockerClientFactory := dockerclient.NewClientFactory(signatureService, reverseTunnelService)
 
@@ -439,8 +424,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	authorizationService.K8sClientFactory = kubernetesClientFactory
 
 	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
-
-	kubeClusterAccessService := kubernetes.NewKubeClusterAccessService(*flags.BaseURL, *flags.AddrHTTPS, sslSettings.CertPath)
 
 	proxyManager := proxy.NewManager(kubernetesClientFactory)
 
@@ -469,8 +452,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	proxyManager.NewProxyFactory(dataStore, signatureService, reverseTunnelService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
 
-	helmPackageManager := libhelm.NewHelmPackageManager()
-
 	applicationStatus := initStatus(instanceID)
 
 	// There is no first-administrator setup (TAI-001): store the local
@@ -496,7 +477,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	}
 
 	sched := scheduler.NewScheduler(shutdownCtx)
-	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, kubernetesDeployer, dockerClientFactory, dataStore)
+	stackDeployer := deployments.NewStackDeployer(swarmStackManager, composeStackManager, dockerClientFactory, dataStore)
 	sourceScheduler := scheduling.NewSourceScheduler(sched, dataStore, scheduling.Deployers{
 		Stack: func(ctx context.Context, stackID portainer.StackID) error {
 			return deployments.RedeployWhenChanged(ctx, stackID, stackDeployer, dataStore, gitService, fileService)
@@ -575,14 +556,12 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		SwarmStackManager:           swarmStackManager,
 		ComposeStackManager:         composeStackManager,
 		KubernetesDeployer:          kubernetesDeployer,
-		HelmPackageManager:          helmPackageManager,
 		CryptoService:               cryptoService,
 		JWTService:                  jwtService,
 		FileService:                 fileService,
 		GitService:                  gitService,
 		ProxyManager:                proxyManager,
 		KubernetesTokenCacheManager: kubernetesTokenCacheManager,
-		KubeClusterAccessService:    kubeClusterAccessService,
 		SignatureService:            signatureService,
 		SnapshotService:             snapshotService,
 		SSLService:                  sslService,

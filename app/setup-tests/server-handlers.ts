@@ -12,7 +12,6 @@ import { VersionResponse } from '@/react/portainer/system/useSystemVersion';
 
 import { azureHandlers } from './setup-handlers/azure';
 import { dockerHandlers } from './setup-handlers/docker';
-import { kubernetesHandlers } from './setup-handlers/kubernetes';
 import { endpointsHandlers } from './setup-handlers/endpoints';
 import { settingsHandlers } from './setup-handlers/settings';
 import { templatesHandlers } from './setup-handlers/templates';
@@ -43,7 +42,6 @@ export const handlers = [
   ...templatesHandlers,
   ...azureHandlers,
   ...dockerHandlers,
-  ...kubernetesHandlers,
   ...edgeHandlers,
   ...gitopsHandlers,
   http.get('/api/stacks', () => HttpResponse.json([])),
@@ -83,7 +81,6 @@ export const handlers = [
   http.get('/api/observability/alerting/settings', () => HttpResponse.json([])),
   http.get('/observability/alerting/rules', () => HttpResponse.json([])),
 
-  http.get('/api/omni/:id/machines', () => HttpResponse.json([])),
   http.get('/api/registries', () => HttpResponse.json([])),
   http.get('/api/registries/:id', () => HttpResponse.json({})),
 

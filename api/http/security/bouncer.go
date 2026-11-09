@@ -21,7 +21,6 @@ type (
 		AdminAccess(http.Handler) http.Handler
 		RestrictedAccess(http.Handler) http.Handler
 		AuthenticatedAccess(http.Handler) http.Handler
-		AuthenticatedAccessAllowingKubeconfig(http.Handler) http.Handler
 		EdgeComputeOperation(http.Handler) http.Handler
 
 		AuthorizedEndpointOperation(*http.Request, *portainer.Endpoint) error
@@ -80,11 +79,6 @@ func (bouncer *RequestBouncer) RestrictedAccess(h http.Handler) http.Handler {
 
 // AuthenticatedAccess serves the request as the local operator.
 func (bouncer *RequestBouncer) AuthenticatedAccess(h http.Handler) http.Handler {
-	return bouncer.mwLocalOperator(h)
-}
-
-// AuthenticatedAccessAllowingKubeconfig serves the Kubernetes environment proxy as the local operator.
-func (bouncer *RequestBouncer) AuthenticatedAccessAllowingKubeconfig(h http.Handler) http.Handler {
 	return bouncer.mwLocalOperator(h)
 }
 

@@ -15,7 +15,6 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/logs"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/stackutils"
@@ -34,17 +33,15 @@ type Handler struct {
 	stackDeletionMutex *sync.Mutex
 	requestBouncer     security.BouncerService
 	*mux.Router
-	DataStore               dataservices.DataStore
-	DockerClientFactory     *dockerclient.ClientFactory
-	FileService             portainer.FileService
-	GitService              portainer.GitService
-	SwarmStackManager       portainer.SwarmStackManager
-	ComposeStackManager     portainer.ComposeStackManager
-	KubernetesDeployer      portainer.KubernetesDeployer
-	KubernetesClientFactory *cli.ClientFactory
-	SourceScheduler         *scheduling.SourceScheduler
-	StackDeployer           deployments.StackDeployer
-	teardownService         teardown.Service
+	DataStore           dataservices.DataStore
+	DockerClientFactory *dockerclient.ClientFactory
+	FileService         portainer.FileService
+	GitService          portainer.GitService
+	SwarmStackManager   portainer.SwarmStackManager
+	ComposeStackManager portainer.ComposeStackManager
+	SourceScheduler     *scheduling.SourceScheduler
+	StackDeployer       deployments.StackDeployer
+	teardownService     teardown.Service
 }
 
 func stackExistsError(name string) *httperror.HandlerError {
@@ -73,8 +70,6 @@ func NewHandler(bouncer security.BouncerService, teardownService teardown.Servic
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackDelete))).Methods(http.MethodDelete)
 	h.Handle("/stacks/{id}/associate",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.stackAssociate))).Methods(http.MethodPut)
-	h.Handle("/stacks/name/{name}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackDeleteKubernetesByName))).Methods(http.MethodDelete)
 	h.Handle("/stacks/{id}",
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.stackUpdate))).Methods(http.MethodPut)
 	h.Handle("/stacks/{id}/git",

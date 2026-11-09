@@ -140,7 +140,7 @@ describe('REQ-TPL-03 useInitialValues', () => {
     expect(result.current?.FileContent).toBe('router-compose');
   });
 
-  it('uses an empty repository path for kubernetes templates', () => {
+  it('REQ-TAI-002 ignores a Kubernetes template type param', () => {
     mockUseCurrentStateAndParams.mockReturnValue({
       params: { type: String(StackType.Kubernetes) },
     });
@@ -152,8 +152,10 @@ describe('REQ-TPL-03 useInitialValues', () => {
       })
     );
 
-    expect(result.current?.Type).toBe(StackType.Kubernetes);
-    expect(result.current?.Git.ComposeFilePathInRepository).toBe('');
+    expect(result.current?.Type).toBe(StackType.DockerCompose);
+    expect(result.current?.Git.ComposeFilePathInRepository).toBe(
+      'docker-compose.yml'
+    );
   });
 
   it('sets edge settings for edge create', () => {

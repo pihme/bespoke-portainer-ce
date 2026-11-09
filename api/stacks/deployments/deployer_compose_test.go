@@ -51,7 +51,7 @@ func TestREQ_STK_02_DeployComposeStack(t *testing.T) {
 	_, store := datastore.MustNewTestStore(t, false, true)
 	manager := &recordingComposeManager{}
 	factory := dockerclient.NewClientFactory(nil, nil)
-	deployer := NewStackDeployer(nil, manager, nil, factory, store)
+	deployer := NewStackDeployer(nil, manager, factory, store)
 
 	stack := &portainer.Stack{Name: "web", Type: portainer.DockerComposeStack}
 	endpoint := &portainer.Endpoint{ID: 1}
@@ -84,7 +84,7 @@ func TestREQ_STK_08_UndeployComposeStack(t *testing.T) {
 
 	_, store := datastore.MustNewTestStore(t, false, true)
 	manager := &recordingComposeManager{}
-	deployer := NewStackDeployer(nil, manager, nil, nil, store)
+	deployer := NewStackDeployer(nil, manager, nil, store)
 
 	require.NoError(t, deployer.UndeployComposeStack(t.Context(), &portainer.Stack{Name: "web"}, &portainer.Endpoint{ID: 1}))
 	assert.Equal(t, int32(1), manager.downCalls.Load())

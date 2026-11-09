@@ -157,6 +157,11 @@ describe('portainer.app local-docker UI-Router states', () => {
     }
   });
 
+  it('REQ-TAI-002 registers no Helm repository state', () => {
+    const names = registeredStates.map((s) => s.name);
+    expect(names).not.toContain('portainer.account.createHelmRepository');
+  });
+
   it('marks root restricted with sidebar and endpoint under root', () => {
     const root = stateByName('root');
     expect(root.abstract).toBe(true);

@@ -4,19 +4,16 @@ import { StackViewModel } from '@/react/docker/stacks/view-models/stack';
 
 angular.module('portainer.app').factory('StackService', [
   '$q',
-  '$async',
   'Stack',
-  'StackByName',
   'FileUploadService',
   'StackHelper',
   'ServiceService',
   'ContainerService',
   'SwarmService',
-  function StackServiceFactory($q, $async, Stack, StackByName, FileUploadService, StackHelper, ServiceService, ContainerService, SwarmService) {
+  function StackServiceFactory($q, Stack, FileUploadService, StackHelper, ServiceService, ContainerService, SwarmService) {
     'use strict';
     var service = {
       updateGit,
-      updateKubeGit,
     };
 
     service.stack = function (id) {
@@ -186,19 +183,6 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    service.removeKubernetesStacksByName = function (name, namespace, external, endpointId) {
-      var deferred = $q.defer();
-      StackByName.remove({ name: name, external: external, endpointId: endpointId, namespace: namespace })
-        .$promise.then(function success() {
-          deferred.resolve();
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to remove the stack', err: err });
-        });
-
-      return deferred.promise;
-    };
-
     service.associate = function (stack, endpointId, orphanedRunning) {
       var deferred = $q.defer();
 
@@ -238,28 +222,6 @@ angular.module('portainer.app').factory('StackService', [
           RepullImageAndRedeploy: repullImageAndRedeploy,
         }
       ).$promise;
-    };
-
-    service.updateKubeStack = function (stack, { stackFile, gitConfig, webhookId, stackName }) {
-      let payload = {};
-
-      if (stackFile) {
-        payload = {
-          StackFileContent: stackFile,
-          StackName: stackName,
-        };
-      } else {
-        payload = {
-          AutoUpdate: transformAutoUpdateViewModel(gitConfig.AutoUpdate, webhookId),
-          RepositoryReferenceName: gitConfig.RefName,
-          RepositoryAuthentication: gitConfig.RepositoryAuthentication,
-          RepositoryUsername: gitConfig.RepositoryUsername,
-          RepositoryPassword: gitConfig.RepositoryPassword,
-          TLSSkipVerify: gitConfig.TLSSkipVerify,
-        };
-      }
-
-      return Stack.update({ id: stack.Id, endpointId: stack.EndpointId }, payload).$promise;
     };
 
     service.createComposeStackFromFileUpload = function (name, stackFile, env, endpointId) {
@@ -374,18 +336,6 @@ angular.module('portainer.app').factory('StackService', [
       return deferred.promise;
     };
 
-    async function kubernetesDeployAsync(endpointId, method, payload) {
-      try {
-        await Stack.create({ endpointId: endpointId }, { method, type: 'kubernetes', ...payload }).$promise;
-      } catch (err) {
-        throw { err: err };
-      }
-    }
-
-    service.kubernetesDeploy = function (endpointId, method, payload) {
-      return $async(kubernetesDeployAsync, endpointId, method, payload);
-    };
-
     service.start = start;
     function start(endpointId, id) {
       return Stack.start({ id, endpointId }).$promise;
@@ -407,20 +357,6 @@ angular.module('portainer.app').factory('StackService', [
           RepositoryUsername: gitConfig.RepositoryUsername,
           RepositoryPassword: gitConfig.RepositoryPassword,
           PullImage: pullImage,
-        }
-      ).$promise;
-    }
-
-    function updateKubeGit(id, endpointId, namespace, gitConfig) {
-      return Stack.updateGit(
-        { endpointId, id },
-        {
-          Namespace: namespace,
-          RepositoryReferenceName: gitConfig.RefName,
-          RepositoryAuthentication: gitConfig.RepositoryAuthentication,
-          RepositoryUsername: gitConfig.RepositoryUsername,
-          RepositoryPassword: gitConfig.RepositoryPassword,
-          StackName: gitConfig.StackName,
         }
       ).$promise;
     }

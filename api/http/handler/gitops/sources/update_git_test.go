@@ -11,6 +11,7 @@ import (
 	gittypes "github.com/portainer/portainer/api/git/types"
 
 	"github.com/segmentio/encoding/json"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -343,5 +344,127 @@ func TestGitSourceUpdate_NonNumericID(t *testing.T) {
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
 
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestREQ_DED_01_GitSourceUpdate_RejectsShortInterval(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{Name: "interval-src", Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://github.com/org/compose.git"}}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceUpdatePayload{Interval: new("30s")})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildUpdateReq(t, 1, int(srcID), body))
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestREQ_DED_01_GitSourceUpdate_AcceptsMinuteInterval(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{Name: "interval-ok", Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://github.com/org/compose-ok.git"}}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceUpdatePayload{Interval: new("1m")})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildUpdateReq(t, 1, int(srcID), body))
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var stored *portainer.Source
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		stored, err = tx.Source().Read(adminUserContext, srcID)
+		return err
+	}))
+	require.Equal(t, "1m", stored.Interval)
+}
+
+func TestREQ_GIT_02_GitSourceUpdate_InvalidURL(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{Name: "url-src", Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://github.com/org/compose.git"}}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceUpdatePayload{URL: new("")})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildUpdateReq(t, 1, int(srcID), body))
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestREQ_GIT_02_ApplyBaseGitSourceChanges_TLSAndNilGit(t *testing.T) {
+	t.Parallel()
+
+	src := &portainer.Source{Type: portainer.SourceTypeGit, Name: "old"}
+	tls := true
+	url := "https://github.com/org/compose.git"
+	interval := "5m"
+	name := "renamed"
+	require.NoError(t, ApplyBaseGitSourceChanges(src, GitSourceUpdatePayload{
+		Name:          &name,
+		URL:           &url,
+		TLSSkipVerify: &tls,
+		Interval:      &interval,
+	}))
+	require.NotNil(t, src.Git)
+	assert.Equal(t, "renamed", src.Name)
+	assert.Equal(t, url, src.Git.URL)
+	assert.True(t, src.Git.TLSSkipVerify)
+	assert.Equal(t, "5m", src.Interval)
+
+	err := ApplyBaseGitSourceChanges(&portainer.Source{Type: portainer.SourceTypeRegistry}, GitSourceUpdatePayload{})
+	require.ErrorIs(t, err, ErrNotGitSource)
+}
+
+func TestREQ_DED_01_GitSourceCreatePayload_ValidateInterval(t *testing.T) {
+	t.Parallel()
+	require.NoError(t, (&GitSourceCreatePayload{URL: "https://github.com/org/repo.git", Interval: "1m"}).Validate(nil))
+	require.Error(t, (&GitSourceCreatePayload{URL: "https://github.com/org/repo.git", Interval: "10s"}).Validate(nil))
+}
+
+func TestREQ_GIT_02_GitSourceUpdate_RejectsNonGitSource(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{Name: "registry-src", Type: portainer.SourceTypeRegistry}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceUpdatePayload{Name: new("nope")})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildUpdateReq(t, 1, int(srcID), body))
 	require.Equal(t, http.StatusBadRequest, rr.Code)
 }

@@ -64,3 +64,50 @@ func TestSourcesSummary_CountsByStatus(t *testing.T) {
 	require.Zero(t, summary.Syncing)
 	require.Zero(t, summary.Paused)
 }
+
+func TestREQ_GIT_02_SourcesSummary_HealthyAndError(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		healthy := &portainer.Source{
+			Name:   "healthy-compose",
+			Type:   portainer.SourceTypeGit,
+			Git:    &gittypes.GitSource{URL: "https://github.com/org/healthy"},
+			Status: portainer.SourceStatusHealthy,
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, healthy))
+
+		errored := &portainer.Source{
+			Name:        "error-compose",
+			Type:        portainer.SourceTypeGit,
+			Git:         &gittypes.GitSource{URL: "https://github.com/org/error"},
+			Status:      portainer.SourceStatusError,
+			StatusError: "clone failed",
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, errored))
+
+		unknown := &portainer.Source{
+			Name:   "unknown-compose",
+			Type:   portainer.SourceTypeGit,
+			Git:    &gittypes.GitSource{URL: "https://github.com/org/unknown"},
+			Status: portainer.SourceStatusUnknown,
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, unknown))
+
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildSummaryReq(t, 1))
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var summary ceWorkflows.StatusSummary
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&summary))
+	require.Equal(t, 1, summary.Healthy)
+	require.Equal(t, 1, summary.Error)
+	require.Equal(t, 1, summary.Unknown)
+	require.Zero(t, summary.Syncing)
+	require.Zero(t, summary.Paused)
+}

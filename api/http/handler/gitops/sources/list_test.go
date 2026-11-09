@@ -125,3 +125,78 @@ func TestSourcesList_SearchByURL(t *testing.T) {
 	require.Len(t, sources, 1)
 	assert.Equal(t, "app", sources[0].Name)
 }
+
+func TestREQ_GIT_02_SourcesList_TypeFilterGit(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stack := &portainer.Stack{ID: 1, Name: "compose-from-git"}
+		createGitWorkflow(t, tx, stack, gitCfg("https://github.com/org/compose-app"))
+		require.NoError(t, tx.Stack().Create(stack))
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+
+	t.Run("type=git keeps git sources", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, buildListReq(t, 1, "type=git"))
+		sources := decodeSources(t, rr)
+		require.Len(t, sources, 1)
+		assert.Equal(t, SourceTypeGit, sources[0].Type)
+	})
+
+	t.Run("invalid type returns 400", func(t *testing.T) {
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, buildListReq(t, 1, "type=svn"))
+		assert.Equal(t, 400, rr.Code)
+	})
+}
+
+func TestREQ_GIT_02_SourcesList_InvalidStatus(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildListReq(t, 1, "status=not-a-status"))
+	assert.Equal(t, 400, rr.Code)
+}
+
+func TestREQ_GIT_02_SourcesList_SortByName(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		for _, nameURL := range []struct{ name, url string }{
+			{"zeta", "https://github.com/org/zeta"},
+			{"alpha", "https://github.com/org/alpha"},
+		} {
+			src := &portainer.Source{Name: nameURL.name, Type: portainer.SourceTypeGit, Git: gitCfg(nameURL.url)}
+			require.NoError(t, tx.Source().Create(adminUserContext, src))
+		}
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildListReq(t, 1, "sort=name&order=asc"))
+	sources := decodeSources(t, rr)
+	require.Len(t, sources, 2)
+	assert.Equal(t, "alpha", sources[0].Name)
+	assert.Equal(t, "zeta", sources[1].Name)
+}
+
+func TestREQ_GIT_02_SourcesList_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, httptest.NewRequest("GET", "/gitops/sources", nil))
+	assert.Equal(t, 500, rr.Code)
+}

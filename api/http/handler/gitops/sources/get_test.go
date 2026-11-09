@@ -55,3 +55,60 @@ func TestGetSource_ReturnsDetail(t *testing.T) {
 	assert.Equal(t, "repo", detail.Name)
 	assert.True(t, detail.Connection.TLSSkipVerify)
 }
+
+func TestREQ_GIT_02_GetSource_ReturnsAccessRules(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var publicID, restrictedID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		pub := &portainer.Source{
+			Name:   "public-compose",
+			Type:   portainer.SourceTypeGit,
+			Git:    &gittypes.GitSource{URL: "https://github.com/org/public-compose"},
+			Public: true,
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, pub))
+		publicID = pub.ID
+
+		restricted := &portainer.Source{
+			Name:         "restricted-compose",
+			Type:         portainer.SourceTypeGit,
+			Git:          &gittypes.GitSource{URL: "https://github.com/org/restricted-compose"},
+			UserAccesses: []portainer.UserID{2},
+			TeamAccesses: []portainer.TeamID{5},
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, restricted))
+		restrictedID = restricted.ID
+
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildGetReq(t, 1, strconv.Itoa(int(publicID))))
+	detail := decodeSourceDetail(t, rr)
+	assert.True(t, detail.Access.Public)
+
+	rr = httptest.NewRecorder()
+	h.ServeHTTP(rr, buildGetReq(t, 1, strconv.Itoa(int(restrictedID))))
+	detail = decodeSourceDetail(t, rr)
+	assert.False(t, detail.Access.Public)
+	assert.Equal(t, []portainer.UserID{2}, detail.Access.Users)
+	assert.Equal(t, []portainer.TeamID{5}, detail.Access.Teams)
+}
+
+func TestREQ_GIT_02_GetSource_InvalidID(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildGetReq(t, 1, "abc"))
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}

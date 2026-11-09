@@ -316,6 +316,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-233 | Close Priority work on `SidebarItem`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 96.2 % → 100 % (51 → 53 of 53; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (53 of 53; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-234 | Close Priority work on `volumes/edit`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 100 % (0 → 30 of 30; +30). Leftovers: none. Deferred-within-package: none. Package left at 100 % (30 of 30; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-235 | Close Priority work on `licenses`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure 38/60 (63.3 %). KEEP CE info helpers; deferred-within-package BE attach/remove/upsell. Package left at 63.3 % (38 of 60; 22 missed). | Preferred CE license helpers covered; BE attach/remove/upsell deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-236 | Close Priority work on `volumes/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 86.2 % (0 → 25 of 29; +25). Leftovers: 4 thin. Deferred-within-package: none. Package left at 86.2 % (25 of 29; 4 missed). | Preferred volume queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -634,6 +635,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-233: close Priority work on sidebar item. Parallel isolated 96.2 % → 100 % (51 → 53 of 53; +2). Do not grind further.
 - 2026-11-09. COV-234: close Priority work on volume edit view. Parallel isolated 0 % → 100 % (0 → 30 of 30; +30). Do not grind further.
 - 2026-11-09. COV-235: close Priority work on license helpers. Parallel isolated 63.3 % (38 of 60). Deferred BE attach/remove/upsell. Do not grind further.
+- 2026-11-09. COV-236: close Priority work on volume queries. Parallel isolated 0 % → 86.2 % (0 → 25 of 29; +25). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

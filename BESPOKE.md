@@ -328,6 +328,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-245 | Close Priority work on `app/portainer/components/theme`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 100 % (0 → 26 of 26; +26). Leftovers: none. Deferred-within-package: none. Package left at 100 % (26 of 26; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-246 | Close Priority work on `app/portainer/views/stacks`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 100 % (0 → 26 of 26; +26). Deferred-within-package: Swarm branch. Package left at 100 % (26 of 26; 0 missed). | Preferred stacks views covered; Swarm branch deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-247 | Close Priority work on `environments/ListView/columns`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 73.1 % → 92.3 % (19 → 24 of 26; +5). Deferred-within-package: Edge URL arms. Package left at 92.3 % (24 of 26; 2 missed). | Preferred environment list columns covered; Edge URL arms deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-248 | Close Priority work on `WorkflowSubRow`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 85.4 % (35 of 41; +0; tests extended). Deferred-within-package: Edge TargetCell / K8s null stackLink. Package left at 85.4 % (35 of 41; 6 missed). | Preferred workflow subrow covered; Edge/K8s deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -659,6 +660,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-245: close Priority work on theme helpers. Parallel isolated 0 % → 100 % (0 → 26 of 26; +26). Do not grind further.
 - 2026-11-09. COV-246: close Priority work on stacks views. Parallel isolated 0 % → 100 % (0 → 26 of 26; +26). Deferred Swarm branch. Do not grind further.
 - 2026-11-09. COV-247: close Priority work on environment list columns. Parallel isolated 73.1 % → 92.3 % (19 → 24 of 26; +5). Deferred Edge URL arms. Do not grind further.
+- 2026-11-09. COV-248: close Priority work on workflow subrow. Parallel isolated remains 85.4 % (35 of 41; +0). Deferred Edge TargetCell/K8s null stackLink. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

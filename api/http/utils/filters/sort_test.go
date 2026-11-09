@@ -297,3 +297,54 @@ func TestSortFn_ModifiesOriginalSlice(t *testing.T) {
 	require.Equal(t, result, users)
 	require.NotEqual(t, original, users)
 }
+
+func TestSortFn_NullsLastAscendingAndDescending(t *testing.T) {
+	t.Parallel()
+	type item struct {
+		Name string
+		Nil  bool
+	}
+	items := []item{
+		{Name: "b"},
+		{Name: "null-a", Nil: true},
+		{Name: "a"},
+		{Name: "null-b", Nil: true},
+	}
+	sorts := []SortBinding[item]{
+		{
+			Key: "name",
+			Fn: func(a, b item) int {
+				return strings.Compare(a.Name, b.Name)
+			},
+			NullsLast: func(i item) bool { return i.Nil },
+		},
+	}
+
+	asc := sortFn(append([]item(nil), items...), SortQueryParams{sort: "name", order: SortAsc}, sorts)
+	require.Equal(t, []item{
+		{Name: "a"},
+		{Name: "b"},
+		{Name: "null-a", Nil: true},
+		{Name: "null-b", Nil: true},
+	}, asc)
+
+	desc := sortFn(append([]item(nil), items...), SortQueryParams{sort: "name", order: SortDesc}, sorts)
+	require.Equal(t, []item{
+		{Name: "b"},
+		{Name: "a"},
+		{Name: "null-a", Nil: true},
+		{Name: "null-b", Nil: true},
+	}, desc)
+}
+
+func TestNullsLastWrapDirect(t *testing.T) {
+	t.Parallel()
+	cmp := nullsLastWrap(
+		func(a, b int) int { return a - b },
+		func(v int) bool { return v < 0 },
+	)
+	require.Equal(t, 0, cmp(-1, -2))
+	require.Equal(t, 1, cmp(-1, 2))
+	require.Equal(t, -1, cmp(2, -1))
+	require.Equal(t, -1, cmp(1, 2))
+}

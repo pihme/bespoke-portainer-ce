@@ -313,6 +313,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-230 | Close Priority work on `environments/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure 90/122 (73.8 %). KEEP local; deferred-within-package Edge, Kubernetes, Azure, registry, relations. Package left at 73.8 % (90 of 122; 32 missed). | Preferred local environment queries covered; Edge/K8s/Azure/registry/relations deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-231 | Close Priority work on `portainer/views/tags`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 100 % (0 → 31 of 31; +31). Leftovers: none. Deferred-within-package: none. Package left at 100 % (31 of 31; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-232 | Close Priority work on `notifications`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 46.7 % (0 → 21 of 45; +21). Store and columns covered; deferred-within-package NotificationsView (Angular) and user-management/activity-log. Package left at 46.7 % (21 of 45; 24 missed). | Preferred notifications store/columns covered; Angular view and activity-log deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-233 | Close Priority work on `SidebarItem`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 96.2 % → 100 % (51 → 53 of 53; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (53 of 53; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -628,6 +629,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-230: close Priority work on environment queries. Parallel isolated 73.8 % (90 of 122). Deferred Edge/K8s/Azure/registry/relations. Do not grind further.
 - 2026-11-09. COV-231: close Priority work on environment tags view. Parallel isolated 0 % → 100 % (0 → 31 of 31; +31). Do not grind further.
 - 2026-11-09. COV-232: close Priority work on notifications store. Parallel isolated 0 % → 46.7 % (0 → 21 of 45; +21). Deferred NotificationsView/activity-log. Do not grind further.
+- 2026-11-09. COV-233: close Priority work on sidebar item. Parallel isolated 96.2 % → 100 % (51 → 53 of 53; +2). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

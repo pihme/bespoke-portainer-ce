@@ -507,6 +507,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-424 | Close Priority work on `modals/Modal`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 0 % → 100 % (0 → 22 of 22; +22). Leftovers: none. Deferred-within-package: none. Package left at 100 % (22 of 22; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-425 | Close Priority work on `images/common`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure remains 100 % (1 of 1; already covered; no new commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-426 | Close Priority work on `CreateStackForm/UploadSection`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 92.9 % → 100 % (13 → 14 of 14; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (14 of 14; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-427 | Close Priority work on `HomeView/EnvironmentHeader`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 95.5 % → 100 % (21 → 22 of 22; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (22 of 22; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -1029,6 +1030,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-424: close Priority work on Modal helpers. Parallel isolated 0 % → 100 % (0 → 22 of 22; +22). Do not grind further.
 - 2026-11-09. COV-425: close Priority work on images common. Parallel isolated remains 100 % (1 of 1; +0). Do not grind further.
 - 2026-11-09. COV-426: close Priority work on UploadSection. Parallel isolated 92.9 % → 100 % (13 → 14 of 14; +1). Do not grind further.
+- 2026-11-09. COV-427: close Priority work on EnvironmentHeader. Parallel isolated 95.5 % → 100 % (21 → 22 of 22; +1). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

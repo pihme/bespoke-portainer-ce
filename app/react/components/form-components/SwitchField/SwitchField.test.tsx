@@ -1,4 +1,4 @@
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 
 import { SwitchField, Props } from './SwitchField';
 
@@ -8,6 +8,7 @@ function renderDefault({
   label = 'label',
   onChange = vi.fn(),
   index,
+  ...rest
 }: Partial<Props> = {}) {
   return render(
     <SwitchField
@@ -17,6 +18,7 @@ function renderDefault({
       checked={checked}
       onChange={onChange}
       index={index}
+      {...rest}
     />
   );
 }
@@ -49,4 +51,15 @@ test('clicking should emit on-change with the opposite value and index', async (
   fireEvent.click(switchElem);
 
   expect(onChange).toHaveBeenCalledWith(!checked, index);
+});
+
+test('renders tooltip valueExplanation and disabled switch', () => {
+  renderDefault({
+    tooltip: 'help text',
+    valueExplanation: 'extra note',
+    disabled: true,
+  });
+
+  expect(screen.getByText('extra note')).toBeVisible();
+  expect(screen.getByRole('checkbox')).toBeDisabled();
 });

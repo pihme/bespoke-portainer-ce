@@ -260,6 +260,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-177 | Close Priority work on `api/http/proxy` (parent). Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): manager_local_test.go (3). Isolated remasure: 59.1 % → 90.9 % (13 → 20 of 22; +7). Deferred-within-package: k8s cleanup. Package left at 90.9 % (20 of 22; 2 missed). | Preferred HTTP proxy manager covered; k8s cleanup deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-178 | Close Priority work on `pkg/endpoints`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): utils_local_test.go (6). Isolated remasure: 55.0 % → 95.0 % (11 → 19 of 20; +8). Leftovers: 1 thin. Deferred-within-package: none. Package left at 95.0 % (19 of 20; 1 missed). | Preferred endpoint version helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-179 | Close Priority work on `pkg/libhttp` (parent). Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): libhttp_local_test.go (7 under REQ-SRV-08). Isolated remasure: 88.0 % → 100 % (66 → 75 of 75; +9). Leftovers: none. Deferred-within-package: none (children out of scope). Package left at 100 % (75 of 75; 0 missed). | Statement coverage complete for parent libhttp. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-180 | Close Priority work on `api/dataservices/pendingactions`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): pendingactions_local_test.go (4). Isolated remasure: 70.4 % → 88.9 % (19 → 24 of 27; +5). Leftovers: 3 thin. Deferred-within-package: none. Package left at 88.9 % (24 of 27; 3 missed). | Preferred pending-actions datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -519,6 +520,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-177: close Priority work on HTTP proxy manager. Parallel isolated 59.1 % → 90.9 % (13 → 20 of 22; +7). Deferred k8s cleanup. Do not grind further.
 - 2026-11-09. COV-178: close Priority work on endpoint version helpers. Parallel isolated 55.0 % → 95.0 % (11 → 19 of 20; +8). Thin leftover. Do not grind further.
 - 2026-11-09. COV-179: close Priority work on libhttp helpers. Parallel isolated 88.0 % → 100 % (66 → 75 of 75; +9). Do not grind further.
+- 2026-11-09. COV-180: close Priority work on pending-actions datastore. Parallel isolated 70.4 % → 88.9 % (19 → 24 of 27; +5). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

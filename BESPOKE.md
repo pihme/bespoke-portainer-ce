@@ -82,7 +82,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 | ID | Decision | Reason | Decided by | Replay hint |
 |----|----------|--------|------------|-------------|
-| COV-001 | Record the phase A0 test-suite inventory (structure, isolation findings F-01 to F-15, two runs per suite including a shuffled one) in `docs/portainer-test-strategy.md`. | Skill step A0 requires the inventory before any test is added; there was no test strategy yet. | agent (inventory) | Keep later coverage work (A1, A2, B, C, D) on this file. Findings F-01 to F-15 still wait for the user's decision (move, label, fix, or leave). |
+| COV-001 | Record the phase A0 test-suite inventory (structure, isolation findings F-01 to F-15, two runs per suite including a shuffled one) in `docs/portainer-test-strategy.md`. | Skill step A0 requires the inventory before any test is added; there was no test strategy yet. | agent (inventory) | Keep later coverage work (A1, A2, B, C, D) on this file. Findings F-01 to F-15 were decided in COV-002. |
+| COV-002 | Isolation findings package: fix F-01 (global logger), F-08 (environment and package state), F-09, F-10, F-11 (order-dependent client tests), F-13 (`bail: 0`) and F-14 (`.gitignore` coverage output) in tests and test config; move F-02 (Docker) and F-03 (DNS) behind the existing `testhelpers.IntegrationTest` gate; label F-05 `performance` and F-06 `fuzz` in A2; leave F-04, F-07, F-12 and F-15. | The user accepted the proposed action for every finding on 2026-11-09. Fixes touch tests and test config only. | user | See the Decision and Status columns in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md) section 3. Do not enable shuffle by default; apply the F-05 and F-06 labels in A2. F-07 needs production code and stays open. |
 
 ### Interventions
 
@@ -90,10 +91,12 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 | ID | Intervention | Reason | Decided by | Replay hint |
 |----|--------------|--------|------------|-------------|
+| COV-003 | Add a Nix dev shell with pinned references (`flake.nix`, `flake.lock`): Go 1.26.10, Node.js 22.22.1, pnpm 10.26.2, GNU make, git. Run tests with `nix develop -c make test`. | The user asked for it after the A0 runs used the host's Go 1.27.3 and Node 24 and the host had no `make`, so runs depend on the machine. | user | Keep `flake.lock` committed. Node comes from a second nixpkgs input pinned to `33b45ad1` because current nixpkgs has a newer 22.x; move it when `package.json` engines change. Details in the test strategy, section 4. |
 
 ### Last run
 
 - 2026-11-09. A0 inventory recorded (COV-001) in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md). Go: 424 test files, run twice (second run shuffled): 7 and 6 top-level failures, caused by a shared global logger (flaky), ungated Docker tests and a DNS-dependent test. Vitest: 312 files, 2,299 tests, all passed in file order; 4 failed in a shuffled run. Recipes run directly because `make` is missing on the host, with Node 24 and Go 1.27. No tests added. Isolation findings F-01 to F-15 wait for user decisions.
+- 2026-11-09. Isolation findings decided (COV-002): fixes and gates for F-01, F-02, F-03, F-08 to F-11, F-13, F-14 in tests and test config; F-05/F-06 labels left for A2; F-04, F-07, F-12, F-15 left. Pinned Nix shell added (COV-003). In `nix develop` (Go 1.26.10, Node 22.22.1): `make test-server` 3,493 tests with subtests, 69 skipped, 0 failed; `make test-client` 2,282 passed, 5 skipped, 12 todo, 0 failed, and the same with shuffle seed 20261109.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

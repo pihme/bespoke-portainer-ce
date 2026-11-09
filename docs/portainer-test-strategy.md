@@ -1,8 +1,8 @@
 # Portainer test strategy
 
-Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. This first version holds only the phase A0 inventory of the test suite (COV-001). The reference test set (A1/A2), the test spec (B), coverage (C), and mutation and fuzz testing (D) come later.
+Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), and the pinned Nix environment the suites run in (COV-003). The reference test set (A1/A2), the test spec (B), coverage (C), and mutation and fuzz testing (D) come later.
 
-Inventory taken on 2026-11-09 at `2-covered@a931b322a`. Nothing was added or changed in tests, test config, build or production code.
+Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for it. Sections 1 and 2 describe the suite as inventoried; where COV-002 changed something since, the line says so. Section 3 lists the decisions.
 
 ## 1. Test structure
 
@@ -11,8 +11,8 @@ Inventory taken on 2026-11-09 at `2-covered@a931b322a`. Nothing was added or cha
 | Target | Recipe | Notes |
 |--------|--------|-------|
 | `make test` | `test-server` then `test-client` | Runs both suites. |
-| `make test-server` | `go run gotest.tools/gotestsum@v1.13.0 --format pkgname-and-test-fails --format-hide-empty-pkg --hide-summary skipped -- -cover -covermode=atomic -coverprofile=coverage.out ./...` | `TEST_PACKAGES` (default `./...`) narrows the packages. Writes `coverage.out` to the repo root. No `-race`, no `-shuffle`, no `-short`. |
-| `make test-client` | `pnpm run test $(ARGS) --coverage` (`vitest run`) | Coverage provider v8, reporters text/json/html into `./coverage/`. |
+| `make test-server` | `go run gotest.tools/gotestsum@v1.13.0 --format pkgname-and-test-fails --format-hide-empty-pkg --hide-summary skipped -- -cover -covermode=atomic -coverprofile=coverage.out ./...` | `TEST_PACKAGES` (default `./...`) narrows the packages. Writes `coverage.out` to the repo root (ignored by git since COV-002, F-14). No `-race`, no `-shuffle`, no `-short`. |
+| `make test-client` | `pnpm run test $(ARGS) --coverage` (`vitest run`) | Coverage provider v8, reporters text/json/html into `./coverage/` (ignored by git since COV-002, F-14). |
 | `pnpm run typecheck`, `make lint` | `tsc --noEmit`, eslint, golangci-lint | Static checks, not tests. `make lint-server` reads `.golangci-version`, which does not exist in this tree. |
 | `pnpm run storybook` | Storybook dev server | 85 `*.stories.*` files. No test runner is attached to them. |
 
@@ -26,15 +26,15 @@ There is no CI at this pin (no `.github/workflows`), so no command is enforced a
 - Tags and gates: one build tag (`//go:build unix`). Integration tests are gated at runtime, not by tag: `pkg/testhelpers.IntegrationTest(t)` (env `INTEGRATION_TEST` or flag `-integration`) and `pkg/libhelm/test.EnsureIntegrationTest(t)` (env `INTEGRATION_TEST`), plus direct `os.LookupEnv("INTEGRATION_TEST")` checks. They are used in 11 files (`api/exec`, `api/git` Azure/GitHub, `pkg/libhelm/sdk`, `pkg/libhelm`, `pkg/libstack/compose`, `pkg/libstack/swarm`). One test checks `testing.Short()` (`api/dataservices/stack/tests/stack_test.go`).
 - What the tests need:
   - File system: almost all, through `t.TempDir()` (64 files) and the BoltDB test store. Some build fixed `/tmp/...` paths as strings only. `api/archive` and `api/http/handler/backup` shell out to `tar`.
-  - Docker daemon: `pkg/libstack/compose/composeplugin_test.go` (not gated, see F-02), plus the gated integration tests in `api/exec`, `pkg/libstack/compose` and `pkg/libstack/swarm`.
-  - Network: the gated `api/git` GitHub and Azure tests (real remote repositories, including a private one); `pkg/networking` DNS probe (not gated, F-03); `pkg/libhelm/sdk` tests that appear to wait for unreachable hosts (F-04). Other files mention external URLs only as fixture strings or against `httptest` servers.
+  - Docker daemon: `pkg/libstack/compose/composeplugin_test.go` (not gated at inventory; gated since COV-002, see F-02), plus the gated integration tests in `api/exec`, `pkg/libstack/compose` and `pkg/libstack/swarm`.
+  - Network: the gated `api/git` GitHub and Azure tests (real remote repositories, including a private one); `pkg/networking` DNS probe (not gated at inventory; gated since COV-002, F-03); `pkg/libhelm/sdk` tests that appear to wait for unreachable hosts (F-04). Other files mention external URLs only as fixture strings or against `httptest` servers.
   - Clock: `time.Sleep` in 12 files (for example `api/jwt` 2 s, `api/adminmonitor` 2 s, `api/http/offlinegate` 1 s, `api/http/security` 1 s, `api/chisel`, `api/concurrent`, `api/gitops/scheduling`); `time.Now()` in 27 files. No fake clock is used.
   - Display: none.
-  - Environment variables: `t.Setenv` in 15 files; `os.Unsetenv` without restore in 2 (F-08).
+  - Environment variables: `t.Setenv` in 15 files; `os.Unsetenv` without restore in 2 at inventory (F-08, fixed in COV-002).
 
 ### Frontend (TypeScript/React and AngularJS)
 
-- Framework: Vitest 4 (`vitest.config.mts`) with `environment: 'jsdom'`, `globals: true`, React Testing Library (`testIdAttribute: 'data-cy'`), `@testing-library/user-event`, `jest-dom`, and MSW 2 as the network layer (`onUnhandledRequest: 'error'`, `server.resetHandlers()` after each test). `vitest-fail-on-console` fails a test on any console log/info/warn/error (except the unmounted-state-update message). `toastr` and `axios-progress-bar` are stubbed; CodeMirror and `Range`/`getSelection` are mocked. `bail: 2` stops a run after two failures.
+- Framework: Vitest 4 (`vitest.config.mts`) with `environment: 'jsdom'`, `globals: true`, React Testing Library (`testIdAttribute: 'data-cy'`), `@testing-library/user-event`, `jest-dom`, and MSW 2 as the network layer (`onUnhandledRequest: 'error'`, `server.resetHandlers()` after each test). `vitest-fail-on-console` fails a test on any console log/info/warn/error (except the unmounted-state-update message). `toastr` and `axios-progress-bar` are stubbed; CodeMirror and `Range`/`getSelection` are mocked. `bail: 2` stopped a run after two failures; since COV-002 (F-13) it is `bail: 0`, so a run reports every failure.
 - Setup files: `app/setup-tests/` (`setup-websocket.ts`, `setup-rtl.ts`, `setup-msw.ts`, `stub-modules.ts`, `setup.ts`, `setup-codemirror.ts`, `setup-fail-on-console.ts`), global MSW handlers in `server-handlers.ts` and `setup-handlers/*.ts`. Helpers in `app/react/test-utils/` and `app/react-tools/test-mocks`. The coverage exclude lists `app/setup-tests/global-setup.js`, which does not exist.
 - Location: `app/**/*.test.{ts,tsx,js}` next to the code. 312 files (237 `.tsx`, 74 `.ts`, 1 `.js`): `app/react/portainer` 82, `app/react/docker` 66, `app/react/kubernetes` 63, `app/react/components` 63, `app/react/edge` 9, the rest small. Two snapshot files (`__snapshots__`).
 - Counted by the run: 2,299 tests in 869 suites (2,282 passed, 5 skipped, 12 todo). Statically: 15 `skip`/`todo` markers in 10 files, no `.only`.
@@ -58,34 +58,64 @@ Slowest Go tests in run 1: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassw
 
 ## 3. Isolation findings
 
-Each finding below needs a user decision: move, label, fix, or leave. None is decided yet. Decisions are recorded as `COV-nnn` in `BESPOKE.md`.
+The user decided every finding on 2026-11-09 (move, label, fix, or leave); the package is COV-002 in `BESPOKE.md`. The fixes touch tests and test config only. F-04, F-05, F-06, F-07, F-12 and F-15 have no code change: the labels for F-05 and F-06 are applied in A2.
 
-| ID | Finding | Evidence | Options noted (not decided) |
-|----|---------|----------|-----------------------------|
-| F-01 | Shared global logger in parallel tests. `api/http/middlewares/panic_logger_test.go` (two `t.Parallel()` tests) and `api/http/logger_test.go` assign the global `log.Logger` to a test buffer without restoring it, while other parallel tests in the package write to the same global logger. | `TestWithPanicLoggerRePanicsErrAbortHandler` failed in Go run 1 (its buffer held deprecation and HTTP-error lines from other tests) and passed in run 2. Flaky. | fix in the tests (no parallel run or a local logger), label, leave |
-| F-02 | Docker daemon tests in the ordinary run without a gate. `pkg/libstack/compose/composeplugin_test.go`: `Test_UpAndDown`, `Test_UpAndDownWithInjection`, `TestRun`, `Test_DeployWithRemoveOrphans`, `Test_DeployWithIgnoreOrphans`. They need `/var/run/docker.sock`, pull `alpine:latest` from Docker Hub, and create real containers. | Failed in both runs here (`permission denied` on the Docker socket). | move behind the existing `INTEGRATION_TEST` gate, label, leave |
-| F-03 | Real DNS in the ordinary run. `pkg/networking/diagnostics_test.go` `TestProbeDNSConnection/Invalid_domain` expects `nonexistent.domain.invalid` not to resolve. | Failed in both runs here: the host resolver answers every name. The result depends on the network. | move behind the gate, fix (stub the resolver), leave |
-| F-04 | Suspected outbound network and timeouts in the ordinary run: `pkg/libhelm/sdk` `TestLoginToOCIRegistry` (14 s) and `Test_InitActionConfig` (10 s, uses `https://kubernetes.default.svc`). Inferred from duration and host names, not traced. | Passed both runs, but they account for most of the package's 24 s. | move, label, leave |
-| F-05 | Large-data test in the ordinary run: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassword` encrypts about 100 MB (22 s). Performance-like. | Slowest Go test. | label as `performance` in A2, leave |
-| F-06 | Generated and random inputs in the ordinary run: the seed corpus of `FuzzParseForwardedHeaderProto` runs as a normal test (cheap); `api/database/boltdb` `Test_MarshalObjectUnencrypted` uses `uuid.New()` in subtest names and `api/datastore` `TestBackup` puts the temp path in subtest names, so names differ between runs. | Seen when comparing run 1 and run 2 by test name. | label the fuzz target as `fuzz` in A2, leave |
-| F-07 | Files left behind: each Go run leaves three empty `/tmp/azure-git-repo-*.zip` files from the `api/git` Azure tests. The temp file is created in production code (`api/git/azure.go`, `os.CreateTemp` without removal on the error path). | 6 files after two runs. | fix (touches production code, so it needs the user's agreement), leave |
-| F-08 | Process environment and package state changed without restore: `api/internal/upgrade/upgrade_docker_test.go` calls `os.Unsetenv(updaterImageEnvVar)`; `pkg/featureflags/featureflags_test.go` calls `os.Unsetenv("PORTAINER_FEATURE_FLAGS")` and `Parse` fills the package-level `featureFlags` map. | Not seen failing. | fix in the tests (`t.Setenv`), leave |
-| F-09 | Order dependence inside a frontend file: `app/react/portainer/HomeView/LicenseNodePanel.test.tsx`. The "more nodes than allowed" test fails when the "less nodes" test runs first. | Reproduced alone with seeds 20261109 and 3; passes in file order and with seeds 1 and 2. | fix in the test, leave |
-| F-10 | DOM left behind between tests: `app/react/portainer/access-control/AccessManagement/AccessDatatable/RemoveAccessButton.test.tsx` (two "disabled state" tests). Under shuffle a confirm dialog from an earlier test is still in the document ("Found multiple elements with the role button and name /remove/i"). | Client run 3. | fix in the test, leave |
-| F-11 | `app/react/components/datatables/Datatable.test.tsx` "renders the table with correct data" fails under shuffle ("Unable to find … Jane Smith"). Cause not analysed; suspected state from another test in the same file. | Client run 3. | fix in the test, leave |
-| F-12 | Shared mutable mock state: the global MSW handler `POST /api/tags` in `app/setup-tests/server-handlers.ts` pushes into a module-level `tags` array that `server.resetHandlers()` does not reset. Tests also set `window.ddExtension` (`SettingsSidebar.test.tsx`) and redefine `window.location` (`KubectlShellView.test.tsx`). Per-file isolation limits all of these to one file. | Not seen failing. | fix in test setup, leave |
-| F-13 | Shuffle and stop settings: `vitest.config.mts` has `bail: 2`, which ends a run after two failures and hid three of the four order-dependent failures in client run 2. Neither suite runs in a random order by default (Go has no `-shuffle`, Vitest has no `sequence.shuffle`). | Client run 2 against run 3. | change test config, leave |
-| F-14 | Artifacts left in the repo: `make test-server` writes `coverage.out` and `make test-client` writes `coverage/` in the repo root; neither is in `.gitignore`. | `git check-ignore` matches neither. | add to `.gitignore`, leave |
-| F-15 | Unhandled error noise in a passing run: client run 1 prints `Error: Uncaught [Error: Invalid query param value for tab]` from jsdom, and the run still passes because `vitest-fail-on-console` does not see jsdom-reported errors. The emitting test was not identified. | Client run 1 log. | fix in the test, leave |
+| ID | Finding | Evidence | Decision (COV-002) | Status |
+|----|---------|----------|--------------------|--------|
+| F-01 | Shared global logger in parallel tests. `api/http/middlewares/panic_logger_test.go` (two `t.Parallel()` tests) and `api/http/logger_test.go` assign the global `log.Logger` to a test buffer without restoring it, while other parallel tests in the package write to the same global logger. | `TestWithPanicLoggerRePanicsErrAbortHandler` failed in Go run 1 (its buffer held deprecation and HTTP-error lines from other tests) and passed in run 2. Flaky. | fix | done: the logger tests run serially and restore `log.Logger` in `t.Cleanup` (`api/http/middlewares/panic_logger_test.go`, `api/http/logger_test.go`) |
+| F-02 | Docker daemon tests in the ordinary run without a gate. `pkg/libstack/compose/composeplugin_test.go`: `Test_UpAndDown`, `Test_UpAndDownWithInjection`, `TestRun`, `Test_DeployWithRemoveOrphans`, `Test_DeployWithIgnoreOrphans`. They need `/var/run/docker.sock`, pull `alpine:latest` from Docker Hub, and create real containers. | Failed in both runs here (`permission denied` on the Docker socket). | move | done: the five tests call `testhelpers.IntegrationTest(t)`, like `compose_test.go`; they skip without `INTEGRATION_TEST` or `-integration` |
+| F-03 | Real DNS in the ordinary run. `pkg/networking/diagnostics_test.go` `TestProbeDNSConnection/Invalid_domain` expects `nonexistent.domain.invalid` not to resolve. | Failed in both runs here: the host resolver answers every name. The result depends on the network. | move | done: `TestProbeDNSConnection` calls `testhelpers.IntegrationTest(t)`. The gate covers the whole test, because its "Valid domain" case resolves a real host name too |
+| F-04 | Suspected outbound network and timeouts in the ordinary run: `pkg/libhelm/sdk` `TestLoginToOCIRegistry` (14 s) and `Test_InitActionConfig` (10 s, uses `https://kubernetes.default.svc`). Inferred from duration and host names, not traced. | Passed both runs, but they account for most of the package's 24 s. | leave | left as is; recorded only |
+| F-05 | Large-data test in the ordinary run: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassword` encrypts about 100 MB (22 s). Performance-like. | Slowest Go test. | label `performance` | decided; labeling deferred to A2 |
+| F-06 | Generated and random inputs in the ordinary run: the seed corpus of `FuzzParseForwardedHeaderProto` runs as a normal test (cheap); `api/database/boltdb` `Test_MarshalObjectUnencrypted` uses `uuid.New()` in subtest names and `api/datastore` `TestBackup` puts the temp path in subtest names, so names differ between runs. | Seen when comparing run 1 and run 2 by test name. | label `fuzz` | decided; labeling deferred to A2 |
+| F-07 | Files left behind: each Go run leaves three empty `/tmp/azure-git-repo-*.zip` files from the `api/git` Azure tests. The temp file is created in production code (`api/git/azure.go`, `os.CreateTemp` without removal on the error path). | 6 files after two runs. | leave | left as is; a fix would change production code |
+| F-08 | Process environment and package state changed without restore: `api/internal/upgrade/upgrade_docker_test.go` calls `os.Unsetenv(updaterImageEnvVar)`; `pkg/featureflags/featureflags_test.go` calls `os.Unsetenv("PORTAINER_FEATURE_FLAGS")` and `Parse` fills the package-level `featureFlags` map. | Not seen failing. | fix | done: `upgrade_docker_test.go` sets the variable with `t.Setenv` before unsetting it, so it is restored; `featureflags_test.go` drops the unrestored `os.Unsetenv` and restores the package-level `featureFlags` map in `t.Cleanup` |
+| F-09 | Order dependence inside a frontend file: `app/react/portainer/HomeView/LicenseNodePanel.test.tsx`. The "more nodes than allowed" test fails when the "less nodes" test runs first. | Reproduced alone with seeds 20261109 and 3; passes in file order and with seeds 1 and 2. | fix | done: cause was the module-level license info cache in `license.service.ts` (30 s); the test calls its exported `resetState()` before each test |
+| F-10 | DOM left behind between tests: `app/react/portainer/access-control/AccessManagement/AccessDatatable/RemoveAccessButton.test.tsx` (two "disabled state" tests). Under shuffle a confirm dialog from an earlier test is still in the document ("Found multiple elements with the role button and name /remove/i"). | Client run 3. | fix | done: cause was the confirm dialog from the click test, mounted by `openModal` outside the RTL container, so `cleanup()` did not remove it; the click test now closes it with Cancel and waits until it is gone |
+| F-11 | `app/react/components/datatables/Datatable.test.tsx` "renders the table with correct data" fails under shuffle ("Unable to find … Jane Smith"). Cause not analysed; suspected state from another test in the same file. | Client run 3. | fix | done: cause was the search text typed by the "indeterminate state" test, which `useSearchBarState` persists in `sessionStorage` under the shared `test-table` key; the `Datatable` tests clear `sessionStorage` before each test |
+| F-12 | Shared mutable mock state: the global MSW handler `POST /api/tags` in `app/setup-tests/server-handlers.ts` pushes into a module-level `tags` array that `server.resetHandlers()` does not reset. Tests also set `window.ddExtension` (`SettingsSidebar.test.tsx`) and redefine `window.location` (`KubectlShellView.test.tsx`). Per-file isolation limits all of these to one file. | Not seen failing. | leave | left as is; not seen failing |
+| F-13 | Shuffle and stop settings: `vitest.config.mts` has `bail: 2`, which ends a run after two failures and hid three of the four order-dependent failures in client run 2. Neither suite runs in a random order by default (Go has no `-shuffle`, Vitest has no `sequence.shuffle`). | Client run 2 against run 3. | fix | done: `bail: 0` in `vitest.config.mts`; shuffle stays off by default |
+| F-14 | Artifacts left in the repo: `make test-server` writes `coverage.out` and `make test-client` writes `coverage/` in the repo root; neither is in `.gitignore`. | `git check-ignore` matches neither. | fix | done: `/coverage.out` and `/coverage` added to `.gitignore` |
+| F-15 | Unhandled error noise in a passing run: client run 1 prints `Error: Uncaught [Error: Invalid query param value for tab]` from jsdom, and the run still passes because `vitest-fail-on-console` does not see jsdom-reported errors. The emitting test was not identified. | Client run 1 log. | leave | left as is; the emitting test is still unknown |
 
-Environment notes. These are not isolation findings, but the user may want to decide them too:
+Environment notes. These are not isolation findings:
 
-- The tree pins Node `^22.22.1` and Go `1.26.10`; these runs used Node 24.22.1 and Go 1.27.3.
-- `pnpm-lock.yaml` cannot be installed frozen here.
-- `.golangci-version` is missing, so `make lint-server` cannot check the linter version.
+- The tree pins Node `^22.22.1` and Go `1.26.10`; the A0 runs used Node 24.22.1 and Go 1.27.3. Since COV-003 the pinned Nix shell (section 4) provides the tree's versions.
+- `pnpm-lock.yaml` cannot be installed frozen here. Still open; COV-002 and COV-003 did not touch the lockfile.
+- `.golangci-version` is missing, so `make lint-server` cannot check the linter version. Still open.
 
-## 4. Open for later phases
+## 4. Pinned environment (COV-003)
+
+`flake.nix` and `flake.lock` in the repo root define a Nix dev shell, so test and build tooling no longer depends on what the host has installed. Enter it with `nix develop`, or run one command in it, for example `nix develop -c make test`. Nix with flakes enabled is the only host requirement.
+
+| Tool | Version in the shell | Pin in the tree | Source |
+|------|----------------------|-----------------|--------|
+| Go | 1.26.10 | `go 1.26.10` (`go.mod`) | `go_1_26` from nixpkgs `f4a03c008967841f2a0b3cb7c436fc6fc31671f6` (nixos-unstable, 2026-11-07). The shell sets `GOTOOLCHAIN=local`, so Go never downloads another toolchain. |
+| Node.js | 22.22.1 | `^22.22.1` (`package.json` engines) | `nodejs_22` from a second input, nixpkgs `33b45ad1d45f5556220ed307d6f4c202ccffea1a` (2026-03-19), because current nixpkgs has 22.23.4. Served from cache.nixos.org for x86_64-linux. |
+| pnpm | 10.26.2 | `pnpm@10.26.2` (`packageManager`) | `pnpm_10` from the first input, overridden to the 10.26.2 npm tarball (current nixpkgs has 10.34.7), running on the Node 22.22.1 above. |
+| GNU make | 4.4.1 | none | first input |
+| git | 2.56.0 | none | first input |
+
+`flake.lock` pins both inputs by revision and `narHash`; it was generated on the agent box with Nix 2.35.4 (`nix flake lock`). `nix flake update` moves the first input; the second input is pinned to a revision in `flake.nix` and stays put until the Node pin changes. The shell is declared for x86_64-linux, aarch64-linux and aarch64-darwin, but was only built and run on x86_64-linux. `gotestsum` is still fetched by `go run gotest.tools/gotestsum@v1.13.0` from the Makefile, pinned by its version.
+
+## 5. Runs after COV-002, 2026-11-09
+
+All runs inside `nix develop` (Go 1.26.10, Node 22.22.1, pnpm 10.26.2, GNU make 4.4.1) at `2-covered@61d395793`, the commit with the Nix shell on top of the COV-002 fixes. No Docker socket, no `INTEGRATION_TEST`. `node_modules` was the one from the A0 install (no new `pnpm install`). Coverage output was moved out of the repo.
+
+| Run | Command | Result |
+|-----|---------|--------|
+| Go focused | `go test -count=1 -v` on `api/http/middlewares`, `api/http`, `pkg/libstack/compose`, `pkg/networking`, `pkg/featureflags`, `api/internal/upgrade` | All 6 packages ok. The five F-02 tests and `TestProbeDNSConnection` (F-03) skip. |
+| Go focused, shuffled | same, `-shuffle=on` | Same result. Before Nix, on the host Go 1.27.3, the four non-Docker packages also passed 30 times in a row with `-count=30 -shuffle=on`. |
+| Go full | `make test-server` | 90.6 s, 3,493 tests with subtests, 69 skipped, 0 failed (A0 run 1: 10 failed, 63 skipped). |
+| Client, three files | `vitest run` on `LicenseNodePanel`, `RemoveAccessButton`, `Datatable` tests, `--sequence.shuffle`, seeds 20261109, 3, 1, 2 | 27 of 27 passed for every seed. Without the fixes the same command failed 4 tests with seed 20261109 and 5 with seed 3. |
+| Client full | `make test-client` | 311 files passed, 1 skipped; 2,282 tests passed, 5 skipped, 12 todo, 0 failed. |
+| Client full, shuffled | `vitest run --sequence.shuffle --sequence.seed=20261109` (bail now 0) | Same counts, 0 failed (A0 run 3: 4 failed). |
+
+The first attempt of the Go runs in the Nix shell failed to build with `no space left on device` (the shared box disk was full); after `go clean -cache` they ran as above.
+
+## 6. Open for later phases
+
 
 - A1: generated sources (for example `openapi-ts` output, `tsconfig.generated.json`, swag docs) and how each coverage tool can exclude them.
-- A2: label `fuzz` (F-06), `performance` (F-05, possibly F-04), and integration/Docker/network tests (F-02, F-03), and define the reference test set and its single coverage command.
+- A2: apply the decided labels `fuzz` (F-06) and `performance` (F-05), and define the reference test set and its single coverage command. F-02 and F-03 are behind the existing integration gate since COV-002; F-04 stays unlabeled (leave).
 - B: test spec against `docs/portainer-spec.md`.

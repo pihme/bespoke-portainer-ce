@@ -488,6 +488,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-405 | Close Priority work on `AutocompleteSelect`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure remains 100 % (8 of 8; already covered; no new commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-406 | Close Priority work on `FormSectionTitle`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 75.0 % → 100 % (3 → 4 of 4; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (4 of 4; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-407 | Close Priority work on `StackEditorTab`. Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 93.6 % → 100 % (44 → 47 of 47; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (47 of 47; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-408 | Close Priority work on `environments/ItemView` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-452` (`71fcf3dc4`). Isolated remasure: 82.6 % → 87.0 % (19 → 20 of 23; +1). Deferred-within-package: Edge `ConfirmDisassociateModel` and `EdgeKeyDisplay`. Package left at 87.0 % (20 of 23; 3 missed). | Preferred environments ItemView parent covered; Edge arms deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -990,6 +991,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-405: close Priority work on AutocompleteSelect. Parallel isolated remains 100 % (8 of 8; +0). Do not grind further.
 - 2026-11-09. COV-406: close Priority work on FormSectionTitle helpers. Parallel isolated 75.0 % → 100 % (3 → 4 of 4; +1). Do not grind further.
 - 2026-11-09. COV-407: close Priority work on StackEditorTab. Parallel isolated 93.6 % → 100 % (44 → 47 of 47; +3). Do not grind further.
+- 2026-11-09. COV-408: close Priority work on environments ItemView parent. Parallel isolated 82.6 % → 87.0 % (19 → 20 of 23; +1). Deferred Edge ConfirmDisassociateModel/EdgeKeyDisplay. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

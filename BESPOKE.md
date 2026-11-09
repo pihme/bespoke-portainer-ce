@@ -231,6 +231,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-148 | Close Priority work on `api/http/handler/docker/images`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): images_list_test.go (7). Isolated remasure: 0 % → 93.3 % (0 → 28 of 30; +28). Leftovers: 2 thin. Deferred-within-package: none. Package left at 93.3 % (28 of 30; 2 missed). | Preferred Docker image list handler covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-149 | Close Priority work on `api/dataservices/resourcecontrol`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): resourcecontrol_test.go (5 under REQ-USR-08). Isolated remasure: 0 % → 88.9 % (0 → 24 of 27; +24). Leftovers: 3 thin. Deferred-within-package: none. Package left at 88.9 % (24 of 27; 3 missed). | Preferred resource control datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-150 | Close Priority work on `api/pendingactions` (parent). Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): pendingactions_create_test.go (3). Isolated remasure: 50.9 % → 72.7 % (28 → 40 of 55; +12). Deferred-within-package: k8s execute arms. Package left at 72.7 % (40 of 55; 15 missed). | Preferred local Docker pending actions covered; k8s execute deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-151 | Close Priority work on `api/stacks/stackutils`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): util_local_test.go (4). Isolated remasure: 88.8 % → 91.2 % (213 → 219 of 240; +6). Deferred-within-package: ValidateEdgeStackComposeContent. Package left at 91.2 % (219 of 240; 21 missed). | Preferred stack utilities covered; Edge validate deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -460,6 +461,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-148: close Priority work on Docker image HTTP handler. Parallel isolated 0 % → 93.3 % (0 → 28 of 30; +28). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-149: close Priority work on resource control datastore. Parallel isolated 0 % → 88.9 % (0 → 24 of 27; +24). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-150: close Priority work on pending actions. Parallel isolated 50.9 % → 72.7 % (28 → 40 of 55; +12). Deferred k8s execute. Do not grind further.
+- 2026-11-09. COV-151: close Priority work on stack utilities. Parallel isolated 88.8 % → 91.2 % (213 → 219 of 240; +6). Deferred Edge validate. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

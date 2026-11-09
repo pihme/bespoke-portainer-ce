@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { mockQ, promiseResource } from './angularFactoryTestUtils';
+import { mockQ, promiseResource } from './angularFactoryHelpers.test.js';
 
 
 const { factoryState, angularMock } = vi.hoisted(() => {

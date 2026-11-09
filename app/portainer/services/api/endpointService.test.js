@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { PortainerEndpointCreationTypes } from '@/portainer/models/endpoint/models';
 
-import { mockQ, promiseResource, rejectResource } from './angularFactoryTestUtils';
+import { mockQ, promiseResource, rejectResource } from './angularFactoryHelpers.test.js';
 
 
 const { factoryState, angularMock } = vi.hoisted(() => {

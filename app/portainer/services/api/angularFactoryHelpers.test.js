@@ -1,4 +1,6 @@
-import { vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+/** Shared $q / $resource stubs for Angular factory unit tests in this directory. */
 
 export function mockQ() {
   return {
@@ -40,19 +42,14 @@ export function rejectResource(err) {
   return { $promise: Promise.reject(err) };
 }
 
-/** Capture factory/service fn and expose global angular for bare `angular.module` files. */
-export function createAngularModuleMock(factoryState) {
-  const moduleApi = {
-    factory: vi.fn((_name, depsOrFn) => {
-      factoryState.factory = Array.isArray(depsOrFn) ? depsOrFn[depsOrFn.length - 1] : depsOrFn;
-      return moduleApi;
-    }),
-    service: vi.fn((_name, fn) => {
-      factoryState.factory = fn;
-      return moduleApi;
-    }),
-  };
-  const angular = { module: vi.fn(() => moduleApi) };
-  globalThis.angular = angular;
-  return { default: angular, module: angular.module };
-}
+describe('angularFactoryHelpers', () => {
+  it('mockQ defer resolves and promiseResource wraps $promise', async () => {
+    const $q = mockQ();
+    const d = $q.defer();
+    d.resolve('ok');
+    await expect(d.promise).resolves.toBe('ok');
+    await expect(promiseResource(1).$promise).resolves.toBe(1);
+    await expect(rejectResource(new Error('x')).$promise).rejects.toThrow('x');
+    await expect($q.all({ a: Promise.resolve(1), b: 2 })).resolves.toEqual({ a: 1, b: 2 });
+  });
+});

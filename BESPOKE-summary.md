@@ -23,7 +23,7 @@ Per stage, 2 to 4 sentences on what changed in the content (what was added, test
 
 **1-raw** (RAW-001 to RAW-015). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. Removed the leftover lint-staged config and the unused husky and lint-staged dependencies (RAW-014). Removed upstream homepage, bugs, repository and license URL fields from package.json (RAW-015). An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009). Added the feature spec `docs/portainer-spec.md`, a numbered list of upstream Portainer features (including Business Edition-only ones, labeled) written from docs.portainer.io (RAW-013). The user confirmed the raw-stage exit on 2026-11-09, with no CI gate to run and tests not measured.
 
-**2-covered** (COV-001 to COV-nnn). <...>
+**2-covered** (COV-001 to COV-nnn). Inventoried the existing Go and Vitest test suites and their isolation problems in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md) (COV-001); no tests added yet. <...>
 
 **3-tailored** (TAI-001 to TAI-nnn). <...>
 

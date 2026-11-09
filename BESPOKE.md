@@ -76,13 +76,13 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - Built from: 1-raw@7382c727c46cf7c61701e09c8b61eb6432f0d91a
 - Skill: increase-test-coverage
 - Gate: <command(s) that must pass at the end of this stage>
-- Details: none (or bespoke/2-covered.md)
+- Details: test strategy and A0 inventory in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md)
 
 ### Decisions
 
 | ID | Decision | Reason | Decided by | Replay hint |
 |----|----------|--------|------------|-------------|
-| COV-001 | | | user / agent | |
+| COV-001 | Record the phase A0 test-suite inventory (structure, isolation findings F-01 to F-15, two runs per suite including a shuffled one) in `docs/portainer-test-strategy.md`. | Skill step A0 requires the inventory before any test is added; there was no test strategy yet. | agent (inventory) | Keep later coverage work (A1, A2, B, C, D) on this file. Findings F-01 to F-15 still wait for the user's decision (move, label, fix, or leave). |
 
 ### Interventions
 
@@ -93,7 +93,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 ### Last run
 
-- Date, result (passed / failed at decision ID), notes
+- 2026-11-09. A0 inventory recorded (COV-001) in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md). Go: 424 test files, run twice (second run shuffled): 7 and 6 top-level failures, caused by a shared global logger (flaky), ungated Docker tests and a DNS-dependent test. Vitest: 312 files, 2,299 tests, all passed in file order; 4 failed in a shuffled run. Recipes run directly because `make` is missing on the host, with Node 24 and Go 1.27. No tests added. Isolation findings F-01 to F-15 wait for user decisions.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

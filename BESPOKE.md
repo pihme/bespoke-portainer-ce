@@ -471,6 +471,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-388 | Close Priority work on `devices-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-389 | Close Priority work on `disks-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-390 | Close Priority work on `engine-details-panel`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-391 | Close Priority work on `docker/react` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -955,6 +956,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-388: close Priority work on devices-panel. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - 2026-11-09. COV-389: close Priority work on disks-panel. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - 2026-11-09. COV-390: close Priority work on engine-details-panel. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
+- 2026-11-09. COV-391: close Priority work on docker react parent. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

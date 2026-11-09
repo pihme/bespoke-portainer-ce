@@ -9,6 +9,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - Entry points were checked against the tree at 2.45.3: UI routes from the AngularJS/React router (`app/`), REST routes from `api/docs/swagger.yaml`, CLI flags from `api/cli/cli.go`. UI routes use the hash form `#!/…`; `{envId}` is the environment ID. REST routes are relative to `/api`. Docker and Kubernetes resources are reached through the Portainer proxy `/api/endpoints/{id}/docker/…` and `/api/endpoints/{id}/kubernetes/…`, which forwards the native Docker/Kubernetes API (inferred from code: `api/http/handler/endpointproxy`).
 - Anything taken only from code, with no docs page behind it, is marked `(inferred from code)`.
 - IDs are `REQ-<AREA>-NN`. IDs are stable; later stages change the status of a requirement, they do not renumber.
+- Amended in the covered stage on 2026-11-09 (COV-007) with the user's answers to the test-spec clarifications C-01 to C-13 and L-01 to L-14 ([portainer-testspec.md](portainer-testspec.md)): CE scope for REQ-STK-09, REQ-TPL-04, REQ-K8S-04, REQ-K8S-09, REQ-EDGE-02 and REQ-USR-05; the SSRF default; "not tested in this repo" for external items; and the deduced requirements REQ-DED-01 to REQ-DED-14. Features the docs call BE-only but that leave traces in CE (AD settings, image up-to-date status, registry tags, scheduled backups, alerting, licenses, upsell) stay BE-only (C-12).
 
 ## Areas
 
@@ -38,12 +39,13 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | ALR | Alerting, recommendations, add-ons |
 | LIC | Licensing and Business Edition upgrade/advertising |
 | API | REST API and automation |
+| DED | Requirements deduced from code (accepted by the user) |
 
 ## SRV – Server installation and runtime
 
 - **REQ-SRV-01 Run as a container on Docker Standalone.** Portainer Server runs as a container with the Docker socket and a `portainer_data` volume mounted; UI on HTTPS port 9443 with a self-signed certificate, optional HTTP 9000, optional tunnel port 8000 for Edge Agents. Entry: `docker run … portainer/portainer-ce`; CLI `--bind`, `--bind-https`, `--tunnel-addr`, `--tunnel-port`, `--data`, `--assets`. docs: start/install-ce/server/docker/linux
-- **REQ-SRV-02 Other install targets.** Install on Docker Swarm (as a stack with the Agent), Kubernetes (Helm chart or manifests), Podman, WSL/Docker Desktop and Windows Container Service. docs: start/install-ce/server/*, advanced/helm-chart-configuration-options
-- **REQ-SRV-03 Portainer Agent.** A separate agent container that gives the server access to a remote Docker, Swarm, Podman or Kubernetes host (needed for host browsing and volume browsing). docs: start/agent, start/architecture
+- **REQ-SRV-02 Other install targets.** Install on Docker Swarm (as a stack with the Agent), Kubernetes (Helm chart or manifests), Podman, WSL/Docker Desktop and Windows Container Service. Not tested in this repo (C-08). docs: start/install-ce/server/*, advanced/helm-chart-configuration-options
+- **REQ-SRV-03 Portainer Agent.** A separate agent container that gives the server access to a remote Docker, Swarm, Podman or Kubernetes host (needed for host browsing and volume browsing). Not tested in this repo (C-08); the server side of talking to an Agent is tested. docs: start/agent, start/architecture
 - **REQ-SRV-04 Command-line configuration.** Server behavior is set by CLI flags, among them `--host` (initial environment), `--admin-password`/`--admin-password-file`, `--hide-label`, `--logo`, `--templates`, `--snapshot-interval`, `--base-url`, `--log-level`, `--log-mode`, `--http-disabled`/`--http-enabled`, `--trusted-origins`, `--csp`, `--compact-db`, `--feat`, `--rollback`. docs: advanced/cli
 - **REQ-SRV-05 Own TLS certificate and HTTPS-only.** Serve the UI with a user-supplied certificate and key, optionally HTTPS only. Entry: CLI `--tlscert`, `--tlskey`, `--tlscacert`, `--tlsverify` (deprecated aliases `--ssl`, `--sslcert`, `--sslkey`), `--http-disabled`; UI `#!/settings` (SSL certificate); API `GET/PUT /ssl`. docs: advanced/ssl, admin/settings/general
 - **REQ-SRV-06 mTLS for Edge Agent traffic.** **BE-only.** docs: advanced/mtls
@@ -56,7 +58,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-AUTH-01 Initial admin setup.** On first start the UI asks for the first administrator's username and password; a setup token protects initialization of an unclaimed instance, and the instance times out if not set up in time. Entry: UI `#!/init/admin`; API `GET /users/admin/check`, `POST /users/admin/init`; CLI `--setup-token`, `--no-setup-token`, `--admin-password`. docs: start/install-ce/server/setup, faqs/installing/setup-token
 - **REQ-AUTH-02 Environment wizard after setup.** After the first login, a wizard connects the first environments (local Docker socket, agent, API, Edge). Entry: UI `#!/wizard`, `#!/wizard/endpoints`. docs: start/install-ce/server/setup, admin/environments/add
-- **REQ-AUTH-03 Log in and log out with internal users.** Username/password login against Portainer's own user store, session token, logout. Entry: UI `#!/auth`, `#!/logout`; API `POST /auth`, `POST /auth/logout`. docs: admin/settings/authentication
+- **REQ-AUTH-03 Log in and log out with internal users.** Username/password login against Portainer's own user store, session token, logout. Login errors are pinned as implemented in `api/http/handler/auth/authenticate.go` (C-09): invalid payload 400; wrong password or unknown user 422 "Invalid credentials" (an unknown user is checked against a fake hash, so both take the same path); with OAuth as the method, a user other than the initial admin gets 422 "Only initial admin is allowed to login without oauth"; an unsupported method 422 "Login method is not supported". No new login UX. Entry: UI `#!/auth`, `#!/logout`; API `POST /auth`, `POST /auth/logout`. docs: admin/settings/authentication
 - **REQ-AUTH-04 LDAP authentication.** Authenticate against an LDAP server, with optional automatic user provisioning and team sync. Entry: UI `#!/settings/auth`; API `POST /ldap/check`, `PUT /settings`. docs: admin/settings/authentication/ldap
 - **REQ-AUTH-05 Microsoft Active Directory authentication.** **BE-only.** docs: admin/settings/authentication/active-directory
 - **REQ-AUTH-06 OAuth authentication.** Log in via an OAuth provider. In CE only the custom provider is selectable; the predefined Microsoft, Google and GitHub providers are shown as BE features (inferred from code: `oauth-options.tsx`). Entry: UI `#!/settings/auth`; API `POST /auth/oauth/validate`. docs: admin/settings/authentication/oauth
@@ -67,15 +69,15 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-AUTH-11 Personal access tokens.** Create and delete API access tokens for the own user. Entry: UI `#!/account`, `#!/account/tokens/new`; API `GET/POST /users/{id}/tokens`, `DELETE /users/{id}/tokens/{keyID}`. docs: user/account-settings, api/access
 - **REQ-AUTH-12 Saved Git credentials per user.** **BE-only.** docs: user/account-settings
 - **REQ-AUTH-13 Personal Helm repositories.** Add and remove Helm repositories for the own user. Entry: UI `#!/account/helm-repository/new`; API `GET/POST /users/{id}/helm/repositories`, `DELETE /users/{id}/helm/repositories/{repositoryID}`. docs: user/account-settings
-- **REQ-AUTH-14 Reset the admin password.** Reset a lost admin password with the password-reset helper container. docs: advanced/reset-admin
+- **REQ-AUTH-14 Reset the admin password.** Reset a lost admin password with the password-reset helper container. Not tested in this repo (C-08). docs: advanced/reset-admin
 
 ## USR – Users, teams and access control
 
-- **REQ-USR-01 Manage users.** List, create, edit and delete Portainer users. Entry: UI `#!/users`, `#!/users/{id}`; API `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/me`. docs: admin/user/users, admin/user/add
+- **REQ-USR-01 Manage users.** List, create, edit and delete Portainer users. Editing a user (for example a role change) does not revoke the user's access tokens; deleting a user removes them (C-10). Entry: UI `#!/users`, `#!/users/{id}`; API `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/me`. docs: admin/user/users, admin/user/add
 - **REQ-USR-02 Promote a user to administrator.** Entry: UI `#!/users/{id}`; API `PUT /users/{id}`. docs: admin/user/promote
 - **REQ-USR-03 Reset a user's password (by an admin).** Entry: UI `#!/users/{id}`; API `PUT /users/{id}/passwd`. docs: admin/user/password
 - **REQ-USR-04 Manage teams and team membership.** Create teams, add users, set team leaders. Entry: UI `#!/teams`, `#!/teams/{id}`; API `/teams`, `/team_memberships`, `GET /teams/{id}/memberships`, `GET /users/{id}/memberships`. docs: admin/user/teams, admin/user/teams/add, admin/user/teams/add-user
-- **REQ-USR-05 Role-based access control.** Built-in roles and granular per-environment roles. **BE-only** (CE shows the roles page as an upsell; `GET /roles` exists). Entry: UI `#!/roles`. docs: admin/user/roles, advanced/docker-roles-and-permissions, advanced/kubernetes-roles-and-bindings
+- **REQ-USR-05 Role-based access control.** Built-in roles in environment and group access policies, resolved by priority when a user has several (CE, C-07; inferred from code: `pkg/authorization`; `GET /roles` exists). The granular role editor and custom per-environment roles are **BE-only** (CE shows the roles page as an upsell). Entry: UI `#!/roles`. docs: admin/user/roles, advanced/docker-roles-and-permissions, advanced/kubernetes-roles-and-bindings
 - **REQ-USR-06 Effective access view.** See which environments and roles a user effectively has. Entry: API `GET /users/{id}/effective-access`. docs: admin/user/roles (Viewing user access)
 - **REQ-USR-07 Environment access per user/team.** Grant users and teams access to an environment or environment group. Entry: UI `#!/endpoints/{id}/access`, `#!/groups/{id}`. docs: admin/environments/environments (Manage access)
 - **REQ-USR-08 Resource ownership (access control).** Resources deployed through Portainer carry an ownership of Administrators, Restricted (named users/teams) or Public; ownership can be changed later; resources created outside Portainer default to administrators. Entry: Access control section on container, stack, service, volume, network, config and secret pages; API `POST /resource_controls`, `PUT/DELETE /resource_controls/{id}`. docs: advanced/access-control, user/docker/containers/ownership
@@ -165,7 +167,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-STK-06 Create a template from a stack.** Entry: UI stack page. docs: user/docker/stacks/template
 - **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate
 - **REQ-STK-08 Remove a stack.** Entry: API `DELETE /stacks/{id}`, `DELETE /stacks/name/{name}`. docs: user/docker/stacks/remove
-- **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL, with pull prevention and environment variables. **BE-only.** Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks
+- **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL (CE, C-01; the CE create and edit forms set webhook IDs for editor and Git stacks). Pull prevention and environment variables on the webhook call are **BE-only**. Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks
 - **REQ-STK-10 Associate orphaned stacks.** Re-attach a stack to an environment. Entry: API `PUT /stacks/{id}/associate` (inferred from code; no docs page).
 
 ## SWM – Docker Swarm
@@ -187,7 +189,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-TPL-01 App templates.** Browse the built-in list of application templates and deploy one as a container or stack with editable fields. Entry: UI `#!/{envId}/docker/templates`; API `GET /templates`, `POST /templates/{id}/file`. docs: user/docker/templates/application, …/deploy-container, …/deploy-stack
 - **REQ-TPL-02 Own app template source.** Point Portainer at a JSON template list (format documented). Entry: CLI `--templates`; UI `#!/settings` (App Templates). docs: advanced/app-templates, advanced/app-templates/build, advanced/app-templates/format, admin/settings/general
 - **REQ-TPL-03 Custom templates.** Create custom stack templates from the web editor, an upload or Git, edit and delete them, and deploy them. Entry: UI `#!/{envId}/docker/templates/custom`, `…/custom/new`, `…/custom/{id}`; API `/custom_templates`, `POST /custom_templates/create/{string|file|repository}`, `PUT /custom_templates/{id}/git_fetch`. docs: user/docker/templates/custom
-- **REQ-TPL-04 Template variables.** Variables in custom templates that the user fills at deploy time. **BE-only.** docs: user/docker/templates/custom (Variables in templates)
+- **REQ-TPL-04 Template variables.** Variables in custom templates that the user fills at deploy time (CE, C-02: create, validate and fill). docs: user/docker/templates/custom (Variables in templates)
 
 ## GIT – App Delivery
 
@@ -208,12 +210,12 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-K8S-01 Kubernetes dashboard.** Environment info and summary tiles. Entry: UI `#!/{envId}/kubernetes/dashboard`; API `GET /kubernetes/{id}/dashboard`. docs: user/kubernetes/dashboard
 - **REQ-K8S-02 kubectl shell in the browser.** Entry: UI `#!/{envId}/kubernetes/kubectl-shell`; API `GET /websocket/kubernetes-shell`. docs: user/kubernetes/dashboard/kubectl
 - **REQ-K8S-03 Download kubeconfig.** Entry: API `GET /kubernetes/config`. docs: user/kubernetes/dashboard/kubeconfig
-- **REQ-K8S-04 Kubernetes custom templates.** Add, edit and remove manifest templates (variables BE-only). Entry: UI `#!/{envId}/kubernetes/templates/custom`. docs: user/kubernetes/templates and sub-pages
+- **REQ-K8S-04 Kubernetes custom templates.** Add, edit and remove manifest templates, with template variables (CE, C-02). Entry: UI `#!/{envId}/kubernetes/templates/custom`. docs: user/kubernetes/templates and sub-pages
 - **REQ-K8S-05 Namespaces.** List, add, manage (resource quota, load balancers, networking, registries, storage), set access and remove namespaces. Entry: UI `#!/{envId}/kubernetes/namespaces`, `…/new`, `…/{id}`, `…/{id}/access`; API `/kubernetes/{id}/namespaces`. docs: user/kubernetes/namespaces and sub-pages
 - **REQ-K8S-06 Applications from a form.** Deploy an application with the form (image, replicas, env, config, volumes, ports, resources, placement, auto-scaling). Entry: UI `#!/{envId}/kubernetes/applications/new`. docs: user/kubernetes/applications/add
 - **REQ-K8S-07 Applications from code.** Deploy manifests from Git, web editor, URL or custom template. Entry: UI `#!/{envId}/kubernetes/deploy`; API `POST /stacks/create/kubernetes/{repository|string|url}`, `POST /kubernetes/{id}/manifests/dry_run`. docs: user/kubernetes/applications/manifest/create
 - **REQ-K8S-08 Helm charts.** Install from a Helm repository; inspect revisions, upgrade, roll back and uninstall releases; installing from Git is BE-only. Entry: UI `#!/{envId}/kubernetes/helm`, `#!/{envId}/kubernetes/helm/{namespace}/{name}`; API `/endpoints/{id}/kubernetes/helm`, `GET /templates/helm`. docs: user/kubernetes/applications/manifest/helm, …/inspect-helm, …/edit-helm
-- **REQ-K8S-09 Inspect and edit applications.** Application, placement, events and YAML tabs; pods with logs, stats and console; edit, redeploy, roll back; YAML editing, scaling and rolling restart are BE-only. Entry: UI `#!/{envId}/kubernetes/applications/{namespace}/{name}`, `…/edit`, `…/{pod}/{container}/logs|stats|console`; API `GET /websocket/pod`. docs: user/kubernetes/applications/inspect, user/kubernetes/applications/edit
+- **REQ-K8S-09 Inspect and edit applications.** Application, placement, events and YAML tabs; pods with logs, stats and console; edit, redeploy, roll back; scale, patch, rollback and pod restart are CE (C-03: handlers in the current tree); YAML editing is BE-only. Entry: UI `#!/{envId}/kubernetes/applications/{namespace}/{name}`, `…/edit`, `…/{pod}/{container}/logs|stats|console`; API `GET /websocket/pod`. docs: user/kubernetes/applications/inspect, user/kubernetes/applications/edit
 - **REQ-K8S-10 Application webhooks.** **BE-only.** docs: user/kubernetes/applications/webhooks
 - **REQ-K8S-11 Detach a volume and remove applications.** docs: user/kubernetes/applications/detach-volume, user/kubernetes/applications/remove
 - **REQ-K8S-12 Services and ingresses.** List services; add ingresses by form or manifest; remove ingresses. Entry: UI `#!/{envId}/kubernetes/services`, `#!/{envId}/kubernetes/ingresses`, `…/add`. docs: user/kubernetes/networking/services, user/kubernetes/networking/ingresses and sub-pages
@@ -235,7 +237,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## EDGE – Edge Compute
 
 - **REQ-EDGE-01 Enable Edge Compute and its settings.** Toggle Edge features, API server URL and tunnel address, deployment sync options, Edge access. Entry: UI `#!/settings/edge`; CLI `--edge-compute`, `--edge-portainer-url`, `--edge-trust-on-first-connect`, `--tunnel-addr`, `--tunnel-port`. docs: admin/settings/edge, start/install-ce/server/setup (Set up Edge Compute)
-- **REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode; async mode is BE-only. Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async
+- **REQ-EDGE-02 Edge Agent environments.** Connect Docker, Swarm, Podman and Kubernetes hosts via the Edge Agent in standard (tunnel) mode and in async mode (CE in the current tree, C-04). Entry: UI `#!/wizard/endpoints/create`; API `GET /endpoints/{id}/edge/status`, `POST /endpoints/global-key`. docs: advanced/edge-agent, admin/environments/add/*/edge, admin/environments/add/*/edge-async
 - **REQ-EDGE-03 Auto onboarding script.** Generate a script that onboards many Edge Agents. Entry: UI `#!/endpoints/aeec`. docs: admin/environments/aeec
 - **REQ-EDGE-04 Prestage an Edge Agent.** docs: advanced/how-to-prestage-an-edge-agent-environment
 - **REQ-EDGE-05 Edge groups.** Static and dynamic (tag-based) groups of Edge environments. Entry: UI `#!/edge/groups`, `…/new`, `…/{groupId}`; API `/edge_groups`. docs: user/edge/groups
@@ -250,7 +252,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-SET-01 General application settings.** Snapshot interval, Edge agent default poll frequency, custom logo, App Templates URL. Entry: UI `#!/settings`; API `GET/PUT /settings`, `GET /settings/public`; CLI `--logo`, `--templates`, `--snapshot-interval`. docs: admin/settings/general
 - **REQ-SET-02 Hidden containers.** Hide containers by label from the UI. Entry: UI `#!/settings`; CLI `--hide-label`. docs: admin/settings/general (Hidden containers), advanced/cli
-- **REQ-SET-03 SSRF protection.** Control which destinations Portainer may proxy requests to. Entry: UI `#!/settings`. docs: admin/settings/general (SSRF)
+- **REQ-SET-03 SSRF protection.** Control which destinations Portainer may proxy requests to. Modes off, audit and enforce; the default is off (`SSRFModeOff`, set in `api/dataservices/allowlist`). Destinations checked are those implemented: Git operations, Helm, compose file URLs and the proxy dialer (C-05, inferred from code: `pkg/libhttp/ssrf`). Entry: UI `#!/settings`. docs: admin/settings/general (SSRF)
 - **REQ-SET-04 SSL settings.** Force HTTPS only, secure cookies, upload a new certificate. Entry: UI `#!/settings`; API `GET/PUT /ssl`, `POST /upload/tls/{certificate}`. docs: admin/settings/general (SSL certificate)
 - **REQ-SET-05 Automatic patch updates, experimental features, CA file for Helm repositories, add-on settings.** **BE-only.** docs: admin/settings/general
 - **REQ-SET-06 Shared credentials (Omni, SSH, Git).** **BE-only.** docs: admin/settings/credentials and sub-pages
@@ -268,7 +270,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-LOG-01 Authentication logs.** **BE-only** (CE route `#!/auth-logs` shows an upsell, inferred from code). docs: admin/logs/authentication
 - **REQ-LOG-02 Activity logs.** **BE-only** (CE route `#!/activity-logs`). docs: admin/logs/activity
 - **REQ-LOG-03 Stream logs to an external SIEM.** **BE-only.** docs: advanced/siem
-- **REQ-LOG-04 Notifications history.** Record of in-app notification messages; search and remove; the 50 most recent behind the bell icon. Entry: UI `#!/notifications`. docs: admin/notifications
+- **REQ-LOG-04 Notifications history.** Record of in-app notification messages; search and remove; the 50 most recent behind the bell icon. The history is stored as today and has no bound for now (C-11). Entry: UI `#!/notifications`. docs: admin/notifications
 - **REQ-LOG-05 Server log level and format.** Entry: CLI `--log-level`, `--log-mode`. docs: advanced/cli
 
 ## ALR – Alerting and recommendations
@@ -284,10 +286,31 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## API – REST API and automation
 
-- **REQ-API-01 Documented REST API.** All UI functions are available over the Portainer REST API, described by OpenAPI/Swagger. Entry: `api/docs/swagger.yaml`, `api/docs/openapi.yaml`. docs: api/docs, api/examples
+- **REQ-API-01 Documented REST API.** All UI functions are available over the Portainer REST API, described by OpenAPI/Swagger. Documentation only, not a coverage target (C-06). Entry: `api/docs/swagger.yaml`, `api/docs/openapi.yaml`. docs: api/docs, api/examples
 - **REQ-API-02 API access with tokens.** Authenticate API calls with a personal access token (`X-API-Key`) or a JWT from `POST /auth`. docs: api/access
-- **REQ-API-03 Terraform provider.** Manage Portainer resources with the official Terraform provider (external project). docs: advanced/manage-portainer-using-terraform
-- **REQ-API-04 Portainer MCP server.** An MCP server generated from the OpenAPI spec exposes the API to MCP clients (external project). docs: advanced/portainer-mcp-server
+- **REQ-API-03 Terraform provider.** Manage Portainer resources with the official Terraform provider (external project). Not tested in this repo (C-08). docs: advanced/manage-portainer-using-terraform
+- **REQ-API-04 Portainer MCP server.** An MCP server generated from the OpenAPI spec exposes the API to MCP clients (external project). Not tested in this repo (C-08). docs: advanced/portainer-mcp-server
+
+## DED – Requirements deduced from code
+
+Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today; none adds a new cap. The source is the code, not docs.portainer.io. Values were read on 2026-11-09 (test spec, section Resource limits).
+
+- **REQ-DED-01 Git auto-update interval.** The polling interval for automatic Git updates must be a valid duration of at least 1 minute. A shorter or malformed interval is rejected with 400 ("interval must be at least 1 minute" / "invalid Interval format"). There is no maximum. Relates to REQ-STK-03, REQ-GIT-02. (C-13; `api/git/update/validate.go`)
+- **REQ-DED-02 Admin setup timeout.** An instance whose first administrator is not created within 5 minutes of start is disabled, and the UI redirects with reason `AdminInitTimeout`. The 5 minutes are fixed. Relates to REQ-AUTH-01. (L-01; `api/http/server.go`, `api/adminmonitor`)
+- **REQ-DED-03 Session lifetime.** Default 8 h (`DefaultUserSessionTimeout`). Any duration `time.ParseDuration` accepts is stored; there is no minimum or maximum. Relates to REQ-AUTH-07. (L-02)
+- **REQ-DED-04 Snapshot interval.** Default 5 min. `--snapshot-interval` and `PUT /settings` accept any parseable duration; there is no minimum or maximum. Relates to REQ-ENV-12, REQ-SET-01, REQ-SRV-04. (L-03)
+- **REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)
+- **REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)
+- **REQ-DED-07 Multipart file uploads.** Uploaded files (restore archive, stack file, `.env`, template file, TLS file) are read whole into memory; there is no size cap. Adding one would be a product change. Relates to REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04. (L-06; `pkg/libhttp/request.RetrieveMultiPartFormFile`)
+- **REQ-DED-08 Backup timeout.** A backup is aborted after 1 h by default; `PORTAINER_BACKUP_TIMEOUT` overrides it, and an invalid value falls back to the default. Relates to REQ-BKP-01. (L-07; `api/filesystem/copy.go`)
+- **REQ-DED-09 Request wait during restore.** While a restore holds the store, a request waits up to 1 minute and then fails. Relates to REQ-BKP-02. (L-08; `offlineGate.WaitingMiddleware(time.Minute, …)`)
+- **REQ-DED-10 Notification history size.** The bell shows the 50 most recent notifications (REQ-LOG-04). The stored history has no bound. Relates to REQ-LOG-04. (L-09, C-11)
+- **REQ-DED-11 Container log lines.** The log view fetches 100 lines by default; the user can change the number and there is no maximum. Relates to REQ-CTR-10. (L-10; `containerLogsController.js`)
+- **REQ-DED-12 Image build upload.** The build context is parsed with 32 MB in memory and the rest spilled to temporary files; there is no total cap. Relates to REQ-IMG-03. (L-11; `api/http/proxy/factory/docker/build.go`)
+- **REQ-DED-13 Authentication rate limit.** `POST /auth`, OAuth validate, password change and token creation allow 10 requests per second per client IP; above that the client is banned for 1 hour and gets 403 "Access denied". Relates to REQ-AUTH-03, REQ-AUTH-09, REQ-AUTH-11. (L-12; `NewRateLimiter(10, time.Second, time.Hour, …)`)
+- **REQ-DED-14 Minimum password length.** Default 12 (`api/datastore/init.go`); a shorter password is rejected. The setting is changed with `PUT /settings` and is not range-checked. Relates to REQ-AUTH-01, REQ-AUTH-03, REQ-AUTH-09. (L-13)
+
+Caches and batch sizes (`--max-batch-size`, `--max-batch-delay`, API key cache, Git repository cache, `COMPOSE_PARALLEL_LIMIT`, list page size) are implementation details, not requirements (L-14).
 
 ## Not covered as requirements
 

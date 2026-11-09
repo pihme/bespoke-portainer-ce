@@ -1,6 +1,6 @@
 # Portainer test strategy
 
-Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), the labeled fuzz and performance tests left out of the reference test set (A2, COV-005), and a pointer to the test spec (B, COV-006, section 8). Coverage (C) and mutation and fuzz testing (D) come later.
+Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), the labeled fuzz and performance tests left out of the reference test set (A2, COV-005), and a pointer to the test spec (B, COV-006 and COV-007, section 8). Coverage (C) and mutation and fuzz testing (D) come later.
 
 Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for it. Sections 1 and 2 describe the suite as inventoried; where COV-002 changed something since, the line says so. Section 3 lists the decisions.
 
@@ -225,11 +225,10 @@ Inside `nix develop` (Go 1.26.10), output in `/workspace/a0-runs/a2/` outside th
 - Result: 57 requirements are checked directly and 39 partially (96 with tests); 18 have only loosely related tests, 29 have none, 30 are BE-only with nothing to test in CE, and 5 live outside this repository. Per-area counts are in the test spec summary.
 - Layers used by the mapped tests are the ones in section 1: Go unit and handler tests (`testing` + `testify`, `httptest`, temporary BoltDB) and Vitest/jsdom component and hook tests with MSW, both in the reference test set (section 7, `nix develop -c make test`). Gated integration tests (`INTEGRATION_TEST`) are marked in the test spec and are not part of the reference set. There is still no end-to-end layer, so requirements that need a running server (for example REQ-SRV-01 ports, REQ-SRV-08 `--base-url`) can only be checked partly.
 - Naming: existing upstream tests keep their names (no mass rename in a fork); new phase C tests carry the ID, `TestREQ_<AREA>_<NN>_<Behaviour>` in Go and `describe('REQ-<AREA>-<NN> …')` in Vitest.
-- Open: 13 requirement questions (C-01 to C-13) and 14 resource-limit questions (L-01 to L-14) wait for the user, listed in the test spec under "Clarifications during tests". One deduced requirement, REQ-DED-01 (Git polling interval at least 1 minute), is proposed and not accepted. Behaviour without an ID is listed under "Behaviour without a requirement ID" for the phase C backwards-compatibility tests.
-- Phase B is done as far as the agent can take it: every requirement is mapped. The spec and the test spec change again once the user answers the clarifications.
+- Clarifications decided (COV-007, 2026-11-09): the user answered C-01 to C-13 and L-01 to L-14 as proposed. CE scope was widened for stack webhooks, template variables, Kubernetes scale/patch/rollback/pod restart, Edge async mode and built-in roles; the SSRF default off is pinned; REQ-API-01 is documentation only; external items are "not tested in this repo"; REQ-DED-01 is accepted and L-01 to L-13 are pinned as observed as REQ-DED-02 to REQ-DED-14, without new caps; L-14 stays an implementation detail. The test spec carries the decisions, the spec the amended requirements. Behaviour without an ID is listed under "Behaviour without a requirement ID" for the phase C backwards-compatibility tests.
+- Phase B is done: every requirement is mapped, every clarification is decided, and the spec and the test spec match the decisions.
 
 ## 9. Open for later phases
 
-- B: apply the user's answers to C-01 to C-13 and L-01 to L-14 to the spec and the test spec.
 - C: cover the `api/crypto` paths that only the `performance` test reached (section 7, effect on coverage) with small inputs.
 - C: write the backwards-compatibility tests listed in the test spec, and the boundary tests for accepted limits.

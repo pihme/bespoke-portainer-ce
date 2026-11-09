@@ -1047,8 +1047,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 ## 3 tailored
 
-- Upstream commit: <sha of 1-raw this run started from>
-- Built from: 2-covered@<sha>
+- Upstream commit: 7382c727c46cf7c61701e09c8b61eb6432f0d91a
+- Built from: 2-covered@6dfec1eeafb61c264bd90cf3741f22cd31c1e460
 - Skill: remove-features
 - Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/3-tailored.md)

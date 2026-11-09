@@ -403,6 +403,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-320 | Close Priority work on `app/react/common` (parent; did not touch `common/stacks`). Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 59.3 % → 100 % (16 → 27 of 27; +11). Leftovers: none. Deferred-within-package: none. Package left at 100 % (27 of 27; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-321 | Close Priority work on `form-components/ColorPicker`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 74.4 % → 94.9 % (29 → 37 of 39; +8). KEEP 100 %; stories deferred. Package left at 94.9 % (37 of 39; 2 missed). | Preferred ColorPicker covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-322 | Close Priority work on `form-components/FileUpload`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure remains 63.0 % (17 of 27; +0; no new test commit). KEEP Field 16/18 and Form 1/1; stories deferred; thin `fileRef` null arm. Package left at 63.0 % (17 of 27; 10 missed). | Preferred FileUpload covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-323 | Close Priority work on `MacvlanNodesSelector`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 0 % → 100 % (0 → 10 of 10; +10). Leftovers: none. Deferred-within-package: none. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -815,6 +816,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-320: close Priority work on react common parent. Parallel isolated 59.3 % → 100 % (16 → 27 of 27; +11). Do not grind further.
 - 2026-11-09. COV-321: close Priority work on ColorPicker helpers. Parallel isolated 74.4 % → 94.9 % (29 → 37 of 39; +8). KEEP 100 %. Deferred stories. Do not grind further.
 - 2026-11-09. COV-322: close Priority work on FileUpload helpers. Parallel isolated remains 63.0 % (17 of 27; +0). KEEP Field/Form. Deferred stories. Do not grind further.
+- 2026-11-09. COV-323: close Priority work on MacvlanNodesSelector. Parallel isolated 0 % → 100 % (0 → 10 of 10; +10). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

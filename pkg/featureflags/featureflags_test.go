@@ -79,3 +79,20 @@ func toFeatureMap(cliFeatures []string, envFeatures []string) map[Feature]bool {
 
 	return m
 }
+
+func TestFeatureFlags_ReturnsMap(t *testing.T) {
+	saveFeatureFlags(t)
+
+	Parse([]string{"alpha"}, []Feature{"alpha", "beta"})
+	flags := FeatureFlags()
+	assert.True(t, flags["alpha"])
+	assert.False(t, flags["beta"])
+}
+
+func TestParse_UnknownFeatureIsIgnored(t *testing.T) {
+	saveFeatureFlags(t)
+
+	Parse([]string{"unknown-flag", "alpha"}, []Feature{"alpha"})
+	assert.True(t, IsEnabled("alpha"))
+	assert.False(t, IsSupported("unknown-flag"))
+}

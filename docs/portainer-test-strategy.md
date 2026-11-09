@@ -1,6 +1,6 @@
 # Portainer test strategy
 
-Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), and the pinned Nix environment the suites run in (COV-003). The reference test set (A1/A2), the test spec (B), coverage (C), and mutation and fuzz testing (D) come later.
+Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), and the labeled fuzz and performance tests left out of the reference test set (A2, COV-005). The test spec (B), coverage (C), and mutation and fuzz testing (D) come later.
 
 Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for it. Sections 1 and 2 describe the suite as inventoried; where COV-002 changed something since, the line says so. Section 3 lists the decisions.
 
@@ -16,13 +16,13 @@ Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for 
 | `pnpm run typecheck`, `make lint` | `tsc --noEmit`, eslint, golangci-lint | Static checks, not tests. `make lint-server` reads `.golangci-version`, which does not exist in this tree. |
 | `pnpm run storybook` | Storybook dev server | 85 `*.stories.*` files. No test runner is attached to them. |
 
-There is no CI at this pin (no `.github/workflows`), so no command is enforced anywhere. There is no end-to-end suite (no Playwright, Cypress or similar), and no build tag or task for integration, fuzz, mutation or performance tests.
+There is no CI at this pin (no `.github/workflows`), so no command is enforced anywhere. There is no end-to-end suite (no Playwright, Cypress or similar), and no build tag or task for integration, fuzz, mutation or performance tests. Since COV-005 the build tags `fuzz` and `performance` and the targets `make test-fuzz` and `make test-performance` exist; see section 7.
 
 ### Backend (Go)
 
 - Framework: standard `testing` with `testify` (`assert`/`require`), run by `gotestsum`. HTTP handlers are tested with `net/http/httptest` (157 files). Many tests run against a real temporary BoltDB store from `datastore.MustNewTestStore` (138 files).
 - Location: `*_test.go` next to the code. 424 test files in 138 directories; the biggest areas are `api/http` (176 files), `api/kubernetes` (31), `pkg/libhelm` (20), `api/dataservices` (14) and `api/datastore` (13). Fixtures sit in `testdata/` under `api/git`, `api/filesystem` and `api/archive`.
-- Counted statically: 1,641 `func Test…`, 24 `func Benchmark…` (not run without `-bench`), 1 `func Fuzz…` (`FuzzParseForwardedHeaderProto` in `api/http/middlewares/proxy_headers_test.go`; its seed corpus runs as an ordinary test), no `Example…`, no `TestMain`. 375 of the 424 files call `t.Parallel()`.
+- Counted statically: 1,641 `func Test…`, 24 `func Benchmark…` (not run without `-bench`), 1 `func Fuzz…` (`FuzzParseForwardedHeaderProto` in `api/http/middlewares/proxy_headers_test.go`; its seed corpus ran as an ordinary test at inventory; labeled `fuzz` since COV-005), no `Example…`, no `TestMain`. 375 of the 424 files call `t.Parallel()`.
 - Tags and gates: one build tag (`//go:build unix`). Integration tests are gated at runtime, not by tag: `pkg/testhelpers.IntegrationTest(t)` (env `INTEGRATION_TEST` or flag `-integration`) and `pkg/libhelm/test.EnsureIntegrationTest(t)` (env `INTEGRATION_TEST`), plus direct `os.LookupEnv("INTEGRATION_TEST")` checks. They are used in 11 files (`api/exec`, `api/git` Azure/GitHub, `pkg/libhelm/sdk`, `pkg/libhelm`, `pkg/libstack/compose`, `pkg/libstack/swarm`). One test checks `testing.Short()` (`api/dataservices/stack/tests/stack_test.go`).
 - What the tests need:
   - File system: almost all, through `t.TempDir()` (64 files) and the BoltDB test store. Some build fixed `/tmp/...` paths as strings only. `api/archive` and `api/http/handler/backup` shell out to `tar`.
@@ -58,7 +58,7 @@ Slowest Go tests in run 1: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassw
 
 ## 3. Isolation findings
 
-The user decided every finding on 2026-11-09 (move, label, fix, or leave); the package is COV-002 in `BESPOKE.md`. The fixes touch tests and test config only. F-04, F-05, F-06, F-07, F-12 and F-15 have no code change: the labels for F-05 and F-06 are applied in A2.
+The user decided every finding on 2026-11-09 (move, label, fix, or leave); the package is COV-002 in `BESPOKE.md`. The fixes touch tests and test config only. F-04, F-07, F-12 and F-15 have no code change. The labels for F-05 and F-06 were applied in A2 (COV-005, section 7).
 
 | ID | Finding | Evidence | Decision (COV-002) | Status |
 |----|---------|----------|--------------------|--------|
@@ -66,8 +66,8 @@ The user decided every finding on 2026-11-09 (move, label, fix, or leave); the p
 | F-02 | Docker daemon tests in the ordinary run without a gate. `pkg/libstack/compose/composeplugin_test.go`: `Test_UpAndDown`, `Test_UpAndDownWithInjection`, `TestRun`, `Test_DeployWithRemoveOrphans`, `Test_DeployWithIgnoreOrphans`. They need `/var/run/docker.sock`, pull `alpine:latest` from Docker Hub, and create real containers. | Failed in both runs here (`permission denied` on the Docker socket). | move | done: the five tests call `testhelpers.IntegrationTest(t)`, like `compose_test.go`; they skip without `INTEGRATION_TEST` or `-integration` |
 | F-03 | Real DNS in the ordinary run. `pkg/networking/diagnostics_test.go` `TestProbeDNSConnection/Invalid_domain` expects `nonexistent.domain.invalid` not to resolve. | Failed in both runs here: the host resolver answers every name. The result depends on the network. | move | done: `TestProbeDNSConnection` calls `testhelpers.IntegrationTest(t)`. The gate covers the whole test, because its "Valid domain" case resolves a real host name too |
 | F-04 | Suspected outbound network and timeouts in the ordinary run: `pkg/libhelm/sdk` `TestLoginToOCIRegistry` (14 s) and `Test_InitActionConfig` (10 s, uses `https://kubernetes.default.svc`). Inferred from duration and host names, not traced. | Passed both runs, but they account for most of the package's 24 s. | leave | left as is; recorded only |
-| F-05 | Large-data test in the ordinary run: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassword` encrypts about 100 MB (22 s). Performance-like. | Slowest Go test. | label `performance` | decided; labeling deferred to A2 |
-| F-06 | Generated and random inputs in the ordinary run: the seed corpus of `FuzzParseForwardedHeaderProto` runs as a normal test (cheap); `api/database/boltdb` `Test_MarshalObjectUnencrypted` uses `uuid.New()` in subtest names and `api/datastore` `TestBackup` puts the temp path in subtest names, so names differ between runs. | Seen when comparing run 1 and run 2 by test name. | label `fuzz` | decided; labeling deferred to A2 |
+| F-05 | Large-data test in the ordinary run: `api/crypto` `Test_encryptAndDecrypt_withTheSamePassword` encrypts about 100 MB (22 s). Performance-like. | Slowest Go test. | label `performance` | done in A2 (COV-005): moved unchanged to `api/crypto/aes_performance_test.go` with `//go:build performance`; runs only from `make test-performance` |
+| F-06 | Generated and random inputs in the ordinary run: the seed corpus of `FuzzParseForwardedHeaderProto` runs as a normal test (cheap); `api/database/boltdb` `Test_MarshalObjectUnencrypted` uses `uuid.New()` in subtest names and `api/datastore` `TestBackup` puts the temp path in subtest names, so names differ between runs. | Seen when comparing run 1 and run 2 by test name. | label `fuzz` | done in A2 (COV-005): `FuzzParseForwardedHeaderProto` moved unchanged to `api/http/middlewares/proxy_headers_fuzz_test.go` with `//go:build fuzz`; runs only from `make test-fuzz`. The UUID and temp-path subtest names stay in the reference set (not fuzz tests) |
 | F-07 | Files left behind: each Go run leaves three empty `/tmp/azure-git-repo-*.zip` files from the `api/git` Azure tests. The temp file is created in production code (`api/git/azure.go`, `os.CreateTemp` without removal on the error path). | 6 files after two runs. | leave | left as is; a fix would change production code |
 | F-08 | Process environment and package state changed without restore: `api/internal/upgrade/upgrade_docker_test.go` calls `os.Unsetenv(updaterImageEnvVar)`; `pkg/featureflags/featureflags_test.go` calls `os.Unsetenv("PORTAINER_FEATURE_FLAGS")` and `Parse` fills the package-level `featureFlags` map. | Not seen failing. | fix | done: `upgrade_docker_test.go` sets the variable with `t.Setenv` before unsetting it, so it is restored; `featureflags_test.go` drops the unrestored `os.Unsetenv` and restores the package-level `featureFlags` map in `t.Cleanup` |
 | F-09 | Order dependence inside a frontend file: `app/react/portainer/HomeView/LicenseNodePanel.test.tsx`. The "more nodes than allowed" test fails when the "less nodes" test runs first. | Reproduced alone with seeds 20261109 and 3; passes in file order and with seeds 1 and 2. | fix | done: cause was the module-level license info cache in `license.service.ts` (30 s); the test calls its exported `resetState()` before each test |
@@ -160,8 +160,65 @@ Inside `nix develop` (Node 22.22.1), `pnpm exec vitest run` on `ItemView/Setting
 
 The full suites were not re-run for A1: only the coverage exclude list changed, no test or test setup.
 
-## 7. Open for later phases
+## 7. Slow tests and the reference test set (A2, COV-005)
 
+Searched on 2026-11-09 at `2-covered@a2f0e7811` for fuzz and property, mutation, and performance tests: `func Fuzz…` and `func Benchmark…` in `*_test.go`, `testing/quick`, rapid, gopter and other property libraries in `go.mod` and the Go sources, Go mutation tools (go-mutesting, gremlins, ooze), `testing.Short()` gates, large inputs (`1024*1024`), and on the frontend `fast-check`, Stryker, `*.bench.*` files and `bench` in `package.json` and `vitest.config.mts`. jqwik is a Java library and does not occur.
 
-- A2: apply the decided labels `fuzz` (F-06) and `performance` (F-05), and define the reference test set and its single coverage command. F-02 and F-03 are behind the existing integration gate since COV-002; F-04 stays unlabeled (leave).
+### Found
+
+| Kind | Test | Where | Before A2 | Label |
+|------|------|-------|-----------|-------|
+| fuzz | `FuzzParseForwardedHeaderProto` (27 seed inputs from the `tests` table) | `api/http/middlewares` | seed corpus ran in every `go test`, so in `make test-server` and its coverage (F-06) | build tag `fuzz` |
+| performance | `Test_encryptAndDecrypt_withTheSamePassword` (9 subtests, about 100 MB each, 13 to 22 s) | `api/crypto` | ran in `make test-server` and its coverage (F-05) | build tag `performance` |
+| performance | 24 Go benchmarks (`func Benchmark…`) in `api/database/boltdb` (4), `api/http/handler/endpointedge` (4), `api/http/handler/endpoints` (2), `api/http/utils/filters` (4), `api/internal/edge` (4), `api/slicesx` (2), `pkg/libkubectl` (4, need a kubeconfig and skip without one) | see left | never ran: `go test` runs benchmarks only with `-bench` | Go's `Benchmark` prefix (tool annotation); no tag added |
+| mutation | none | | | `mutation` is reserved for phase D1; no target until a tool is chosen |
+
+Frontend: no fuzz, property, mutation or performance test, no such dependency, no `bench` file; nothing labeled, `vitest.config.mts` unchanged by A2.
+
+Not labeled: `api/dataservices/stack/tests` `TestService_StackByWebhookID` skips under `-short` ("~1s"); one second is not a performance test, and `-short` is not used anywhere. F-04 (`pkg/libhelm/sdk`, about 24 s) stays unlabeled (COV-002, leave). The F-06 subtests with UUID or temp-path names (`api/database/boltdb` `Test_MarshalObjectUnencrypted`, `api/datastore` `TestBackup`) are ordinary tests and stay in the reference set. F-02 and F-03 are integration tests behind `testhelpers.IntegrationTest` (COV-002), not A2 labels.
+
+### Labels and patterns
+
+| Label | Mechanism | Pattern | Seen by |
+|-------|-----------|---------|---------|
+| `fuzz` | Go build tag: the file starts with `//go:build fuzz` | `*_fuzz_test.go`, today `api/http/middlewares/proxy_headers_fuzz_test.go` | the Go compiler: without `-tags fuzz` the file is not compiled, so `go test`, `-cover` and `gotestsum` never see it |
+| `performance` | Go build tag: the file starts with `//go:build performance` | `*_performance_test.go`, today `api/crypto/aes_performance_test.go` | same, with `-tags performance` |
+| `performance` (benchmarks) | Go `func Benchmark…` | any `*_test.go` | `go test`: runs them only with `-bench` |
+| `mutation` | none yet | | |
+
+The tagged tests were moved unchanged into their own files; the other tests in `aes_test.go` and `proxy_headers_test.go` (`TestParseForwardedHeaderProto`, `TestIsHTTPSRequest`, the small-file and passphrase crypto tests) stay in the reference set. The `fuzz` file reuses the `tests` table from `proxy_headers_test.go` as its seed corpus; the `performance` file reuses `randBytes`, `encryptFunc`, `decryptFunc` and `legacyAesEncrypt` from `aes_test.go`. No exclude pattern is needed besides the tag, because the build tag is applied by the same toolchain that runs the tests and the coverage. A new fuzz or performance test goes into a `*_fuzz_test.go` or `*_performance_test.go` file with the tag; the targets below find it by its `//go:build` line.
+
+### Reference test set and commands
+
+The reference test set is every Go test compiled without build tags (minus the integration tests that skip without `INTEGRATION_TEST`) plus every Vitest test under `app/**/*.test.*`. It contains no fuzz, performance or benchmark test.
+
+| Purpose | Command |
+|---------|---------|
+| Ordinary run and coverage of the reference set (single command) | `nix develop -c make test`: `test-server` (`gotestsum … -- -cover -covermode=atomic -coverprofile=$(COVERPROFILE) ./...`, default `coverage.out`) then `test-client` (`vitest run --coverage`, report in `coverage/`). To keep the output outside the repo: `nix develop -c make test COVERPROFILE=/path/coverage.out ARGS=--coverage.reportsDirectory=/path/coverage` |
+| Fuzz | `nix develop -c make test-fuzz` runs the seed corpus of every `fuzz`-tagged `Fuzz…` target (`go test -tags fuzz -run '^(FuzzParseForwardedHeaderProto)$' ./api/http/middlewares`). `make test-fuzz FUZZTIME=30s` then fuzzes each target in turn for that time (`go test -tags fuzz -run '^$' -fuzz '^<name>$' -fuzztime 30s <package>`). New inputs go to the Go fuzz cache; a crasher is written to `testdata/fuzz/` in the package |
+| Performance | `nix develop -c make test-performance` runs every `Test…` in `performance`-tagged files (`go test -tags performance -run '^(Test_encryptAndDecrypt_withTheSamePassword)$' ./api/crypto`), then the benchmarks of the seven packages above (`go test -run '^$' -bench . -benchmem -benchtime $(BENCHTIME)`, default `1s`) |
+| Mutation | none until phase D1 picks a tool |
+
+`COVERPROFILE` is new in COV-005 (default unchanged, `coverage.out`). The test lists in `-run` and the package lists are derived in the Makefile from the `//go:build` lines and `func Fuzz…`/`func Test…`/`func Benchmark…` names, so a new tagged file needs no Makefile change.
+
+### Effect on coverage
+
+`api/crypto` in the reference set: 59.3 % of statements without the performance test, 70.0 % with it (`go test -tags performance -cover ./api/crypto`). The 100 MB test is the only one that calls `AesEncrypt`, `AesDecrypt`, `aesDecrypt` (header check, FIPS/non-FIPS mismatch) and `aesDecryptOFB` (legacy); in the reference set they are at 0 % (with it: 50 %, 100 %, 68.2 %, 80 %, from `go tool cover -func`). Phase C has to cover them with small inputs in the reference set. The fuzz seed corpus added nothing that `TestParseForwardedHeaderProto` does not already run with the same table.
+
+### Verification, 2026-11-09
+
+Inside `nix develop` (Go 1.26.10), output in `/workspace/a0-runs/a2/` outside the repo.
+
+| Check | Result |
+|-------|--------|
+| `go test -list '.*' ./api/crypto ./api/http/middlewares` (no tag) | lists neither `Test_encryptAndDecrypt_withTheSamePassword` nor `FuzzParseForwardedHeaderProto`; `TestParseForwardedHeaderProto`, `TestIsHTTPSRequest` and the other crypto tests are listed |
+| `go vet` with no tag, `-tags fuzz`, `-tags performance`; `gofmt -l` | clean |
+| `make test-server COVERPROFILE=/workspace/a0-runs/a2/coverage.out` with a gotestsum JSON file | 56 s, 3,454 tests with subtests, 69 skipped, 0 failed (before: 3,493, 69 skipped). The JSON has no event for either labeled test; `api/crypto` 0.6 s (was about 22 s) |
+| `make test-fuzz FUZZTIME=5s` | seed corpus: gotestsum reports 29 tests (the target and its seed inputs), all passed; 5 s fuzzing, 13,249 execs, no failure |
+| `make -n test-performance`; `go test -tags performance -run '^(Test_encryptAndDecrypt_withTheSamePassword)$' -v ./api/crypto` | target selects exactly that test and the seven benchmark packages; the test passed in 13.5 s. The benchmarks were listed with `-list '^Benchmark'`, not run |
+| Frontend | no file changed; the client suite was not re-run for A2 |
+
+## 8. Open for later phases
+
 - B: test spec against `docs/portainer-spec.md`.
+- C: cover the `api/crypto` paths that only the `performance` test reached (section 7, effect on coverage) with small inputs.

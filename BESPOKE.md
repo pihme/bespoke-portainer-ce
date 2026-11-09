@@ -287,6 +287,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-204 | Close Priority work on `app/react/docker/containers` (parent; not CreateView/ListView/ItemView). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 41.6 % → 100 % (32 → 77 of 77; +45). Leftovers: none. Deferred-within-package: none (child packages out of scope). Package left at 100 % (77 of 77; 0 missed). | Statement coverage complete for parent container helpers. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-205 | Close Priority work on `app/react/portainer/gitops` (parent; not sources/ or workflows/). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 49.6 % → 88.7 % (57 → 102 of 115; +45). Leftovers: 13 thin/deferred-within-package edges. Package left at 88.7 % (102 of 115; 13 missed). | Preferred gitops form helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-206 | Close Priority work on create-stack hook (`useCreateStack`). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 42.4 % (0 → 28 of 66; +28). Deferred-within-package: Swarm, Kubernetes, and Edge create paths. Package left at 42.4 % (28 of 66; 38 missed). | Preferred local compose create-stack hook covered; Swarm/K8s/Edge deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-207 | Close Priority work on `ImageStatus`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 85.4 % (0 → 35 of 41; +35). Leftovers: 6 thin. Deferred-within-package: none. Package left at 85.4 % (35 of 41; 6 missed). | Preferred image status widget covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -575,6 +576,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-204: close Priority work on Docker container helpers. Parallel isolated 41.6 % → 100 % (32 → 77 of 77; +45). Do not grind further.
 - 2026-11-09. COV-205: close Priority work on gitops form helpers. Parallel isolated 49.6 % → 88.7 % (57 → 102 of 115; +45). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-206: close Priority work on create-stack hook. Parallel isolated 0 % → 42.4 % (0 → 28 of 66; +28). Deferred Swarm/K8s/Edge. Do not grind further.
+- 2026-11-09. COV-207: close Priority work on image status widget. Parallel isolated 0 % → 85.4 % (0 → 35 of 41; +35). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -267,3 +267,149 @@ func TestArtifactPhases(t *testing.T) {
 		})
 	}
 }
+
+func TestREQ_GIT_01_WorkflowPhaseToStatus(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name   string
+		phase  WorkflowPhaseStatus
+		want   portainer.SourceStatus
+		wantErr string
+	}{
+		{"healthy", WorkflowPhaseStatus{Status: StatusHealthy}, portainer.SourceStatusHealthy, ""},
+		{"error keeps message", WorkflowPhaseStatus{Status: StatusError, Error: "ref missing"}, portainer.SourceStatusError, "ref missing"},
+		{"unknown", WorkflowPhaseStatus{Status: StatusUnknown}, portainer.SourceStatusUnknown, ""},
+		{"syncing maps to unknown", WorkflowPhaseStatus{Status: StatusSyncing}, portainer.SourceStatusUnknown, ""},
+		{"paused maps to unknown", WorkflowPhaseStatus{Status: StatusPaused}, portainer.SourceStatusUnknown, ""},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, gotErr := WorkflowPhaseToStatus(tc.phase)
+			assert.Equal(t, tc.want, got)
+			assert.Equal(t, tc.wantErr, gotErr)
+		})
+	}
+}
+
+func TestREQ_GIT_01_DeriveStackTargetState_ComposeDeploymentStatuses(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name   string
+		stack  portainer.Stack
+		want   WorkflowPhaseStatus
+	}{
+		{
+			name:  "empty deployment status is healthy",
+			stack: portainer.Stack{Name: "compose-app", Type: portainer.DockerComposeStack},
+			want:  WorkflowPhaseStatus{Status: StatusHealthy},
+		},
+		{
+			name: "active is healthy",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatusActive, Message: "ok"},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusHealthy},
+		},
+		{
+			name: "error keeps message",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatusError, Message: "compose up failed"},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusError, Error: "compose up failed"},
+		},
+		{
+			name: "deploying is syncing",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatusDeploying},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusSyncing},
+		},
+		{
+			name: "inactive is paused",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatusInactive},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusPaused},
+		},
+		{
+			name: "unknown status value",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatus(99)},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusUnknown},
+		},
+		{
+			name: "last entry wins",
+			stack: portainer.Stack{
+				Type: portainer.DockerComposeStack,
+				DeploymentStatus: []portainer.StackDeploymentStatus{
+					{Status: portainer.StackStatusActive},
+					{Status: portainer.StackStatusError, Message: "latest"},
+				},
+			},
+			want: WorkflowPhaseStatus{Status: StatusError, Error: "latest"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			fields := DeriveStackWorkflowFields(tc.stack, WorkflowPhaseStatus{Status: StatusHealthy}, WorkflowPhaseStatus{Status: StatusHealthy})
+			assert.Equal(t, TypeStack, fields.Type)
+			assert.Equal(t, DeploymentPlatformDockerStandalone, fields.Platform)
+			assert.Equal(t, tc.want, fields.Status.Target)
+		})
+	}
+}
+
+func TestREQ_GIT_01_CountByStatus_IncludesSyncingAndPaused(t *testing.T) {
+	t.Parallel()
+
+	summary := func(status Status) Workflow {
+		return Workflow{Status: WorkflowStatusObject{
+			Target: WorkflowPhaseStatus{Status: status},
+		}}
+	}
+
+	got := CountByStatus([]Workflow{
+		summary(StatusHealthy),
+		summary(StatusSyncing),
+		summary(StatusPaused),
+		summary(StatusError),
+		summary(StatusUnknown),
+	})
+
+	assert.Equal(t, StatusSummary{Healthy: 1, Syncing: 1, Paused: 1, Error: 1, Unknown: 1}, got)
+}
+
+func TestREQ_GIT_01_EffectiveStatus_ArtifactPhaseCanOverride(t *testing.T) {
+	t.Parallel()
+
+	w := Workflow{Status: WorkflowStatusObject{
+		Source:   WorkflowPhaseStatus{Status: StatusHealthy},
+		Artifact: WorkflowPhaseStatus{Status: StatusError, Error: "path missing"},
+		Target:   WorkflowPhaseStatus{Status: StatusHealthy},
+	}}
+
+	assert.Equal(t, StatusError, EffectiveStatus(w))
+	assert.Equal(t, StatusError, effectiveStatusOf(w.Status))
+}

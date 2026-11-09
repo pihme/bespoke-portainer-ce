@@ -354,3 +354,80 @@ func TestFetchSourceStats_UnusedSourceHasZeroStats(t *testing.T) {
 	require.Zero(t, st.WorkflowCount)
 	require.Empty(t, st.EndpointIDs)
 }
+
+func TestREQ_GIT_01_FetchWorkflows_DropsComposeStackOnSwarmEndpoint(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   1,
+			Name: "swarm-node",
+			Type: portainer.DockerEnvironment,
+		}))
+		require.NoError(t, tx.Snapshot().Create(&portainer.Snapshot{
+			EndpointID: 1,
+			Docker:     &portainer.DockerSnapshot{Swarm: true},
+		}))
+
+		mustCreateGitWorkflow(t, tx, &portainer.Stack{
+			ID:         1,
+			Name:       "compose-on-swarm",
+			Type:       portainer.DockerComposeStack,
+			EndpointID: 1,
+			GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/example/compose"},
+		})
+
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	var items []Workflow
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
+		return err
+	}))
+	require.Empty(t, items)
+}
+
+func TestREQ_GIT_01_FetchWorkflows_KeepsComposeStackOnStandaloneEndpoint(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   1,
+			Name: "local-docker",
+			Type: portainer.DockerEnvironment,
+		}))
+		require.NoError(t, tx.Snapshot().Create(&portainer.Snapshot{
+			EndpointID: 1,
+			Docker:     &portainer.DockerSnapshot{Swarm: false},
+		}))
+
+		mustCreateGitWorkflow(t, tx, &portainer.Stack{
+			ID:         1,
+			Name:       "compose-local",
+			Type:       portainer.DockerComposeStack,
+			EndpointID: 1,
+			GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/example/compose"},
+			DeploymentStatus: []portainer.StackDeploymentStatus{
+				{Status: portainer.StackStatusActive, Time: 123},
+			},
+		})
+
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	var items []Workflow
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
+		return err
+	}))
+	require.Len(t, items, 1)
+	require.Equal(t, "compose-local", items[0].Name)
+	require.Len(t, items[0].Artifacts, 1)
+	require.Equal(t, StatusHealthy, items[0].Artifacts[0].Status.Target.Status)
+	require.Equal(t, int64(123), items[0].Artifacts[0].LastSyncDate)
+}

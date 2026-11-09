@@ -10,6 +10,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/kubernetes/cli"
+	"github.com/portainer/portainer/api/stacks/stackutils"
 
 	kfake "k8s.io/client-go/kubernetes/fake"
 
@@ -256,4 +257,122 @@ func TestFilterK8SStacks_NonAdminWithoutNamespaceAccess(t *testing.T) {
 
 	result := filterK8SStacks(stacks, accessMap)
 	require.Empty(t, result)
+}
+
+func TestREQ_GIT_01_HasAccessibleSource(t *testing.T) {
+	t.Parallel()
+
+	sourceMap := map[portainer.SourceID]portainer.Source{
+		1: {ID: 1},
+	}
+
+	assert.False(t, HasAccessibleSource(nil, sourceMap))
+	assert.False(t, HasAccessibleSource([]portainer.ArtifactFile{{SourceID: 99}}, sourceMap))
+	assert.True(t, HasAccessibleSource([]portainer.ArtifactFile{{SourceID: 99}, {SourceID: 1}}, sourceMap))
+}
+
+func TestREQ_GIT_01_EndpointMatchesStackType_LocalCompose(t *testing.T) {
+	t.Parallel()
+
+	standalone := portainer.Endpoint{Snapshots: []portainer.DockerSnapshot{{Swarm: false}}}
+	swarm := portainer.Endpoint{Snapshots: []portainer.DockerSnapshot{{Swarm: true}}}
+	noSnapshot := portainer.Endpoint{}
+
+	assert.True(t, EndpointMatchesStackType(standalone, portainer.DockerComposeStack))
+	assert.True(t, EndpointMatchesStackType(noSnapshot, portainer.DockerComposeStack))
+	assert.False(t, EndpointMatchesStackType(swarm, portainer.DockerComposeStack))
+
+	assert.True(t, EndpointMatchesStackType(swarm, portainer.DockerSwarmStack))
+	assert.False(t, EndpointMatchesStackType(standalone, portainer.DockerSwarmStack))
+	assert.False(t, EndpointMatchesStackType(noSnapshot, portainer.DockerSwarmStack))
+
+	assert.True(t, EndpointMatchesStackType(standalone, portainer.StackType(99)))
+}
+
+func TestREQ_GIT_01_BuildEndpointMap_LocalDockerEndpoints(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   10,
+			Name: "local-docker",
+			Type: portainer.DockerEnvironment,
+		}))
+		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
+			ID:   20,
+			Name: "unused",
+			Type: portainer.DockerEnvironment,
+		}))
+		require.NoError(t, tx.Snapshot().Create(&portainer.Snapshot{
+			EndpointID: 10,
+			Docker:     &portainer.DockerSnapshot{Swarm: false, TotalCPU: 4},
+		}))
+		return nil
+	}))
+
+	var m map[portainer.EndpointID]portainer.Endpoint
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		m, err = BuildEndpointMap(tx, []portainer.Stack{
+			{ID: 1, EndpointID: 10, Type: portainer.DockerComposeStack},
+			{ID: 2, EndpointID: 10, Type: portainer.DockerComposeStack},
+		})
+		return err
+	}))
+
+	require.Len(t, m, 1)
+	require.Equal(t, "local-docker", m[10].Name)
+	require.Len(t, m[10].Snapshots, 1)
+	require.False(t, m[10].Snapshots[0].Swarm)
+	require.Equal(t, 4, m[10].Snapshots[0].TotalCPU)
+}
+
+func TestREQ_GIT_01_FilterDockerStacksByAccess_StandardUserComposeAccess(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	user := &portainer.User{
+		ID:                      2,
+		Username:                "standard",
+		Role:                    portainer.StandardUserRole,
+		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
+	}
+	require.NoError(t, store.User().Create(user))
+
+	allowed := portainer.Stack{ID: 1, Name: "allowed-compose", EndpointID: 5, Type: portainer.DockerComposeStack}
+	denied := portainer.Stack{ID: 2, Name: "denied-compose", EndpointID: 5, Type: portainer.DockerComposeStack}
+	publicStack := portainer.Stack{ID: 3, Name: "public-compose", EndpointID: 5, Type: portainer.DockerComposeStack}
+	kubeStack := portainer.Stack{ID: 4, Name: "kube-stack", EndpointID: 6, Type: portainer.KubernetesStack}
+
+	require.NoError(t, store.ResourceControl().Create(&portainer.ResourceControl{
+		ResourceID: stackutils.ResourceControlID(allowed.EndpointID, allowed.Name),
+		Type:       portainer.StackResourceControl,
+		UserAccesses: []portainer.UserResourceAccess{
+			{UserID: 2, AccessLevel: portainer.ReadWriteAccessLevel},
+		},
+	}))
+	require.NoError(t, store.ResourceControl().Create(&portainer.ResourceControl{
+		ResourceID: stackutils.ResourceControlID(publicStack.EndpointID, publicStack.Name),
+		Type:       portainer.StackResourceControl,
+		Public:     true,
+	}))
+
+	sc := &security.RestrictedRequestContext{
+		IsAdmin: false,
+		UserID:  2,
+	}
+
+	var result []portainer.Stack
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var err error
+		result, err = FilterDockerStacksByAccess(tx, []portainer.Stack{allowed, denied, publicStack, kubeStack}, sc)
+		return err
+	}))
+
+	names := make([]string, 0, len(result))
+	for _, s := range result {
+		names = append(names, s.Name)
+	}
+	assert.ElementsMatch(t, []string{"allowed-compose", "public-compose", "kube-stack"}, names)
 }

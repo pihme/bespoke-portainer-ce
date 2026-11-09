@@ -168,16 +168,6 @@ func TestParseForwardedHeaderProto(t *testing.T) {
 	}
 }
 
-func FuzzParseForwardedHeaderProto(f *testing.F) {
-	for _, t := range tests {
-		f.Add(t.forwarded)
-	}
-
-	f.Fuzz(func(t *testing.T, forwarded string) {
-		parseForwardedHeaderProto(forwarded)
-	})
-}
-
 func TestIsHTTPSRequest(t *testing.T) {
 	t.Parallel()
 

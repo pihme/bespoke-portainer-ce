@@ -53,16 +53,44 @@ clean: ## Remove all build and download artifacts
 	@rm -rf dist/*
 
 ##@ Testing
-.PHONY: test test-client test-server
-test: test-server test-client ## Run all tests
+.PHONY: test test-client test-server test-fuzz test-performance
+test: test-server test-client ## Run all tests (reference test set, with coverage)
 
 test-client: ## Run client tests
 	pnpm run test $(ARGS) --coverage
 
 TEST_PACKAGES?=./...
+COVERPROFILE?=coverage.out
 
 test-server:	## Run server tests
-	$(GOTESTSUM) --format pkgname-and-test-fails --format-hide-empty-pkg --hide-summary skipped -- -cover -covermode=atomic -coverprofile=coverage.out $(TEST_PACKAGES)
+	$(GOTESTSUM) --format pkgname-and-test-fails --format-hide-empty-pkg --hide-summary skipped -- -cover -covermode=atomic -coverprofile=$(COVERPROFILE) $(TEST_PACKAGES)
+
+# Labeled Go tests (docs/portainer-test-strategy.md, section 7, COV-005). A *_test.go file
+# that starts with `//go:build fuzz` or `//go:build performance` is not compiled
+# without that tag, so test-server neither runs nor measures it. The targets
+# below find the labeled files with git grep and run only their tests.
+FUZZTIME?=
+BENCHTIME?=1s
+empty:=
+space:=$(empty) $(empty)
+labeled_test_files=$(shell grep -rl --include='*_test.go' -e '^//go:build $(1)$$' api pkg)
+labeled_test_pkgs=$(sort $(patsubst %/,./%,$(dir $(call labeled_test_files,$(1)))))
+labeled_test_run=^($(subst $(space),|,$(strip $(shell sed -n 's/^func \($(2)[A-Za-z0-9_]*\).*/\1/p' $(call labeled_test_files,$(1))))))$$
+bench_pkgs=$(sort $(patsubst %/,./%,$(dir $(shell grep -rl --include='*_test.go' -e '^func Benchmark' api pkg))))
+
+test-fuzz: ## Run fuzz-labeled tests on their seed corpus; FUZZTIME=30s also fuzzes each target
+	$(GOTESTSUM) --format pkgname-and-test-fails -- -tags fuzz -count=1 -run '$(call labeled_test_run,fuzz,Fuzz)' $(call labeled_test_pkgs,fuzz)
+	@if [ -n "$(FUZZTIME)" ]; then \
+		for f in $(call labeled_test_files,fuzz); do \
+			for n in $$(sed -n 's/^func \(Fuzz[A-Za-z0-9_]*\).*/\1/p' $$f); do \
+				go test -tags fuzz -run '^$$' -fuzz "^$$n\$$" -fuzztime $(FUZZTIME) ./$$(dirname $$f) || exit 1; \
+			done; \
+		done; \
+	fi
+
+test-performance: ## Run performance-labeled tests and the Go benchmarks (BENCHTIME, default 1s)
+	$(GOTESTSUM) --format pkgname-and-test-fails -- -tags performance -count=1 -run '$(call labeled_test_run,performance,Test)' $(call labeled_test_pkgs,performance)
+	go test -count=1 -run '^$$' -bench . -benchmem -benchtime $(BENCHTIME) $(bench_pkgs)
 
 ##@ Dev
 .PHONY: dev dev-client dev-server

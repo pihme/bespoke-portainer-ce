@@ -1,0 +1,441 @@
+# Portainer test spec
+
+Test spec for `bespoke-portainer-ce`, phase B of the covered stage (COV-006 in [BESPOKE.md](../BESPOKE.md)). It maps every requirement in [portainer-spec.md](portainer-spec.md) (178 IDs `REQ-<AREA>-NN`, RAW-013) to the existing tests that check it. The test layers, commands and the reference test set are in [portainer-test-strategy.md](portainer-test-strategy.md).
+
+Mapped on 2026-11-09 at `2-covered@af382f49d`, by reading test names, test files and, where a name was not clear, the test body. No test was run, added, renamed or changed for this mapping.
+
+## Conventions
+
+- Go paths are relative to the repo root. Frontend paths are relative to `app/` (for example `react/docker/images/ListView/PullImageFormWidget.test.tsx` is `app/react/docker/images/ListView/PullImageFormWidget.test.tsx`). A Go test is named `File: TestName`; a frontend test is named by file, and by `describe`/`it` text where the file covers more than one thing.
+- Tests are mapped under their current upstream names. They are not renamed to carry requirement IDs, because this is a fork of an upstream project and renames would make every later upstream merge conflict. New tests written in phase C carry the ID in the name: Go `TestREQ_<AREA>_<NN>_<Behaviour>` (for example `TestREQ_CTR_10_LogsLineLimit`), Vitest `describe('REQ-CTR-10 …')`.
+- Integration tests that skip without `INTEGRATION_TEST` (test strategy section 1) are marked *(gated)*; they are not part of the reference test set.
+- Status per requirement:
+
+| Status | Meaning |
+|--------|---------|
+| direct | At least one test asserts the behaviour the requirement states (not necessarily every sub-feature; gaps are in Notes). |
+| partial | Tests assert some of the stated sub-features; named parts have no test. |
+| loose | Tests only touch helpers, models or related code; nothing asserts the requirement itself. Counts as untested for coverage. |
+| untested | No test found. |
+| BE-absent | Marked **BE-only** in the spec and the CE tree has no implementation to test. Where a CE test asserts that the feature is hidden or shown as upsell, Notes say so. |
+| external | The behaviour lives outside this repository (another project, a docs page, a helper image). |
+
+## Summary
+
+| Area | REQs | direct | partial | loose | untested | BE-absent | external |
+|------|-----:|-----:|-----:|-----:|-----:|-----:|-----:|
+| SRV | 10 | 2 | 4 | 1 | 0 | 1 | 2 |
+| AUTH | 14 | 2 | 5 | 1 | 2 | 3 | 1 |
+| USR | 8 | 4 | 1 | 0 | 2 | 1 | 0 |
+| ENV | 15 | 5 | 6 | 1 | 0 | 3 | 0 |
+| POL | 1 | 0 | 0 | 0 | 0 | 1 | 0 |
+| HOST | 5 | 1 | 3 | 0 | 1 | 0 | 0 |
+| CTR | 16 | 6 | 5 | 1 | 3 | 1 | 0 |
+| IMG | 8 | 4 | 1 | 1 | 1 | 1 | 0 |
+| NET | 4 | 1 | 1 | 1 | 1 | 0 | 0 |
+| VOL | 5 | 0 | 0 | 1 | 4 | 0 | 0 |
+| STK | 10 | 5 | 3 | 1 | 1 | 0 | 0 |
+| SWM | 11 | 1 | 1 | 4 | 5 | 0 | 0 |
+| TPL | 4 | 1 | 1 | 1 | 1 | 0 | 0 |
+| GIT | 3 | 2 | 0 | 0 | 1 | 0 | 0 |
+| REG | 5 | 2 | 0 | 0 | 1 | 2 | 0 |
+| K8S | 21 | 10 | 2 | 3 | 2 | 4 | 0 |
+| ACI | 2 | 1 | 1 | 0 | 0 | 0 | 0 |
+| EDGE | 11 | 5 | 2 | 0 | 1 | 3 | 0 |
+| SET | 8 | 1 | 2 | 1 | 1 | 3 | 0 |
+| BKP | 3 | 2 | 0 | 0 | 0 | 1 | 0 |
+| LOG | 5 | 1 | 0 | 1 | 0 | 3 | 0 |
+| ALR | 2 | 0 | 0 | 0 | 0 | 2 | 0 |
+| LIC | 3 | 0 | 1 | 0 | 1 | 1 | 0 |
+| API | 4 | 1 | 0 | 0 | 1 | 0 | 2 |
+| **Total** | **178** | **57** | **39** | **18** | **29** | **30** | **5** |
+
+"Has tests" means direct or partial. Loose, untested, BE-absent and external are the untested side.
+
+## Requirement mapping
+
+### SRV – Server installation and runtime
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-SRV-01 | loose | `api/http/handler/file/handler_test.go`: `TestNormalServe`; `api/chisel/tunnel_test.go`: `TestGetUnusedPort` | Serving the UI assets is checked; the default ports 9443/9000/8000, the self-signed certificate and `--bind`/`--bind-https`/`--tunnel-*`/`--data`/`--assets` parsing are not. Running as a container is not testable in the unit suites (no end-to-end suite). |
+| REQ-SRV-02 | external | none | Install targets are deployment docs and the separate Helm chart repository; nothing in this tree. |
+| REQ-SRV-03 | external | `api/agent/version_test.go`: `TestGetAgentVersionAndPlatform_*` (7); `api/docker/client/client_test.go`: `TestAgentClientHeaders_*`; `api/http/proxy/factory/agent/transport_test.go`: `TestTransport_roundTrip_*` | The Agent is a separate project. The server side of talking to an Agent (version probe, signed headers) is tested. |
+| REQ-SRV-04 | partial | `api/cli/cli_test.go`: `TestOptionParser`, `TestParseEdgeFlags`, `TestValidateEdgePortainerURL`, `TestParseKubectlShellImageFlag`, `TestParseTLSFlags`; `api/cmd/portainer/main_test.go`: `Test_resolveSetupToken`, `TestUpdateSettingsFromFlags_KubectlShellImage`, `TestUpdateSettingsFromFlags_EdgeCompute`; `api/logs/log_test.go`: `TestSetLoggingLevel_*`, `TestSetLoggingMode_*`; `pkg/featureflags/featureflags_test.go`: `Test_enableFeaturesFromFlags`; `api/database/boltdb/db_test.go`: `TestDBCompaction` | No test for `--host`, `--admin-password`/`--admin-password-file`, `--hide-label`, `--logo`, `--templates`, `--snapshot-interval`, `--base-url`, `--http-disabled`/`--http-enabled`, `--rollback` parsing. |
+| REQ-SRV-05 | partial | `api/cli/cli_test.go`: `TestParseTLSFlags`; `api/crypto/tls_test.go`: `TestCreateTLSConfiguration*` (5); `api/http/middlewares/proxy_headers_test.go`: `TestIsHTTPSRequest` | Flag parsing and TLS config building are checked. HTTPS-only serving (`--http-disabled`), the deprecated `--ssl*` aliases and `GET/PUT /ssl` have no test. |
+| REQ-SRV-06 | BE-absent | none | |
+| REQ-SRV-07 | direct | `api/cmd/portainer/main_test.go`: `TestLoadEncryptionSecretKey`, `TestDBSecretPath`; `api/database/boltdb/db_test.go`: `Test_NeedsEncryptionMigration`, `TestSetEncrypted_*`, `TestNeedsEncryptionMigration_InvalidKeyError`; `api/database/boltdb/json_test.go`: `Test_ObjectMarshallingEncrypted`, `TestDecrypt_*` | "Not reversible" is not asserted. |
+| REQ-SRV-08 | partial | `api/http/middlewares/proxy_headers_test.go`: `TestParseForwardedHeaderProto`, `TestIsHTTPSRequest`; `pkg/libhttp/clientip_test.go`: `TestClientIP`, `TestParseTrustedProxies_*`; `api/http/csrf/csrf_test.go`: `TestWithProtect_allowsPostFromTrustedOrigin`; `pkg/validate/validate_test.go`: `Test_IsTrustedOrigin` | Forwarded headers and trusted origins are checked; serving under `--base-url` has no test. |
+| REQ-SRV-09 | partial | `api/datastore/migrate_data_test.go`: `TestMigrateData`, `TestRollback`; `api/datastore/migrator/*_test.go` (per-version migrations); `api/internal/upgrade/upgrade_docker_test.go`: `TestGetUpdaterImage`; `api/platform/platform_test.go`: `TestCheckDockerEnvTypeForUpgrade_*` | Database migration and `--rollback` are checked at store level; the platform-specific update procedure is docs (external). |
+| REQ-SRV-10 | direct | `api/http/csrf/csrf_test.go`: `TestWithProtect_*` (16); `api/http/security/bouncer_test.go`: `TestCSPHeaderDefault`, `TestCSPHeaderDisabled`; `api/http/handler/file/handler_test.go`: `TestPermissionsPolicyHeader` | "No behavioural analytics in CE" (absence) and the deprecated `--no-analytics` flag have no test. |
+
+### AUTH – Setup, login and own account
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-AUTH-01 | direct | `api/http/handler/users/admin_init_test.go`: `Test_adminInit_setupTokenGate`; `api/http/security/setuptoken/setuptoken_test.go`: `Test_Generate`, `Test_Validate_*`; `api/cmd/portainer/main_test.go`: `Test_resolveSetupToken`; `api/adminmonitor/admin_monitor_test.go`: `Test_start_shouldDisableInstanceAfterTimeout_ifNotInitialized` and 4 lifecycle tests; `api/http/handler/file/handler_test.go`: `TestRedirectInstanceDisabled` | `GET /users/admin/check` and the `#!/init/admin` page have no test. The timeout length is a clarification (L-01). |
+| REQ-AUTH-02 | partial | `react/portainer/environments/wizard/EnvironmentsCreationView/WizardDocker/APITab/DeploymentScripts.test.tsx`; `react/portainer/environments/wizard/EnvironmentsCreationView/WizardKubernetes/WizardKubernetes.test.tsx`; `portainer/views/auth/authController.test.js`: "does not follow a returnUrl over the wizard when an admin has no environments" | Two wizard tabs and the redirect into the wizard are checked; the local-socket and Edge tabs are not. |
+| REQ-AUTH-03 | partial | `api/http/handler/auth/logout_test.go`: `TestLogout`, `TestLogoutNoPanic`, `TestLogout_ClearsCookie`; `api/http/security/bouncer_test.go`: `TestJWTRevocation`, `Test_extractKeyFromCookie`, `Test_extractBearerToken`, `Test_mwAuthenticateFirst*`; `api/jwt/*_test.go`; `api/logoutcontext/logoutcontext_test.go`; `api/http/security/passwordStrengthCheck_test.go`: `TestStrengthCheck`; `api/http/security/rate_limiter_test.go`: `TestLimitAccess*`; `portainer/authorization-guard.test.ts`; `portainer/views/auth/authController.test.js` | Logout, tokens and session handling are checked. The login handler itself (`POST /auth` with username/password against the internal store) has no test. |
+| REQ-AUTH-04 | partial | `api/ldap/ldap_test.go`: `TestCreateConnectionForURL`, `TestFailures`; `react/portainer/settings/AuthenticationView/LDAPAuth/**` (6 files: `AdminGroupsSection`, `DnBuilder`, `DnEntriesField`, `GroupDnBuilder`, `ldap-dn-utils`, `LdapSecurityFieldset`, `LdapSettingsTestLogin`); `react/portainer/settings/AuthenticationView/AutoUserProvisionToggle/AutoUserProvisionToggle.test.tsx` | Settings form and connection building are checked; authenticating a user, automatic provisioning and team sync against a server, and `POST /ldap/check`, have no test. |
+| REQ-AUTH-05 | BE-absent | `portainer/settings/authentication/ldap/ad-settings/ad-settings.controller.test.ts` (`parseDomainName`) | CE still ships an AD settings controller with a test; see clarification C-12. |
+| REQ-AUTH-06 | partial | `api/oauth/oauth_test.go`: `Test_getOAuthToken`, `Test_getIdToken`, `Test_getResource*`, `Test_Authenticate`; `api/oauth/oauth_resource_test.go`: `Test_getUsername`; `api/http/handler/settings/settings_public_test.go`: `TestGeneratePublicSettingsWithSSO`, `TestGeneratePublicSettingsWithoutSSO`; `react/portainer/settings/AuthenticationView/AuthenticationMethodSelector.test.tsx` | `POST /auth/oauth/validate` (handler) and "only the custom provider is selectable in CE" have no test. |
+| REQ-AUTH-07 | partial | `react/portainer/settings/AuthenticationView/SessionLifetimeSelect.test.tsx`; `api/jwt/jwt_test.go`: `TestExpiration` | The setting reaching the token lifetime through `PUT /settings` is not checked. Limits: L-02. |
+| REQ-AUTH-08 | BE-absent | none | |
+| REQ-AUTH-09 | untested | none | `PUT /users/{id}/passwd` (`userUpdatePassword`) has no test. |
+| REQ-AUTH-10 | untested | none | |
+| REQ-AUTH-11 | direct | `api/http/handler/users/user_create_access_token_test.go`: `Test_userCreateAccessToken`, `Test_userAccessTokenCreatePayload`; `user_get_access_tokens_test.go`: `Test_userGetAccessTokens`, `Test_hideAPIKeyFields`; `user_remove_access_token_test.go`: `Test_userRemoveAccessToken`; `api/apikey/*_test.go`; `react/portainer/account/CreateAccessTokenView/CreateUserAccessToken.test.tsx` | |
+| REQ-AUTH-12 | BE-absent | none | |
+| REQ-AUTH-13 | loose | `pkg/libhelm/validate_repo_test.go`: `Test_ValidateHelmRepositoryURL`, `TestValidateHelmRepositoryURL` | URL validation only; the `/users/{id}/helm/repositories` handlers have no test. |
+| REQ-AUTH-14 | external | none | The password-reset helper is a separate image. |
+
+### USR – Users, teams and access control
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-USR-01 | partial | `api/http/handler/users/user_list_test.go`: `Test_userList`; `user_create_test.go`: `TestConcurrentUserCreation`; `user_delete_test.go`: `Test_deleteUserRemovesUserFromEndpointAccessPolicies`, `Test_deleteUserCleansUpK8sServiceAccount`, `Test_deleteUserRemovesAccessTokens`; `user_update_test.go`: `Test_updateUserRemovesAccessTokens` | List, create and delete are checked. `Test_updateUserRemovesAccessTokens` despite its name calls `deleteUser`; editing a user and `GET /users/me` have no test. |
+| REQ-USR-02 | untested | none | |
+| REQ-USR-03 | untested | none | |
+| REQ-USR-04 | direct | `api/http/handler/teams/*_test.go`: `TestConcurrentTeamCreation`, `TestTeamDelete_*`, `Test_teamList`; `api/http/handler/teammemberships/*_test.go`: `TestDeleteTeamMembership_removesUserSABindings`, `TestTeamMembershipList_*`, `TestUpdate`; `api/dataservices/team/tests/team_test.go`: `Test_teamByName`; `api/http/security/filter_test.go`: `TestFilterUserTeams_*`, `TestLeaderTeamMembershipFilter_*`; `react/portainer/users/teams/**` (4 files, three of them only "renders correctly") | |
+| REQ-USR-05 | BE-absent | `pkg/authorization/resolver_test.go`: `TestFindRoleByID`, `TestGetHighestPriorityRole`, `TestResolveUserEndpointAccess_MultipleTeams_HighestPriorityWins`; `react/sidebar/SettingsSidebar.test.tsx`: "should not render Roles for team leader" | CE resolves built-in roles by priority (see C-07); the granular RBAC editor is BE. |
+| REQ-USR-06 | direct | `api/http/handler/users/user_effective_access_test.go`: `Test_userEffectiveAccess`; `react/portainer/users/RolesView/AccessViewer/EffectiveAccessViewer.test.tsx` | |
+| REQ-USR-07 | direct | `pkg/authorization/resolver_test.go`: `TestResolveUserEndpointAccess_*` (9); `react/portainer/environments/environment-groups/ItemView/tabs/AccessTab.test.tsx`; `api/http/handler/docker/endpoint_authorization_test.go`, `api/http/handler/kubernetes/endpoint_authorization_test.go`: `TestEndpointAuthorization_*`; `api/http/handler/teams/team_delete_test.go`: `TestTeamDelete_removesTeamFromEndpoint*AccessPolicies` | The environment access page `#!/endpoints/{id}/access` has no UI test. |
+| REQ-USR-08 | direct | `api/uac/*_test.go` (7 files: container, network, volume, config, secret getters, `TestCanBypassUAC`, `TestFilterByResourceControl`); `api/http/security/authorization_test.go`: `TestAuthorizedResourceControlUpdate_*` (12); `api/http/proxy/factory/docker/transport_test.go`: `TestTransport_proxyContainerRequest`, `TestTransport_proxyNetworkRequest`, `TestTransport_proxyExecRequest_accessControl`; `react/portainer/access-control/**` (`AccessControlForm`, its validation, `AccessControlPaneDetails`, `utils`) | `POST/PUT/DELETE /resource_controls` handlers have no test. |
+
+### ENV – Home and environments
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-ENV-01 | direct | `react/portainer/HomeView/EnvironmentList/EnvironmentList.test.tsx`; `…/EnvironmentItem/EnvironmentCard.test.tsx`, `EnvironmentGroupName.test.tsx`, `EnvironmentURL.test.tsx`; `react/portainer/HomeView/EnvironmentHeader/EnvironmentHeader.test.tsx`; `react/portainer/environments/queries/useParseApiSortParams.test.ts`; `api/http/handler/endpoints/endpoint_summary_counts_test.go`: `TestSummaryCounts*`, `TestResolveEndpointStatus`; `filter_test.go`, `sort_test.go`, `endpoint_list_test.go` | |
+| REQ-ENV-02 | partial | `api/http/handler/system/version_test.go`: `Test_getSystemVersion`; `react/sidebar/Footer/Footer.test.tsx` (`BuildInfoModalButton`, `UpdateNotification`) | `GET /system/info` and `GET /status` have no test. |
+| REQ-ENV-03 | direct | `react/portainer/environments/ItemView/**` (`ItemView`, `EnvironmentDetailsForm`, `GeneralEnvironmentForm` and `helpers`, `EnvironmentFormActions`, `PublicUrlField`); `api/http/handler/endpoints/endpoint_update_test.go`: `TestReconcileK8sServiceAccounts`, `Test_endpointPut_TLSRejectedForEdgeEndpoint`; `endpoint_delete_test.go`: `TestEndpointDelete*`; `utils_update_tags_test.go`: `Test_updateTags`; `utils_update_edge_groups_test.go`: `Test_updateEdgeGroups` | Bulk `POST /endpoints/delete` has no test. |
+| REQ-ENV-04 | partial | `api/platform/platform_test.go`: `TestDetectLocalEnvironment_*`, `TestService_GetLocalEnvironment`; `api/internal/endpointutils/endpoint_setup_test.go`: `TestCreateOfflineUnsecuredEndpoint`; `react/portainer/environments/wizard/…/DeploymentScripts.test.tsx` (socket examples) | `--host` creating the local environment on first start is only checked for the unreachable case. |
+| REQ-ENV-05 | partial | `api/http/proxy/factory/transport_test.go`: `TestNewDockerHTTPProxy_*`, `TestNewAgentProxy_*`; `api/http/handler/endpoints/endpoint_create_test.go`: `TestValidateEndpointCreatePayload_TLS`; `endpoint_agent_versions_test.go`: `Test_AgentVersions`; `api/internal/endpointutils/endpoint_test.go`: `Test_IsAgentEndpoint`, `Test_IsDockerEndpoint` | Proxy building and payload validation; the wizard's Agent/API forms have no test. |
+| REQ-ENV-06 | loose | `pkg/snapshot/docker_test.go`: `TestCreateDockerSnapshot_SwarmNodeCount`; `api/platform/platform_test.go`: `TestCheckDockerEnvTypeForUpgrade_Swarm` | Adding a Swarm environment is not checked. |
+| REQ-ENV-07 | partial | `api/platform/platform_test.go`: `TestDetermineContainerPlatform_Podman*`; `react/docker/containers/CreateView/NetworkTab/toViewModel.test.ts` (Podman defaults); `react/edge/components/EdgeScriptForm/scripts.test.ts`: "buildLinuxPodmanCommand should include PODMAN=1" | |
+| REQ-ENV-08 | partial | `react/portainer/environments/wizard/EnvironmentsCreationView/WizardKubernetes/WizardKubernetes.test.tsx`; `api/internal/endpointutils/endpoint_test.go`: `Test_IsKubernetesEndpoint` | |
+| REQ-ENV-09 | BE-absent | none | |
+| REQ-ENV-10 | BE-absent | none | |
+| REQ-ENV-11 | partial | `api/http/handler/endpoints/endpoint_create_test.go`: `TestSaveEndpointAndUpdateAuthorizations`, `TestCreateEndpointFailure`, `TestValidateEndpointCreatePayload_TLS`, `TestCreateEdgeAgentEndpoint_ContainerEngineMapping` | No end-to-end `POST /endpoints` per environment type. |
+| REQ-ENV-12 | direct | `api/http/handler/endpoints/endpoint_snapshots_test.go`: `Test_endpointSnapshots`; `endpoint_create_snapshot_test.go`: `TestSnapshotAndPersistEndpoint_*`; `api/internal/snapshot/snapshot_test.go`: `TestSnapshotEndpointTx_*`; `pkg/snapshot/docker_test.go`, `pkg/snapshot/kubernetes_test.go`; `api/chisel/service_test.go`: `TestCheckTunnels*Snapshot*` | The periodic schedule from `--snapshot-interval`/settings is not checked. Limits: L-03. |
+| REQ-ENV-13 | direct | `api/http/handler/endpointgroups/*_test.go`: `TestHandler_endpointGroupList`, `TestHandler_endpointGroupUpdate_UnassignedGroupName`; `react/portainer/environments/environment-groups/**` (7 files: create, edit, access tab, list table, associated environments, type breakdown, form) | `DELETE /endpoint_groups/{id}` has no test. |
+| REQ-ENV-14 | direct | `api/http/handler/tags/tag_delete_test.go`: `TestHandler_tagDelete`, `TestTagDeleteEdgeGroupsConcurrently`; `api/tag/*_test.go`; `api/http/handler/endpoints/utils_update_tags_test.go`: `Test_updateTags`; `react/components/TagSelector/TagSelector.test.tsx` | `POST /tags` (create) has no handler test. |
+| REQ-ENV-15 | BE-absent | none | |
+
+### POL – Environment policies
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-POL-01 | BE-absent | none | |
+
+### HOST – Docker dashboard, host and events
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-HOST-01 | partial | `api/http/handler/docker/endpoint_authorization_test.go`: `TestEndpointAuthorization_DeniedUser_Returns403`, `TestEndpointAuthorization_AuthorizedUser_NotForbidden` (on `GET /docker/1/dashboard`); `api/docker/stats/container_stats_test.go`: `TestCalculateContainerStats*`, `TestGetContainerStatus`; `react/components/DashboardItem/DashboardItem.test.tsx` | Access control and container state counts are checked; the tile counts per resource and the Docker dashboard page have no test. |
+| REQ-HOST-02 | direct | `react/docker/host/HostDetailsPanel/HostDetailsPanel.test.tsx`; `react/docker/host/DockerStorageInfo.test.tsx` | PCI devices list has no test. |
+| REQ-HOST-03 | partial | `api/http/handler/endpointproxy/proxy_agent_host_test.go`: `TestProxyAgentHostAPI_*` (6) | Error paths of the Agent host proxy; the browser UI has no test. |
+| REQ-HOST-04 | partial | `api/http/proxy/factory/docker/containers_test.go`: `TestDecorateContainerCreationOperation_BindMount*`; `services_test.go`: `TestDecorateServiceCreationOperation_*`; `volumes_test.go`: `TestDecorateVolumeResourceCreationOperation_*`; `api/stacks/stackutils/validation_test.go`: `TestValidateStackFiles_*BlockedForNonAdmin`; `react/docker/containers/ItemView/ContainerActionsSection/SecondaryActions/useCanRecreateContainer.test.tsx`, `useCanDuplicateEditContainer.test.tsx` | The security restrictions for non-admins are well checked. `PUT /endpoints/{id}/settings`, host-management toggles, change window and GPU list have no test. |
+| REQ-HOST-05 | untested | none | |
+
+### CTR – Docker containers
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-CTR-01 | partial | `react/docker/containers/utils.test.ts` (`toListViewModel`); `api/uac/containers_test.go`: `TestContainerResourceControlGetter` | List view-model mapping; the datatable and hidden-container filtering have no test. |
+| REQ-CTR-02 | direct | `react/docker/containers/ItemView/ContainerActionsSection/ContainerActionsSection.test.tsx` | Bulk actions from the list have no test. |
+| REQ-CTR-03 | partial | `react/docker/containers/CreateView/NetworkTab/toRequest.test.ts`, `toViewModel.test.ts`; `react/docker/containers/CreateView/BaseForm/PortsMappingField.viewModel.test.ts`; `react/components/ImageConfigFieldset/ImageConfigFieldset.test.tsx`, `findRegistryMatch.test.ts`; `docker/helpers/splitargs.test.ts`; `api/http/proxy/factory/docker/containers_test.go`: `TestDecorateContainerCreationOperation_*` | Network, ports, image and command parsing; environment variables, labels, restart policy, runtime/resources and capabilities tabs have no test. |
+| REQ-CTR-04 | direct | `react/docker/containers/ItemView/ItemView.test.tsx`, `ContainerDetailsSection/ContainerDetailsSection.test.tsx`, `ContainerStatusSection/ContainerStatusSection.test.tsx`, `VolumesSection/*.test.tsx`, `RestartPolicySection/RestartPolicySection.test.tsx` | Join/leave a network (`ConnectNetworkForm`) has no test. |
+| REQ-CTR-05 | untested | none | |
+| REQ-CTR-06 | direct | `react/docker/containers/ItemView/ContainerActionsSection/SecondaryActions.test.tsx`, `SecondaryActions/useCanRecreateContainer.test.tsx`, `useCanDuplicateEditContainer.test.tsx` | The prefilled create form (`?from={id}`) has no test. |
+| REQ-CTR-07 | direct | `react/docker/containers/ItemView/ContainerStatusSection/NameRow.test.tsx` | |
+| REQ-CTR-08 | direct | `react/docker/containers/ItemView/CreateImageSection/CreateImageSection.test.tsx` | |
+| REQ-CTR-09 | loose | `react/docker/containers/ItemView/VolumesSection/VolumeRow.test.tsx` | Shows mounts of an existing container; attaching a volume in the create form has no test. |
+| REQ-CTR-10 | untested | none | Container log view (`app/docker/views/containers/logs`) has no test. Limits: L-10. |
+| REQ-CTR-11 | direct | `react/docker/containers/StatsView/StatsView.test.tsx`; `react/docker/containers/queries/useContainerStats.test.ts`; `docker/models/containerStats.test.ts`; `react/components/Charts/StatsLineChart.test.tsx` | Process list has no test. |
+| REQ-CTR-12 | partial | `api/http/handler/websocket/exec_test.go`: `TestWebsocketExec_deniesUnauthorizedEndpoint`; `attach_test.go`: `TestWebsocketAttach_deniesUnauthorizedEndpoint`; `initdial_test.go`: `TestInitDial`; `api/ws/*_test.go` (stream and resize helpers); `api/http/proxy/factory/docker/transport_test.go`: `TestTransport_proxyExecRequest_*`; `react/components/Terminal/Terminal.test.tsx` | Access denial and stream plumbing; a successful exec/attach session has no test. |
+| REQ-CTR-13 | partial | `react/portainer/access-control/**`; `api/http/proxy/factory/docker/transport_test.go`: `TestTransport_proxyContainerRequest` | Generic ownership tests; nothing on the container page itself. |
+| REQ-CTR-14 | untested | none | Removing with anonymous volumes has no test. |
+| REQ-CTR-15 | BE-absent | none | |
+| REQ-CTR-16 | partial | `react/docker/containers/ItemView/ContainerDetailsSection/GpuRow.test.tsx` (`computeDockerGPUCommand`); `api/datastore/postinit/migrate_post_init_test.go`: `TestMigrateGPUs` | Display only; assignment in the create form and `GET …/containers/{id}/gpus` have no test. |
+
+### IMG – Docker images
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-IMG-01 | direct | `react/docker/images/ListView/ImagesDatatable/ImagesDatatable.test.tsx`; `react/docker/images/ListView/ListView.test.tsx`; `react/docker/images/utils.test.ts` | `GET /docker/{id}/images` (handler) has no test. |
+| REQ-IMG-02 | direct | `react/docker/images/ListView/PullImageFormWidget.test.tsx`, `PullImageFormWidget.validation.test.tsx`; `react/components/ImageConfigFieldset/*.test.ts*`; `api/docker/images/image_test.go`: `TestImageParser` | |
+| REQ-IMG-03 | partial | `api/http/proxy/factory/docker/build_test.go`: `TestBuildOperationRemovesSpilledMultipartFilesOnSuccess`; `transport_test.go`: `TestTransport_proxyBuildRequest_Prune` | Upload handling; editor/URL modes and the output log have no test. Limits: L-11. |
+| REQ-IMG-04 | loose | `react/docker/images/ListView/ImagesDatatable/ImportExportButtons.test.tsx` ("should render Import button when user has DockerImageLoad authorization") | Button visibility only. |
+| REQ-IMG-05 | direct | `react/docker/images/queries/useExportImageMutation.test.ts`; `ImportExportButtons.test.tsx` (export state) | |
+| REQ-IMG-06 | untested | none | `api/docker/images/digest_test.go` parses image references, not the details page. |
+| REQ-IMG-07 | direct | `react/docker/images/ListView/ImagesDatatable/ConfirmPruneModal.test.tsx`, `PruneButton.test.tsx`; `api/http/proxy/factory/docker/transport_test.go`: `TestTransport_proxyImageRequest_Prune` | Reclaimed-space report has no test. |
+| REQ-IMG-08 | BE-absent | `api/docker/images/status_test.go`: `TestAggregateImageStatus`, `TestCachedResourceImageStatus*`, `TestCacheErrorImageStatus` | CE contains the image-status code with tests; see C-12. |
+
+### NET – Docker networks
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-NET-01 | partial | `react/docker/networks/ListView/useNetworksData.test.ts` | Swarm grouping only; the list table has no test. |
+| REQ-NET-02 | untested | none | |
+| REQ-NET-03 | direct | `react/docker/networks/ItemView/NetworkDetailsTable.test.tsx`, `NetworkOptionsTable.test.tsx`, `NetworkContainersTable.test.tsx` | Disconnecting a container has no test. |
+| REQ-NET-04 | loose | `react/docker/networks/ItemView/NetworkDetailsTable.test.tsx`: "Non system networks should have a delete button", "System networks shouldn't …" | Button presence only. |
+
+### VOL – Docker volumes
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-VOL-01 | untested | none | |
+| REQ-VOL-02 | loose | `api/http/proxy/factory/docker/volumes_test.go`: `TestDecorateVolumeResourceCreationOperation_*` (5) | Bind-option restrictions on create (HOST-04); the create form has no test. |
+| REQ-VOL-03 | untested | none | |
+| REQ-VOL-04 | untested | none | |
+| REQ-VOL-05 | untested | none | |
+
+### STK – Docker stacks
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-STK-01 | partial | `api/http/handler/stacks/stack_list_test.go`: `TestFilterStacks`; `api/http/handler/docker/utils/get_stacks_test.go`: `TestHandler_getDockerStacks`; `react/docker/stacks/ItemView/StackInfoTab/StackInfoTab.test.tsx` ("external and orphaned warnings") | The stacks datatable and its control column have no test. |
+| REQ-STK-02 | direct | `react/docker/stacks/CreateView/CreateStackForm/**` (`CreateStackForm`, `validation`, `EditorSection` and its validation, `UploadSection` and its validation); `react/docker/stacks/common/*.test.ts`; `api/stacks/stackutils/validation_test.go`, `env_test.go`; `api/exec/compose_stack_test.go`: `Test_createEnvFile*`; `api/stacks/stackbuilders/director_test.go`; `pkg/libstack/compose/composeplugin_test.go`: `Test_Validate`, `Test_Config`, `Test_MaxConcurrency`; `Test_UpAndDown*` *(gated)* | |
+| REQ-STK-03 | direct | `react/docker/stacks/CreateView/CreateStackForm/GitSection/*.test.ts*`; `api/http/handler/stacks/create_compose_stack_test.go`, `create_swarm_stack_test.go` (`…GitPayload_Validate*`); `api/stacks/stackbuilders/stack_git_builder_test.go`; `api/stacks/deployments/deploy_test.go`: `Test_redeployWhenChanged_*`; `api/git/update/validate_test.go`: `Test_ValidateAutoUpdate`; `api/http/handler/stacks/webhook_invoke_test.go`: `TestHandler_webhookInvoke`; `api/git/*_test.go` (clone, refs, files; GitHub/Azure *(gated)*) | Relative path volumes are BE. |
+| REQ-STK-04 | direct | `react/docker/stacks/ItemView/StackEditorTab/*.test.tsx`; `react/common/stacks/EditGitSettings/EditGitSettingsModal.test.tsx`; `api/http/handler/stacks/stack_update_test.go`, `stack_file_test.go`, `stack_update_git_redeploy_test.go`, `stack_update_git_test.go` | |
+| REQ-STK-05 | partial | `api/http/handler/stacks/stack_start_test.go`: `TestStackStart_*` (6) | Stop (`POST /stacks/{id}/stop`) has no test. |
+| REQ-STK-06 | untested | none | |
+| REQ-STK-07 | direct | `react/docker/stacks/ItemView/StackInfoTab/StackDuplicationForm/**` (6 files incl. `useMigrateStackMutation`, `useDuplicateStackMutation`) | `POST /stacks/{id}/migrate` (handler) has no test. |
+| REQ-STK-08 | direct | `api/http/handler/stacks/stack_delete_test.go`: `TestStackDelete_*`, `TestDeleteExternalStack_*`, `TestStackDeleteKubernetesByName_*`; `api/stacks/teardown/teardown_test.go` | |
+| REQ-STK-09 | loose | `api/http/handler/stacks/webhook_invoke_test.go`: `TestHandler_webhookInvoke`; `react/docker/stacks/CreateView/CreateStackForm/CreateStackForm.webhook.test.tsx`; `react/docker/stacks/ItemView/StackEditorTab/StackEditorTab.webhook.test.tsx` | Spec says BE-only, but CE serves `POST /stacks/webhooks/{id}` and the CE UI sets webhook IDs; see C-01. Pull prevention and env vars are not checked. |
+| REQ-STK-10 | partial | `react/docker/stacks/ItemView/StackInfoTab/AssociateStackForm.test.tsx`, `useAssociateStackToEnvironmentMutation.test.tsx` | `PUT /stacks/{id}/associate` (handler) has no test. |
+
+### SWM – Docker Swarm
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-SWM-01 | loose | `pkg/snapshot/docker_test.go`: `TestCreateDockerSnapshot_SwarmNodeCount`, `TestDockerSnapshotNodes_CountAndResources` | Node counts in snapshots; the cluster and node pages have no test. |
+| REQ-SWM-02 | untested | none | |
+| REQ-SWM-03 | partial | `react/docker/services/ItemView/PortMappingField/toRequest.test.ts`, `toViewModel.test.ts`; `api/http/proxy/factory/docker/services_test.go`: `TestDecorateServiceCreationOperation_*` (21), `TestCheckServiceBodyRestrictions_BindVolumeOnOtherClusterNode`; `pkg/libstack/swarm/swarm_unit_test.go` | Port mapping and security checks; the create form has no test. |
+| REQ-SWM-04 | loose | `api/http/proxy/factory/docker/services_test.go`: `TestDecorateServiceUpdateOperation_VolumeWithBindDriverOptionForbidden` | |
+| REQ-SWM-05 | untested | none | |
+| REQ-SWM-06 | untested | none | |
+| REQ-SWM-07 | untested | none | |
+| REQ-SWM-08 | loose | `pkg/libstack/swarm/swarm_unit_test.go`: `Test_deployServices_forceRecreate` | Stack-level force recreate; `PUT /endpoints/{id}/forceupdateservice` and rollback have no test. |
+| REQ-SWM-09 | untested | none | `/webhooks` handlers have no test. |
+| REQ-SWM-10 | direct | `react/docker/configs/ListView/ConfigsDatatable/ConfigsDatatable.test.tsx`, `DeleteConfigButton.test.tsx`; `react/docker/configs/ListView/ListView.test.tsx`; `api/uac/configs_test.go` | Adding a config has no test. |
+| REQ-SWM-11 | loose | `api/uac/secrets_test.go`: `TestSecretResourceControlGetter` | |
+
+### TPL – Templates
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-TPL-01 | partial | `react/portainer/templates/app-templates/AppTemplatesListItem.test.tsx`; `…/DeployFormWidget/EnvVarsFieldset.test.tsx` | `GET /templates`, `POST /templates/{id}/file` and deploying as container or stack have no test. |
+| REQ-TPL-02 | untested | none | The templates URL appears only in store/marshal fixtures. |
+| REQ-TPL-03 | direct | `api/http/handler/customtemplates/*_test.go` (create from content/upload/repository, update, delete, file, inspect, list, git fetch; about 70 tests); `api/dataservices/customtemplate/*_test.go`; `react/components/CustomTemplateSelector.test.tsx`; `react/docker/stacks/CreateView/CreateStackForm/TemplateSection/*.test.ts*`; `react/portainer/templates/custom-templates/ListView/StackFromCustomTemplateFormWidget/useIsDeployable.test.tsx` | |
+| REQ-TPL-04 | loose | `api/http/handler/customtemplates/customtemplate_create_test.go`: `…_Variables`, `…_InvalidVariables`; `react/portainer/custom-templates/components/CustomTemplatesVariablesField/*.test.tsx`; `TemplateSection/useTemplateInitialization.test.ts` | Spec says BE-only, yet CE has variables with tests; see C-02. |
+
+### GIT – App Delivery
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-GIT-01 | direct | `api/gitops/workflows/*_test.go` (fetch, filter, mapping, status, delete, source artifacts); `api/http/handler/gitops/workflows/*_test.go` (list, get, fetch, filter, status, summary); `react/portainer/gitops/workflows/ItemView/ItemView.test.tsx`, `status.test.ts`; `react/portainer/gitops/GitReferenceCard.test.tsx` | |
+| REQ-GIT-02 | direct | `api/http/handler/gitops/sources/*_test.go` (create, update, delete, get, list, summary, source workflows, mapping); `api/dataservices/source/*_test.go`; `api/gitops/sources/*_test.go`; `api/gitops/scheduling/scheduler_test.go`; `react/portainer/gitops/sources/**` (10 files) | `PUT /gitops/sources/{id}/access` has no handler test. |
+| REQ-GIT-03 | untested | none | `POST /gitops/repo/file/preview` has no test. |
+
+### REG – Registries
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-REG-01 | direct | `api/http/handler/registries/*_test.go` (create, update, delete, configure, ping); `pkg/registryhttp/client_test.go`; `pkg/liboras/registry_test.go`; `api/aws/ecr/parse_endpoints_test.go`; `api/internal/registryutils/*_test.go`; `react/portainer/registries/CreateView/RegistryFormDockerhub/RegistryFormDockerhub.test.tsx`, `TestConnection/RegistryTestConnection.test.tsx` | Only the Docker Hub form has a UI test. |
+| REQ-REG-02 | BE-absent | none | |
+| REQ-REG-03 | direct | `api/http/handler/registries/registry_access_test.go`: `Test_RegistryAccess_*`; `api/http/handler/endpoints/endpoint_registry_access_test.go`: `TestApplyKubeRegistryAccess_*`; `react/portainer/registries/environments/ListView/EnvironmentRegistriesDatatable/EnvironmentRegistriesDatatable.test.tsx`; `react/kubernetes/cluster/RegistryAccessView/AccessTable.test.tsx`; `react/kubernetes/components/K8sRegistryAccessNotice.test.tsx` | |
+| REQ-REG-04 | BE-absent | `react/portainer/registries/repositories/ItemView/TagsDatatable/TagsDatatable.test.tsx`; `pkg/liboras/dummy_manifest_test.go`: `TestSafeDeleteTags` | CE has a tags table and tag deletion helper with tests; see C-12. |
+| REQ-REG-05 | untested | none | `GET /endpoints/{id}/dockerhub/{registryId}` and `--pull-limit-check-disabled` have no test. |
+
+### K8S – Kubernetes
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-K8S-01 | untested | none | |
+| REQ-K8S-02 | direct | `api/http/handler/websocket/shell_pod_test.go`: `TestWebsocketShellPodExec_*`, `TestSetPodExecTarget_overridesCallerSuppliedParams`; `react/kubernetes/cluster/KubectlShell/KubectlShellView.test.tsx`; `react/sidebar/KubernetesSidebar/KubectlShellButton.test.tsx` | |
+| REQ-K8S-03 | direct | `api/http/handler/kubernetes/config_test.go`: `TestBuildConfig_IssuesACredentialPerEnvironment`; `api/jwt/jwt_kubeconfig_test.go`; `api/kubernetes/kubeclusteraccess_service_test.go`; `react/portainer/HomeView/EnvironmentList/KubeconfigButton/KubeconfigPrompt.test.tsx`; `react/portainer/environments/ItemView/KubeConfigInfo/KubeConfigInfo.test.tsx` | |
+| REQ-K8S-04 | loose | `api/http/handler/customtemplates/customtemplate_create_test.go`: `…KubernetesTypeIgnoresPlatform`, `…KubernetesIgnoresPlatform` | The Kubernetes custom templates pages have no test. |
+| REQ-K8S-05 | direct | `api/http/handler/kubernetes/namespaces_test.go`; `api/http/proxy/factory/kubernetes/namespaces_test.go`: `TestProxyNamespaceDeleteOperation_*`; `api/kubernetes/cli/namespace_test.go`, `access_test.go`, `resource_quota_test.go`; `api/kubernetes/namespacecleanup/namespacecleanup_test.go`; `react/kubernetes/namespaces/ItemView/*.test.ts*` (4) | Creating a namespace has no test. |
+| REQ-K8S-06 | loose | `react/kubernetes/applications/components/NamespaceSelector/NamespaceSelector.test.tsx`; `react/kubernetes/applications/components/ApplicationSummarySection/utils.test.ts` | The application form as a whole has no test. |
+| REQ-K8S-07 | direct | `api/http/handler/kubernetes/manifest_dry_run_test.go`; `pkg/libkubectl/apply_dry_run_test.go`, `apply_dynamic_test.go`; `api/exec/kubernetes_deploy_test.go`: `TestExecuteKubectlOperation_*`; `api/http/handler/stacks/create_kubernetes_stack_test.go`; `api/kubernetes/yaml_test.go` | Deploy from URL has no test. |
+| REQ-K8S-08 | direct | `api/http/handler/helm/*_test.go` (7); `pkg/libhelm/**` (`sdk` install, upgrade, rollback, uninstall, history, show, search; some *(gated)*); `react/kubernetes/helm/**` (14 files) | |
+| REQ-K8S-09 | direct | `react/kubernetes/applications/DetailsView/**`, `ListView/**`, `StatsView/**`, `utils.test.ts`, `queries/useAppStackFile.test.tsx`; `api/kubernetes/cli/applications_test.go`, `pod_test.go`, `deployment_test.go`, `deployment_rollback_test.go`; `api/http/handler/kubernetes/pod_test.go`, `deployment_test.go`, `workload_write_test.go`; `api/http/handler/websocket/pod_test.go` | CE has scale and restart handlers with tests although the spec calls them BE-only; see C-03. |
+| REQ-K8S-10 | BE-absent | none | |
+| REQ-K8S-11 | loose | `api/http/handler/kubernetes/workload_write_test.go`: `TestDeleteKubernetesDeployment`; `api/http/handler/stacks/stack_delete_test.go`: `TestStackDeleteKubernetesByName_*` | Removing an application from the UI and detaching a volume have no test. |
+| REQ-K8S-12 | direct | `api/kubernetes/cli/ingress_test.go`, `service_test.go`; `api/http/handler/kubernetes/ingress_class_test.go`; `react/kubernetes/services/ServicesView/ServicesDatatable/ServicesDatatable.test.tsx` | Adding/removing ingresses through the UI has no test. |
+| REQ-K8S-13 | direct | `api/kubernetes/cli/configmap_test.go`, `secret_test.go`, `secret_write_test.go`; `api/http/handler/kubernetes/configuration_write_test.go`; `react/kubernetes/configs/**` (4) | |
+| REQ-K8S-14 | direct | `api/kubernetes/cli/persistent_volume_claims_test.go`, `persistent_volumes_test.go`, `storage_classes_test.go`, `volumes_test.go`; `react/kubernetes/volumes/ListView/*.test.tsx` (5) | |
+| REQ-K8S-15 | BE-absent | `pkg/snapshot/kubernetes_test.go`: `TestKubernetesSnapshotNodes*GPU*` | GPU counting in snapshots exists in CE. |
+| REQ-K8S-16 | partial | `api/kubernetes/cli/cronjob_test.go`, `job_test.go`, `service_account_test.go`; `api/http/handler/kubernetes/service_accounts_test.go`; `react/kubernetes/more-resources/**` (5) | Cluster roles/bindings and roles/bindings have no test. |
+| REQ-K8S-17 | direct | `api/kubernetes/cli/nodes_test.go`, `nodes_limits_test.go`; `api/http/handler/kubernetes/node_test.go`, `drain_node_payload_test.go`; `pkg/libkubectl/drain_test.go`, `agent_failover_test.go`; `react/kubernetes/cluster/**` (10) | |
+| REQ-K8S-18 | untested | none | `api/kubernetes/cli/metrics_test.go` (`TestFeatureGateEnabled`) is not the setup page. |
+| REQ-K8S-19 | BE-absent | none | |
+| REQ-K8S-20 | partial | `api/cli/cli_test.go`: `TestParseKubectlShellImageFlag`; `api/cmd/portainer/main_test.go`: `TestUpdateSettingsFromFlags_KubectlShellImage`; `pkg/libhelm/validate_repo_test.go` | Kubeconfig expiry and deployment options have no test. Limits: L-04. |
+| REQ-K8S-21 | BE-absent | none | |
+
+### ACI – Azure Container Instances
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-ACI-01 | partial | `react/portainer/environments/ItemView/AzureEnvironmentForm/AzureEnvironmentForm.test.tsx`, `AzureEndpointConfigSection/AzureEndpointConfigSection.test.tsx` | Editing only; creating the environment has no test. |
+| REQ-ACI-02 | direct | `react/azure/DashboardView/DashboardView.test.tsx`; `react/azure/container-instances/CreateView/CreateContainerInstanceForm.test.tsx`; `react/azure/services/container-groups.service.test.ts`; `react/sidebar/AzureSidebar/AzureSidebar.test.tsx`; `api/internal/snapshot/snapshot_test.go`: `TestSnapshotEndpointTx_AzureEnvironment_NoOp` | View and remove have no test. |
+
+### EDGE – Edge Compute
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-EDGE-01 | direct | `api/cli/cli_test.go`: `TestParseEdgeFlags`, `TestValidateEdgePortainerURL`, `TestOptionParser`; `api/cmd/portainer/main_test.go`: `TestUpdateSettingsFromFlags_EdgeCompute`; `react/portainer/init/InitEdgeView/InitEdgeView.test.tsx` | The `#!/settings/edge` page has no test. |
+| REQ-EDGE-02 | direct | `api/http/handler/endpointedge/*_test.go`; `api/chisel/service_test.go`; `api/http/handler/endpoints/endpoint_create_global_key_test.go`: `TestEmptyGlobalKey`; `pkg/edge/utils_test.go`; `pkg/endpoints/utils_test.go`; `react/portainer/environments/ItemView/EdgeEnvironmentForm/*`, `EdgeInformationPanel/*`, `EdgeAgentDeploymentWidget/*`; `react/portainer/environments/common/EdgeIntervalsFieldset/*` | Async mode is tested in CE though the spec calls it BE-only; see C-04. |
+| REQ-EDGE-03 | partial | `react/edge/components/EdgeScriptForm/scripts.test.ts` (+ snapshot) | Script generation; the `#!/endpoints/aeec` page has no test. |
+| REQ-EDGE-04 | untested | none | |
+| REQ-EDGE-05 | direct | `api/http/handler/edgegroups/*_test.go` (5); `api/dataservices/endpointrelation/*_test.go`; `api/internal/edge/endpoint_test.go`; `api/datastore/migrator/migrate_2_33_test.go`; `api/http/handler/endpoints/filter_test.go`: `TestFilterEndpointsByEdgeGroup` | No UI test. |
+| REQ-EDGE-06 | direct | `api/http/handler/edgestacks/*_test.go` (create, delete, inspect, status update, update); `api/internal/edge/edgestacks/*_test.go`; `api/dataservices/edgestack/*_test.go`; `react/edge/edge-stacks/**` (7) | |
+| REQ-EDGE-07 | direct | `api/http/handler/edgejobs/*_test.go`; `api/http/handler/endpointedge/endpointedge_job_logs_test.go`; `endpointedge_status_inspect_test.go`: `TestEdgeJobsResponse` | No UI test. |
+| REQ-EDGE-08 | partial | `react/edge/edge-stacks/CreateView/tests/app-templates.test.tsx`, `custom-templates.test.tsx`; `CreateView/TemplateFieldset/*.test.tsx`; `api/http/handler/customtemplates/customtemplate_create_test.go`: `TestCustomTemplateCreate_FromFileContent_EdgeTemplate` | Using templates in an Edge stack; the Edge templates pages have no test. |
+| REQ-EDGE-09 | BE-absent | none | |
+| REQ-EDGE-10 | BE-absent | `api/cli/cli_test.go`: `TestParseEdgeFlags` (`--edge-trust-on-first-connect`) | |
+| REQ-EDGE-11 | BE-absent | `react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentCard.test.tsx` ("Browse snapshot button", partly a TODO) | |
+
+### SET – Global settings
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-SET-01 | partial | `api/http/handler/settings/settings_public_test.go`; `api/datastore/datastore_test.go`: `TestStoreFull/Settings`; `api/datastore/migrate_dbversion29_test.go`: `TestMigrateSettings`; `api/cmd/portainer/main_test.go`: `TestUpdateSettingsFromFlags_*`; `react/sidebar/Header.test.tsx` (custom logo); `react/portainer/settings/SettingsView/SettingsView.test.tsx` | `PUT /settings` (handler validation) has no test. Limits: L-03, L-05. |
+| REQ-SET-02 | untested | none | Hidden labels appear only in marshal fixtures. |
+| REQ-SET-03 | direct | `pkg/libhttp/ssrf/ssrf_test.go` (17); `api/git/protocols_test.go`: `TestInstallSSRFProtocols`; `api/stacks/stackutils/validation_test.go`: `TestValidateComposeURLs_*`; `pkg/libhelm/sdk/ssrf_policy_test.go` | The settings UI has no test. Default mode is C-05. |
+| REQ-SET-04 | loose | `api/datastore/datastore_test.go`: `TestStoreFull/SSL Settings`; `api/cli/cli_test.go`: `TestParseTLSFlags` | `GET/PUT /ssl` and `POST /upload/tls/{certificate}` have no test. |
+| REQ-SET-05 | BE-absent | `react/portainer/settings/SettingsView/SettingsView.test.tsx`: "should NOT render ExperimentalFeatures component in CE edition" | Checks CE absence. |
+| REQ-SET-06 | BE-absent | `react/sidebar/SettingsSidebar.test.tsx`: "should not render Shared Credentials in CE" | Checks CE absence. |
+| REQ-SET-07 | BE-absent | none | |
+| REQ-SET-08 | partial | `api/motd/service_test.go` (5) | Service cache; `GET /motd` and the home-screen banner have no test. |
+
+### BKP – Backup and restore
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-BKP-01 | direct | `api/http/handler/backup/backup_test.go`; `api/backup/backup_test.go`: `TestCreateBackupArchive_*`, `TestEncryptDecrypt_*`, `Test_backupDb_timesOutWhenBackupToHangs`; `api/datastore/backup_test.go`; `api/archive/*_test.go` | The settings page has no test. Limits: L-07. |
+| REQ-BKP-02 | direct | `api/http/handler/backup/restore_test.go`: `Test_restoreArchive_*`, `Test_restore_setupTokenGate`; `api/backup/backup_test.go`: `TestRestoreArchive_*`, `TestGetRestoreSourcePath_*`; `api/archive/targz_test.go`: `TestExtractTarGzPathTraversal`; `api/http/offlinegate/offlinegate_test.go` | The restore option on `#!/init/admin` has no test. Limits: L-06, L-08. |
+| REQ-BKP-03 | BE-absent | `react/portainer/HomeView/BackupFailedPanel.test.tsx` | CE shows a "backup failed" panel with a test (its second test name is copied from the license test); see C-12. |
+
+### LOG – Logs and notifications
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-LOG-01 | BE-absent | `react/sidebar/SettingsSidebar.test.tsx`: "should render logs submenu items" | Sidebar entries only. |
+| REQ-LOG-02 | BE-absent | same as LOG-01 | |
+| REQ-LOG-03 | BE-absent | none | |
+| REQ-LOG-04 | loose | `portainer/services/notifications.test.ts`; `react/sidebar/SettingsSidebar.test.tsx`: "should render notifications …" | Toast helpers and the sidebar link; the history page, search/remove and the 50-item bell limit (`NotificationsMenu.tsx`) have no test. Limits: L-09. |
+| REQ-LOG-05 | direct | `api/logs/log_test.go`: `TestSetLoggingLevel_*`, `TestSetLoggingMode_*` | Flag-to-logger wiring in `main` is not checked. |
+
+### ALR – Alerting and recommendations
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-ALR-01 | BE-absent | `pkg/libprometheus/*_test.go` (config, rules, scrape) | CE ships a Prometheus/Alertmanager library with tests; see C-12. |
+| REQ-ALR-02 | BE-absent | none | |
+
+### LIC – Licensing and Business Edition
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-LIC-01 | BE-absent | `react/portainer/licenses/license.service.test.ts`; `react/portainer/HomeView/LicenseNodePanel.test.tsx`; `react/sidebar/SettingsSidebar.test.tsx`: "should not render Licenses sidebar item in CE" | CE has the license client and a node-limit panel with tests. |
+| REQ-LIC-02 | untested | none | `app/react/sidebar/UpgradeBEBanner` and `POST /system/upgrade` have no test. |
+| REQ-LIC-03 | partial | `react/sidebar/Footer/Footer.test.tsx` (CE vs BE footer); `api/http/handler/system/version_test.go`: `Test_getSystemVersion/Display Edition`; `react/portainer/settings/SettingsView/SettingsView.test.tsx`; `react/sidebar/SettingsSidebar.test.tsx` (CE hides Licenses, Shared Credentials); `react/docker/containers/ItemView/ContainerStatusSection/NameRow.test.tsx` ("(CE)") | Several CE/BE switches are checked; the BE feature indicators and upsell pages from `feature-flags/enums.ts` have no test. |
+
+### API – REST API and automation
+
+| ID | Status | Tests | Notes |
+|----|--------|-------|-------|
+| REQ-API-01 | untested | none | Nothing checks that the swagger/OpenAPI files match the routes; see C-06. |
+| REQ-API-02 | direct | `api/http/security/bouncer_test.go`: `Test_extractAPIKeyHeader`, `Test_apiKeyLookup`, `Test_mwAuthenticateFirst_rejectsBothAPIKeyAndBearerToken`, `TestTokenScope_*`; `api/apikey/*_test.go`; `api/jwt/*_test.go` | |
+| REQ-API-03 | external | none | Terraform provider is a separate project. |
+| REQ-API-04 | external | none | MCP server is a separate project. |
+
+## Resource limits
+
+Inputs and config values that drive allocation or resource use, found while mapping. The "Observed in code" column is what the code does today (file and line read on 2026-11-09). None of these values is in the spec except the 50-item bell limit in REQ-LOG-04. The agent did not decide any of them. One limit is enforced and tested in code and is proposed as a deduced requirement for the user to accept; all others are listed below and are open clarifications L-01 to L-14 in "Clarifications during tests".
+
+### Proposed (deduced from code, waiting for the user)
+
+| ID | Requirement | Source | Existing tests | Status |
+|----|-------------|--------|----------------|--------|
+| REQ-DED-01 | The Git automatic-update polling interval must be a valid duration of at least 1 minute. A shorter or malformed interval is rejected with 400 "interval must be at least 1 minute" / "invalid Interval format"; no upper bound. Relates to REQ-STK-03 and REQ-GIT-02. | `api/git/update/validate.go` (`d < time.Minute`); UI `app/react/portainer/gitops/sources/components/IntervalField.tsx` | `api/git/update/validate_test.go`: `Test_ValidateAutoUpdate` ("short interval value" `1s`, "incorrect interval value"); `react/portainer/gitops/sources/components/IntervalField.test.ts` | proposed, not accepted (C-13) |
+
+### Observed limits without a requirement
+
+| Clarification | Input | REQ | Observed in code | Above the limit today |
+|---------------|-------|-----|------------------|------------------------|
+| L-01 | Admin setup timeout | AUTH-01 | 5 min, hard-coded (`adminmonitor.New(5*time.Minute, …)` in `api/http/server.go`) | Instance is disabled; UI redirect with reason `AdminInitTimeout` |
+| L-02 | Session lifetime | AUTH-07 | default `8h` (`DefaultUserSessionTimeout`); any value `time.ParseDuration` accepts, including `0` and negative | not bounded |
+| L-03 | Snapshot interval | ENV-12, SET-01, SRV-04 | default `5m`; `--snapshot-interval` and `PUT /settings` accept any parseable duration | not bounded |
+| L-04 | Kubeconfig expiry | K8S-20 | default `0` (no expiry); any parseable duration | not bounded |
+| L-05 | Edge agent check-in interval | SET-01, EDGE-01 | default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`); integer, no validation in `settings_update.go` | not bounded |
+| L-06 | Multipart file uploads read into memory | BKP-02, STK-02, TPL-03, SET-04 | `pkg/libhttp/request.RetrieveMultiPartFormFile` reads the whole file with `io.ReadAll`; no size cap | memory grows with the upload |
+| L-07 | Backup timeout | BKP-01 | `PORTAINER_BACKUP_TIMEOUT`, default 1 h (`api/filesystem/copy.go`); invalid value falls back to default | backup aborts |
+| L-08 | Request wait while the store is locked (restore) | BKP-02 | 1 min (`offlineGate.WaitingMiddleware(time.Minute, …)`) | request fails |
+| L-09 | Notification history size | LOG-04 | bell shows 50 (`NotificationsMenu.tsx`, stated in the spec); the stored history itself has no bound found | history keeps growing |
+| L-10 | Container log line count | CTR-10 | UI default 100 lines (`containerLogsController.js`); user-editable, no maximum found | Docker returns that many lines |
+| L-11 | Image build upload | IMG-03 | multipart parsed with 32 MB in memory, rest spilled to temp files (`api/http/proxy/factory/docker/build.go`); no total cap | disk grows with the upload |
+| L-12 | Authentication rate limit | AUTH-03, AUTH-09, AUTH-11 | 10 requests per 1 s per client IP, then banned for 1 h (`NewRateLimiter(10, time.Second, time.Hour, …)`), on `POST /auth`, OAuth validate, password change, token creation | 403 "Access denied" |
+| L-13 | Minimum password length | AUTH-01, AUTH-03, AUTH-09 | default 12 (`api/datastore/init.go`), configurable in `PUT /settings`; no bound on the setting found | password rejected |
+| L-14 | Other caches and batches | SRV-04, AUTH-11, GIT-02, STK-02 | `--max-batch-size` 1000, `--max-batch-delay` 20 ms, `--initial-mmap-size` unset; API key cache 1,024 entries (LRU); Git repository cache 4 entries, 5 min TTL; compose `COMPOSE_PARALLEL_LIMIT` (0 = unlimited); list pagination `limit=0` returns all items, no maximum page size | not bounded / evicted |
+
+Phase C writes the boundary tests (at, just inside, just over, zero or negative, overflow) only for limits the user has accepted.
+
+## Clarifications during tests
+
+Questions raised while mapping. The user decides; an empty Decision means open. Commit is the commit that records the decision in the spec or here.
+
+| No. | Requirement | Question | Decision | Commit |
+|-----|-------------|----------|----------|--------|
+| C-01 | REQ-STK-09 | The spec marks stack webhooks as BE-only, but CE serves `POST /stacks/webhooks/{id}` and the CE create/edit forms set webhook IDs for editor and Git stacks (tests in `webhook_invoke_test.go`, `CreateStackForm.webhook.test.tsx`, `StackEditorTab.webhook.test.tsx`). Is the stack webhook a CE requirement (and only pull prevention and environment variables BE-only), or should REQ-STK-09 stay BE-only? | | |
+| C-02 | REQ-TPL-04, REQ-K8S-04 | The spec marks template variables as BE-only, but CE creates, validates and fills custom template variables (tests in `customtemplate_create_test.go`, `CustomTemplatesVariablesField`, `useTemplateInitialization`). Are template variables a CE requirement? | | |
+| C-03 | REQ-K8S-09 | The spec says scaling and rolling restart of Kubernetes applications are BE-only, but CE has scale, patch, rollback and pod restart handlers with tests (`workload_write_test.go`, `pod_test.go`). Which of these are CE requirements? | | |
+| C-04 | REQ-EDGE-02 | The spec says Edge async mode is BE-only, but CE renders and tests async interval fields and async agent scripts (`EdgeEnvironmentForm`, `EdgeIntervalsFieldset`, `scripts.test.ts`). Is async mode in CE scope? | | |
+| C-05 | REQ-SET-03 | The SSRF protection has an enforcing and an audit mode and covers Git, Helm, compose URLs and the proxy dialer. Which default (off, audit, enforce) and which destinations are the requirement? | | |
+| C-06 | REQ-API-01 | "All UI functions are available over the REST API, described by OpenAPI/Swagger" cannot be checked by a unit test as written. Should it become a check that `api/docs/openapi.yaml` lists every registered route, or stay documentation-only (untested by design)? | | |
+| C-07 | REQ-USR-05 | CE assigns built-in roles in environment access policies and resolves them by priority (`pkg/authorization`). Is "built-in roles in access policies" a CE requirement separate from the BE role editor? | | |
+| C-08 | REQ-SRV-02, REQ-SRV-03, REQ-AUTH-14, REQ-API-03, REQ-API-04 | These describe things outside this repository (install guides, the Agent, the reset-password helper, Terraform, the MCP server). Should they stay in the spec as untestable here, or move to a "not tested in this repo" status? | | |
+| C-09 | REQ-AUTH-03 | The login handler (`POST /auth`) has no test. Is the expected behaviour on a wrong password, unknown user and disabled internal auth (status codes and messages) what the code does today, so phase C can pin it, or does the user want different behaviour? | | |
+| C-10 | REQ-USR-01 | `api/http/handler/users/user_update_test.go` `Test_updateUserRemovesAccessTokens` tests deleting a user, not updating one. Should an update of a user (for example a role change) remove the user's access tokens, as the test name suggests? | | |
+| C-11 | REQ-LOG-04 | Where is the notification history stored, and should it be bounded (see L-09)? | | |
+| C-12 | REQ-AUTH-05, REQ-IMG-08, REQ-REG-04, REQ-BKP-03, REQ-ALR-01, REQ-LIC-01 | CE contains code and tests for features the spec calls BE-only (AD settings parser, image up-to-date status, registry tag table, backup-failed panel, Prometheus/Alertmanager library, license client and node panel). Keep them as BE-absent in the test spec (no CE tests planned), or treat the CE parts as requirements? | | |
+| C-13 | REQ-DED-01 | Accept the deduced requirement REQ-DED-01 (Git polling interval at least 1 minute, no maximum)? If accepted, should it get an upper bound? | | |
+| L-01 | REQ-AUTH-01 | Keep the 5-minute admin setup timeout as the requirement, make it configurable, or change it? | | |
+| L-02 | REQ-AUTH-07 | Minimum and maximum session lifetime? What should happen for `0` or a negative value? | | |
+| L-03 | REQ-ENV-12, REQ-SET-01 | Minimum (and maximum) snapshot interval? What should happen for `0`, negative or very short values? | | |
+| L-04 | REQ-K8S-20 | Minimum and maximum kubeconfig expiry; is `0` = never the requirement? | | |
+| L-05 | REQ-SET-01, REQ-EDGE-01 | Valid range of the Edge agent check-in interval? | | |
+| L-06 | REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04 | Maximum size of uploaded files (restore archive, stack file, `.env`, template file, TLS file), and the response above it (for example 413)? | | |
+| L-07 | REQ-BKP-01 | Keep the 1-hour backup timeout and the `PORTAINER_BACKUP_TIMEOUT` override as the requirement? Valid range? | | |
+| L-08 | REQ-BKP-02 | Keep the 1-minute wait for requests while a restore holds the store? | | |
+| L-09 | REQ-LOG-04 | Besides the 50 items behind the bell (in the spec), how many notifications should the history keep? | | |
+| L-10 | REQ-CTR-10 | Default and maximum number of log lines fetched? | | |
+| L-11 | REQ-IMG-03 | Maximum build-context upload size? | | |
+| L-12 | REQ-AUTH-03, REQ-AUTH-09, REQ-AUTH-11 | Keep 10 requests per second per client and a 1-hour ban as the authentication rate limit? | | |
+| L-13 | REQ-AUTH-03, REQ-AUTH-09 | Valid range of the configurable minimum password length (default 12)? | | |
+| L-14 | REQ-SRV-04, REQ-AUTH-11, REQ-GIT-02, REQ-STK-02, REQ-ENV-01 | Should the DB batch size/delay, API key cache size, Git repository cache, compose parallel limit and the maximum list page size become requirements with limits, or stay implementation details? | | |
+
+## Behaviour without a requirement ID (backwards compatibility)
+
+Observed behaviour that existing tests pin but that no requirement states. It is not promoted to a product requirement. Phase C puts tests for it in the "Backwards compatibility tests" section and labels them as such; none are written yet.
+
+### Backwards compatibility tests
+
+To be filled in phase C. Candidates found while mapping:
+
+- Database migrations per version (`api/datastore/migrate_*_test.go`, `api/datastore/migrator/*_test.go`, `api/datastore/postinit`, `api/datastore/pendingactions_test.go`).
+- Deprecated API routes and their redirects (`api/http/middlewares/deprecated_test.go`).
+- List query parameters: search, sort, pagination and filter semantics, including `limit=0` (`api/http/utils/filters/*_test.go`, `pkg/libhttp/request/*_test.go`, `react/common/api/common.test.ts`).
+- Agent request signing and the FIPS mode switch (`*_SignsOnlyOutsideFIPSMode`, `*_FIPSModeNeverCreatesSignature` in `api/docker/client`, `api/http/proxy/factory/**`, `api/http/handler/websocket`, `api/kubernetes/cli`; `pkg/fips`).
+- Rejecting encoded path separators in the Docker proxy (`TestTransport_ProxyDockerRequest_rejectsEncodedSeparator`, `pkg/libhttp/request/docker_version_test.go`).
+- Archive path traversal and symlink rejection (`api/archive/targz_test.go`: `TestExtractTarGzPathTraversal`; `api/git/git_test.go`: `Test_noSymlinkFS_*`, `Test_Download_RejectsSymlink`).
+- Kubeconfig token scope confined to the Kubernetes proxy (`api/http/security/bouncer_test.go`: `TestTokenScope_*`; `api/jwt/jwt_scope_test.go`).
+- Local-request check (`pkg/libhttp/localcheck_test.go`).
+- Pending actions run after restart (`api/pendingactions/**`).
+- Panic recovery and HTTP logging (`api/http/middlewares/panic_logger_test.go`, `api/http/logger_test.go`).
+- Error-response parsing in the client (`react/portainer/services/axios/utils/defaultAxiosParser.test.ts`).
+- Login redirect handling (`returnUrl`) (`portainer/views/auth/authController.test.js`).
+- Generic UI components without a feature (`react/components/**` such as buttons, datatables, form components, page header, command palette).
+- Generic helpers (`api/slicesx`, `api/set`, `api/roar`, `api/concurrent`, `pkg/retry`, `pkg/schedule`, `pkg/librand`, `api/internal/randomstring`, `react/utils`, `react/common/*-utils`).

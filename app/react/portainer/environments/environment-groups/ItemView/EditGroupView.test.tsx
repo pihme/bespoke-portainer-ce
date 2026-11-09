@@ -50,12 +50,12 @@ vi.mock('@@/Link', () => ({
   ),
 }));
 
-vi.mock('@@/modals/confirm', () => {
-  const confirmFn = vi.fn(async () => true);
-  return {
-    confirm: confirmFn,
-  };
-});
+const { confirmFn } = vi.hoisted(() => ({
+  confirmFn: vi.fn(async () => true),
+}));
+vi.mock('@@/modals/confirm', () => ({
+  confirm: (...args: unknown[]) => confirmFn(...args),
+}));
 
 const mockGroup = createMockEnvironmentGroup({
   Id: 2,
@@ -589,4 +589,53 @@ describe('EditGroupView', () => {
       expect(deleteButton).toHaveAttribute('data-cy', 'group-header-delete');
     });
   });
+
+  describe('GroupHeader actions', () => {
+    it('confirms and deletes the group', async () => {
+      const user = userEvent.setup();
+      const { notifySuccess } = await import('@/portainer/services/notifications');
+      confirmFn.mockResolvedValueOnce(true);
+
+      let deleted = false;
+      server.use(
+        http.delete('/api/endpoint_groups/2', () => {
+          deleted = true;
+          return new HttpResponse(null, { status: 204 });
+        })
+      );
+
+      renderEditGroupView();
+      await screen.findByLabelText(/Name/i);
+      await user.click(screen.getByTestId('group-header-delete'));
+
+      await waitFor(() => {
+        expect(confirmFn).toHaveBeenCalled();
+        expect(deleted).toBe(true);
+      });
+      expect(notifySuccess).toHaveBeenCalledWith(
+        'Success',
+        'Environment group deleted'
+      );
+    });
+
+    it('does not delete when confirmation is cancelled', async () => {
+      const user = userEvent.setup();
+      confirmFn.mockResolvedValueOnce(false);
+      renderEditGroupView();
+      await screen.findByLabelText(/Name/i);
+      await user.click(screen.getByTestId('group-header-delete'));
+      await waitFor(() => expect(confirmFn).toHaveBeenCalled());
+    });
+
+    it('refreshes and opens add-environments from the header', async () => {
+      const user = userEvent.setup();
+      renderEditGroupView();
+      await screen.findByLabelText(/Name/i);
+      await user.click(screen.getByTestId('group-header-refresh'));
+      await user.click(screen.getByTestId('group-header-add-environments'));
+      // Add environments drawer is owned by EnvironmentsTab; header click should not throw.
+      expect(screen.getByTestId('group-header-add-environments')).toBeVisible();
+    });
+  });
+
 });

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 
 import { server } from '@/setup-tests/server';
@@ -141,6 +142,44 @@ describe('calculateCpuPercent', () => {
 
     expect(calculateCpuPercent(idleStats)).toBe(0);
   });
+  it('computes Windows CPU percent when possIntervals > 0', () => {
+    const windowsStats = new ContainerStatsViewModel({
+      read: '2024-01-01T00:00:01.000Z',
+      preread: '2024-01-01T00:00:00.000Z',
+      num_procs: 2,
+      cpu_stats: {
+        cpu_usage: { total_usage: 2000000 },
+        system_cpu_usage: 0,
+      },
+      precpu_stats: {
+        cpu_usage: { total_usage: 1000000 },
+        system_cpu_usage: 0,
+      },
+      memory_stats: { privateworkingset: 1024 },
+    });
+
+    expect(windowsStats.isWindows).toBe(true);
+    // deltaUsage=1000000, possIntervals=2*(1000)=2000 → 1000000/(2000*100)=5
+    expect(calculateCpuPercent(windowsStats)).toBe(5);
+  });
+
+  it('returns 0 for Windows when possIntervals is not positive', () => {
+    const windowsStats = new ContainerStatsViewModel({
+      read: '2024-01-01T00:00:00.000Z',
+      preread: '2024-01-01T00:00:00.000Z',
+      num_procs: 0,
+      cpu_stats: {
+        cpu_usage: { total_usage: 2000000 },
+      },
+      precpu_stats: {
+        cpu_usage: { total_usage: 1000000 },
+      },
+      memory_stats: { privateworkingset: 1024 },
+    });
+
+    expect(calculateCpuPercent(windowsStats)).toBe(0);
+  });
+
 });
 
 describe('StatsView', () => {
@@ -229,4 +268,37 @@ describe('StatsView', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('updates the refresh rate when the select changes', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderComponent();
+
+    const select = screen.getByRole('combobox', { name: /refresh rate/i });
+    await user.selectOptions(select, '10');
+    expect(select).toHaveValue('10');
+  });
+
+  it('renders Docker process rows from the top endpoint', async () => {
+    server.use(
+      http.get('/api/endpoints/1/docker/containers/container1/top', () =>
+        HttpResponse.json({
+          Titles: ['UID', 'PID', 'CMD'],
+          Processes: [
+            ['root', '1', 'nginx'],
+            ['root', '2', 'nginx-worker'],
+          ],
+        })
+      )
+    );
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('nginx')).toBeInTheDocument();
+    });
+    expect(screen.getByText('nginx-worker')).toBeInTheDocument();
+    expect(screen.getByText('UID')).toBeInTheDocument();
+    expect(screen.getByText('PID')).toBeInTheDocument();
+  });
+
 });

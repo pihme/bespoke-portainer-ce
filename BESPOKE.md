@@ -364,6 +364,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-281 | Close Priority work on `app/react/docker/images` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 14.3 % → 73.8 % (6 → 31 of 42; +25). Deferred-within-package: GitHub/GitLab/Quay registry URI builders. Package left at 73.8 % (31 of 42; 11 missed). | Preferred images parent covered; registry URI builders deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-282 | Close Priority work on `CreateStackForm` (updated after late fe-batch-244 commits `bacef9f9d`/`6f651be50`). Top-level-only isolated: 77.0 % → 78.4 % (57 → 58 of 74; +1). Deferred-within-package: Swarm payload arms + Edge relative-path settings; upload submit still `it.todo` (jsdom/file); thin InnerForm webhook callback. Package left at 78.4 % (58 of 74; 16 missed). | Preferred CreateStackForm covered; Swarm/Edge deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-283 | Close Priority work on `WizardDocker/SocketTab`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 100 % (17 of 17; +0; existing tests; no new test commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (17 of 17; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-284 | Close Priority work on `SSLSettingsPanel`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 27 of 27; +27). Leftovers: none. Deferred-within-package: none. Package left at 100 % (27 of 27; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -735,6 +736,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. Merged late `2-covered-parallel-fe-batch-244` commits (`bacef9f9d`, `6f651be50`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-278: update Priority CommandPalette close numbers. Isolated 67.9 % → 71.4 % (38 → 40 of 56; +2). KEEP CommandPalette.tsx 100 %. Stories deferred. Do not grind further.
 - 2026-11-09. COV-282: update Priority CreateStackForm close numbers. Top-level-only isolated 77.0 % → 78.4 % (57 → 58 of 74; +1). Deferred Swarm/Edge relative-path. Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-276` (`4dcfbc4c6`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-284: close Priority work on SSL settings panel. Parallel isolated 0 % → 100 % (0 → 27 of 27; +27). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

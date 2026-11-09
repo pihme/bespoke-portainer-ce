@@ -423,6 +423,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-340 | Close Priority work on `EnvironmentGroupsTable`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 88.5 % → 98.1 % (46 → 51 of 52; +5). Leftovers: Manage-access `stopPropagation` (user/access UI). Deferred-within-package: none material. Package left at 98.1 % (51 of 52; 1 missed). | Preferred EnvironmentGroupsTable covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-341 | Close Priority work on `environment-groups/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 65.5 % (0 → 38 of 58; +38). Deferred-within-package: `useGroupAccesses` + `useUpdateGroupAccessMutation` (~19 stmts, user-access); thin `useGroup` undefined mid-flight leftover 1; KEEP ~38/39. Package left at 65.5 % (38 of 58; 20 missed). | Preferred environment-groups queries covered; user-access deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-342 | Close Priority work on Angular `BoxSelector` (not `app/react/components/BoxSelector`). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-343 | Close Priority work on `DropdownMenu`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 53.3 % → 66.7 % (8 → 10 of 15; +2). KEEP 10/10; stories deferred 0/5. Package left at 66.7 % (10 of 15; 5 missed). | Preferred DropdownMenu covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -856,6 +857,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-340: close Priority work on EnvironmentGroupsTable. Parallel isolated 88.5 % → 98.1 % (46 → 51 of 52; +5). Thin Manage-access leftover. Do not grind further.
 - 2026-11-09. COV-341: close Priority work on environment-groups queries. Parallel isolated 0 % → 65.5 % (0 → 38 of 58; +38). Deferred useGroupAccesses/useUpdateGroupAccessMutation. Do not grind further.
 - 2026-11-09. COV-342: close Priority work on Angular BoxSelector. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
+- 2026-11-09. COV-343: close Priority work on DropdownMenu helpers. Parallel isolated 53.3 % → 66.7 % (8 → 10 of 15; +2). KEEP 10/10. Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

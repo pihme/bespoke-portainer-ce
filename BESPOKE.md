@@ -358,6 +358,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-275 | Close Priority work on `environments/utils`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 61.9 % (0 → 39 of 63; +39; after-measure included svg assets). Deferred-within-package: k8s/edge/azure/podman. Package left at 61.9 % (39 of 63; 24 missed). | Preferred environment utils covered; k8s/edge/azure/podman deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-276 | Close Priority work on `HiddenContainersPanel`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 100 % (0 → 23 of 23; +23). Leftovers: none. Deferred-within-package: none. Package left at 100 % (23 of 23; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-277 | Close Priority work on `app/portainer/react/components` (top-level). Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 64.7 % (0 → 11 of 17; +11). Deferred-within-package: auth/users/registries/rbac/account/settings-auth. Package left at 64.7 % (11 of 17; 6 missed). | Preferred react component bridges covered; auth/users/registries deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-278 | Close Priority work on `CommandPalette`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 95.0 % (38 of 40; +0; no new test commit). Leftovers: thin lines 39/42. Deferred-within-package: none. Package left at 95.0 % (38 of 40; 2 missed). | Preferred CommandPalette covered; thin leftovers. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -720,6 +721,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-275: close Priority work on environment utils. Parallel isolated 0 % → 61.9 % (0 → 39 of 63; +39). Deferred k8s/edge/azure/podman. Do not grind further.
 - 2026-11-09. COV-276: close Priority work on HiddenContainersPanel. Parallel isolated 0 % → 100 % (0 → 23 of 23; +23). Do not grind further.
 - 2026-11-09. COV-277: close Priority work on react component bridges. Parallel isolated 0 % → 64.7 % (0 → 11 of 17; +11). Deferred auth/users/registries/rbac/account/settings-auth. Do not grind further.
+- 2026-11-09. COV-278: close Priority work on CommandPalette. Parallel isolated remains 95.0 % (38 of 40; +0). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

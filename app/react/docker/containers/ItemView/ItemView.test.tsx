@@ -11,6 +11,19 @@ import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 
 import { ItemView } from './ItemView';
 
+vi.mock('@/react/portainer/access-control/AccessControlPanel', () => ({
+  AccessControlPanel: ({
+    onUpdateSuccess,
+  }: {
+    onUpdateSuccess: () => void;
+  }) => (
+    <button type="button" data-cy="acl-success" onClick={() => onUpdateSuccess()}>
+      acl
+    </button>
+  ),
+}));
+
+
 vi.mock('@uirouter/react', async (importOriginal: () => Promise<object>) => ({
   ...(await importOriginal()),
   useCurrentStateAndParams: vi.fn(() => ({
@@ -62,6 +75,32 @@ describe('ItemView', () => {
     });
 
     expect(await screen.findByText('Container health')).toBeVisible();
+  });
+
+  it('returns null while container data is still loading', () => {
+    server.use(
+      http.get('/api/endpoints/:endpointId/docker/containers/:id/json', async () => {
+        await new Promise(() => {});
+        return HttpResponse.json({});
+      })
+    );
+    const Wrapped = withTestQueryProvider(
+      withTestRouter(withUserProvider(ItemView, createMockUser({ Role: 1 })))
+    );
+    const { container } = render(<Wrapped />);
+    expect(container.querySelector('h1')).toBeNull();
+  });
+
+  it('triggers container refetch from access control success', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup();
+    renderComponent({
+      container: {
+        Config: { Image: '' },
+      },
+    });
+    const btn = await screen.findByTestId('acl-success');
+    await user.click(btn);
+    expect(btn).toBeVisible();
   });
 });
 

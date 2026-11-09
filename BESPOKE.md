@@ -229,6 +229,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-146 | Close Priority work on `api/http/proxy/factory/github`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): client_test.go (10). Isolated remasure: 0 % → 93.5 % (0 → 29 of 31; +29). Leftovers: Body.Close / ReadAll errors. Deferred-within-package: none. Package left at 93.5 % (29 of 31; 2 missed). | Preferred GitHub proxy client covered; leftovers thin. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-147 | Close Priority work on `api/pendingactions/handlers`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): post_init_migrate_environment_test.go (4). KEEP post_init 7/7. Isolated remasure: 56.3 % → 66.2 % (40 → 47 of 71; +7). Deferred-within-package: clean_nap + k8s/registry leftovers. Package left at 66.2 % (47 of 71; 24 missed). | Preferred local Docker post-init handler covered; package total lower because of deferred clean_nap/k8s/registry. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-148 | Close Priority work on `api/http/handler/docker/images`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): images_list_test.go (7). Isolated remasure: 0 % → 93.3 % (0 → 28 of 30; +28). Leftovers: 2 thin. Deferred-within-package: none. Package left at 93.3 % (28 of 30; 2 missed). | Preferred Docker image list handler covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-149 | Close Priority work on `api/dataservices/resourcecontrol`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): resourcecontrol_test.go (5 under REQ-USR-08). Isolated remasure: 0 % → 88.9 % (0 → 24 of 27; +24). Leftovers: 3 thin. Deferred-within-package: none. Package left at 88.9 % (24 of 27; 3 missed). | Preferred resource control datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -456,6 +457,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-146: close Priority work on GitHub proxy client. Parallel isolated 0 % → 93.5 % (0 → 29 of 31; +29). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-147: close Priority work on pending-action handlers. Parallel isolated 56.3 % → 66.2 % (40 → 47 of 71; +7). Deferred clean_nap/k8s/registry. Do not grind further.
 - 2026-11-09. COV-148: close Priority work on Docker image HTTP handler. Parallel isolated 0 % → 93.3 % (0 → 28 of 30; +28). Thin leftovers. Do not grind further.
+- 2026-11-09. COV-149: close Priority work on resource control datastore. Parallel isolated 0 % → 88.9 % (0 → 24 of 27; +24). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

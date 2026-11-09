@@ -342,3 +342,161 @@ func setupLogOutput(t *testing.T, w io.Writer) {
 		zerolog.Logger = oldLogger
 	})
 }
+
+func strPtr(s string) *string { return &s }
+func boolPtr(b bool) *bool    { return &b }
+
+func TestValidateFlags_LocalDefaultsOK(t *testing.T) {
+	t.Parallel()
+	svc := Service{}
+	flags := &portainer.CLIFlags{
+		EndpointURL:      strPtr(""),
+		SnapshotInterval: strPtr(""),
+		AdminPassword:    strPtr(""),
+		AdminPasswordFile: strPtr(""),
+		EdgePortainerURL: strPtr(""),
+		NoAnalytics:      boolPtr(false),
+	}
+	require.NoError(t, svc.ValidateFlags(flags))
+}
+
+func TestValidateFlags_NoAnalyticsWarns(t *testing.T) {
+	t.Parallel()
+	svc := Service{}
+	flags := &portainer.CLIFlags{
+		EndpointURL:       strPtr("tcp://127.0.0.1:2375"),
+		SnapshotInterval:  strPtr("5m"),
+		AdminPassword:     strPtr(""),
+		AdminPasswordFile: strPtr(""),
+		EdgePortainerURL:  strPtr(""),
+		NoAnalytics:       boolPtr(true),
+	}
+	require.NoError(t, svc.ValidateFlags(flags))
+}
+
+func TestValidateFlags_AdminPasswordConflict(t *testing.T) {
+	t.Parallel()
+	svc := Service{}
+	flags := &portainer.CLIFlags{
+		EndpointURL:       strPtr(""),
+		SnapshotInterval:  strPtr(""),
+		AdminPassword:     strPtr("hash"),
+		AdminPasswordFile: strPtr("/tmp/pass"),
+		EdgePortainerURL:  strPtr(""),
+		NoAnalytics:       boolPtr(false),
+	}
+	require.ErrorIs(t, svc.ValidateFlags(flags), ErrAdminPassExcludeAdminPassFile)
+}
+
+func TestValidateFlags_InvalidSnapshotInterval(t *testing.T) {
+	t.Parallel()
+	svc := Service{}
+	flags := &portainer.CLIFlags{
+		EndpointURL:       strPtr(""),
+		SnapshotInterval:  strPtr("not-a-duration"),
+		AdminPassword:     strPtr(""),
+		AdminPasswordFile: strPtr(""),
+		EdgePortainerURL:  strPtr(""),
+		NoAnalytics:       boolPtr(false),
+	}
+	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidSnapshotInterval)
+}
+
+func TestValidateFlags_InvalidEndpointProtocol(t *testing.T) {
+	t.Parallel()
+	svc := Service{}
+	flags := &portainer.CLIFlags{
+		EndpointURL:       strPtr("http://example.com"),
+		SnapshotInterval:  strPtr(""),
+		AdminPassword:     strPtr(""),
+		AdminPasswordFile: strPtr(""),
+		EdgePortainerURL:  strPtr(""),
+		NoAnalytics:       boolPtr(false),
+	}
+	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidEndpointProtocol)
+}
+
+func TestValidateEndpointURL_UnixSocketExists(t *testing.T) {
+	t.Parallel()
+	sock := t.TempDir() + "/docker.sock"
+	require.NoError(t, os.WriteFile(sock, []byte{}, 0o600))
+	require.NoError(t, ValidateEndpointURL("unix://"+sock))
+}
+
+func TestValidateEndpointURL_UnixSocketMissing(t *testing.T) {
+	t.Parallel()
+	require.ErrorIs(t, ValidateEndpointURL("unix:///no/such/docker.sock"), ErrSocketOrNamedPipeNotFound)
+}
+
+func TestValidateEndpointURL_TCPOK(t *testing.T) {
+	t.Parallel()
+	require.NoError(t, ValidateEndpointURL("tcp://127.0.0.1:2375"))
+}
+
+func TestValidateSnapshotInterval(t *testing.T) {
+	t.Parallel()
+	require.NoError(t, ValidateSnapshotInterval(""))
+	require.NoError(t, ValidateSnapshotInterval("30s"))
+	require.ErrorIs(t, ValidateSnapshotInterval("bogus"), ErrInvalidSnapshotInterval)
+}
+
+func TestPairList_SetAndString(t *testing.T) {
+	t.Parallel()
+	var l pairList
+	require.NoError(t, l.Set("env=prod"))
+	require.NoError(t, l.Set("tier=web"))
+	require.Len(t, l, 2)
+	require.Equal(t, "env", l[0].Name)
+	require.Equal(t, "prod", l[0].Value)
+	require.Error(t, l.Set("novalue"))
+	require.Equal(t, "", l.String())
+	require.True(t, l.IsCumulative())
+}
+
+func TestConfirm_YesAndNo(t *testing.T) {
+	cases := []struct {
+		in   string
+		want bool
+	}{
+		{"y\n", true},
+		{"yes\n", true},
+		{"Y\n", true},
+		{"n\n", false},
+		{"\n", false},
+		{"maybe\n", false},
+	}
+	for _, tc := range cases {
+		t.Run(strings.TrimSpace(tc.in), func(t *testing.T) {
+			r, w, err := os.Pipe()
+			require.NoError(t, err)
+			old := os.Stdin
+			os.Stdin = r
+			t.Cleanup(func() {
+				os.Stdin = old
+				_ = r.Close()
+			})
+			_, err = io.WriteString(w, tc.in)
+			require.NoError(t, err)
+			require.NoError(t, w.Close())
+
+			got, err := Confirm("proceed?")
+			require.NoError(t, err)
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestConfirm_ReadError(t *testing.T) {
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	require.NoError(t, w.Close())
+	require.NoError(t, r.Close())
+
+	old := os.Stdin
+	os.Stdin = r
+	t.Cleanup(func() { os.Stdin = old })
+
+	got, err := Confirm("fail?")
+	require.Error(t, err)
+	require.False(t, got)
+}

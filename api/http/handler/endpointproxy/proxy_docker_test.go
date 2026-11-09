@@ -1,0 +1,250 @@
+package endpointproxy
+
+import (
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"strconv"
+	"sync"
+	"testing"
+	"unsafe"
+
+	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/datastore"
+	"github.com/portainer/portainer/api/http/proxy"
+	"github.com/portainer/portainer/api/internal/testhelpers"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+// registerStubEndpointProxy stores a handler in the Manager's unexported
+// endpointProxies map so proxyRequestsToDockerAPI can take the cached-proxy
+// success path without a live Docker daemon or ProxyFactory.
+func registerStubEndpointProxy(t *testing.T, manager *proxy.Manager, endpointID portainer.EndpointID, h http.Handler) {
+	t.Helper()
+
+	field := reflect.ValueOf(manager).Elem().FieldByName("endpointProxies")
+	require.True(t, field.IsValid(), "endpointProxies field missing")
+	require.True(t, field.CanAddr(), "endpointProxies not addressable")
+
+	proxies := (*sync.Map)(unsafe.Pointer(field.UnsafeAddr()))
+	proxies.Store(strconv.Itoa(int(endpointID)), h)
+}
+
+func TestProxyDockerAPI_InvalidEndpointID(t *testing.T) {
+	t.Parallel()
+
+	// A non-numeric environment ID in the Docker proxy URL must be rejected with 400.
+	h, _ := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/abc/docker/containers/json", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusBadRequest, rw.Code)
+}
+
+func TestProxyDockerAPI_EndpointNotFound(t *testing.T) {
+	t.Parallel()
+
+	// Deleted environment while a Docker UI tab is still open → 404, not 500.
+	h, _ := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/99/docker/containers/json", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusNotFound, rw.Code)
+}
+
+func TestProxyDockerAPI_PermissionDenied(t *testing.T) {
+	t.Parallel()
+
+	// Standard user without access to this local Docker environment → 403.
+	bouncer := denyBouncer{BouncerService: testhelpers.NewTestRequestBouncer()}
+	h, store := setupProxyHandler(t, bouncer)
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:   1,
+		Name: "local-docker",
+		Type: portainer.DockerEnvironment,
+		URL:  "unix:///var/run/docker.sock",
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/1/docker/containers/json", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusForbidden, rw.Code)
+}
+
+func TestProxyDockerAPI_ProxyCreationFails(t *testing.T) {
+	t.Parallel()
+
+	// No cached proxy and an uninitialised ProxyFactory → 500, not a panic.
+	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:   4,
+		Name: "local-docker",
+		Type: portainer.DockerEnvironment,
+		URL:  "unix:///var/run/docker.sock",
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/4/docker/version", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rw.Code)
+}
+
+func TestProxyDockerAPI_LocalDockerForwardsStrippedPathAndQuery(t *testing.T) {
+	t.Parallel()
+
+	// Local Docker environment: a cached proxy receives the Docker API path
+	// with /{id}/docker stripped, and query parameters preserved (e.g. all=true).
+	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:   10,
+		Name: "local-docker",
+		Type: portainer.DockerEnvironment,
+		URL:  "unix:///var/run/docker.sock",
+	}))
+
+	var gotPath, gotRawQuery string
+	registerStubEndpointProxy(t, h.ProxyManager, 10, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotRawQuery = r.URL.RawQuery
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`[]`))
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/10/docker/containers/json?all=true&filters=%7B%7D", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusOK, rw.Code)
+	assert.Equal(t, "[]", rw.Body.String())
+	assert.Equal(t, "/containers/json", gotPath)
+	assert.Equal(t, "all=true&filters=%7B%7D", gotRawQuery)
+}
+
+func TestProxyDockerAPI_AgentDockerPrefixStripped(t *testing.T) {
+	t.Parallel()
+
+	// The same Docker proxy handler also serves /{id}/agent/docker and must
+	// strip that longer prefix so the Agent receives a native Docker API path.
+	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:   11,
+		Name: "agent-docker",
+		Type: portainer.AgentOnDockerEnvironment,
+		URL:  "tcp://agent:9001",
+	}))
+
+	var gotPath string
+	registerStubEndpointProxy(t, h.ProxyManager, 11, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/11/agent/docker/containers/json", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusOK, rw.Code)
+	assert.Equal(t, "/containers/json", gotPath)
+}
+
+func TestProxyDockerAPI_EdgeNoEdgeID(t *testing.T) {
+	t.Parallel()
+
+	// Edge Docker environment registered but never connected (empty EdgeID) → 500.
+	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:     12,
+		Name:   "edge-docker-no-id",
+		Type:   portainer.EdgeAgentOnDockerEnvironment,
+		EdgeID: "",
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/12/docker/containers/json", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rw.Code)
+}
+
+func TestProxyDockerAPI_EdgeTunnelUnavailable(t *testing.T) {
+	t.Parallel()
+
+	// Edge agent has an EdgeID but the tunnel is offline → 500 rather than hanging.
+	_, store := datastore.MustNewTestStore(t, false, false)
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.ProxyManager = proxy.NewManager(nil)
+	h.ReverseTunnelService = &stubTunnelService{
+		tunnelAddrErr: errors.New("no active tunnel for edge agent"),
+	}
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:     13,
+		Name:   "edge-docker-offline",
+		Type:   portainer.EdgeAgentOnDockerEnvironment,
+		EdgeID: "registered-edge-id",
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/13/docker/version", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rw.Code)
+}
+
+func TestProxyDockerAPI_EdgeWithTunnelUsesCachedProxy(t *testing.T) {
+	t.Parallel()
+
+	// Edge Docker with a live tunnel and a cached proxy forwards after strip.
+	_, store := datastore.MustNewTestStore(t, false, false)
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.ProxyManager = proxy.NewManager(nil)
+	h.ReverseTunnelService = &stubTunnelService{tunnelAddr: "127.0.0.1:9001"}
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:     14,
+		Name:   "edge-docker-online",
+		Type:   portainer.EdgeAgentOnDockerEnvironment,
+		EdgeID: "registered-edge-id",
+	}))
+
+	var gotPath string
+	registerStubEndpointProxy(t, h.ProxyManager, 14, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("ok"))
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/14/docker/info", nil)
+
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusOK, rw.Code)
+	assert.Equal(t, "ok", rw.Body.String())
+	assert.Equal(t, "/info", gotPath)
+}

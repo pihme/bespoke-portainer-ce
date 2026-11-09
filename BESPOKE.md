@@ -273,6 +273,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-190 | Close Priority work on `api/http/csrf`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): csrf_test.go (+1 under REQ-USR-02). Isolated remasure: 90.3 % → 100 % (28 → 31 of 31; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (31 of 31; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-191 | Close Priority work on `api/http/handler/file`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): handler_test.go (+1). Isolated remasure: 84.2 % → 100 % (16 → 19 of 19; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-192 | Close Priority work on `api/http/handler/storybook`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): handler_test.go (2). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-193 | Close Priority work on `pkg/build`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): info_test.go (3). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -546,6 +547,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-190: close Priority work on CSRF protection. Parallel isolated 90.3 % → 100 % (28 → 31 of 31; +3). Do not grind further.
 - 2026-11-09. COV-191: close Priority work on static file handler. Parallel isolated 84.2 % → 100 % (16 → 19 of 19; +3). Do not grind further.
 - 2026-11-09. COV-192: close Priority work on storybook file handler. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
+- 2026-11-09. COV-193: close Priority work on build metadata. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -1,9 +1,11 @@
 import { Directory, File, FileNode } from './types';
 import {
   isDirectory,
+  isDirectoryWithChildren,
   getAllFilePaths,
   getFolderState,
   filterToPattern,
+  buildFileTree,
 } from './utils';
 
 function file(name: string): File {
@@ -117,5 +119,68 @@ describe('filterToPattern', () => {
 
   it('handles empty string after trimming', () => {
     expect(filterToPattern('   ')).toBe('**');
+  });
+});
+
+describe('isDirectoryWithChildren', () => {
+  it('returns true for a directory that declares children', () => {
+    expect(isDirectoryWithChildren(dir('src', [file('a.ts')]))).toBe(true);
+  });
+
+  it('returns false for a plain file', () => {
+    expect(isDirectoryWithChildren(file('a.ts'))).toBe(false);
+  });
+});
+
+describe('buildFileTree', () => {
+  it('returns an empty tree for no paths', () => {
+    expect(buildFileTree([])).toEqual([]);
+  });
+
+  it('builds a flat list of files', () => {
+    expect(buildFileTree(['b.ts', 'a.ts'])).toEqual([
+      { name: 'a.ts' },
+      { name: 'b.ts' },
+    ]);
+  });
+
+  it('nests directories and sorts directories before files', () => {
+    expect(
+      buildFileTree(['z.ts', 'src/a.ts', 'src/nested/b.ts', 'src/c.ts'])
+    ).toEqual([
+      {
+        name: 'src',
+        children: [
+          { name: 'nested', children: [{ name: 'b.ts' }] },
+          { name: 'a.ts' },
+          { name: 'c.ts' },
+        ],
+      },
+      { name: 'z.ts' },
+    ]);
+  });
+
+  it('ignores empty path segments from leading or duplicate slashes', () => {
+    expect(buildFileTree(['/src//a.ts'])).toEqual([
+      { name: 'src', children: [{ name: 'a.ts' }] },
+    ]);
+  });
+
+  it('does not duplicate an existing file leaf', () => {
+    expect(buildFileTree(['a.ts', 'a.ts'])).toEqual([{ name: 'a.ts' }]);
+  });
+
+  it('promotes a file node to a directory when a nested path reuses its name', () => {
+    expect(buildFileTree(['src', 'src/a.ts'])).toEqual([
+      { name: 'src', children: [{ name: 'a.ts' }] },
+    ]);
+  });
+
+  it('sorts case-insensitively within a directory', () => {
+    expect(buildFileTree(['B.ts', 'a.ts', 'C.ts'])).toEqual([
+      { name: 'a.ts' },
+      { name: 'B.ts' },
+      { name: 'C.ts' },
+    ]);
   });
 });

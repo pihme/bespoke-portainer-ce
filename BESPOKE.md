@@ -331,6 +331,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-248 | Close Priority work on `WorkflowSubRow`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 85.4 % (35 of 41; +0; tests extended). Deferred-within-package: Edge TargetCell / K8s null stackLink. Package left at 85.4 % (35 of 41; 6 missed). | Preferred workflow subrow covered; Edge/K8s deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-249 | Close Priority work on `settings/SettingsView` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 29.7 % → 67.6 % (11 → 25 of 37; +14). Deferred-within-package: HelmCert K8s + ExperimentalFeatures BE. Package left at 67.6 % (25 of 37; 12 missed). | Preferred settings view covered; HelmCert K8s and ExperimentalFeatures BE deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-250 | Close Priority work on `app/docker/views/volumes` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 96.0 % (0 → 24 of 25; +24). Deferred-within-package: Swarm service-usage arm. Package left at 96.0 % (24 of 25; 1 missed). | Preferred volumes view covered; Swarm service-usage deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-251 | Close Priority work on `app/react/common/stacks/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 97.7 % (0 → 42 of 43; +42). Leftovers: thin getStack no-id guard. Deferred-within-package: none. Package left at 97.7 % (42 of 43; 1 missed). | Preferred stack queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -665,6 +666,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-248: close Priority work on workflow subrow. Parallel isolated remains 85.4 % (35 of 41; +0). Deferred Edge TargetCell/K8s null stackLink. Do not grind further.
 - 2026-11-09. COV-249: close Priority work on settings view. Parallel isolated 29.7 % → 67.6 % (11 → 25 of 37; +14). Deferred HelmCert K8s + ExperimentalFeatures BE. Do not grind further.
 - 2026-11-09. COV-250: close Priority work on volumes view. Parallel isolated 0 % → 96.0 % (0 → 24 of 25; +24). Deferred Swarm service-usage. Do not grind further.
+- 2026-11-09. COV-251: close Priority work on stack queries. Parallel isolated 0 % → 97.7 % (0 → 42 of 43; +42). Thin getStack no-id guard. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

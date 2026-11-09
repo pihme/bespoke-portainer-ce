@@ -279,6 +279,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-196 | Close Priority work on `pkg/libhttp/client`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): client_test.go (2). Isolated remasure: 0 % → 100 % (0 → 3 of 3; +3). Leftovers: none. Deferred-within-package: none. Package left at 100 % (3 of 3; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-197 | Close Priority work on `api/http/offlinegate`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): offlinegate_test.go (+1). Isolated remasure: 84.6 % → 100 % (11 → 13 of 13; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (13 of 13; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-198 | Close Priority work on `pkg/libhttp/response`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): response_test.go (+2). Isolated remasure: 94.6 % → 100 % (35 → 37 of 37; +2). Leftovers: none. Deferred-within-package: none. Package left at 100 % (37 of 37; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-199 | Close Priority work on `pkg/librand`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): rand_test.go (+1). Isolated remasure: 88.9 % → 94.4 % (16 → 17 of 18; +1). Leftovers: 1 thin. Deferred-within-package: none. Package left at 94.4 % (17 of 18; 1 missed). | Preferred crypto rand helper covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -558,6 +559,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-196: close Priority work on libhttp client. Parallel isolated 0 % → 100 % (0 → 3 of 3; +3). Do not grind further.
 - 2026-11-09. COV-197: close Priority work on offline gate. Parallel isolated 84.6 % → 100 % (11 → 13 of 13; +2). Do not grind further.
 - 2026-11-09. COV-198: close Priority work on libhttp response helpers. Parallel isolated 94.6 % → 100 % (35 → 37 of 37; +2). Do not grind further.
+- 2026-11-09. COV-199: close Priority work on crypto rand helper. Parallel isolated 88.9 % → 94.4 % (16 → 17 of 18; +1). Thin leftover. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

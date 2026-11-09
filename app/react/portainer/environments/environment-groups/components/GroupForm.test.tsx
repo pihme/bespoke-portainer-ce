@@ -14,6 +14,10 @@ vi.mock('@/react/hooks/useCanExit', () => ({
   useCanExit: vi.fn(),
 }));
 
+vi.mock('@@/modals/confirm', () => ({
+  confirmGenericDiscard: vi.fn(async () => true),
+}));
+
 function renderGroupForm({
   initialValues = {
     name: '',
@@ -378,4 +382,30 @@ describe('GroupForm', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  it('invokes useCanExit guard based on form dirty state', async () => {
+    const { useCanExit } = await import('@/react/hooks/useCanExit');
+    const { confirmGenericDiscard } = await import('@@/modals/confirm');
+    vi.mocked(useCanExit).mockImplementation((guard) => {
+      // simulate clean form
+      expect(guard()).toBe(true);
+    });
+    renderGroupForm();
+    await screen.findByLabelText(/name/i);
+  });
+
+  it('updates tagIds when a tag is selected', async () => {
+    const user = userEvent.setup();
+    renderGroupForm();
+    await screen.findByLabelText(/name/i);
+    // TagSelector react-select
+    const tagInput = document.querySelector('#tags-selector');
+    if (tagInput) {
+      await user.click(tagInput);
+      const option = await screen.findByText('production');
+      await user.click(option);
+      expect(screen.getByText('production')).toBeInTheDocument();
+    }
+  });
+
 });

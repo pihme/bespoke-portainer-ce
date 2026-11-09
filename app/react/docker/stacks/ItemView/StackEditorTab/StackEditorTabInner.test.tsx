@@ -485,6 +485,51 @@ describe('isSaved state', () => {
   });
 });
 
+
+describe('environment variables and webhook field updates', () => {
+  it('should update environmentVariables when an env var is added', async () => {
+    renderComponent();
+    const user = userEvent.setup();
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('foldingButtonEnvironment variables')
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTestId('foldingButtonEnvironment variables'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('add-environment-variable-button')
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByTestId('add-environment-variable-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('env-name_0')).toBeInTheDocument();
+    });
+  });
+
+  it('should update enabledWebhook when webhook switch is toggled', async () => {
+    renderComponent({ webhookId: 'hook-1' });
+    const user = userEvent.setup();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('stack-webhook-switch')).toBeInTheDocument();
+    });
+
+    const webhookSwitch = screen.getByTestId('stack-webhook-switch');
+    await user.click(webhookSwitch);
+
+    const checkbox = webhookSwitch.querySelector('input[type="checkbox"]');
+    await waitFor(() => {
+      expect(checkbox).toBeChecked();
+    });
+  });
+});
+
 /**
  * Helper function to render StackEditorTabInner with Formik wrapper
  */

@@ -150,4 +150,17 @@ describe('useCanRecreateContainer', () => {
 
     expect(result.current).toBe(true);
   });
+
+  it('should return false when environment data is unavailable', () => {
+    mockEnvironmentData = undefined;
+    mockIsAdmin = true;
+
+    const { result } = renderCustomHook({
+      autoRemove: false,
+      partOfSwarmService: false,
+    });
+
+    expect(result.current).toBe(false);
+  });
+
 });

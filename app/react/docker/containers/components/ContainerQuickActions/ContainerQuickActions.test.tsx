@@ -1,11 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { ReactNode } from 'react';
 
 import { ContainerStatus } from '@/react/docker/containers/types';
 
-vi.mock('@/react/hooks/useUser', () => ({
-  Authorized: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+import {
+  ContainerQuickActions,
+  QuickActionsState,
+} from './ContainerQuickActions';
 
 vi.mock('@@/Link', () => ({
   Link: ({
@@ -13,19 +15,21 @@ vi.mock('@@/Link', () => ({
     title,
     'data-cy': dataCy,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     title?: string;
     'data-cy'?: string;
   }) => (
-    <a title={title} data-cy={dataCy}>
+    <a data-cy={dataCy} title={title} href="/">
       {children}
     </a>
   ),
 }));
 
-import { ContainerQuickActions } from './ContainerQuickActions';
+vi.mock('@/react/hooks/useUser', () => ({
+  Authorized: ({ children }: { children: ReactNode }) => <>{children}</>,
+}));
 
-const allOn = {
+const allOn: QuickActionsState = {
   showQuickActionAttach: true,
   showQuickActionExec: true,
   showQuickActionInspect: true,
@@ -33,16 +37,23 @@ const allOn = {
   showQuickActionStats: true,
 };
 
+function renderActions(
+  status: ContainerStatus,
+  state: QuickActionsState = allOn
+) {
+  return render(
+    <ContainerQuickActions
+      containerId="c1"
+      nodeName="node"
+      status={status}
+      state={state}
+    />
+  );
+}
+
 describe('ContainerQuickActions', () => {
   it('shows logs and inspect always when enabled, and active-only actions when running', () => {
-    render(
-      <ContainerQuickActions
-        containerId="c1"
-        nodeName=""
-        status={ContainerStatus.Running}
-        state={allOn}
-      />
-    );
+    renderActions(ContainerStatus.Running);
     expect(screen.getByTitle('Logs')).toBeInTheDocument();
     expect(screen.getByTitle('Inspect')).toBeInTheDocument();
     expect(screen.getByTitle('Stats')).toBeInTheDocument();
@@ -51,16 +62,22 @@ describe('ContainerQuickActions', () => {
   });
 
   it('hides active-only actions when the container is stopped', () => {
-    render(
-      <ContainerQuickActions
-        containerId="c1"
-        nodeName=""
-        status={ContainerStatus.Stopped}
-        state={allOn}
-      />
-    );
+    renderActions(ContainerStatus.Stopped);
     expect(screen.getByTitle('Logs')).toBeInTheDocument();
     expect(screen.queryByTitle('Stats')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Exec Console')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Attach Console')).not.toBeInTheDocument();
+  });
+
+  it('respects per-action visibility flags', () => {
+    renderActions(ContainerStatus.Healthy, {
+      showQuickActionAttach: false,
+      showQuickActionExec: false,
+      showQuickActionInspect: false,
+      showQuickActionLogs: true,
+      showQuickActionStats: false,
+    });
+    expect(screen.getByTitle('Logs')).toBeInTheDocument();
+    expect(screen.queryByTitle('Inspect')).not.toBeInTheDocument();
   });
 });

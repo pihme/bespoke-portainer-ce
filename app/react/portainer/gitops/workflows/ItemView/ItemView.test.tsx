@@ -69,6 +69,8 @@ describe('ItemView', () => {
     ).toBeGreaterThan(0);
   });
 
+
+
   it('renders the empty state for a zero-artifact workflow', async () => {
     renderComponent(mockWorkflowEmpty);
 

@@ -1507,6 +1507,13 @@ type mockComposeService struct {
 	api.Compose
 	maxConcurrency int
 	downFn         func(ctx context.Context, projectName string, options api.DownOptions) error
+	buildFn        func(ctx context.Context, project *types.Project, options api.BuildOptions) error
+	upFn           func(ctx context.Context, project *types.Project, options api.UpOptions) error
+	pullFn         func(ctx context.Context, project *types.Project, options api.PullOptions) error
+	createFn       func(ctx context.Context, project *types.Project, options api.CreateOptions) error
+	runOneOffFn    func(ctx context.Context, project *types.Project, opts api.RunOptions) (int, error)
+	psFn           func(ctx context.Context, projectName string, options api.PsOptions) ([]api.ContainerSummary, error)
+	listFn         func(ctx context.Context, options api.ListOptions) ([]api.Stack, error)
 }
 
 func (s *mockComposeService) MaxConcurrency(parallel int) {
@@ -1519,4 +1526,53 @@ func (s *mockComposeService) Down(ctx context.Context, projectName string, optio
 	}
 
 	return nil
+}
+
+func (s *mockComposeService) Build(ctx context.Context, project *types.Project, options api.BuildOptions) error {
+	if s.buildFn != nil {
+		return s.buildFn(ctx, project, options)
+	}
+	return nil
+}
+
+func (s *mockComposeService) Up(ctx context.Context, project *types.Project, options api.UpOptions) error {
+	if s.upFn != nil {
+		return s.upFn(ctx, project, options)
+	}
+	return nil
+}
+
+func (s *mockComposeService) Pull(ctx context.Context, project *types.Project, options api.PullOptions) error {
+	if s.pullFn != nil {
+		return s.pullFn(ctx, project, options)
+	}
+	return nil
+}
+
+func (s *mockComposeService) Create(ctx context.Context, project *types.Project, options api.CreateOptions) error {
+	if s.createFn != nil {
+		return s.createFn(ctx, project, options)
+	}
+	return nil
+}
+
+func (s *mockComposeService) RunOneOffContainer(ctx context.Context, project *types.Project, opts api.RunOptions) (int, error) {
+	if s.runOneOffFn != nil {
+		return s.runOneOffFn(ctx, project, opts)
+	}
+	return 0, nil
+}
+
+func (s *mockComposeService) Ps(ctx context.Context, projectName string, options api.PsOptions) ([]api.ContainerSummary, error) {
+	if s.psFn != nil {
+		return s.psFn(ctx, projectName, options)
+	}
+	return nil, nil
+}
+
+func (s *mockComposeService) List(ctx context.Context, options api.ListOptions) ([]api.Stack, error) {
+	if s.listFn != nil {
+		return s.listFn(ctx, options)
+	}
+	return nil, nil
 }

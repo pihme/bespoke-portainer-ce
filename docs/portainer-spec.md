@@ -9,6 +9,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - Entry points were checked against the tree at 2.45.3: UI routes from the AngularJS/React router (`app/`), REST routes from `api/docs/swagger.yaml`, CLI flags from `api/cli/cli.go`. UI routes use the hash form `#!/…`; `{envId}` is the environment ID. REST routes are relative to `/api`. Docker and Kubernetes resources are reached through the Portainer proxy `/api/endpoints/{id}/docker/…` and `/api/endpoints/{id}/kubernetes/…`, which forwards the native Docker/Kubernetes API (inferred from code: `api/http/handler/endpointproxy`).
 - Anything taken only from code, with no docs page behind it, is marked `(inferred from code)`.
 - IDs are `REQ-<AREA>-NN`. IDs are stable; later stages change the status of a requirement, they do not renumber.
+- Tailored stage (`3-tailored`): a removed requirement is struck through and marked `REMOVED (TAI-nnn)` with the decision in [BESPOKE.md](../BESPOKE.md). `REQ-TAI-nnn` requirements (area TAI below) are added by decision TAI-nnn and say how the removed entry points fail.
 - Amended in the covered stage on 2026-11-09 (COV-007) with the user's answers to the test-spec clarifications C-01 to C-13 and L-01 to L-14 ([portainer-testspec.md](portainer-testspec.md)): CE scope for REQ-STK-09, REQ-TPL-04, REQ-K8S-04, REQ-K8S-09, REQ-EDGE-02 and REQ-USR-05; the SSRF default; "not tested in this repo" for external items; and the deduced requirements REQ-DED-01 to REQ-DED-14. Features the docs call BE-only but that leave traces in CE (AD settings, image up-to-date status, registry tags, scheduled backups, alerting, licenses, upsell) stay BE-only (C-12).
 
 ## Areas
@@ -16,8 +17,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | Area | Scope |
 |------|-------|
 | SRV | Server installation, runtime, CLI, TLS, database |
-| AUTH | Initial setup, login, authentication methods, own account |
-| USR | Users, teams, roles, resource access control |
+| AUTH | Initial setup, login, authentication methods, own account (login and setup removed, TAI-001) |
+| USR | Users, teams, roles, resource access control (all removed, TAI-001) |
 | ENV | Home screen, environments, groups, tags, environment updates |
 | POL | Environment policies |
 | HOST | Docker environment dashboard, host, events |
@@ -40,6 +41,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | LIC | Licensing and Business Edition upgrade/advertising |
 | API | REST API and automation |
 | DED | Requirements deduced from code (accepted by the user) |
+| TAI | Behaviour after tailoring: how removed entry points fail (tailored stage) |
 
 ## SRV – Server installation and runtime
 
@@ -56,31 +58,31 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## AUTH – Setup, login and own account
 
-- **REQ-AUTH-01 Initial admin setup.** On first start the UI asks for the first administrator's username and password; a setup token protects initialization of an unclaimed instance, and the instance times out if not set up in time. Entry: UI `#!/init/admin`; API `GET /users/admin/check`, `POST /users/admin/init`; CLI `--setup-token`, `--no-setup-token`, `--admin-password`. docs: start/install-ce/server/setup, faqs/installing/setup-token
-- **REQ-AUTH-02 Environment wizard after setup.** After the first login, a wizard connects the first environments (local Docker socket, agent, API, Edge). Entry: UI `#!/wizard`, `#!/wizard/endpoints`. docs: start/install-ce/server/setup, admin/environments/add
-- **REQ-AUTH-03 Log in and log out with internal users.** Username/password login against Portainer's own user store, session token, logout. Login errors are pinned as implemented in `api/http/handler/auth/authenticate.go` (C-09): invalid payload 400; wrong password or unknown user 422 "Invalid credentials" (an unknown user is checked against a fake hash, so both take the same path); with OAuth as the method, a user other than the initial admin gets 422 "Only initial admin is allowed to login without oauth"; an unsupported method 422 "Login method is not supported". No new login UX. Entry: UI `#!/auth`, `#!/logout`; API `POST /auth`, `POST /auth/logout`. docs: admin/settings/authentication
-- **REQ-AUTH-04 LDAP authentication.** Authenticate against an LDAP server, with optional automatic user provisioning and team sync. Entry: UI `#!/settings/auth`; API `POST /ldap/check`, `PUT /settings`. docs: admin/settings/authentication/ldap
-- **REQ-AUTH-05 Microsoft Active Directory authentication.** **BE-only.** docs: admin/settings/authentication/active-directory
-- **REQ-AUTH-06 OAuth authentication.** Log in via an OAuth provider. In CE only the custom provider is selectable; the predefined Microsoft, Google and GitHub providers are shown as BE features (inferred from code: `oauth-options.tsx`). Entry: UI `#!/settings/auth`; API `POST /auth/oauth/validate`. docs: admin/settings/authentication/oauth
-- **REQ-AUTH-07 Session lifetime.** Configure how long a session stays valid before the user must log in again. Entry: UI `#!/settings/auth`. docs: admin/settings/authentication
-- **REQ-AUTH-08 Login screen banner.** **BE-only.** docs: admin/settings/general
-- **REQ-AUTH-09 Change own password.** Entry: UI `#!/account`; API `PUT /users/{id}/passwd`. docs: user/account-settings
-- **REQ-AUTH-10 Theme and per-user application settings.** Choose light, dark or high-contrast theme and personal UI preferences. Entry: UI `#!/account`; API `PUT /users/{id}`. docs: user/account-settings
-- **REQ-AUTH-11 Personal access tokens.** Create and delete API access tokens for the own user. Entry: UI `#!/account`, `#!/account/tokens/new`; API `GET/POST /users/{id}/tokens`, `DELETE /users/{id}/tokens/{keyID}`. docs: user/account-settings, api/access
-- **REQ-AUTH-12 Saved Git credentials per user.** **BE-only.** docs: user/account-settings
+- ~~**REQ-AUTH-01 Initial admin setup.** On first start the UI asks for the first administrator's username and password; a setup token protects initialization of an unclaimed instance, and the instance times out if not set up in time. Entry: UI `#!/init/admin`; API `GET /users/admin/check`, `POST /users/admin/init`; CLI `--setup-token`, `--no-setup-token`, `--admin-password`. docs: start/install-ce/server/setup, faqs/installing/setup-token~~ REMOVED (TAI-001)
+- **REQ-AUTH-02 Environment wizard after setup.** After the first login, a wizard connects the first environments (local Docker socket, agent, API, Edge). Entry: UI `#!/wizard`, `#!/wizard/endpoints`. docs: start/install-ce/server/setup, admin/environments/add *TAI-001: there is no login; the wizard opens on first start.*
+- ~~**REQ-AUTH-03 Log in and log out with internal users.** Username/password login against Portainer's own user store, session token, logout. Login errors are pinned as implemented in `api/http/handler/auth/authenticate.go` (C-09): invalid payload 400; wrong password or unknown user 422 "Invalid credentials" (an unknown user is checked against a fake hash, so both take the same path); with OAuth as the method, a user other than the initial admin gets 422 "Only initial admin is allowed to login without oauth"; an unsupported method 422 "Login method is not supported". No new login UX. Entry: UI `#!/auth`, `#!/logout`; API `POST /auth`, `POST /auth/logout`. docs: admin/settings/authentication~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-04 LDAP authentication.** Authenticate against an LDAP server, with optional automatic user provisioning and team sync. Entry: UI `#!/settings/auth`; API `POST /ldap/check`, `PUT /settings`. docs: admin/settings/authentication/ldap~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-05 Microsoft Active Directory authentication.** **BE-only.** docs: admin/settings/authentication/active-directory~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-06 OAuth authentication.** Log in via an OAuth provider. In CE only the custom provider is selectable; the predefined Microsoft, Google and GitHub providers are shown as BE features (inferred from code: `oauth-options.tsx`). Entry: UI `#!/settings/auth`; API `POST /auth/oauth/validate`. docs: admin/settings/authentication/oauth~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-07 Session lifetime.** Configure how long a session stays valid before the user must log in again. Entry: UI `#!/settings/auth`. docs: admin/settings/authentication~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-08 Login screen banner.** **BE-only.** docs: admin/settings/general~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-09 Change own password.** Entry: UI `#!/account`; API `PUT /users/{id}/passwd`. docs: user/account-settings~~ REMOVED (TAI-001)
+- **REQ-AUTH-10 Theme and per-user application settings.** Choose light, dark or high-contrast theme and personal UI preferences. Entry: UI `#!/account`; API `PUT /users/{id}`. docs: user/account-settings *TAI-001: kept without accounts; the preferences live on the single local operator record (`GET /users/me`, `GET`/`PUT /users/{id}` for that record only).*
+- ~~**REQ-AUTH-11 Personal access tokens.** Create and delete API access tokens for the own user. Entry: UI `#!/account`, `#!/account/tokens/new`; API `GET/POST /users/{id}/tokens`, `DELETE /users/{id}/tokens/{keyID}`. docs: user/account-settings, api/access~~ REMOVED (TAI-001)
+- ~~**REQ-AUTH-12 Saved Git credentials per user.** **BE-only.** docs: user/account-settings~~ REMOVED (TAI-001)
 - **REQ-AUTH-13 Personal Helm repositories.** Add and remove Helm repositories for the own user. Entry: UI `#!/account/helm-repository/new`; API `GET/POST /users/{id}/helm/repositories`, `DELETE /users/{id}/helm/repositories/{repositoryID}`. docs: user/account-settings
-- **REQ-AUTH-14 Reset the admin password.** Reset a lost admin password with the password-reset helper container. Not tested in this repo (C-08). docs: advanced/reset-admin
+- ~~**REQ-AUTH-14 Reset the admin password.** Reset a lost admin password with the password-reset helper container. Not tested in this repo (C-08). docs: advanced/reset-admin~~ REMOVED (TAI-001)
 
 ## USR – Users, teams and access control
 
-- **REQ-USR-01 Manage users.** List, create, edit and delete Portainer users. Editing a user (for example a role change) does not revoke the user's access tokens; deleting a user removes them (C-10). Entry: UI `#!/users`, `#!/users/{id}`; API `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/me`. docs: admin/user/users, admin/user/add
-- **REQ-USR-02 Promote a user to administrator.** Entry: UI `#!/users/{id}`; API `PUT /users/{id}`. docs: admin/user/promote
-- **REQ-USR-03 Reset a user's password (by an admin).** Entry: UI `#!/users/{id}`; API `PUT /users/{id}/passwd`. docs: admin/user/password
-- **REQ-USR-04 Manage teams and team membership.** Create teams, add users, set team leaders. Entry: UI `#!/teams`, `#!/teams/{id}`; API `/teams`, `/team_memberships`, `GET /teams/{id}/memberships`, `GET /users/{id}/memberships`. docs: admin/user/teams, admin/user/teams/add, admin/user/teams/add-user
-- **REQ-USR-05 Role-based access control.** Built-in roles in environment and group access policies, resolved by priority when a user has several (CE, C-07; inferred from code: `pkg/authorization`; `GET /roles` exists). The granular role editor and custom per-environment roles are **BE-only** (CE shows the roles page as an upsell). Entry: UI `#!/roles`. docs: admin/user/roles, advanced/docker-roles-and-permissions, advanced/kubernetes-roles-and-bindings
-- **REQ-USR-06 Effective access view.** See which environments and roles a user effectively has. Entry: API `GET /users/{id}/effective-access`. docs: admin/user/roles (Viewing user access)
-- **REQ-USR-07 Environment access per user/team.** Grant users and teams access to an environment or environment group. Entry: UI `#!/endpoints/{id}/access`, `#!/groups/{id}`. docs: admin/environments/environments (Manage access)
-- **REQ-USR-08 Resource ownership (access control).** Resources deployed through Portainer carry an ownership of Administrators, Restricted (named users/teams) or Public; ownership can be changed later; resources created outside Portainer default to administrators. Entry: Access control section on container, stack, service, volume, network, config and secret pages; API `POST /resource_controls`, `PUT/DELETE /resource_controls/{id}`. docs: advanced/access-control, user/docker/containers/ownership
+- ~~**REQ-USR-01 Manage users.** List, create, edit and delete Portainer users. Editing a user (for example a role change) does not revoke the user's access tokens; deleting a user removes them (C-10). Entry: UI `#!/users`, `#!/users/{id}`; API `GET/POST /users`, `GET/PUT/DELETE /users/{id}`, `GET /users/me`. docs: admin/user/users, admin/user/add~~ REMOVED (TAI-001)
+- ~~**REQ-USR-02 Promote a user to administrator.** Entry: UI `#!/users/{id}`; API `PUT /users/{id}`. docs: admin/user/promote~~ REMOVED (TAI-001)
+- ~~**REQ-USR-03 Reset a user's password (by an admin).** Entry: UI `#!/users/{id}`; API `PUT /users/{id}/passwd`. docs: admin/user/password~~ REMOVED (TAI-001)
+- ~~**REQ-USR-04 Manage teams and team membership.** Create teams, add users, set team leaders. Entry: UI `#!/teams`, `#!/teams/{id}`; API `/teams`, `/team_memberships`, `GET /teams/{id}/memberships`, `GET /users/{id}/memberships`. docs: admin/user/teams, admin/user/teams/add, admin/user/teams/add-user~~ REMOVED (TAI-001)
+- ~~**REQ-USR-05 Role-based access control.** Built-in roles in environment and group access policies, resolved by priority when a user has several (CE, C-07; inferred from code: `pkg/authorization`; `GET /roles` exists). The granular role editor and custom per-environment roles are **BE-only** (CE shows the roles page as an upsell). Entry: UI `#!/roles`. docs: admin/user/roles, advanced/docker-roles-and-permissions, advanced/kubernetes-roles-and-bindings~~ REMOVED (TAI-001)
+- ~~**REQ-USR-06 Effective access view.** See which environments and roles a user effectively has. Entry: API `GET /users/{id}/effective-access`. docs: admin/user/roles (Viewing user access)~~ REMOVED (TAI-001)
+- ~~**REQ-USR-07 Environment access per user/team.** Grant users and teams access to an environment or environment group. Entry: UI `#!/endpoints/{id}/access`, `#!/groups/{id}`. docs: admin/environments/environments (Manage access)~~ REMOVED (TAI-001)
+- ~~**REQ-USR-08 Resource ownership (access control).** Resources deployed through Portainer carry an ownership of Administrators, Restricted (named users/teams) or Public; ownership can be changed later; resources created outside Portainer default to administrators. Entry: Access control section on container, stack, service, volume, network, config and secret pages; API `POST /resource_controls`, `PUT/DELETE /resource_controls/{id}`. docs: advanced/access-control, user/docker/containers/ownership~~ REMOVED (TAI-001)
 
 ## ENV – Home and environments
 
@@ -114,9 +116,9 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## CTR – Docker containers
 
-- **REQ-CTR-01 List containers.** Table with state, stack, image, created time, IP, published ports and ownership; search, filter, sort, quick actions; hidden containers are filtered out. Entry: UI `#!/{envId}/docker/containers`. docs: user/docker/containers
+- **REQ-CTR-01 List containers.** Table with state, stack, image, created time, IP, published ports and ownership; search, filter, sort, quick actions; hidden containers are filtered out. Entry: UI `#!/{envId}/docker/containers`. docs: user/docker/containers *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-CTR-02 Lifecycle actions.** Start, stop, kill, restart, pause, resume and remove one or many containers. Entry: UI containers list and container page; Docker API proxy. docs: user/docker/containers, user/docker/containers/view
-- **REQ-CTR-03 Create a container.** Form for image (with registry), name, port mappings, publish-all, always pull, access control, auto-remove, and advanced settings: command/entrypoint/working dir/user/console, logging driver, volumes and bind mounts, network/hostname/DNS/MAC/IP, environment variables (incl. file upload), labels, restart policy, runtime and resources (privileged, init, devices, GPU, sysctls, shm, memory/CPU limits), capabilities. Entry: UI `#!/{envId}/docker/containers/new`. docs: user/docker/containers/add, user/docker/containers/advanced
+- **REQ-CTR-03 Create a container.** Form for image (with registry), name, port mappings, publish-all, always pull, access control, auto-remove, and advanced settings: command/entrypoint/working dir/user/console, logging driver, volumes and bind mounts, network/hostname/DNS/MAC/IP, environment variables (incl. file upload), labels, restart policy, runtime and resources (privileged, init, devices, GPU, sysctls, shm, memory/CPU limits), capabilities. Entry: UI `#!/{envId}/docker/containers/new`. docs: user/docker/containers/add, user/docker/containers/advanced *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-CTR-04 Container details.** Status, ports, health, image, command, environment, labels, volumes, networks (join/leave a network, inferred from code: `ContainerNetworksDatatable/ConnectNetworkForm.tsx`), and action buttons. Entry: UI `#!/{envId}/docker/containers/{id}`. docs: user/docker/containers/view
 - **REQ-CTR-05 Inspect a container.** Raw inspect JSON. Entry: UI `#!/{envId}/docker/containers/{id}/inspect`. docs: user/docker/containers/inspect
 - **REQ-CTR-06 Edit, recreate or duplicate a container.** Duplicate/edit opens the create form prefilled; recreate optionally pulls the latest image. Entry: UI `#!/{envId}/docker/containers/new?from={id}`. docs: user/docker/containers/edit
@@ -126,7 +128,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-CTR-10 Container logs.** View, follow, filter, timestamp, line limit and download logs. Entry: UI `#!/{envId}/docker/containers/{id}/logs`. docs: user/docker/containers/logs
 - **REQ-CTR-11 Container statistics.** Live CPU, memory, network and I/O charts and processes. Entry: UI `#!/{envId}/docker/containers/{id}/stats`. docs: user/docker/containers/stats
 - **REQ-CTR-12 Console.** Exec a shell (chosen command and user) or attach to the container in the browser. Entry: UI `#!/{envId}/docker/containers/{id}/exec`, `…/attach`; API `GET /websocket/exec`, `GET /websocket/attach`. docs: user/docker/containers/console
-- **REQ-CTR-13 Change container ownership.** Entry: UI container page, Access control. docs: user/docker/containers/ownership
+- ~~**REQ-CTR-13 Change container ownership.** Entry: UI container page, Access control. docs: user/docker/containers/ownership~~ REMOVED (TAI-001)
 - **REQ-CTR-14 Remove a container.** Optionally remove its anonymous volumes (option inferred from code: `ContainersDatatableActions.tsx`). docs: user/docker/containers/remove
 - **REQ-CTR-15 Container webhooks.** Redeploy a container with the latest image via a webhook. **BE-only** (CE flag `CONTAINER_WEBHOOK` shows an upsell, inferred from code). docs: user/docker/containers/webhooks
 - **REQ-CTR-16 GPU assignment.** Assign GPUs to containers when GPU display is enabled for the environment. Entry: create form; API `GET /docker/{environmentId}/containers/{containerId}/gpus`. docs: user/docker/host/setup, user/docker/containers/advanced
@@ -145,14 +147,14 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## NET – Docker networks
 
 - **REQ-NET-01 List networks.** Entry: UI `#!/{envId}/docker/networks`. docs: user/docker/networks
-- **REQ-NET-02 Create a network.** Drivers bridge, overlay, macvlan, ipvlan and others, IPv4/IPv6 configuration, labels, internal/attachable options, access control. Entry: UI `#!/{envId}/docker/networks/new`. docs: user/docker/networks/add
+- **REQ-NET-02 Create a network.** Drivers bridge, overlay, macvlan, ipvlan and others, IPv4/IPv6 configuration, labels, internal/attachable options, access control. Entry: UI `#!/{envId}/docker/networks/new`. docs: user/docker/networks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-NET-03 Network details.** Options, IPAM and connected containers (disconnect a container). Entry: UI `#!/{envId}/docker/networks/{id}`. docs: user/docker/networks
 - **REQ-NET-04 Remove a network.** docs: user/docker/networks/remove
 
 ## VOL – Docker volumes
 
 - **REQ-VOL-01 List volumes.** With used/unused state, driver and mount point. Entry: UI `#!/{envId}/docker/volumes`. docs: user/docker/volumes
-- **REQ-VOL-02 Create a volume.** Local, NFS, CIFS and tmpfs volumes, driver options, access control. Entry: UI `#!/{envId}/docker/volumes/new`. docs: user/docker/volumes/add
+- **REQ-VOL-02 Create a volume.** Local, NFS, CIFS and tmpfs volumes, driver options, access control. Entry: UI `#!/{envId}/docker/volumes/new`. docs: user/docker/volumes/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-VOL-03 Volume details.** Driver, mount point, options and containers using the volume. Entry: UI `#!/{envId}/docker/volumes/{id}`. docs: user/docker/volumes
 - **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse
 - **REQ-VOL-05 Remove a volume.** docs: user/docker/volumes/remove
@@ -160,7 +162,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## STK – Docker stacks
 
 - **REQ-STK-01 List stacks.** Stacks created in Portainer (full control) and external stacks (limited control; control column inferred from code: `StacksDatatable/columns/control.tsx`). Entry: UI `#!/{envId}/docker/stacks`; API `GET /stacks`. docs: user/docker/stacks
-- **REQ-STK-02 Deploy a stack from the web editor or an upload.** Compose file in the web editor or uploaded, environment variables (incl. `.env` upload), access control. Entry: UI `#!/{envId}/docker/stacks/newstack`; API `POST /stacks/create/standalone/string`, `…/standalone/file` (Swarm: `…/swarm/string`, `…/swarm/file`). docs: user/docker/stacks/add
+- **REQ-STK-02 Deploy a stack from the web editor or an upload.** Compose file in the web editor or uploaded, environment variables (incl. `.env` upload), access control. Entry: UI `#!/{envId}/docker/stacks/newstack`; API `POST /stacks/create/standalone/string`, `…/standalone/file` (Swarm: `…/swarm/string`, `…/swarm/file`). docs: user/docker/stacks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-STK-03 Deploy a stack from Git.** Repository URL, reference, compose path and additional files, authentication, automatic updates (polling or webhook), TLS skip, relative path volumes (BE). Entry: same UI; API `POST /stacks/create/standalone/repository`, `…/swarm/repository`. docs: user/docker/stacks/add, advanced/relative-paths
 - **REQ-STK-04 Inspect and edit a stack.** See containers/services of a stack, edit the compose file and environment variables, update (optionally re-pull images), redeploy from Git, change Git settings. Entry: UI `#!/{envId}/docker/stacks/{name}`; API `GET/PUT /stacks/{id}`, `GET /stacks/{id}/file`, `POST /stacks/{id}/git`, `PUT /stacks/{id}/git/redeploy`. docs: user/docker/stacks/edit
 - **REQ-STK-05 Start and stop a stack.** Entry: UI stack page; API `POST /stacks/{id}/start`, `POST /stacks/{id}/stop`. docs: user/docker/stacks/edit
@@ -194,14 +196,14 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## GIT – App Delivery
 
 - **REQ-GIT-01 Workflows view.** Single view of all Docker, Edge and Kubernetes workloads deployed from Git, with status counts, filters and links to the stack or application. Entry: UI `#!/gitops/workflows`, `#!/gitops/workflows/{id}`; API `GET /gitops/workflows`, `GET /gitops/workflows/{id}`, `GET /gitops/workflows/summary`. docs: user/app-delivery/workflows, …/add-a-new-workflow, …/manage-a-workflow
-- **REQ-GIT-02 Git sources.** Central list of Git repositories with credentials and connectivity status; add, test, edit, restrict access and delete. Entry: UI `#!/gitops/sources`, `…/new`, `…/{sourceId}`; API `/gitops/sources`, `POST /gitops/sources/git`, `POST /gitops/sources/test`, `PUT /gitops/sources/{id}/access`. docs: user/app-delivery/sources, user/app-delivery/sources/git
+- **REQ-GIT-02 Git sources.** Central list of Git repositories with credentials and connectivity status; add, test, edit, restrict access and delete. Entry: UI `#!/gitops/sources`, `…/new`, `…/{sourceId}`; API `/gitops/sources`, `POST /gitops/sources/git`, `POST /gitops/sources/test`, `PUT /gitops/sources/{id}/access`. docs: user/app-delivery/sources, user/app-delivery/sources/git *TAI-001: restricting access per user/team is removed: no access step on create, no Access tab, and `PUT /gitops/sources/{id}/access` answers 404.*
 - **REQ-GIT-03 Preview a file from a repository.** Entry: API `POST /gitops/repo/file/preview` (inferred from code).
 
 ## REG – Registries
 
 - **REQ-REG-01 Manage registries.** Add, edit and remove registries: Docker Hub account, AWS ECR, Quay.io, ProGet, Azure, GitLab, custom; GitHub (ghcr) is BE-only; OCI registries are BE-only. Entry: UI `#!/registries`, `#!/registries/new`, `#!/registries/{id}`; API `/registries`, `POST /registries/{id}/configure`, `POST /registries/ping`. docs: admin/registries, admin/registries/add and sub-pages
 - **REQ-REG-02 Hide anonymous Docker Hub.** **BE-only** (CE flag `HIDE_DOCKER_HUB_ANONYMOUS`, inferred from code). docs: admin/registries
-- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries
+- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.*
 - **REQ-REG-04 Browse and manage registry content.** Browse repositories, add, retag and remove tags. **BE-only.** docs: admin/registries/browse, admin/registries/manage
 - **REQ-REG-05 Docker Hub pull-limit check.** Show remaining Docker Hub pulls. Entry: API `GET /endpoints/{id}/dockerhub/{registryId}`; CLI `--pull-limit-check-disabled` (inferred from code).
 
@@ -267,7 +269,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## LOG – Logs and notifications
 
-- **REQ-LOG-01 Authentication logs.** **BE-only** (CE route `#!/auth-logs` shows an upsell, inferred from code). docs: admin/logs/authentication
+- ~~**REQ-LOG-01 Authentication logs.** **BE-only** (CE route `#!/auth-logs` shows an upsell, inferred from code). docs: admin/logs/authentication~~ REMOVED (TAI-001)
 - **REQ-LOG-02 Activity logs.** **BE-only** (CE route `#!/activity-logs`). docs: admin/logs/activity
 - **REQ-LOG-03 Stream logs to an external SIEM.** **BE-only.** docs: advanced/siem
 - **REQ-LOG-04 Notifications history.** Record of in-app notification messages; search and remove; the 50 most recent behind the bell icon. The history is stored as today and has no bound for now (C-11). Entry: UI `#!/notifications`. docs: admin/notifications
@@ -287,7 +289,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## API – REST API and automation
 
 - **REQ-API-01 Documented REST API.** All UI functions are available over the Portainer REST API, described by OpenAPI/Swagger. Documentation only, not a coverage target (C-06). Entry: `api/docs/swagger.yaml`, `api/docs/openapi.yaml`. docs: api/docs, api/examples
-- **REQ-API-02 API access with tokens.** Authenticate API calls with a personal access token (`X-API-Key`) or a JWT from `POST /auth`. docs: api/access
+- ~~**REQ-API-02 API access with tokens.** Authenticate API calls with a personal access token (`X-API-Key`) or a JWT from `POST /auth`. docs: api/access~~ REMOVED (TAI-001)
 - **REQ-API-03 Terraform provider.** Manage Portainer resources with the official Terraform provider (external project). Not tested in this repo (C-08). docs: advanced/manage-portainer-using-terraform
 - **REQ-API-04 Portainer MCP server.** An MCP server generated from the OpenAPI spec exposes the API to MCP clients (external project). Not tested in this repo (C-08). docs: advanced/portainer-mcp-server
 
@@ -296,8 +298,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today; none adds a new cap. The source is the code, not docs.portainer.io. Values were read on 2026-11-09 (test spec, section Resource limits).
 
 - **REQ-DED-01 Git auto-update interval.** The polling interval for automatic Git updates must be a valid duration of at least 1 minute. A shorter or malformed interval is rejected with 400 ("interval must be at least 1 minute" / "invalid Interval format"). There is no maximum. Relates to REQ-STK-03, REQ-GIT-02. (C-13; `api/git/update/validate.go`)
-- **REQ-DED-02 Admin setup timeout.** An instance whose first administrator is not created within 5 minutes of start is disabled, and the UI redirects with reason `AdminInitTimeout`. The 5 minutes are fixed. Relates to REQ-AUTH-01. (L-01; `api/http/server.go`, `api/adminmonitor`)
-- **REQ-DED-03 Session lifetime.** Default 8 h (`DefaultUserSessionTimeout`). Any duration `time.ParseDuration` accepts is stored; there is no minimum or maximum. Relates to REQ-AUTH-07. (L-02)
+- ~~**REQ-DED-02 Admin setup timeout.** An instance whose first administrator is not created within 5 minutes of start is disabled, and the UI redirects with reason `AdminInitTimeout`. The 5 minutes are fixed. Relates to REQ-AUTH-01. (L-01; `api/http/server.go`, `api/adminmonitor`)~~ REMOVED (TAI-001)
+- ~~**REQ-DED-03 Session lifetime.** Default 8 h (`DefaultUserSessionTimeout`). Any duration `time.ParseDuration` accepts is stored; there is no minimum or maximum. Relates to REQ-AUTH-07. (L-02)~~ REMOVED (TAI-001)
 - **REQ-DED-04 Snapshot interval.** Default 5 min. `--snapshot-interval` and `PUT /settings` accept any parseable duration; there is no minimum or maximum. Relates to REQ-ENV-12, REQ-SET-01, REQ-SRV-04. (L-03)
 - **REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)
 - **REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)
@@ -307,10 +309,23 @@ Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today;
 - **REQ-DED-10 Notification history size.** The bell shows the 50 most recent notifications (REQ-LOG-04). The stored history has no bound. Relates to REQ-LOG-04. (L-09, C-11)
 - **REQ-DED-11 Container log lines.** The log view fetches 100 lines by default; the user can change the number and there is no maximum. Relates to REQ-CTR-10. (L-10; `containerLogsController.js`)
 - **REQ-DED-12 Image build upload.** The build context is parsed with 32 MB in memory and the rest spilled to temporary files; there is no total cap. Relates to REQ-IMG-03. (L-11; `api/http/proxy/factory/docker/build.go`)
-- **REQ-DED-13 Authentication rate limit.** `POST /auth`, OAuth validate, password change and token creation allow 10 requests per second per client IP; above that the client is banned for 1 hour and gets 403 "Access denied". Relates to REQ-AUTH-03, REQ-AUTH-09, REQ-AUTH-11. (L-12; `NewRateLimiter(10, time.Second, time.Hour, …)`)
-- **REQ-DED-14 Minimum password length.** Default 12 (`api/datastore/init.go`); a shorter password is rejected. The setting is changed with `PUT /settings` and is not range-checked. Relates to REQ-AUTH-01, REQ-AUTH-03, REQ-AUTH-09. (L-13)
+- ~~**REQ-DED-13 Authentication rate limit.** `POST /auth`, OAuth validate, password change and token creation allow 10 requests per second per client IP; above that the client is banned for 1 hour and gets 403 "Access denied". Relates to REQ-AUTH-03, REQ-AUTH-09, REQ-AUTH-11. (L-12; `NewRateLimiter(10, time.Second, time.Hour, …)`)~~ REMOVED (TAI-001)
+- ~~**REQ-DED-14 Minimum password length.** Default 12 (`api/datastore/init.go`); a shorter password is rejected. The setting is changed with `PUT /settings` and is not range-checked. Relates to REQ-AUTH-01, REQ-AUTH-03, REQ-AUTH-09. (L-13)~~ REMOVED (TAI-001)
 
 Caches and batch sizes (`--max-batch-size`, `--max-batch-delay`, API key cache, Git repository cache, `COMPOSE_PARALLEL_LIMIT`, list page size) are implementation details, not requirements (L-14).
+
+## TAI – Behaviour after tailoring
+
+Added in the tailored stage. Each requirement belongs to one decision in [BESPOKE.md](../BESPOKE.md) and describes what replaces, or how to reject, the removed entry points.
+
+- **REQ-TAI-001 Open local use without login or user management.** Added by TAI-001 (2026-11-09).
+  - (a) First start is directly usable: no first-administrator page, no setup token, no admin-init timeout. The server creates or reuses one local operator record (lowest-ID administrator, username `admin`) that holds the UI preferences; nobody signs in as it.
+  - (b) The API needs no JWT, cookie or `X-API-Key`; every request is served as the local operator, and a leftover token or cookie of another user does not change that.
+  - (c) The removed API routes answer 404: `POST /auth`, `POST /auth/logout`, `POST /auth/oauth/validate`, `POST /ldap/check`, `GET /users/admin/check`, `POST /users/admin/init`, `GET`/`POST /users`, `PUT /users/{id}/passwd`, `/users/{id}/tokens`, `/users/{id}/memberships`, `GET /users/{id}/effective-access`, `/teams`, `/team_memberships`, `GET /roles`, `POST`/`PUT /resource_controls`, `PUT /gitops/sources/{id}/access`. Where a removed method shares a path with a kept one (for example `DELETE /users/{id}`), the answer is 405.
+  - (d) `GET`/`PUT /users/{id}` serve only the local operator's own record (theme, REQ-AUTH-10); any other ID answers 403, and role, username or password fields in the payload are ignored.
+  - (e) The CLI flags `--admin-password`, `--admin-password-file`, `--setup-token` and `--no-setup-token` are rejected as unknown flags.
+  - (f) The UI has no `#!/auth`, `#!/logout`, `#!/init/admin`, `#!/settings/auth`, `#!/users`, `#!/teams`, `#!/roles`, account token or environment/registry access states, no "Log out" menu item, no user-related or authentication sidebar entries and no ownership columns or access control forms; no route redirects to a login page.
+  - (g) Creating containers, networks, volumes, stacks, custom templates and Git sources sends no ownership and calls no `/resource_controls` endpoint.
 
 ## Not covered as requirements
 

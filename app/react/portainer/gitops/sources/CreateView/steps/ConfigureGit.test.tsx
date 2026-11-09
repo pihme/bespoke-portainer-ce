@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Formik } from 'formik';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 
 import { FormValues } from '../type';
 
@@ -34,9 +33,6 @@ function renderConfigureGit(polling: FormValues['git']['polling']) {
       },
       polling,
     },
-    authorizedTeams: [],
-    authorizedUsers: [],
-    ownership: ResourceControlOwnership.ADMINISTRATORS,
   };
 
   return render(

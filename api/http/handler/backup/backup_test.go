@@ -10,9 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/portainer/portainer/api/adminmonitor"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/offlinegate"
@@ -68,7 +66,6 @@ func Test_backupHandlerWithoutPassword_shouldCreateATarballArchive(t *testing.T)
 	w := httptest.NewRecorder()
 
 	gate := offlinegate.NewOfflineGate()
-	adminMonitor := adminmonitor.New(time.Hour, nil)
 
 	handlerErr := NewHandler(
 		testhelpers.NewTestRequestBouncer(),
@@ -76,7 +73,7 @@ func Test_backupHandlerWithoutPassword_shouldCreateATarballArchive(t *testing.T)
 		gate,
 		prepareFilestorePath(t),
 		func() {},
-		adminMonitor).backup(w, r)
+	).backup(w, r)
 	assert.Nil(t, handlerErr, "Handler should not fail")
 
 	response := w.Result()
@@ -114,7 +111,6 @@ func Test_backupHandlerWithPassword_shouldCreateEncryptedATarballArchive(t *test
 	w := httptest.NewRecorder()
 
 	gate := offlinegate.NewOfflineGate()
-	adminMonitor := adminmonitor.New(time.Hour, nil)
 
 	handlerErr := NewHandler(
 		testhelpers.NewTestRequestBouncer(),
@@ -122,7 +118,7 @@ func Test_backupHandlerWithPassword_shouldCreateEncryptedATarballArchive(t *test
 		gate,
 		prepareFilestorePath(t),
 		func() {},
-		adminMonitor).backup(w, r)
+	).backup(w, r)
 	assert.Nil(t, handlerErr, "Handler should not fail")
 
 	response := w.Result()

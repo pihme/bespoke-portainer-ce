@@ -1,4 +1,3 @@
-import { actions } from './actions';
 import { columnHelper } from './helper';
 import { name } from './name';
 import { type } from './type';
@@ -11,5 +10,4 @@ export const columns = [
   columnHelper.accessor('GroupName', {
     header: 'Group Name',
   }),
-  actions,
 ];

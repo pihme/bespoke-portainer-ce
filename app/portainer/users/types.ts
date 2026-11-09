@@ -1,9 +1,12 @@
 import { EnvironmentId } from '@/react/portainer/environments/types';
-import { AuthorizationMap } from '@/react/portainer/users/RolesView/types';
 
 import { type UserId } from './types/user-id';
 
 export { type UserId };
+
+export interface AuthorizationMap {
+  [authorization: string]: boolean;
+}
 
 export enum Role {
   Admin = 1,

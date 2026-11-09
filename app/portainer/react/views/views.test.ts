@@ -58,9 +58,6 @@ vi.mock('@/react-tools/withUIRouter', () => ({
 }));
 
 vi.mock('@/react/portainer/HomeView', () => ({ HomeView: () => null }));
-vi.mock('@/react/portainer/account/CreateAccessTokenView', () => ({
-  CreateUserAccessToken: () => null,
-}));
 vi.mock('@/react/portainer/settings/EdgeComputeView/EdgeComputeSettingsView', () => ({
   EdgeComputeSettingsView: () => null,
 }));
@@ -133,11 +130,6 @@ vi.mock('@/react/sidebar/useSidebarState', () => ({
 }));
 vi.mock('@/react/portainer/registries/ListView', () => ({ ListView: () => null }));
 vi.mock('@/react/portainer/registries/environments/ListView', () => ({
-  ListView: () => null,
-}));
-vi.mock('@/react/portainer/users/ListView/ListView', () => ({ ListView: () => null }));
-vi.mock('@/react/portainer/users/teams', () => ({
-  ItemView: () => null,
   ListView: () => null,
 }));
 vi.mock('@/react/portainer/environments/update-schedules', () => ({
@@ -259,5 +251,18 @@ describe('portainer react view wrappers', () => {
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining(['homeView', 'settingsView'])
     );
+  });
+
+  it('REQ-TAI-001 registers no login, user, team or token views', async () => {
+    await import('./index');
+    const names = components.map((c) => c.name);
+    for (const gone of [
+      'usersListView',
+      'teamsView',
+      'teamView',
+      'createUserAccessToken',
+    ]) {
+      expect(names).not.toContain(gone);
+    }
   });
 });

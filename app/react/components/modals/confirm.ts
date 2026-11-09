@@ -83,12 +83,3 @@ export async function confirmUpdate(
   return result;
 }
 
-export function confirmChangePassword() {
-  return openConfirm({
-    modalType: ModalType.Warn,
-    title: 'Are you sure?',
-    message:
-      'You will be logged out after the password change. Do you want to change your password?',
-    confirmButton: buildConfirmButton('Change'),
-  });
-}

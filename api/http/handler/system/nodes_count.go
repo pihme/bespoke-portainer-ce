@@ -17,8 +17,6 @@ type nodesCountResponse struct {
 // @id systemNodesCount
 // @summary Retrieve the count of nodes
 // @description **Access policy**: authenticated
-// @security ApiKeyAuth
-// @security jwt
 // @tags system
 // @produce json
 // @success 200 {object} nodesCountResponse "Success"

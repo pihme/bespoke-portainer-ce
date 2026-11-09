@@ -38,8 +38,6 @@ func (p *addHelmRepoUrlPayload) Validate(r *http.Request) error {
 // @description Create a user helm repository.
 // @description **Access policy**: authenticated
 // @tags helm
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "User identifier"
@@ -105,8 +103,6 @@ func (handler *Handler) userCreateHelmRepo(w http.ResponseWriter, r *http.Reques
 // @description Inspect a user helm repositories.
 // @description **Access policy**: authenticated
 // @tags helm
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "User identifier"
 // @success 200 {object} helmUserRepositoryResponse "Success"
@@ -152,8 +148,6 @@ func (handler *Handler) userGetHelmRepos(w http.ResponseWriter, r *http.Request)
 // @summary Delete a users helm repositoryies
 // @description **Access policy**: authenticated
 // @tags helm
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "User identifier"
 // @param repositoryID path int true "Repository identifier"

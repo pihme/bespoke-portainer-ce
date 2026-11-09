@@ -1,7 +1,6 @@
 import { object, string } from 'yup';
 import { useMemo } from 'react';
 
-import { accessControlFormValidation } from '@/react/portainer/access-control/AccessControlForm';
 import { hostnameSchema } from '@/react/docker/containers/CreateView/NetworkTab/HostnameField';
 import { hostFileSchema } from '@/react/docker/containers/CreateView/NetworkTab/HostsFileEntries';
 import { labelsTabUtils } from '@/react/docker/containers/CreateView/LabelsTab';
@@ -13,16 +12,13 @@ import { envVarsFieldsetValidation } from '../EnvVarsFieldset';
 import { TemplateEnv } from '../../types';
 
 export function useValidation({
-  isAdmin,
   envVarDefinitions,
 }: {
-  isAdmin: boolean;
   envVarDefinitions: Array<TemplateEnv>;
 }) {
   return useMemo(
     () =>
       object({
-        accessControl: accessControlFormValidation(isAdmin),
         envVars: envVarsFieldsetValidation(envVarDefinitions),
         hostname: hostnameSchema,
         hosts: hostFileSchema,
@@ -32,6 +28,6 @@ export function useValidation({
         ports: portSchema(),
         volumes: volumesTabUtils.validation(),
       }),
-    [envVarDefinitions, isAdmin]
+    [envVarDefinitions]
   );
 }

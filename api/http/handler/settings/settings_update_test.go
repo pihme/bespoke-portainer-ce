@@ -4,11 +4,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
-	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
@@ -21,23 +19,15 @@ func TestREQ_SET_01_SettingsUpdatePayload_Validate(t *testing.T) {
 	t.Run("accepts local docker settings payload", func(t *testing.T) {
 		t.Parallel()
 		payload := &settingsUpdatePayload{
-			LogoURL:                stringPtr("https://example.com/logo.png"),
-			TemplatesURL:           stringPtr("https://example.com/templates.json"),
-			SnapshotInterval:       stringPtr("10m"),
-			UserSessionTimeout:     stringPtr("8h"),
-			KubeconfigExpiry:       stringPtr("24h"),
-			AuthenticationMethod:   intPtr(1),
-			ForceSecureCookies:     boolPtr(true),
-			HelmRepositoryURL:      stringPtr(""),
-			KubectlShellImage:      stringPtr("portainer/kubectl-shell:latest"),
+			LogoURL:            stringPtr("https://example.com/logo.png"),
+			TemplatesURL:       stringPtr("https://example.com/templates.json"),
+			SnapshotInterval:   stringPtr("10m"),
+			KubeconfigExpiry:   stringPtr("24h"),
+			ForceSecureCookies: boolPtr(true),
+			HelmRepositoryURL:  stringPtr(""),
+			KubectlShellImage:  stringPtr("portainer/kubectl-shell:latest"),
 		}
 		require.NoError(t, payload.Validate(httptest.NewRequest(http.MethodPut, "/settings", nil)))
-	})
-
-	t.Run("rejects invalid authentication method", func(t *testing.T) {
-		t.Parallel()
-		payload := &settingsUpdatePayload{AuthenticationMethod: intPtr(9)}
-		require.EqualError(t, payload.Validate(nil), "Invalid authentication method value. Value must be one of: 1 (internal), 2 (LDAP/AD) or 3 (OAuth)")
 	})
 
 	t.Run("rejects invalid logo URL", func(t *testing.T) {
@@ -57,12 +47,6 @@ func TestREQ_SET_01_SettingsUpdatePayload_Validate(t *testing.T) {
 		payload := &settingsUpdatePayload{HelmRepositoryURL: stringPtr("not a url")}
 		req := httptest.NewRequest(http.MethodPut, "/settings", nil)
 		require.EqualError(t, payload.Validate(req), "Invalid Helm repository URL. Must correspond to a valid URL format")
-	})
-
-	t.Run("rejects invalid user session timeout", func(t *testing.T) {
-		t.Parallel()
-		payload := &settingsUpdatePayload{UserSessionTimeout: stringPtr("nope")}
-		require.EqualError(t, payload.Validate(nil), "Invalid user session timeout")
 	})
 
 	t.Run("rejects invalid kubeconfig expiry", func(t *testing.T) {
@@ -85,13 +69,12 @@ func TestREQ_SET_01_SettingsUpdate_LogoTemplatesAndSnapshot(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, snap, _ := setUpHandler(t, store)
+	handler, snap := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
 		LogoURL:          stringPtr("https://mycompany.example/logo.svg"),
 		TemplatesURL:     stringPtr("https://mycompany.example/templates.json"),
 		SnapshotInterval: stringPtr("15m"),
-		AuthenticationMethod: intPtr(1),
 	}))
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
@@ -121,7 +104,7 @@ func TestREQ_DED_04_SettingsUpdate_AcceptsAnyParseableSnapshotInterval(t *testin
 		t.Run(interval, func(t *testing.T) {
 			t.Parallel()
 			_, store := datastore.MustNewTestStore(t, true, false)
-			handler, snap, _ := setUpHandler(t, store)
+			handler, snap := setUpHandler(t, store)
 
 			before, err := store.Settings().Settings()
 			require.NoError(t, err)
@@ -150,7 +133,7 @@ func TestREQ_SET_02_SettingsUpdate_BlackListedLabels(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	labels := []portainer.Pair{{Name: "com.docker.compose.project", Value: "hidden"}}
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
@@ -170,30 +153,11 @@ func TestREQ_SET_02_SettingsUpdate_BlackListedLabels(t *testing.T) {
 	assert.Equal(t, labels, persisted.BlackListedLabels)
 }
 
-func TestREQ_DED_14_SettingsUpdate_RequiredPasswordLength(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
-
-	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
-		InternalAuthSettings: &portainer.InternalAuthSettings{RequiredPasswordLength: 16},
-	}))
-	w := httptest.NewRecorder()
-	handler.ServeHTTP(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-
-	persisted, err := store.Settings().Settings()
-	require.NoError(t, err)
-	assert.Equal(t, 16, persisted.InternalAuthSettings.RequiredPasswordLength)
-}
-
 func TestREQ_SET_04_SettingsUpdate_ForceSecureCookies(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
 		ForceSecureCookies: boolPtr(true),
@@ -208,17 +172,16 @@ func TestREQ_SET_04_SettingsUpdate_ForceSecureCookies(t *testing.T) {
 	assert.True(t, persisted.ForceSecureCookies)
 }
 
-func TestREQ_SET_01_SettingsUpdate_UserSessionTimeoutAndHelmDefault(t *testing.T) {
+func TestREQ_SET_01_SettingsUpdate_HelmDefault(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, jwt := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
-		UserSessionTimeout: stringPtr("2h"),
-		HelmRepositoryURL:  stringPtr(portainer.DefaultHelmRepositoryURL),
-		KubectlShellImage:  stringPtr("portainer/kubectl-shell:test"),
-		KubeconfigExpiry:   stringPtr("12h"),
+		HelmRepositoryURL: stringPtr(portainer.DefaultHelmRepositoryURL),
+		KubectlShellImage: stringPtr("portainer/kubectl-shell:test"),
+		KubeconfigExpiry:  stringPtr("12h"),
 		GlobalDeploymentOptions: &portainer.GlobalDeploymentOptions{
 			HideStacksFunctionality: true,
 		},
@@ -227,11 +190,9 @@ func TestREQ_SET_01_SettingsUpdate_UserSessionTimeoutAndHelmDefault(t *testing.T
 	handler.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-	assert.Equal(t, 2*time.Hour, jwt.duration)
 
 	persisted, err := store.Settings().Settings()
 	require.NoError(t, err)
-	assert.Equal(t, "2h", persisted.UserSessionTimeout)
 	assert.Equal(t, portainer.DefaultHelmRepositoryURL, persisted.HelmRepositoryURL)
 	assert.Equal(t, "portainer/kubectl-shell:test", persisted.KubectlShellImage)
 	assert.Equal(t, "12h", persisted.KubeconfigExpiry)
@@ -242,7 +203,7 @@ func TestREQ_SET_01_SettingsUpdate_ClearsHelmRepositoryURL(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	settings, err := store.Settings().Settings()
 	require.NoError(t, err)
@@ -265,7 +226,7 @@ func TestREQ_SET_01_SettingsUpdate_InvalidJSON_ReturnsBadRequest(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", []byte(`{`)))
 	w := httptest.NewRecorder()
@@ -278,7 +239,7 @@ func TestREQ_SET_01_SettingsUpdate_InvalidLogo_ReturnsBadRequest(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
 		LogoURL: stringPtr("not a url"),
@@ -293,7 +254,7 @@ func TestREQ_DED_04_SettingsUpdate_SnapshotServiceError(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, snap, _ := setUpHandler(t, store)
+	handler, snap := setUpHandler(t, store)
 	snap.err = assert.AnError
 
 	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
@@ -309,7 +270,7 @@ func TestREQ_SET_01_SettingsUpdate_UnchangedSnapshotInterval_SkipsService(t *tes
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, snap, _ := setUpHandler(t, store)
+	handler, snap := setUpHandler(t, store)
 
 	settings, err := store.Settings().Settings()
 	require.NoError(t, err)
@@ -326,21 +287,36 @@ func TestREQ_SET_01_SettingsUpdate_UnchangedSnapshotInterval_SkipsService(t *tes
 	assert.Empty(t, snap.interval, "SetSnapshotInterval must not run when interval is unchanged")
 }
 
-func TestREQ_SET_01_SettingsUpdate_TLSCleanupError(t *testing.T) {
+// TAI-001: PUT /settings no longer changes the login method, LDAP, OAuth,
+// password policy or session lifetime; those fields are ignored.
+func TestREQ_TAI_001_SettingsUpdate_IgnoresLoginFields(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 
-	fs, err := filesystem.NewService(t.TempDir(), "")
+	before, err := store.Settings().Settings()
 	require.NoError(t, err)
-	handler.FileService = &failingTLSFileService{Service: fs, deleteErr: assert.AnError}
 
-	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", settingsUpdatePayload{
-		LogoURL: stringPtr("https://example.com/tls-fail.png"),
-	}))
+	body := []byte(`{
+		"AuthenticationMethod": 3,
+		"InternalAuthSettings": {"RequiredPasswordLength": 3},
+		"LDAPSettings": {"URL": "ldap.example.com:389", "ReaderDN": "cn=reader"},
+		"OAuthSettings": {"ClientID": "client", "AuthorizationURI": "https://oauth.example.com"},
+		"UserSessionTimeout": "1m"
+	}`)
+
+	req := withAdminContext(jsonRequest(t, http.MethodPut, "/settings", body))
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
-	assert.NotEqual(t, http.StatusOK, w.Code)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	after, err := store.Settings().Settings()
+	require.NoError(t, err)
+	assert.Equal(t, before.AuthenticationMethod, after.AuthenticationMethod)
+	assert.Equal(t, before.InternalAuthSettings, after.InternalAuthSettings)
+	assert.Equal(t, before.LDAPSettings.URL, after.LDAPSettings.URL)
+	assert.Equal(t, before.OAuthSettings.ClientID, after.OAuthSettings.ClientID)
+	assert.Equal(t, before.UserSessionTimeout, after.UserSessionTimeout)
 }

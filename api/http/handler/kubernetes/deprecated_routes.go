@@ -15,7 +15,6 @@ import (
 // @description Update a namespace within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

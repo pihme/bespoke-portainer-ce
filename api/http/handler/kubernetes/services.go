@@ -16,7 +16,6 @@ import (
 // @description Get a list of services that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param withApplications query boolean false "Lookup applications associated with each service"
@@ -41,7 +40,6 @@ func (handler *Handler) GetAllKubernetesServices(w http.ResponseWriter, r *http.
 // @description Get the count of services that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -102,7 +100,6 @@ func (handler *Handler) getAllKubernetesServices(r *http.Request) ([]models.K8sS
 // @description Get a list of services for a given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace name"
@@ -144,7 +141,6 @@ func (handler *Handler) getKubernetesServicesByNamespace(w http.ResponseWriter, 
 // @description Create a service within a given namespace
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -202,7 +198,6 @@ func (handler *Handler) createKubernetesService(w http.ResponseWriter, r *http.R
 // @description Delete the provided list of services.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -251,7 +246,6 @@ func (handler *Handler) deleteKubernetesServices(w http.ResponseWriter, r *http.
 // @description Update a service within a given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

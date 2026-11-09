@@ -63,8 +63,6 @@ func (payload *registryPingPayload) Validate(_ *http.Request) error {
 // @description Test connection to a registry with provided credentials
 // @description **Access policy**: authenticated
 // @tags registries
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body registryPingPayload true "Registry credentials to test"

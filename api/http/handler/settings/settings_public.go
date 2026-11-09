@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"fmt"
 	"net/http"
 
 	portainer "github.com/portainer/portainer/api"
@@ -11,26 +10,16 @@ import (
 )
 
 type publicSettingsResponse struct {
-	// URL to a logo that will be displayed on the login page as well as on top of the sidebar. Will use default Portainer logo when value is empty string
+	// URL to a logo that will be displayed on top of the sidebar. Will use default Portainer logo when value is empty string
 	LogoURL string `json:"LogoURL" example:"https://mycompany.mydomain.tld/logo.png"`
-	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-	AuthenticationMethod portainer.AuthenticationMethod `json:"AuthenticationMethod" example:"1"`
-	// The minimum required length for a password of any user when using internal auth mode
-	RequiredPasswordLength int `json:"RequiredPasswordLength" example:"1"`
 	// Deployment options for encouraging deployment as code
 	GlobalDeploymentOptions portainer.GlobalDeploymentOptions `json:"GlobalDeploymentOptions"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures bool `json:"EnableEdgeComputeFeatures" example:"true"`
 	// Supported feature flags
 	Features map[featureflags.Feature]bool `json:"Features"`
-	// The URL used for oauth login
-	OAuthLoginURI string `json:"OAuthLoginURI" example:"https://gitlab.com/oauth"`
-	// The URL used for oauth logout
-	OAuthLogoutURI string `json:"OAuthLogoutURI" example:"https://gitlab.com/oauth/logout"`
 	// The expiry of a Kubeconfig
 	KubeconfigExpiry string `example:"24h" default:"0"`
-	// Whether team sync is enabled
-	TeamSync bool `json:"TeamSync" example:"true"`
 
 	Edge struct {
 		// The ping interval for edge agent - used in edge async mode [seconds]
@@ -44,8 +33,6 @@ type publicSettingsResponse struct {
 	}
 
 	IsDockerDesktopExtension bool `json:"IsDockerDesktopExtension" example:"false"`
-	// Whether the setup wizard must send the X-Setup-Token header for admin init / restore
-	RequiresSetupToken bool `json:"RequiresSetupToken" example:"false"`
 }
 
 // @id SettingsPublic
@@ -64,7 +51,6 @@ func (handler *Handler) settingsPublic(w http.ResponseWriter, r *http.Request) *
 	}
 
 	publicSettings := generatePublicSettings(settings)
-	publicSettings.RequiresSetupToken = handler.SetupTokenRequired
 
 	return response.JSON(w, publicSettings)
 }
@@ -72,8 +58,6 @@ func (handler *Handler) settingsPublic(w http.ResponseWriter, r *http.Request) *
 func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResponse {
 	publicSettings := &publicSettingsResponse{
 		LogoURL:                   appSettings.LogoURL,
-		AuthenticationMethod:      appSettings.AuthenticationMethod,
-		RequiredPasswordLength:    appSettings.InternalAuthSettings.RequiredPasswordLength,
 		EnableEdgeComputeFeatures: appSettings.EnableEdgeComputeFeatures,
 		GlobalDeploymentOptions:   appSettings.GlobalDeploymentOptions,
 		KubeconfigExpiry:          appSettings.KubeconfigExpiry,
@@ -86,27 +70,6 @@ func generatePublicSettings(appSettings *portainer.Settings) *publicSettingsResp
 	publicSettings.Edge.CheckinInterval = appSettings.EdgeAgentCheckinInterval
 
 	publicSettings.IsDockerDesktopExtension = appSettings.IsDockerDesktopExtension
-
-	// If OAuth authentication is on, compose the related fields from application settings
-	if publicSettings.AuthenticationMethod == portainer.AuthenticationOAuth {
-		publicSettings.OAuthLogoutURI = appSettings.OAuthSettings.LogoutURI
-		publicSettings.OAuthLoginURI = fmt.Sprintf("%s?response_type=code&client_id=%s&redirect_uri=%s&scope=%s",
-			appSettings.OAuthSettings.AuthorizationURI,
-			appSettings.OAuthSettings.ClientID,
-			appSettings.OAuthSettings.RedirectURI,
-			appSettings.OAuthSettings.Scopes)
-
-		// Control prompt=login param according to the SSO setting
-		if !appSettings.OAuthSettings.SSO {
-			publicSettings.OAuthLoginURI += "&prompt=login"
-		}
-	}
-	// If LDAP authentication is on, compose the related fields from application settings
-	if publicSettings.AuthenticationMethod == portainer.AuthenticationLDAP && appSettings.LDAPSettings.GroupSearchSettings != nil {
-		if len(appSettings.LDAPSettings.GroupSearchSettings) > 0 {
-			publicSettings.TeamSync = len(appSettings.LDAPSettings.GroupSearchSettings[0].GroupBaseDN) > 0
-		}
-	}
 
 	return publicSettings
 }

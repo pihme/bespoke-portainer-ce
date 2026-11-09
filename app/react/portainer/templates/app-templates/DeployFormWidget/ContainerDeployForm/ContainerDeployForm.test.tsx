@@ -13,16 +13,6 @@ const useValidation = vi.fn(() => undefined);
 vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 3,
 }));
-vi.mock('@/react/hooks/useUser', () => ({
-  useCurrentUser: () => ({ user: { Id: 1 } }),
-  useIsEdgeAdmin: () => ({ isAdmin: true, isLoading: false }),
-}));
-vi.mock('@/react/portainer/access-control/utils', () => ({
-  parseAccessControlFormData: () => ({ AccessControlEnabled: false }),
-}));
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: () => <div>access-control</div>,
-}));
 vi.mock('@/react/docker/containers/CreateView/BaseForm/NameField', () => ({
   NameField: ({
     value,
@@ -102,7 +92,8 @@ describe('REQ-TPL-01 ContainerDeployForm', () => {
 
     expect(screen.getByLabelText('Name')).toHaveValue('web');
     expect(screen.getByText('env-vars')).toBeVisible();
-    expect(screen.getByText('access-control')).toBeVisible();
+    // REQ-TAI-001: no ownership section
+    expect(screen.queryByText(/access control/i)).not.toBeInTheDocument();
     expect(screen.getByText('Show advanced options')).toBeVisible();
 
     await user.click(screen.getByText('Show advanced options'));

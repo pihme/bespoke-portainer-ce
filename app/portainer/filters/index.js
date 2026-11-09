@@ -1,7 +1,6 @@
 import angular from 'angular';
 import _ from 'lodash-es';
 
-import { ownershipIcon } from '@/react/docker/components/datatable/createOwnershipColumn';
 import { stripProtocol } from '@/react/common/string-utils';
 import { arrayToStr, endpointTypeName, getPairKey, getPairValue, humanize, ipAddress, isoDate, isoDateFromTimestamp, labelsToStr, truncate, truncateLeftRight } from './filters';
 
@@ -20,5 +19,4 @@ angular
   .filter('ipaddress', () => ipAddress)
   .filter('arraytostr', () => arrayToStr)
   .filter('labelsToStr', () => labelsToStr)
-  .filter('endpointtypename', () => endpointTypeName)
-  .filter('ownershipicon', () => ownershipIcon);
+  .filter('endpointtypename', () => endpointTypeName);

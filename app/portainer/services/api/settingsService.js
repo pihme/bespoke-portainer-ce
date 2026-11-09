@@ -41,9 +41,6 @@ angular.module('portainer.app').factory('SettingsService', [
       return deferred.promise;
     };
 
-    service.checkLDAPConnectivity = function (settings) {
-      return Settings.checkLDAPConnectivity({}, settings).$promise;
-    };
 
     return service;
   },

@@ -53,8 +53,6 @@ func (payload *stackGitRedeployPayload) Validate(r *http.Request) error {
 // @description Pull and redeploy a stack via Git
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Stack identifier"

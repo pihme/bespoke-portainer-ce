@@ -20,7 +20,6 @@ type describeResourceResponse struct {
 // @description Get a description of a kubernetes resource.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param name query string true "Resource name"

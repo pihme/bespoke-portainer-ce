@@ -49,17 +49,6 @@
   </div>
 </div>
 
-<!-- access-control-panel -->
-<access-control-panel
-  ng-if="config"
-  resource-id="config.Id"
-  resource-control="config.ResourceControl"
-  resource-type="resourceType"
-  on-update-success="(onUpdateResourceControlSuccess)"
-  environment-id="endpoint.Id"
->
-</access-control-panel>
-<!-- !access-control-panel -->
 
 <div class="row" ng-if="config">
   <div class="col-sm-12">

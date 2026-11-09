@@ -19,7 +19,6 @@ import (
 // @description Get a list of metrics associated with all nodes of a cluster.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {object} v1beta1.NodeMetricsList "Success"
@@ -52,7 +51,6 @@ func (handler *Handler) getKubernetesMetricsForAllNodes(w http.ResponseWriter, r
 // @description Get live metrics for the specified node.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param name path string true "Node identifier"
@@ -98,7 +96,6 @@ func (handler *Handler) getKubernetesMetricsForNode(w http.ResponseWriter, r *ht
 // @description Get a list of pods with their live metrics for the specified namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace"
@@ -143,7 +140,6 @@ func (handler *Handler) getKubernetesMetricsForAllPods(w http.ResponseWriter, r 
 // @description Get live metrics for the specified pod.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace"

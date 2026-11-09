@@ -53,12 +53,6 @@ export function UserMenu() {
           data-cy="userMenu-myAccount"
         />
 
-        <MenuLink
-          to="portainer.logout"
-          label="Log out"
-          data-cy="userMenu-logOut"
-        />
-
         <hr className="my-1 border-t border-gray-5 th-highcontrast:border-gray-7 th-dark:border-gray-7" />
 
         <ThemeSelector user={user} />

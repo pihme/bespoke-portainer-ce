@@ -75,8 +75,6 @@ func (payload *updateSwarmStackPayload) Validate(r *http.Request) error {
 // @description Update a stack, only for file based stacks.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Stack identifier"

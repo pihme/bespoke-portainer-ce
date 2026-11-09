@@ -12,7 +12,6 @@ import {
   createMockResourceGroups,
   createMockStack,
   createMockSubscriptions,
-  createMockTeams,
   createMockUser,
   createMockUsers,
 } from './test-mocks';
@@ -49,12 +48,6 @@ describe('test-mocks local Docker helpers', () => {
     expect(() => createMockUsers(1, [])).toThrow('No roles provided');
   });
 
-  it('createMockTeams builds sequential team ids and names', () => {
-    expect(createMockTeams(2)).toEqual([
-      { Id: 1, Name: 'team1' },
-      { Id: 2, Name: 'team2' },
-    ]);
-  });
 
   it('createMockEnvironment defaults to a local Docker endpoint', () => {
     const env = createMockEnvironment({ Name: 'local', Id: 9 });

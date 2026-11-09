@@ -1,5 +1,3 @@
-import { TeamId } from '@/react/portainer/users/teams/types';
-
 export interface TLSConfiguration {
   TLS: boolean;
   TLSSkipVerify: boolean;
@@ -8,77 +6,9 @@ export interface TLSConfiguration {
   TLSKey?: string;
 }
 
-export interface LDAPGroupSearchSettings {
-  GroupBaseDN: string;
-  GroupFilter: string;
-  GroupAttribute: string;
-}
-
-export interface LDAPSearchSettings {
-  BaseDN: string;
-  Filter: string;
-  UserNameAttribute: string;
-}
-
-export interface LDAPSettings {
-  AnonymousMode: boolean;
-  ReaderDN: string;
-  Password?: string;
-  URL: string;
-  TLSConfig: TLSConfiguration;
-  StartTLS: boolean;
-  SearchSettings: LDAPSearchSettings[];
-  GroupSearchSettings: LDAPGroupSearchSettings[];
-  AutoCreateUsers: boolean;
-}
-
 export interface Pair {
   name: string;
   value?: string;
-}
-
-export interface OAuthSettings {
-  ClientID: string;
-  ClientSecret?: string;
-  AccessTokenURI: string;
-  AuthorizationURI: string;
-  ResourceURI: string;
-  RedirectURI: string;
-  UserIdentifier: string;
-  Scopes: string;
-  OAuthAutoCreateUsers: boolean;
-  DefaultTeamID: TeamId;
-  SSO: boolean;
-  LogoutURI: string;
-  KubeSecretKey: string;
-}
-
-export enum AuthenticationMethod {
-  /**
-   * Internal represents the internal authentication method (authentication against Portainer API)
-   */
-  Internal = 1,
-  /**
-   * LDAP represents the LDAP authentication method (authentication against a LDAP server)
-   */
-  LDAP,
-  /**
-   * OAuth represents the OAuth authentication method (authentication against a authorization server)
-   */
-  OAuth,
-  /**
-   * AD represents the Active Directory authentication method (authentication against a Microsoft Active Directory server)
-   */
-  AD,
-}
-
-/**
- * The definition are based on oauth2 lib definition @https://pkg.go.dev/golang.org/x/oauth2#AuthStyle
- */
-export enum OAuthStyle {
-  AutoDetect = 0,
-  InParams,
-  InHeader,
 }
 
 type Feature = string;
@@ -94,15 +24,10 @@ export interface Settings {
   LogoURL: string;
   CustomLoginBanner: string;
   BlackListedLabels: Pair[];
-  AuthenticationMethod: AuthenticationMethod;
-  InternalAuthSettings: { RequiredPasswordLength: number };
-  LDAPSettings: LDAPSettings;
-  OAuthSettings: OAuthSettings;
   FeatureFlagSettings: { [key: Feature]: boolean };
   SnapshotInterval: string;
   TemplatesURL: string;
   EnableEdgeComputeFeatures: boolean;
-  UserSessionTimeout: string;
   KubeconfigExpiry: string;
   HelmRepositoryURL: string;
   KubectlShellImage: string;
@@ -157,26 +82,14 @@ export interface PublicSettingsResponse {
   LogoURL: string;
   /** The content in plaintext used to display in the login page. Will hide when value is empty string (only on BE) */
   CustomLoginBanner: string;
-  /** Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth */
-  AuthenticationMethod: AuthenticationMethod;
-  /** The minimum required length for a password of any user when using internal auth mode */
-  RequiredPasswordLength: number;
   /** Deployment options for encouraging deployment as code (only on BE) */
   GlobalDeploymentOptions: GlobalDeploymentOptions;
   /** Whether edge compute features are enabled */
   EnableEdgeComputeFeatures: boolean;
   /** Supported feature flags */
   Features: { [key: Feature]: boolean };
-  /** The URL used for oauth login */
-  OAuthLoginURI: string;
-  /** The URL used for oauth logout */
-  OAuthLogoutURI: string;
-  /** Whether portainer internal auth view will be hidden (only on BE) */
-  OAuthHideInternalAuth: boolean;
   /** The expiry of a Kubeconfig */
   KubeconfigExpiry: string;
-  /** Whether team sync is enabled */
-  TeamSync: boolean;
   /** Whether to hide default registry (only on BE) */
   DefaultRegistry?: {
     Hide: boolean;

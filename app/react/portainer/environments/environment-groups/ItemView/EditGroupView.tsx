@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, UsersRound } from 'lucide-react';
+import { Box } from 'lucide-react';
 import { useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
@@ -15,7 +15,6 @@ import { useGroup } from '../queries/useGroup';
 import { useDeleteEnvironmentGroupMutation } from '../queries/useDeleteEnvironmentGroupMutation';
 
 import { EnvironmentsTab } from './tabs/EnvironmentsTab';
-import { AccessTab } from './tabs/AccessTab';
 import { GroupHeader } from './GroupHeader';
 
 export function EditGroupView() {
@@ -60,12 +59,6 @@ export function EditGroupView() {
           />
         ),
         selectedTabParam: 'environments',
-      },
-      {
-        name: 'Access',
-        icon: UsersRound,
-        widget: <AccessTab />,
-        selectedTabParam: 'access',
       },
     ],
     [addEnvsDrawerOpen]

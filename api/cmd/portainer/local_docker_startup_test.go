@@ -205,16 +205,13 @@ func TestREQ_SRV_01_InitStatus_InstanceID(t *testing.T) {
 	assert.Equal(t, "local-instance-id", status.InstanceID)
 }
 
-func TestREQ_SRV_01_InitDigitalSignatureAndAPIKeyAndJWT(t *testing.T) {
+func TestREQ_SRV_01_InitDigitalSignatureAndJWT(t *testing.T) {
 	t.Parallel()
 
 	sig := initDigitalSignatureService()
 	require.NotNil(t, sig)
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-
-	apiKeys := initAPIKeyService(store)
-	require.NotNil(t, apiKeys)
 
 	jwtDefault, err := initJWTService("", store)
 	require.NoError(t, err)
@@ -449,9 +446,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	assets := t.TempDir()
 	baseURL := "/"
 	trustedOrigins := ""
-	adminPassword := ""
-	adminPasswordFile := ""
-	noSetupToken := true
 	csp := true
 	pullLimitDisabled := true
 	endpointURL := ""
@@ -462,15 +456,10 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	flags.Assets = &assets
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
-	flags.AdminPassword = &adminPassword
-	flags.AdminPasswordFile = &adminPasswordFile
-	flags.NoSetupToken = &noSetupToken
 	flags.CSP = &csp
 	flags.PullLimitCheckDisabled = &pullLimitDisabled
 	flags.EndpointURL = &endpointURL
 	flags.FeatureFlags = &featureFlags
-	setupToken := ""
-	flags.SetupToken = &setupToken
 
 	bind := "127.0.0.1:" + freeTCPPort(t)
 	bindHTTPS := "127.0.0.1:" + freeTCPPort(t)
@@ -495,6 +484,14 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	require.NotNil(t, httpServer.DockerClientFactory)
 	require.NotNil(t, httpServer.ComposeStackManager)
 
+	// TAI-001: first start needs no administrator setup; the local operator
+	// record exists as soon as the server is built.
+	admins, err := httpServer.DataStore.User().UsersByRole(portainer.AdministratorRole)
+	require.NoError(t, err)
+	require.Len(t, admins, 1)
+	assert.Equal(t, "admin", admins[0].Username)
+	assert.Empty(t, admins[0].Password)
+
 	if httpServer.ReverseTunnelService != nil {
 		_ = httpServer.ReverseTunnelService.StopTunnelServer()
 	}
@@ -513,28 +510,20 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	assets := t.TempDir()
 	baseURL := "/"
 	trustedOrigins := "https://portainer.example.com,https://ui.example.com:8443"
-	adminPassword := ""
-	adminPasswordFile := ""
-	noSetupToken := true
 	csp := true
 	pullLimitDisabled := true
 	endpointURL := ""
 	featureFlags := []string{}
-	setupToken := ""
 
 	flags.TunnelAddr = &tunnelAddr
 	flags.TunnelPort = &tunnelPort
 	flags.Assets = &assets
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
-	flags.AdminPassword = &adminPassword
-	flags.AdminPasswordFile = &adminPasswordFile
-	flags.NoSetupToken = &noSetupToken
 	flags.CSP = &csp
 	flags.PullLimitCheckDisabled = &pullLimitDisabled
 	flags.EndpointURL = &endpointURL
 	flags.FeatureFlags = &featureFlags
-	flags.SetupToken = &setupToken
 
 	bind := "127.0.0.1:" + freeTCPPort(t)
 	bindHTTPS := "127.0.0.1:" + freeTCPPort(t)

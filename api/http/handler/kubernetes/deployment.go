@@ -28,7 +28,6 @@ type KubernetesDeploymentListResponse appsv1.DeploymentList
 // @description Get the list of Kubernetes deployments across all namespaces the user can access.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param labelSelector query string false "Kubernetes label selector to filter the deployments"
@@ -47,7 +46,6 @@ func (handler *Handler) getAllKubernetesDeployments(w http.ResponseWriter, r *ht
 // @description Get the list of Kubernetes deployments in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"
@@ -102,7 +100,6 @@ func (handler *Handler) getKubernetesDeploymentsForNamespaceValue(w http.Respons
 // @description live cluster and the workload subsequently updated.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"
@@ -157,7 +154,6 @@ func (handler *Handler) getKubernetesDeployment(w http.ResponseWriter, r *http.R
 // @description route, and the payload models the fields the deployment forms drive.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
@@ -210,7 +206,6 @@ func (handler *Handler) createKubernetesDeployment(w http.ResponseWriter, r *htt
 // @description value untouched. The selector is immutable and is ignored.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
@@ -261,7 +256,6 @@ func (handler *Handler) updateKubernetesDeployment(w http.ResponseWriter, r *htt
 // @description Set the desired replica count of a deployment in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
@@ -308,7 +302,6 @@ func (handler *Handler) scaleKubernetesDeployment(w http.ResponseWriter, r *http
 // @description rolls the workload, which is how a rollout restart is triggered.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
@@ -355,7 +348,6 @@ func (handler *Handler) patchKubernetesDeployment(w http.ResponseWriter, r *http
 // @description selects the revision immediately before the current.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
@@ -408,7 +400,6 @@ func (handler *Handler) rollbackKubernetesDeployment(w http.ResponseWriter, r *h
 // @description owns are garbage collected by the cluster.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"

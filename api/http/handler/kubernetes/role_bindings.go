@@ -15,7 +15,6 @@ import (
 // @description Get a list of kubernetes role bindings that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} kubernetes.K8sRoleBinding "Success"
@@ -46,7 +45,6 @@ func (handler *Handler) getAllKubernetesRoleBindings(w http.ResponseWriter, r *h
 // @description Delete the provided list of role bindings.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param payload body models.K8sRoleBindingDeleteRequests true "A map where the key is the namespace and the value is an array of role bindings to delete"

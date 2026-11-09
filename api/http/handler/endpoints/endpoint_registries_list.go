@@ -22,8 +22,6 @@ import (
 // @description **Access policy**: authenticated
 // @tags endpoints
 // @param namespace query string false "required if kubernetes environment, will show registries by namespace"
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {array} portainer.Registry "Success"

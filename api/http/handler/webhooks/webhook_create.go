@@ -37,8 +37,6 @@ func (payload *webhookCreatePayload) Validate(r *http.Request) error {
 
 // @summary Create a webhook
 // @description **Access policy**: authenticated
-// @security ApiKeyAuth
-// @security jwt
 // @tags webhooks
 // @accept json
 // @produce json

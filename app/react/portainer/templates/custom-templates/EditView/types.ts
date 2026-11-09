@@ -3,7 +3,6 @@ import { type Values as CommonFieldsValues } from '@/react/portainer/custom-temp
 import { DefinitionFieldValues } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
 import { Platform } from '@/react/portainer/templates/types';
 import { GitFormModel } from '@/react/portainer/gitops/types';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
 
 import { EdgeTemplateSettings } from '../types';
 
@@ -13,6 +12,5 @@ export interface FormValues extends CommonFieldsValues {
   FileContent: string;
   Git?: GitFormModel;
   Variables: DefinitionFieldValues;
-  AccessControl?: AccessControlFormData;
   EdgeSettings?: EdgeTemplateSettings;
 }

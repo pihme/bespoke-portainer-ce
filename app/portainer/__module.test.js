@@ -76,8 +76,6 @@ describe('portainer.app module', () => {
     expect(globalThis.angular.module).toHaveBeenCalledWith(
       'portainer.app',
       expect.arrayContaining([
-        'portainer.oauth',
-        'portainer.rbac',
         'portainer.registrymanagement',
         'componentsModule',
         'settingsModule',
@@ -90,6 +88,14 @@ describe('portainer.app module', () => {
         'helpersModule',
       ])
     );
+  });
+
+  it('REQ-TAI-001 does not depend on the oauth or rbac modules', () => {
+    const call = globalThis.angular.module.mock.calls.find(
+      ([name, deps]) => name === 'portainer.app' && Array.isArray(deps)
+    );
+    expect(call[1]).not.toContain('portainer.oauth');
+    expect(call[1]).not.toContain('portainer.rbac');
   });
 
   it('wires requiresAuthHook in the module run block', () => {
@@ -130,6 +136,25 @@ describe('portainer.app local-docker UI-Router states', () => {
         'portainer.tags',
       ])
     );
+  });
+
+  it('REQ-TAI-001 registers no login, user, team or auth-settings states', () => {
+    const names = registeredStates.map((s) => s.name);
+    for (const gone of [
+      'portainer.auth',
+      'portainer.logout',
+      'portainer.init.admin',
+      'portainer.users',
+      'portainer.users.user',
+      'portainer.teams',
+      'portainer.roles',
+      'portainer.settings.authentication',
+      'portainer.account.tokens',
+      'portainer.endpoints.endpoint.access',
+      'portainer.authLogs',
+    ]) {
+      expect(names).not.toContain(gone);
+    }
   });
 
   it('marks root restricted with sidebar and endpoint under root', () => {
@@ -349,52 +374,17 @@ describe('root onEnter', () => {
     expect($state.go).not.toHaveBeenCalled();
   });
 
-  it('redirects unauthenticated users away from authenticated routes', async () => {
+  it('REQ-TAI-001 never redirects to a login or logout route', async () => {
     const onEnter = stateByName('root').onEnter;
     const StateManager = {
       getState: vi.fn().mockReturnValue({ loading: true }),
       initialize: vi.fn().mockResolvedValue(undefined),
     };
-    const Authentication = { init: vi.fn().mockResolvedValue(false) };
+    const Authentication = { init: vi.fn().mockResolvedValue(true) };
     const Notifications = { error: vi.fn() };
     const $state = {
       go: vi.fn(),
       transition: { to: () => ({ name: 'portainer.home' }) },
-    };
-
-    await expect(
-      onEnter(makeAsync(), StateManager, Authentication, Notifications, $state)
-    ).rejects.toBe('Unauthenticated');
-    expect($state.go).toHaveBeenCalledWith('portainer.logout');
-  });
-
-  it('treats a missing transition as requiring authentication', async () => {
-    const onEnter = stateByName('root').onEnter;
-    const StateManager = {
-      getState: vi.fn().mockReturnValue({ loading: true }),
-      initialize: vi.fn().mockResolvedValue(undefined),
-    };
-    const Authentication = { init: vi.fn().mockResolvedValue(false) };
-    const Notifications = { error: vi.fn() };
-    const $state = { go: vi.fn(), transition: null };
-
-    await expect(
-      onEnter(makeAsync(), StateManager, Authentication, Notifications, $state)
-    ).rejects.toBe('Unauthenticated');
-    expect($state.go).toHaveBeenCalledWith('portainer.logout');
-  });
-
-  it('allows unauthenticated access to auth and logout routes', async () => {
-    const onEnter = stateByName('root').onEnter;
-    const StateManager = {
-      getState: vi.fn().mockReturnValue({ loading: true }),
-      initialize: vi.fn().mockResolvedValue(undefined),
-    };
-    const Authentication = { init: vi.fn().mockResolvedValue(false) };
-    const Notifications = { error: vi.fn() };
-    const $state = {
-      go: vi.fn(),
-      transition: { to: () => ({ name: 'portainer.auth' }) },
     };
 
     await onEnter(
@@ -406,6 +396,7 @@ describe('root onEnter', () => {
     );
 
     expect($state.go).not.toHaveBeenCalled();
+    expect(StateManager.initialize).toHaveBeenCalled();
   });
 
   it('surfaces initialization failures through Notifications', async () => {

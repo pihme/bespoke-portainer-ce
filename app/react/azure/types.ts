@@ -1,4 +1,3 @@
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
 import { PortainerResponse } from '@/react/docker/types';
 
 import { PortMapping } from './container-instances/CreateView/PortsMappingField';
@@ -16,7 +15,6 @@ export interface ContainerInstanceFormValues {
   cpu: number;
   ports: PortMapping[];
   allocatePublicIP: boolean;
-  accessControl: AccessControlFormData;
   env: { name: string; value: string }[];
 }
 

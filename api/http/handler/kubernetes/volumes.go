@@ -17,7 +17,6 @@ import (
 // @description Get a list of all kubernetes volumes within the given environment (Endpoint). The Endpoint ID must be a valid Portainer environment identifier.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param withApplications query boolean false "When set to True, include the applications that are using the volumes. It is set to false by default"
@@ -40,7 +39,6 @@ func (handler *Handler) GetAllKubernetesVolumes(w http.ResponseWriter, r *http.R
 // @description Get the total number of kubernetes volumes within the given environment (Endpoint). The total count depends on the user's role and permissions. The Endpoint ID must be a valid Portainer environment identifier.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -62,7 +60,6 @@ func (handler *Handler) getAllKubernetesVolumesCount(w http.ResponseWriter, r *h
 // @description Get a list of kubernetes volumes within the specified namespace in the given environment (Endpoint). The Endpoint ID must be a valid Portainer environment identifier.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace identifier"
@@ -92,7 +89,6 @@ func (handler *Handler) GetKubernetesVolumesInNamespace(w http.ResponseWriter, r
 // @description Get a Kubernetes volume within the given environment (Endpoint). The Endpoint ID must be a valid Portainer environment identifier.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace identifier"

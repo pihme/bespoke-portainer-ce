@@ -64,8 +64,6 @@ type endpointEdgeStatusInspectResponse struct {
 // @description Endpoint for edge agent to check status of environment
 // @description **Access policy**: Edge agent only — requires X-PortainerAgent-EdgeID header
 // @tags edge_agent
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "Environment identifier"
 // @success 200 {object} endpointEdgeStatusInspectResponse "Success"
 // @failure 400 "Invalid request"

@@ -145,8 +145,6 @@ type createKubernetesStackResponse struct {
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body kubernetesStringDeploymentPayload true "stack config"
 // @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
@@ -205,8 +203,6 @@ func (handler *Handler) createKubernetesStackFromFileContent(w http.ResponseWrit
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body kubernetesGitDeploymentPayload true "stack config"
 // @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
@@ -287,8 +283,6 @@ func (handler *Handler) createKubernetesStackFromGitRepository(w http.ResponseWr
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body kubernetesManifestURLDeploymentPayload true "stack config"
 // @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"

@@ -37,7 +37,6 @@ func (payload *endpointUpdateRelationsPayload) Validate(r *http.Request) error {
 // @description
 // @description **Access policy**: administrator
 // @tags endpoints
-// @security jwt
 // @accept json
 // @param body body endpointUpdateRelationsPayload true "Environment relations data"
 // @success 204 "Success"

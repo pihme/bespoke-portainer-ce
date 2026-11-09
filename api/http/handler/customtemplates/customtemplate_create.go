@@ -149,8 +149,6 @@ func (payload *customTemplateFromFileContentPayload) Validate(r *http.Request) e
 // @description Create a custom template.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body customTemplateFromFileContentPayload true "body"
@@ -270,8 +268,6 @@ func (payload *customTemplateFromGitRepositoryPayload) Validate(r *http.Request)
 // @description Create a custom template.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body customTemplateFromGitRepositoryPayload true "Required when using method=repository"
@@ -483,8 +479,6 @@ func (payload *customTemplateFromFileUploadPayload) Validate(r *http.Request) er
 // @description Create a custom template.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param Title formData string true "Title of the template"

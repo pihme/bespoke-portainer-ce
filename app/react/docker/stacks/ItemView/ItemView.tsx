@@ -1,14 +1,9 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { StackContainersDatatable } from '@/react/docker/stacks/ItemView/StackContainersDatatable';
-import { AccessControlPanel } from '@/react/portainer/access-control';
 import { useStack } from '@/react/common/stacks/queries/useStack';
 import { Stack, StackStatus, StackType } from '@/react/common/stacks/types';
-import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
-import { ResourceControlType } from '@/react/portainer/access-control/types';
-import { queryKeys } from '@/react/common/stacks/queries/query-keys';
 import { notifyError } from '@/portainer/services/notifications';
 import { useUpdateStackResourcesOnDeployment } from '@/react/docker/stacks/ItemView/useUpdateStackResourcesOnDeployment';
 
@@ -28,7 +23,6 @@ export function ItemView() {
     stackType,
   } = useParams();
 
-  const queryClient = useQueryClient();
   const stackQuery = useStack(stackId, {
     enabled: isRegular || isOrphaned,
     refetchInterval: (data) =>
@@ -38,10 +32,6 @@ export function ItemView() {
   const stack = stackQuery.data;
 
   useUpdateStackResourcesOnDeployment(stack);
-
-  const resourceControl = stack?.ResourceControl
-    ? new ResourceControlViewModel(stack.ResourceControl)
-    : undefined;
 
   useEffect(() => {
     if (
@@ -80,17 +70,6 @@ export function ItemView() {
               <StackServicesDatatable name={stackName} />
             )}
           </>
-        )}
-        {stack && !isOrphaned && (
-          <AccessControlPanel
-            environmentId={stack.EndpointId}
-            resourceId={`${stack.EndpointId}_${stack.Name}`}
-            resourceControl={resourceControl}
-            resourceType={ResourceControlType.Stack}
-            onUpdateSuccess={() =>
-              queryClient.invalidateQueries(queryKeys.stack(stackId))
-            }
-          />
         )}
       </div>
     </>

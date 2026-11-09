@@ -19,7 +19,6 @@ import { AddButton } from '@@/buttons';
 import { useRepeater } from '@@/datatables/useRepeater';
 import { DeleteButton } from '@@/buttons/DeleteButton';
 
-import { createOwnershipColumn } from '../../components/datatable/createOwnershipColumn';
 
 const columnHelper = createColumnHelper<SecretViewModel>();
 
@@ -28,7 +27,6 @@ const columns = [
   columnHelper.accessor((item) => isoDate(item.CreatedAt), {
     header: 'Creation Date',
   }),
-  createOwnershipColumn<SecretViewModel>(),
 ];
 
 interface TableSettings extends BasicTableSettings, RefreshableTableSettings {}

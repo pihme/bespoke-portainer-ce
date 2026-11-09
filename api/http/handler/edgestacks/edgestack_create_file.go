@@ -83,8 +83,6 @@ func (payload *edgeStackFromFileUploadPayload) Validate(r *http.Request) error {
 // @summary Create an EdgeStack from file
 // @description **Access policy**: administrator
 // @tags edge_stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name of the stack. it must only consist of lowercase alphanumeric characters, hyphens, or underscores as well as start with a letter or number"

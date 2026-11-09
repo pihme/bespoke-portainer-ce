@@ -14,7 +14,6 @@ import (
 // @description Check if RBAC is enabled in the specified Kubernetes cluster.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {boolean} bool "RBAC status"

@@ -34,9 +34,7 @@ import {
   volumesTabUtils,
 } from '@/react/docker/containers/CreateView/VolumesTab';
 import { envVarsTabUtils } from '@/react/docker/containers/CreateView/EnvVarsTab';
-import { UserId } from '@/portainer/users/types';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useCurrentUser } from '@/react/hooks/useUser';
 import { useWebhooks } from '@/react/portainer/webhooks/useWebhooks';
 import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
@@ -66,7 +64,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
     params: { nodeName, from },
   } = useCurrentStateAndParams();
   const environmentId = useEnvironmentId();
-  const { user, isPureAdmin } = useCurrentUser();
 
   const networksQuery = useNetworksForSelector();
 
@@ -96,13 +93,7 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
 
   if (!from) {
     return {
-      initialValues: defaultValues(
-        isPureAdmin,
-        user.Id,
-        nodeName,
-        isWindows,
-        isPodman
-      ),
+      initialValues: defaultValues(nodeName, isWindows, isPodman),
     };
   }
 
@@ -158,8 +149,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
     env: envVarsTabUtils.toViewModel(fromContainer),
     ...baseFormUtils.toViewModel(
       fromContainer,
-      isPureAdmin,
-      user.Id,
       nodeName,
       imageConfig,
       (webhookQuery.data?.length || 0) > 0
@@ -170,8 +159,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
 }
 
 function defaultValues(
-  isPureAdmin: boolean,
-  currentUserId: UserId,
   nodeName: string,
   isWindows: boolean,
   isPodman?: boolean
@@ -185,6 +172,6 @@ function defaultValues(
     resources: resourcesTabUtils.getDefaultViewModel(),
     capabilities: capabilitiesTabUtils.getDefaultViewModel(),
     env: envVarsTabUtils.getDefaultViewModel(),
-    ...baseFormUtils.getDefaultViewModel(isPureAdmin, currentUserId, nodeName),
+    ...baseFormUtils.getDefaultViewModel(nodeName),
   };
 }

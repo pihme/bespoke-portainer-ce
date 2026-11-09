@@ -16,8 +16,6 @@ import (
 // @description will only return authorized registries.
 // @description **Access policy**: restricted
 // @tags registries
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {array} portainer.Registry "Success"
 // @failure 500 "Server error"

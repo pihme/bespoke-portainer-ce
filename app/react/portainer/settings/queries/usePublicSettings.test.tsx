@@ -9,12 +9,9 @@ import { server } from '@/setup-tests/server';
 import { usePublicSettings } from './usePublicSettings';
 
 const samplePublic = {
-  AuthenticationMethod: 1,
   EnableTelemetry: false,
   LogoURL: '',
-  OAuthLoginURI: '',
-  OAuthLogoutURI: '',
-  RequiredPasswordLength: 12,
+  KubeconfigExpiry: '12h',
   Features: {},
 };
 
@@ -33,7 +30,7 @@ describe('usePublicSettings', () => {
     );
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toMatchObject({ RequiredPasswordLength: 12 });
+    expect(result.current.data).toMatchObject({ KubeconfigExpiry: '12h' });
     expect(onSuccess).toHaveBeenCalled();
   });
 
@@ -45,14 +42,14 @@ describe('usePublicSettings', () => {
     const { result: selected } = renderHook(
       () =>
         usePublicSettings({
-          select: (s) => s.RequiredPasswordLength,
+          select: (s) => s.KubeconfigExpiry,
         }),
       {
         wrapper: withTestQueryProvider(({ children }) => <>{children}</>),
       }
     );
     await waitFor(() => expect(selected.current.isSuccess).toBe(true));
-    expect(selected.current.data).toBe(12);
+    expect(selected.current.data).toBe('12h');
 
     const { result: disabled } = renderHook(
       () => usePublicSettings({ enabled: false }),

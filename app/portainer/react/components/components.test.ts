@@ -56,7 +56,6 @@ vi.mock('@@/ReactQueryDevtoolsWrapper', () => ({
 }));
 vi.mock('@@/PageHeader', () => ({ PageHeader: () => null }));
 vi.mock('@@/Widget/Loading', () => ({ Loading: () => null }));
-vi.mock('@@/PasswordCheckHint', () => ({ PasswordCheckHint: () => null }));
 vi.mock('@@/Tip/Tooltip', () => ({ Tooltip: () => null }));
 vi.mock('@@/datatables/TableHeaderCell', () => ({
   TableColumnHeaderAngular: () => null,
@@ -82,30 +81,8 @@ vi.mock('./custom-templates', () => ({
 }));
 
 vi.mock('@@/form-components/FileUpload', () => ({ FileUploadField: () => null }));
-vi.mock('@/react/portainer/logs/AuthenticationLogsView/AuthenticationLogsTable', () => ({
-  AuthenticationLogsTable: () => null,
-}));
-vi.mock('@/react/portainer/access-control/PorAccessControlForm/TeamsSelector', () => ({
-  PorAccessControlFormTeamSelector: () => null,
-}));
-vi.mock('@/react/portainer/access-control/PorAccessControlForm/UsersSelector', () => ({
-  PorAccessControlFormUserSelector: () => null,
-}));
-vi.mock('@/react/portainer/access-control/AccessManagement/PorAccessManagementUsersSelector', () => ({
-  PorAccessManagementUsersSelector: () => null,
-}));
-vi.mock('@/react/portainer/access-control/EditDetails/AccessTypeSelector', () => ({
-  AccessTypeSelector: () => null,
-}));
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlPanel: () => null,
-}));
-vi.mock('./settings', () => ({ settingsModule: 'settings' }));
 vi.mock('./registries', () => ({ registriesModule: 'registries' }));
 vi.mock('./account', () => ({ accountModule: 'account' }));
-vi.mock('./users', () => ({ usersModule: 'users' }));
-vi.mock('./rbac', () => ({ rbacModule: 'rbac' }));
-vi.mock('./auth', () => ({ authModule: 'auth' }));
 
 describe('portainer react components wrappers', () => {
   beforeEach(() => {
@@ -152,5 +129,30 @@ describe('portainer react components wrappers', () => {
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining(['porSwitchField', 'fileUploadField'])
     );
+  });
+
+  it('REQ-TAI-001 registers no login, user or access-control components', async () => {
+    await import('./index');
+    const calls = angularMock.module.mock.calls as unknown as Array<
+      [string, string[]]
+    >;
+    const [, deps] = calls.find(
+      ([name]) => name === 'portainer.app.react.components'
+    )!;
+    for (const gone of ['users', 'rbac', 'auth', 'settings']) {
+      expect(deps).not.toContain(gone);
+    }
+    const names = components.map((c) => c.name);
+    for (const gone of [
+      'passwordCheckHint',
+      'accessControlPanel',
+      'porAccessControlFormTeamSelector',
+      'porAccessControlFormUserSelector',
+      'porAccessManagementUsersSelector',
+      'accessTypeSelector',
+      'authenticationLogsTable',
+    ]) {
+      expect(names).not.toContain(gone);
+    }
   });
 });

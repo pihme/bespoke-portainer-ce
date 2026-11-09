@@ -1,20 +1,14 @@
 import { useRouter, useCurrentStateAndParams } from '@uirouter/react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { AccessControlPanel } from '@/react/portainer/access-control/AccessControlPanel/AccessControlPanel';
-import { ResourceControlType } from '@/react/portainer/access-control/types';
 import { ContainerListViewModel } from '@/react/docker/containers/types';
-import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 import { useContainers } from '@/react/docker/containers/queries/useContainers';
 import { notifySuccess } from '@/portainer/services/notifications';
 
 import { PageHeader } from '@@/PageHeader';
 
 import { useDeleteNetwork } from '../queries/useDeleteNetworkMutation';
-import { isSystemNetwork } from '../network.helper';
 import { NetworkResponseContainers } from '../types';
-import { queryKeys } from '../queries/queryKeys';
 import { useNetwork } from '../queries/useNetwork';
 
 import { NetworkDetailsTable } from './NetworkDetailsTable';
@@ -23,7 +17,6 @@ import { NetworkContainersTable } from './NetworkContainersTable';
 
 export function ItemView() {
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   const {
     params: { id: networkId, nodeName },
@@ -48,9 +41,6 @@ export function ItemView() {
     network.Containers,
     containersQuery.data
   );
-  const resourceControl = network.Portainer?.ResourceControl
-    ? new ResourceControlViewModel(network.Portainer.ResourceControl)
-    : undefined;
 
   return (
     <>
@@ -70,18 +60,6 @@ export function ItemView() {
         onRemoveNetworkClicked={onRemoveNetworkClicked}
       />
 
-      <AccessControlPanel
-        onUpdateSuccess={() =>
-          queryClient.invalidateQueries(
-            queryKeys.item(environmentId, networkId)
-          )
-        }
-        resourceControl={resourceControl}
-        resourceType={ResourceControlType.Network}
-        disableOwnershipChange={isSystemNetwork(networkQuery.data.Name)}
-        resourceId={networkId}
-        environmentId={environmentId}
-      />
       <NetworkOptionsTable options={networkQuery.data.Options} />
       <NetworkContainersTable
         networkContainers={networkContainers}

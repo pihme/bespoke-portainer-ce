@@ -12,8 +12,6 @@ import (
 // @description Retrieve the ssl settings.
 // @description **Access policy**: administrator
 // @tags ssl
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} portainer.SSLSettings "Success"
 // @failure 400 "Invalid request"

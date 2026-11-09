@@ -24,8 +24,6 @@ const (
 // @description only return authorized environments(endpoints).
 // @description **Access policy**: restricted
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param start query int false "Start searching from"
 // @param limit query int false "Limit results to this value"

@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 import { isoDate } from '@/portainer/filters/filters';
-import { useAuthorizations } from '@/react/hooks/useUser';
 import { pluralize } from '@/portainer/helpers/strings';
 
 import { Link } from '@@/Link';
@@ -13,14 +12,8 @@ import { SystemBadge } from '@@/Badge/SystemBadge';
 import { Icon } from '@@/Icon';
 
 import { helper } from './helper';
-import { actions } from './actions';
 
 export function useColumns() {
-  const hasAuthQuery = useAuthorizations(
-    'K8sResourcePoolsAccessManagementRW',
-    undefined,
-    true
-  );
   return useMemo(
     () =>
       _.compact([
@@ -111,8 +104,7 @@ export function useColumns() {
             );
           },
         }),
-        hasAuthQuery.authorized && actions,
       ]),
-    [hasAuthQuery.authorized]
+    []
   );
 }

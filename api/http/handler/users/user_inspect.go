@@ -12,15 +12,13 @@ import (
 )
 
 // @id UserInspect
-// @summary Inspect a user
-// @description Retrieve details about a user.
+// @summary Inspect the local operator
+// @description Retrieve the local operator's record (UI preferences). Any other identifier is refused.
 // @description User passwords are filtered out, and should never be accessible.
-// @description **Access policy**: authenticated
+// @description **Access policy**: local
 // @tags users
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
-// @param id path int true "User identifier"
+// @param id path int true "Local operator identifier"
 // @success 200 {object} portainer.User "Success"
 // @failure 400 "Invalid request"
 // @failure 403 "Permission denied"
@@ -38,8 +36,8 @@ func (handler *Handler) userInspect(w http.ResponseWriter, r *http.Request) *htt
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
-	if !securityContext.IsAdmin && securityContext.UserID != portainer.UserID(userID) {
-		return httperror.Forbidden("Permission denied inspect user", errors.ErrResourceAccessDenied)
+	if securityContext.UserID != portainer.UserID(userID) {
+		return httperror.Forbidden("Only the local operator can be inspected", errors.ErrResourceAccessDenied)
 	}
 
 	user, err := handler.DataStore.User().Read(portainer.UserID(userID))

@@ -43,9 +43,5 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	authenticatedRouter.Handle("/{id}", httperror.LoggerHandler(h.sourceDelete)).Methods(http.MethodDelete)
 	authenticatedRouter.Handle("/{id}/test", httperror.LoggerHandler(h.sourceTestConnection)).Methods(http.MethodPost)
 
-	adminRouter := h.PathPrefix("/gitops/sources").Subrouter()
-	adminRouter.Use(bouncer.AdminAccess)
-	adminRouter.Handle("/{id}/access", httperror.LoggerHandler(h.gitSourceUpdateAccess)).Methods(http.MethodPut)
-
 	return h
 }

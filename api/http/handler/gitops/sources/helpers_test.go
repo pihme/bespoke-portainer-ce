@@ -160,13 +160,6 @@ func buildUpdateAccessReq(t *testing.T, userID portainer.UserID, id int, body []
 	return withSecurityContext(req, userID)
 }
 
-func buildUpdateAccessReqWithRawID(t *testing.T, userID portainer.UserID, id string, body []byte) *http.Request {
-	t.Helper()
-	req := httptest.NewRequest(http.MethodPut, "/gitops/sources/"+id+"/access", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	return withSecurityContext(req, userID)
-}
-
 func buildSourceTestReq(t *testing.T, userID portainer.UserID, id int, body []byte) *http.Request {
 	t.Helper()
 	var reader *bytes.Reader

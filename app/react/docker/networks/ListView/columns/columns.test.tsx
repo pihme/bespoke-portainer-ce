@@ -4,9 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DecoratedNetwork } from '../types';
 
-vi.mock('@/react/docker/components/datatable/createOwnershipColumn', () => ({
-  createOwnershipColumn: () => ({ id: 'ownership', header: 'Ownership' }),
-}));
+import { columnHelper } from './helper';
+import { name } from './name';
+
+import { useColumns } from './index';
 
 vi.mock('@@/datatables/expand-column', () => ({
   buildExpandColumn: () => ({ id: 'expand', header: '' }),
@@ -28,10 +29,6 @@ vi.mock('@@/Link', () => ({
     </a>
   ),
 }));
-
-import { columnHelper } from './helper';
-import { name } from './name';
-import { useColumns } from './index';
 
 function network(partial: Partial<DecoratedNetwork> = {}): DecoratedNetwork {
   return {
@@ -70,10 +67,11 @@ describe('networks ListView columns', () => {
         'IPV4 IPAM Gateway',
         'IPV6 IPAM Subnet',
         'IPV6 IPAM Gateway',
-        'Ownership',
       ])
     );
     expect(headers).not.toContain('Node');
+    // REQ-TAI-001: no ownership column
+    expect(headers).not.toContain('Ownership');
   });
 
   it('includes Node column when host column is visible', () => {

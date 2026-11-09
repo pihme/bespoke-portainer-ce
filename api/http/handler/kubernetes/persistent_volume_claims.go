@@ -20,7 +20,6 @@ import (
 // @description Get a list of all PersistentVolumeClaims within the given environment. Scoped by namespace for non-admin users.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} models.K8sPersistentVolumeClaim "Success"
@@ -58,7 +57,6 @@ func (handler *Handler) getAllKubernetesPersistentVolumeClaims(w http.ResponseWr
 // @description Get a list of PersistentVolumeClaims in the specified namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace name"
@@ -102,7 +100,6 @@ func (handler *Handler) getKubernetesPVCsInNamespace(w http.ResponseWriter, r *h
 // @description Get a PersistentVolumeClaim by name within a namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace name"
@@ -152,7 +149,6 @@ func (handler *Handler) getKubernetesPersistentVolumeClaim(w http.ResponseWriter
 // @description Delete the provided list of PersistentVolumeClaims.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -196,7 +192,6 @@ func (handler *Handler) deleteKubernetesPersistentVolumeClaims(w http.ResponseWr
 // @description Resize a PVC to a new size. The StorageClass must support volume expansion.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -244,7 +239,6 @@ func (handler *Handler) resizeKubernetesPersistentVolumeClaim(w http.ResponseWri
 // @description the cluster default.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"

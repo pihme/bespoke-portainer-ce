@@ -43,7 +43,6 @@ func (payload *endpointDeleteBatchPayload) Validate(r *http.Request) error {
 // @description Remove the environment associated to the specified identifier and optionally clean-up associated resources.
 // @description **Access policy**: Administrator only.
 // @tags endpoints
-// @security ApiKeyAuth || jwt
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 204 "Environment successfully deleted."
 // @failure 400 "Invalid request payload, such as missing required fields or fields not meeting validation criteria."
@@ -75,7 +74,6 @@ func (handler *Handler) endpointDelete(w http.ResponseWriter, r *http.Request) *
 // @description Remove multiple environments and optionally clean-up associated resources.
 // @description **Access policy**: Administrator only.
 // @tags endpoints
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param body body endpointDeleteBatchPayload true "List of environments to delete, with optional deleteCluster flag to clean-up associated resources (cloud environments only)"
@@ -127,7 +125,6 @@ func (handler *Handler) endpointDeleteBatch(w http.ResponseWriter, r *http.Reque
 // @description Remove multiple environments and optionally clean-up associated resources.
 // @description **Access policy**: Administrator only.
 // @tags endpoints
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param body body endpointDeleteBatchPayload true "List of environments to delete, with optional deleteCluster flag to clean-up associated resources (cloud environments only)"

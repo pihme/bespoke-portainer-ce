@@ -47,8 +47,6 @@ func (payload *registryUpdatePayload) Validate(r *http.Request) error {
 // @description Update a registry
 // @description **Access policy**: restricted
 // @tags registries
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Registry identifier"

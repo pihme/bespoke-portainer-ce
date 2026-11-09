@@ -6,7 +6,6 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { server } from '@/setup-tests/server';
 import { StackType } from '@/react/common/stacks/types';
 import { Platform } from '@/react/portainer/templates/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import { suppressConsoleLogs } from '@/setup-tests/suppress-console';
 
 import { useUpdateTemplateMutation } from './useUpdateTemplateMutation';
@@ -40,16 +39,15 @@ describe('REQ-TPL-03 useUpdateTemplateMutation', () => {
     expect(body).toMatchObject({ Title: 'Updated', id: 8 });
   });
 
-  it('applies access control when a resource control id is set', async () => {
-    let resourceControlBody: unknown;
+  it('REQ-TAI-001 updates without applying any ownership', async () => {
+    let resourceControlCalled = false;
     server.use(
       http.put('/api/custom_templates/8', () =>
         HttpResponse.json({ Id: 8, Title: 'Updated' })
       ),
-      http.put('/api/resource_controls/:id', async ({ request, params }) => {
-        expect(params.id).toBe('44');
-        resourceControlBody = await request.json();
-        return HttpResponse.json({ success: true });
+      http.all('/api/resource_controls*', () => {
+        resourceControlCalled = true;
+        return HttpResponse.json(null, { status: 404 });
       })
     );
 
@@ -57,18 +55,10 @@ describe('REQ-TPL-03 useUpdateTemplateMutation', () => {
       wrapper: withTestQueryProvider(({ children }) => <>{children}</>),
     });
 
-    result.current.mutate({
-      ...updatePayload,
-      resourceControlId: 44,
-      AccessControl: {
-        ownership: ResourceControlOwnership.PRIVATE,
-        authorizedUsers: [1],
-        authorizedTeams: [],
-      },
-    });
+    result.current.mutate(updatePayload);
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(resourceControlBody).toBeTruthy();
+    expect(resourceControlCalled).toBe(false);
   });
 
   it('surfaces API errors on update', async () => {

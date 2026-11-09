@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
+
+	"github.com/alecthomas/kingpin/v2"
 	zerolog "github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 )
@@ -25,6 +27,22 @@ func TestOptionParser(t *testing.T) {
 
 	require.False(t, *opts.HTTPDisabled)
 	require.True(t, *opts.EnableEdgeComputeFeatures)
+}
+
+// TAI-001: the first-administrator and setup-token flags are gone, so the
+// parser rejects them as unknown flags.
+func TestREQ_TAI_001_LoginSetupFlagsAreRejected(t *testing.T) {
+	setOsArgs(t, []string{"portainer"})
+
+	_, err := Service{}.ParseFlags("test-version")
+	require.NoError(t, err)
+
+	for _, name := range []string{"admin-password", "admin-password-file", "setup-token", "no-setup-token"} {
+		require.Nil(t, kingpin.CommandLine.GetFlag(name), name)
+
+		_, err := kingpin.CommandLine.Parse([]string{"--" + name})
+		require.ErrorContains(t, err, "unknown long flag '--"+name+"'")
+	}
 }
 
 func TestParseEdgeFlags(t *testing.T) {
@@ -352,8 +370,6 @@ func TestValidateFlags_LocalDefaultsOK(t *testing.T) {
 	flags := &portainer.CLIFlags{
 		EndpointURL:      strPtr(""),
 		SnapshotInterval: strPtr(""),
-		AdminPassword:    strPtr(""),
-		AdminPasswordFile: strPtr(""),
 		EdgePortainerURL: strPtr(""),
 		NoAnalytics:      boolPtr(false),
 	}
@@ -364,40 +380,22 @@ func TestValidateFlags_NoAnalyticsWarns(t *testing.T) {
 	t.Parallel()
 	svc := Service{}
 	flags := &portainer.CLIFlags{
-		EndpointURL:       strPtr("tcp://127.0.0.1:2375"),
-		SnapshotInterval:  strPtr("5m"),
-		AdminPassword:     strPtr(""),
-		AdminPasswordFile: strPtr(""),
-		EdgePortainerURL:  strPtr(""),
-		NoAnalytics:       boolPtr(true),
+		EndpointURL:      strPtr("tcp://127.0.0.1:2375"),
+		SnapshotInterval: strPtr("5m"),
+		EdgePortainerURL: strPtr(""),
+		NoAnalytics:      boolPtr(true),
 	}
 	require.NoError(t, svc.ValidateFlags(flags))
-}
-
-func TestValidateFlags_AdminPasswordConflict(t *testing.T) {
-	t.Parallel()
-	svc := Service{}
-	flags := &portainer.CLIFlags{
-		EndpointURL:       strPtr(""),
-		SnapshotInterval:  strPtr(""),
-		AdminPassword:     strPtr("hash"),
-		AdminPasswordFile: strPtr("/tmp/pass"),
-		EdgePortainerURL:  strPtr(""),
-		NoAnalytics:       boolPtr(false),
-	}
-	require.ErrorIs(t, svc.ValidateFlags(flags), ErrAdminPassExcludeAdminPassFile)
 }
 
 func TestValidateFlags_InvalidSnapshotInterval(t *testing.T) {
 	t.Parallel()
 	svc := Service{}
 	flags := &portainer.CLIFlags{
-		EndpointURL:       strPtr(""),
-		SnapshotInterval:  strPtr("not-a-duration"),
-		AdminPassword:     strPtr(""),
-		AdminPasswordFile: strPtr(""),
-		EdgePortainerURL:  strPtr(""),
-		NoAnalytics:       boolPtr(false),
+		EndpointURL:      strPtr(""),
+		SnapshotInterval: strPtr("not-a-duration"),
+		EdgePortainerURL: strPtr(""),
+		NoAnalytics:      boolPtr(false),
 	}
 	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidSnapshotInterval)
 }
@@ -406,12 +404,10 @@ func TestValidateFlags_InvalidEndpointProtocol(t *testing.T) {
 	t.Parallel()
 	svc := Service{}
 	flags := &portainer.CLIFlags{
-		EndpointURL:       strPtr("http://example.com"),
-		SnapshotInterval:  strPtr(""),
-		AdminPassword:     strPtr(""),
-		AdminPasswordFile: strPtr(""),
-		EdgePortainerURL:  strPtr(""),
-		NoAnalytics:       boolPtr(false),
+		EndpointURL:      strPtr("http://example.com"),
+		SnapshotInterval: strPtr(""),
+		EdgePortainerURL: strPtr(""),
+		NoAnalytics:      boolPtr(false),
 	}
 	require.ErrorIs(t, svc.ValidateFlags(flags), ErrInvalidEndpointProtocol)
 }

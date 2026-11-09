@@ -16,8 +16,6 @@ import (
 // @description Snapshot all environments(endpoints)
 // @description **Access policy**: administrator
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @success 204 "Success"
 // @failure 500 "Server Error"
 // @router /endpoints/snapshot [post]

@@ -77,8 +77,6 @@ type EndpointGroupResponse struct {
 // @description only return authorized environment(endpoint) groups.
 // @description **Access policy**: restricted
 // @tags endpoint_groups
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param size query boolean false "If true, each environment(endpoint) group will include the number of environments(endpoints) associated to it and breakdown by type"
 // @success 200 {array} EndpointGroupResponse "Environment(Endpoint) group"

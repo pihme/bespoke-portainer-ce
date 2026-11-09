@@ -137,8 +137,6 @@ func (handler *Handler) ensureUniqueComposeStackName(w http.ResponseWriter, r *h
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body composeStackFromFileContentPayload true "stack config"
@@ -252,8 +250,6 @@ func (payload *composeStackFromGitRepositoryPayload) Validate(r *http.Request) e
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @accept json
 // @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
@@ -374,8 +370,6 @@ func decodeRequestForm(r *http.Request) (*composeStackFromFileUploadPayload, err
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name of the stack"

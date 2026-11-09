@@ -1,7 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-
 import { PageHeader } from '@@/PageHeader';
 import { Widget } from '@@/Widget';
 
@@ -15,7 +13,6 @@ export function EditView() {
   const {
     params: { id },
   } = useCurrentStateAndParams();
-  const environmentId = useEnvironmentId(false);
   const templateQuery = useCustomTemplate(id);
 
   if (!templateQuery.data) {
@@ -36,7 +33,6 @@ export function EditView() {
           <Widget>
             <Widget.Body>
               <EditForm
-                environmentId={environmentId}
                 template={template}
                 viewType={viewType}
               />

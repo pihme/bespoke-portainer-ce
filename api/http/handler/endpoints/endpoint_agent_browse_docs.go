@@ -7,8 +7,6 @@ package endpoints
 // @description Use this environment(endpoint) to upload TLS files.
 // @description **Access policy**: administrator
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"

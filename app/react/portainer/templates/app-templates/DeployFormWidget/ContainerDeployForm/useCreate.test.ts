@@ -82,7 +82,6 @@ describe('REQ-TPL-01 useCreate for container deploy', () => {
       result.current!.onSubmit({
         name: 'web',
         network: 'bridge',
-        accessControl: { AccessControl: false } as never,
         ports: [],
         volumes: [
           {

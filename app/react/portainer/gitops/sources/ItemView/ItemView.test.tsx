@@ -6,6 +6,7 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 import { Role } from '@/portainer/users/types';
+
 import { SourceDetail } from '../queries/useSource';
 
 import { ItemView } from './ItemView';
@@ -72,10 +73,6 @@ vi.mock('./SettingsTab/SettingsTab', () => ({
 
 vi.mock('./WorkflowsTab', () => ({
   WorkflowsTab: () => <div data-cy="workflows-tab">Workflows body</div>,
-}));
-
-vi.mock('./AccessTab', () => ({
-  AccessTab: () => <div data-cy="access-tab">Access body</div>,
 }));
 
 vi.mock('./SourceResourceHeader', () => ({
@@ -170,21 +167,10 @@ describe('REQ-GIT-01 ItemView', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('TestREQ_GIT_01_hides_access_edit_for_non_admin', () => {
-    currentTabParam = 'accessTab';
-    renderView(Role.Standard);
+  it('REQ-TAI-001 has no Access tab', () => {
+    renderView();
 
-    expect(screen.getByTestId('access-tab')).toBeVisible();
-    expect(
-      screen.queryByTestId('edit-settings-button')
-    ).not.toBeInTheDocument();
-  });
-
-  it('TestREQ_GIT_01_allows_access_edit_for_admin', () => {
-    currentTabParam = 'accessTab';
-    renderView(Role.Admin);
-
-    expect(screen.getByTestId('access-tab')).toBeVisible();
-    expect(screen.getByTestId('edit-settings-button')).toBeVisible();
+    expect(screen.queryByText('Access')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('access-tab')).not.toBeInTheDocument();
   });
 });

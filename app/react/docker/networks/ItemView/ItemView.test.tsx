@@ -33,10 +33,6 @@ vi.mock('@@/Link', () => ({
   ),
 }));
 
-vi.mock('@/react/portainer/access-control/AccessControlPanel/AccessControlPanel', () => ({
-  AccessControlPanel: () => <div data-cy="access-control-panel" />,
-}));
-
 vi.mock('@/portainer/services/notifications', () => ({
   notifySuccess: vi.fn(),
 }));
@@ -94,6 +90,7 @@ describe('REQ-NET-03 Network ItemView', () => {
     render(<Wrapped />);
     expect((await screen.findAllByText('Network details')).length).toBeGreaterThan(0);
     expect(screen.getAllByText('bridge').length).toBeGreaterThan(0);
-    expect(screen.getByTestId('access-control-panel')).toBeVisible();
+    // REQ-TAI-001: no ownership panel
+    expect(screen.queryByText('Access control')).not.toBeInTheDocument();
   });
 });

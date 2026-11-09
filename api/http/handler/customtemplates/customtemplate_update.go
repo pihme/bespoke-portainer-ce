@@ -117,8 +117,6 @@ func (payload *customTemplateUpdatePayload) Validate(r *http.Request) error {
 // @description Update a template.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Template identifier"

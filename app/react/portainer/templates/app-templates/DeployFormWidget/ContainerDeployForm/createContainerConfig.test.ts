@@ -30,7 +30,6 @@ function values(overrides: Partial<FormValues> = {}): FormValues {
   return {
     name: 'web',
     network: 'bridge',
-    accessControl: {} as FormValues['accessControl'],
     ports: [{ hostPort: '8080', containerPort: '80', protocol: 'tcp' }],
     volumes: [],
     hosts: ['db:10.0.0.2'],

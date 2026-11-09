@@ -1,12 +1,13 @@
 package jwt
 
 import (
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/dataservices"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -49,7 +50,7 @@ func NewService(userSessionDuration string, dataStore dataservices.DataStore) (*
 		return nil, err
 	}
 
-	secret := apikey.GenerateRandomKey(keyLen)
+	secret := generateRandomKey(keyLen)
 	if secret == nil {
 		return nil, errSecretGeneration
 	}
@@ -80,7 +81,7 @@ func getOrCreateKubeSecret(dataStore dataservices.DataStore) ([]byte, error) {
 		return kubeSecret, nil
 	}
 
-	kubeSecret = apikey.GenerateRandomKey(keyLen)
+	kubeSecret = generateRandomKey(keyLen)
 	if kubeSecret == nil {
 		return nil, errSecretGeneration
 	}
@@ -239,4 +240,15 @@ func (service *Service) generateSignedToken(data *portainer.TokenData, expiresAt
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, cl)
 
 	return token.SignedString(secret)
+}
+
+// generateRandomKey generates a random key of specified length
+// source: https://github.com/gorilla/securecookie/blob/master/securecookie.go#L515
+func generateRandomKey(length int) []byte {
+	k := make([]byte, length)
+	if _, err := io.ReadFull(rand.Reader, k); err != nil {
+		return nil
+	}
+
+	return k
 }

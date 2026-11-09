@@ -1,26 +1,21 @@
 import _ from 'lodash-es';
 import angular from 'angular';
-import { AccessControlFormData } from '@/portainer/components/accessControlForm/porAccessControlFormModel';
 import { confirmWebEditorDiscard } from '@@/modals/confirm';
 
 class CreateConfigController {
   /* @ngInject */
-  constructor($async, $state, $transition$, $window, Notifications, ConfigService, Authentication, FormValidator, ResourceControlService, endpoint) {
+  constructor($async, $state, $transition$, $window, Notifications, ConfigService, endpoint) {
     this.$state = $state;
     this.$transition$ = $transition$;
     this.$window = $window;
     this.Notifications = Notifications;
     this.ConfigService = ConfigService;
-    this.Authentication = Authentication;
-    this.FormValidator = FormValidator;
-    this.ResourceControlService = ResourceControlService;
     this.$async = $async;
     this.endpoint = endpoint;
 
     this.formValues = {
       Name: '',
       Labels: [],
-      AccessControlData: new AccessControlFormData(),
       ConfigContent: '',
     };
 
@@ -103,42 +98,21 @@ class CreateConfigController {
     return config;
   }
 
-  validateForm(accessControlData, isAdmin) {
-    this.state.formValidationError = '';
-    let error = this.FormValidator.validateAccessControl(accessControlData, isAdmin);
-
-    if (error) {
-      this.state.formValidationError = error;
-      return false;
-    }
-    return true;
-  }
-
   create() {
     return this.$async(this.createAsync);
   }
 
   async createAsync() {
-    const accessControlData = this.formValues.AccessControlData;
-    const userDetails = this.Authentication.getUserDetails();
-    const isAdmin = this.Authentication.isAdmin();
-
+    this.state.formValidationError = '';
     if (this.formValues.ConfigContent === '') {
       this.state.formValidationError = 'Config content must not be empty';
-      return;
-    }
-
-    if (!this.validateForm(accessControlData, isAdmin)) {
       return;
     }
 
     const config = this.prepareConfiguration();
 
     try {
-      const data = await this.ConfigService.create(this.endpoint.Id, config);
-      const resourceControl = data.Portainer.ResourceControl;
-      const userId = userDetails.ID;
-      await this.ResourceControlService.applyResourceControl(userId, accessControlData, resourceControl);
+      await this.ConfigService.create(this.endpoint.Id, config);
       this.Notifications.success('Success', 'Configuration successfully created');
       this.state.isEditorDirty = false;
       this.$state.go('docker.configs', {}, { reload: true });

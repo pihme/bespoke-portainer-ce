@@ -1,5 +1,4 @@
 import { ContainerInstanceFormValues } from '@/react/azure/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 
 import { transformToPayload } from './container-groups.service';
 
@@ -15,11 +14,6 @@ describe('transformToPayload', () => {
     cpu: 1,
     ports: [{ container: 80, host: 80, protocol: 'TCP' }],
     allocatePublicIP: true,
-    accessControl: {
-      authorizedTeams: [],
-      authorizedUsers: [],
-      ownership: ResourceControlOwnership.PRIVATE,
-    },
     env: [],
   };
 

@@ -40,8 +40,6 @@ type edgeStackListResponseItem struct {
 // @summary Fetches the list of EdgeStacks
 // @description **Access policy**: administrator
 // @tags edge_stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param summarizeStatuses query boolean false "will summarize the statuses"
 // @success 200 {array} portainer.EdgeStack

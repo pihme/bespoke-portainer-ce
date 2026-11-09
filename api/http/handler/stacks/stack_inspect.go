@@ -20,8 +20,6 @@ import (
 // @description Retrieve details about a stack.
 // @description **Access policy**: restricted
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Stack identifier"
 // @success 200 {object} stackResponse "Success"

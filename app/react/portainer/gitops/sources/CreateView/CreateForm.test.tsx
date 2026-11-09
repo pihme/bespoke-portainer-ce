@@ -3,8 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import * as yup from 'yup';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-
 import { CreateForm } from './CreateForm';
 import { WizardProvider, WizardStep } from './WizardContext';
 
@@ -12,9 +10,6 @@ const goToNextStep = vi.fn();
 const mutate = vi.fn();
 const go = vi.fn();
 
-vi.mock('@/react/hooks/useUser', () => ({
-  useIsPureAdmin: () => true,
-}));
 vi.mock('./useSourceCreateMutation', () => ({
   useCreateSourceMutation: () => ({ mutate, isLoading: false }),
 }));

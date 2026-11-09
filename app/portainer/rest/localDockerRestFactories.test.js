@@ -100,7 +100,7 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     });
   });
 
-  it('Settings, SSL, Tags, EndpointGroups, ResourceControl, Templates, Support and Webhooks wire local actions', async () => {
+  it('Settings, SSL, Tags, EndpointGroups, Templates, Support and Webhooks wire local actions', async () => {
     const { factories } = installAngularCapture();
     vi.doMock('angular', () => ({
       default: globalThis.angular,
@@ -111,7 +111,6 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     await import('./ssl.js');
     await import('./tag.js');
     await import('./group.js');
-    await import('./resourceControl.js');
     await import('./template.js');
     await import('./support.js');
     await import('./webhooks.js');
@@ -122,7 +121,6 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     factories.SSL($resource);
     factories.Tags($resource, '/api/tags');
     factories.EndpointGroups($resource, '/api/endpoint_groups');
-    factories.ResourceControl($resource, '/api/resource_controls');
     factories.Templates($resource, '/api/templates');
     factories.Support($resource, '/api/support');
     factories.Webhooks($resource, '/api/webhooks');
@@ -132,7 +130,6 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
       'api/ssl',
       '/api/tags/:id',
       '/api/endpoint_groups/:id/:action',
-      '/api/resource_controls/:id',
       '/api/templates/:action',
       '/api/support',
       '/api/webhooks/:id',
@@ -143,9 +140,10 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     expect(calls[1].actions.upload.method).toBe('PUT');
     expect(calls[2].actions.create.method).toBe('POST');
     expect(calls[3].actions.addEndpoint.method).toBe('PUT');
-    expect(calls[4].actions.update.method).toBe('PUT');
-    expect(calls[5].actions.file.params).toMatchObject({ action: 'file' });
-    expect(calls[6].actions.get.isArray).toBe(true);
-    expect(calls[7].actions.query.isArray).toBe(true);
+    expect(calls[4].actions.file.params).toMatchObject({ action: 'file' });
+    expect(calls[5].actions.get.isArray).toBe(true);
+    expect(calls[6].actions.query.isArray).toBe(true);
+    // REQ-TAI-001: no ResourceControl factory
+    expect(factories.ResourceControl).toBeUndefined();
   });
 });

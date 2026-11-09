@@ -11,19 +11,6 @@ import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 
 import { ItemView } from './ItemView';
 
-vi.mock('@/react/portainer/access-control/AccessControlPanel', () => ({
-  AccessControlPanel: ({
-    onUpdateSuccess,
-  }: {
-    onUpdateSuccess: () => void;
-  }) => (
-    <button type="button" data-cy="acl-success" onClick={() => onUpdateSuccess()}>
-      acl
-    </button>
-  ),
-}));
-
-
 vi.mock('@uirouter/react', async (importOriginal: () => Promise<object>) => ({
   ...(await importOriginal()),
   useCurrentStateAndParams: vi.fn(() => ({
@@ -91,17 +78,19 @@ describe('ItemView', () => {
     expect(container.querySelector('h1')).toBeNull();
   });
 
-  it('triggers container refetch from access control success', async () => {
-    const user = (await import('@testing-library/user-event')).default.setup();
+  it('REQ-TAI-001 shows no ownership/access control panel', async () => {
     renderComponent({
       container: {
         Config: { Image: '' },
       },
     });
-    const btn = await screen.findByTestId('acl-success');
-    await user.click(btn);
-    expect(btn).toBeVisible();
+    await screen.findByRole('heading', {
+      name: 'Container details',
+      level: 1,
+    });
+    expect(screen.queryByText('Access control')).not.toBeInTheDocument();
   });
+
 });
 
 function renderComponent({

@@ -14,8 +14,6 @@ import (
 // @description Returns a count of workflows per status across all environments.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} svc.StatusSummary
 // @failure 500 "Server error"

@@ -10,7 +10,6 @@ import { DeployForm } from './DeployForm';
 const mutate = vi.fn();
 const go = vi.fn();
 const notifySuccess = vi.fn();
-const useIsEdgeAdmin = vi.fn(() => ({ isAdmin: true, isLoading: false }));
 
 vi.mock('@uirouter/react', () => ({
   useRouter: () => ({ stateService: { go } }),
@@ -20,20 +19,6 @@ vi.mock('@/portainer/services/notifications', () => ({
 }));
 vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 3,
-}));
-vi.mock('@/react/hooks/useUser', () => ({
-  useCurrentUser: () => ({ user: { Id: 1 } }),
-  useIsEdgeAdmin: (...args: unknown[]) => useIsEdgeAdmin(...args),
-}));
-vi.mock('@/react/portainer/access-control/utils', () => ({
-  parseAccessControlFormData: () => ({
-    ownership: 'administrators',
-    authorizedUsers: [],
-    authorizedTeams: [],
-  }),
-}));
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: () => <div>access-control</div>,
 }));
 vi.mock('@/react/docker/stacks/common/NameField', () => ({
   NameField: ({
@@ -169,19 +154,6 @@ describe('REQ-TPL-03 DeployForm for local Compose custom templates', () => {
     mutate.mockReset();
     go.mockReset();
     notifySuccess.mockReset();
-    useIsEdgeAdmin.mockReturnValue({ isAdmin: true, isLoading: false });
-  });
-
-  it('returns null while edge-admin status is loading', () => {
-    useIsEdgeAdmin.mockReturnValue({ isAdmin: false, isLoading: true });
-    const { container } = render(
-      <DeployForm
-        template={composeTemplate()}
-        templateFile="services: {}"
-        isDeployable
-      />
-    );
-    expect(container).toBeEmptyDOMElement();
   });
 
   it('renders the local Compose editor and customize labels', () => {
@@ -201,7 +173,8 @@ describe('REQ-TPL-03 DeployForm for local Compose custom templates', () => {
     expect(screen.getByTestId('adv-open')).toHaveTextContent(
       'Hide custom stack'
     );
-    expect(screen.getByText('access-control')).toBeVisible();
+    // REQ-TAI-001: no ownership section
+    expect(screen.queryByText(/access control/i)).not.toBeInTheDocument();
   });
 
   it('submits a standalone string stack payload for Compose templates', async () => {

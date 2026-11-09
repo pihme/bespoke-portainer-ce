@@ -25,8 +25,6 @@ import (
 // @param chart query string true "Chart name, or a self-contained oci:// chart reference"
 // @param version query string false "Chart version"
 // @param command path string true "chart/values/readme"
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce text/plain
 // @success 200 {object} string "Success"

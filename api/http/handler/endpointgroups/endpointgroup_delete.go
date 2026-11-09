@@ -16,8 +16,6 @@ import (
 // @description Remove an environment(endpoint) group.
 // @description **Access policy**: administrator
 // @tags endpoint_groups
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "EndpointGroup identifier"
 // @success 204 "Success"
 // @failure 400 "Invalid request"

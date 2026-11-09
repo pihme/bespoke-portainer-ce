@@ -17,7 +17,7 @@ func TestREQ_SET_01_SettingsInspect_ReturnsLocalSettingsAndHidesSecrets(t *testi
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	handler, _, _ := setUpHandler(t, store)
+	handler, _ := setUpHandler(t, store)
 	seedSettingsSecrets(t, store)
 
 	req := withAdminContext(jsonRequest(t, http.MethodGet, "/settings", nil))

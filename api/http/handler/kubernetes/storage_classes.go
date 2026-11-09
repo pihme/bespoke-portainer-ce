@@ -17,7 +17,6 @@ import (
 // @description Get a list of all StorageClasses in the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} models.K8sStorageClass "Success"
@@ -50,7 +49,6 @@ func (handler *Handler) getAllKubernetesStorageClasses(w http.ResponseWriter, r 
 // @description Get a StorageClass by name in the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param name path string true "StorageClass name"
@@ -94,7 +92,6 @@ func (handler *Handler) getKubernetesStorageClass(w http.ResponseWriter, r *http
 // @description Delete the provided list of StorageClasses.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -138,7 +135,6 @@ func (handler *Handler) deleteKubernetesStorageClasses(w http.ResponseWriter, r 
 // @description Set the specified StorageClass as the cluster default, removing default from any other.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

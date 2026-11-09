@@ -19,7 +19,6 @@ import (
 // @description Get a list of all namespaces within the given environment based on the user role and permissions. If the user is an admin, they can access all namespaces. If the user is not an admin, they can only access namespaces that they have access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param withResourceQuota query boolean false "When set to true, include the resource quota information as part of the Namespace information. Default is false"
@@ -76,7 +75,6 @@ func (handler *Handler) getKubernetesNamespaces(w http.ResponseWriter, r *http.R
 // @description Get the total number of kubernetes namespaces within the given environment, including the system namespaces. The total count depends on the user's role and permissions.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -107,7 +105,6 @@ func (handler *Handler) getKubernetesNamespacesCount(w http.ResponseWriter, r *h
 // @description Get namespace details for the provided namespace within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name to get details for"
@@ -166,7 +163,6 @@ func (handler *Handler) getKubernetesNamespace(w http.ResponseWriter, r *http.Re
 // @description Create a namespace within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -206,7 +202,6 @@ func (handler *Handler) createKubernetesNamespace(w http.ResponseWriter, r *http
 // @description Delete one or more kubernetes namespaces within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param body body deleteKubernetesNamespacePayload true "List of namespace names to delete"
@@ -261,7 +256,6 @@ type KubernetesCreateNamespaceResponse corev1.Namespace
 // @description Update a namespace within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

@@ -20,7 +20,6 @@ type KubernetesResourceQuotaListResponse corev1.ResourceQuotaList
 // @description Get the list of Kubernetes resource quotas in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"

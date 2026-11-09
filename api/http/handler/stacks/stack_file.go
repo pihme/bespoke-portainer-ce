@@ -27,8 +27,6 @@ type stackFileResponse struct {
 // @description Get Stack file content.
 // @description **Access policy**: restricted
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Stack identifier"
 // @success 200 {object} stackFileResponse "Success"

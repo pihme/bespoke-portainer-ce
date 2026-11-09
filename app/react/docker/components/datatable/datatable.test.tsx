@@ -1,12 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-
-import {
-  createOwnershipColumn,
-  ownershipIcon,
-} from './createOwnershipColumn';
 import {
   ImageUpToDateTooltip,
   TableColumnHeaderImageUpToDate,
@@ -45,43 +39,6 @@ vi.mock('@@/datatables/TableHeaderCell', () => ({
 }));
 
 describe('docker datatable helpers', () => {
-  it('builds an ownership column with icons for each ownership kind', () => {
-    const column = createOwnershipColumn(false);
-    expect(column.id).toBe('ownership');
-    expect(column.enableHiding).toBe(false);
-
-    const accessor = column.accessorFn as (row: {
-      ResourceControl?: { Ownership: ResourceControlOwnership };
-    }) => ResourceControlOwnership;
-    expect(accessor({})).toBe(ResourceControlOwnership.ADMINISTRATORS);
-    expect(
-      accessor({
-        ResourceControl: { Ownership: ResourceControlOwnership.PRIVATE },
-      })
-    ).toBe(ResourceControlOwnership.PRIVATE);
-
-    const Cell = column.cell as (ctx: {
-      getValue: () => ResourceControlOwnership;
-    }) => React.ReactNode;
-    for (const ownership of [
-      ResourceControlOwnership.PRIVATE,
-      ResourceControlOwnership.ADMINISTRATORS,
-      ResourceControlOwnership.RESTRICTED,
-      ResourceControlOwnership.PUBLIC,
-    ]) {
-      const { unmount } = render(
-        <>{Cell({ getValue: () => ownership })}</>
-      );
-      expect(screen.getByText(ownership)).toBeVisible();
-      unmount();
-    }
-
-    expect(ownershipIcon(ResourceControlOwnership.PRIVATE)).toBeTruthy();
-    expect(ownershipIcon(ResourceControlOwnership.ADMINISTRATORS)).toBeTruthy();
-    expect(ownershipIcon(ResourceControlOwnership.RESTRICTED)).toBeTruthy();
-    expect(ownershipIcon('unknown' as ResourceControlOwnership)).toBeTruthy();
-  });
-
   it('renders the image up-to-date header and hides tooltip without notification', () => {
     envState.enableNotification = false;
     render(

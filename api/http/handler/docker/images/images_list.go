@@ -34,7 +34,6 @@ type ImageResponse struct {
 // @description
 // @description **Access policy**:
 // @tags docker
-// @security jwt
 // @param environmentId path int true "Environment identifier"
 // @param withUsage query boolean false "Include image usage information"
 // @produce json

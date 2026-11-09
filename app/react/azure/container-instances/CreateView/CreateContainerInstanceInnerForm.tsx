@@ -11,7 +11,6 @@ import {
   getSubscriptionResourceGroups,
 } from '@/react/azure/container-instances/CreateView/utils';
 import { PortsMappingField } from '@/react/azure/container-instances/CreateView/PortsMappingField';
-import { AccessControlForm } from '@/react/portainer/access-control';
 
 import { FormSectionTitle } from '@@/form-components/FormSectionTitle';
 import { FormControl } from '@@/form-components/FormControl';
@@ -22,7 +21,6 @@ import { Option } from '@@/form-components/PortainerSelect';
 
 type Props = FormikProps<ContainerInstanceFormValues> & {
   subscriptionOptions: Option<string>[];
-  environmentId: number;
   resourceGroups: Record<string, ResourceGroup[]>;
   providers: Record<string, ProviderViewModel | undefined>;
 };
@@ -34,7 +32,6 @@ export function CreateContainerInstanceInnerForm({
   isValid,
   values,
   setFieldValue,
-  environmentId,
   subscriptionOptions,
   resourceGroups,
   providers,
@@ -155,14 +152,6 @@ export function CreateContainerInstanceInnerForm({
           placeholder="1"
         />
       </FormControl>
-
-      <AccessControlForm
-        formNamespace="accessControl"
-        onChange={(values) => setFieldValue('accessControl', values)}
-        values={values.accessControl}
-        errors={errors.accessControl}
-        environmentId={environmentId}
-      />
 
       <div className="form-group">
         <div className="col-sm-12">

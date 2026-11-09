@@ -20,15 +20,6 @@ vi.mock('angular', () => ({
   module: angularMock.module,
 }));
 
-vi.mock('../../../../portainer/components/accessControlForm/porAccessControlFormModel', () => ({
-  AccessControlFormData: function AccessControlFormData() {
-    this.AccessControlEnabled = true;
-    this.Ownership = 'private';
-    this.AuthorizedUsers = [];
-    this.AuthorizedTeams = [];
-  },
-}));
-
 vi.mock('../../../components/volumesNFSForm/volumesNFSFormModel', () => ({
   VolumesNFSFormData: function VolumesNFSFormData() {
     this.useNFS = false;
@@ -96,22 +87,11 @@ function buildController(options = {}) {
     pluginsError = null,
     volumeCreateResult = { Name: 'myVolume', ResourceControl: { Id: 9 } },
     volumeCreateError = null,
-    validateAccessControl = () => '',
-    isAdmin = true,
-    userDetails = { ID: 42 },
   } = options;
 
   const $scope = buildScope(scopeOverrides);
   const $state = { go: vi.fn() };
   const Notifications = { success: vi.fn(), error: vi.fn() };
-  const Authentication = {
-    getUserDetails: vi.fn(() => userDetails),
-    isAdmin: vi.fn(() => isAdmin),
-  };
-  const FormValidator = { validateAccessControl: vi.fn(validateAccessControl) };
-  const ResourceControlService = {
-    applyResourceControl: vi.fn(() => Promise.resolve()),
-  };
 
   const pluginsPromise = deferred();
   const PluginService = {
@@ -133,10 +113,7 @@ function buildController(options = {}) {
     $state,
     VolumeService,
     PluginService,
-    ResourceControlService,
-    Authentication,
     Notifications,
-    FormValidator,
     endpoint
   );
 
@@ -152,9 +129,6 @@ function buildController(options = {}) {
     Notifications,
     PluginService,
     VolumeService,
-    Authentication,
-    ResourceControlService,
-    FormValidator,
     createPromise,
     volumeCreateResult,
     volumeCreateError,
@@ -190,7 +164,8 @@ describe('REQ-VOL-02 CreateVolumeController local Docker create form', () => {
     expect(ctx.$scope.formValues.NodeName).toBeNull();
     expect(ctx.$scope.formValues.NFSData.useNFS).toBe(false);
     expect(ctx.$scope.formValues.CIFSData.useCIFS).toBe(false);
-    expect(ctx.$scope.formValues.AccessControlData.Ownership).toBe('private');
+    // REQ-TAI-001: no ownership/access-control section on the create form
+    expect(ctx.$scope.formValues.AccessControlData).toBeUndefined();
     expect(ctx.$scope.state.formValidationError).toBe('');
     expect(ctx.$scope.state.actionInProgress).toBe(false);
     expect(ctx.$scope.endpoint).toEqual({ Id: 1, Name: 'local' });
@@ -254,19 +229,6 @@ describe('REQ-VOL-02 CreateVolumeController local Docker create form', () => {
     expect(ctx.$scope.formValues.NFSData.useNFS).toBe(false);
   });
 
-  it('stops create when access-control validation fails', async () => {
-    const ctx = buildController({
-      validateAccessControl: () => 'You must specify at least one team or user.',
-    });
-    await ctx.settlePlugins();
-
-    ctx.$scope.formValues.Name = 'blocked';
-    ctx.$scope.create();
-
-    expect(ctx.$scope.state.formValidationError).toBe('You must specify at least one team or user.');
-    expect(ctx.VolumeService.createVolume).not.toHaveBeenCalled();
-    expect(ctx.$scope.state.actionInProgress).toBe(false);
-  });
 
   it('creates a local volume with name, driver and driver options', async () => {
     const ctx = buildController();
@@ -293,11 +255,6 @@ describe('REQ-VOL-02 CreateVolumeController local Docker create form', () => {
     );
 
     await ctx.settleCreate();
-    expect(ctx.ResourceControlService.applyResourceControl).toHaveBeenCalledWith(
-      42,
-      ctx.$scope.formValues.AccessControlData,
-      { Id: 9 }
-    );
     expect(ctx.Notifications.success).toHaveBeenCalledWith('Success', 'Volume successfully created');
     expect(ctx.$state.go).toHaveBeenCalledWith('docker.volumes', {}, { reload: true });
     expect(ctx.$scope.state.actionInProgress).toBe(false);
@@ -455,21 +412,4 @@ describe('REQ-VOL-02 CreateVolumeController local Docker create form', () => {
     expect(ctx.$scope.state.actionInProgress).toBe(false);
   });
 
-  it('clears a previous formValidationError when validation later succeeds', async () => {
-    const ctx = buildController({
-      validateAccessControl: vi.fn().mockReturnValueOnce('access denied').mockReturnValueOnce(''),
-    });
-    await ctx.settlePlugins();
-
-    ctx.$scope.formValues.Name = 'retry-vol';
-    ctx.$scope.create();
-    expect(ctx.$scope.state.formValidationError).toBe('access denied');
-    expect(ctx.VolumeService.createVolume).not.toHaveBeenCalled();
-
-    ctx.$scope.create();
-    expect(ctx.$scope.state.formValidationError).toBe('');
-    expect(ctx.VolumeService.createVolume).toHaveBeenCalledTimes(1);
-    await ctx.settleCreate();
-    expect(ctx.Notifications.success).toHaveBeenCalled();
-  });
 });

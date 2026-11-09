@@ -65,7 +65,6 @@ type manifestDryRunResponse struct {
 // @description A resource living in a namespace created by another manifest of the same request is reported as failed, because the dry-run never persists that namespace.
 // @description **Access policy**: authenticated
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"

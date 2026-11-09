@@ -6,12 +6,12 @@ import {
   EnvironmentType,
 } from '@/react/portainer/environments/types';
 
-import { columns } from './index';
 import { name } from './name';
 import { type } from './type';
 import { url } from './url';
-import { actions } from './actions';
 import { columnHelper } from './helper';
+
+import { columns } from './index';
 
 vi.mock('@@/Link', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
@@ -96,7 +96,7 @@ function renderCell(
 describe('REQ-ENV-03 environment list columns for local Docker', () => {
   it('exports the expected column set including helper', () => {
     expect(columns.map((c) => c.id || c.header)).toEqual(
-      expect.arrayContaining(['Name', 'Type', 'URL', 'Actions'])
+      expect.arrayContaining(['Name', 'Type', 'URL'])
     );
     expect(columnHelper).toBeTruthy();
   });
@@ -177,18 +177,7 @@ describe('REQ-ENV-03 environment list columns for local Docker', () => {
     expect(screen.getByText('creating')).toBeVisible();
   });
 
-  it('hides manage-access for provisioning environments', () => {
-    renderCell(actions, env({ Status: EnvironmentStatus.Provisioning }));
-    expect(screen.getByText('-')).toBeVisible();
-  });
-
-  it('hides manage access for environments in error', () => {
-    renderCell(actions, env({ Status: EnvironmentStatus.Error }));
-    expect(screen.getByText('-')).toBeVisible();
-  });
-
-  it('shows manage access for an active local environment', () => {
-    renderCell(actions, env({ Status: EnvironmentStatus.Up }));
-    expect(screen.getByText('Manage access')).toBeVisible();
+  it('REQ-TAI-001 offers no manage-access column', () => {
+    expect(columns.map((c) => c.id || c.header)).not.toContain('Actions');
   });
 });

@@ -7,9 +7,6 @@ import {
   useCreateStack,
 } from '@/react/common/stacks/queries/useCreateStack/useCreateStack';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useCurrentUser, useIsEdgeAdmin } from '@/react/hooks/useUser';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { parseAccessControlFormData } from '@/react/portainer/access-control/utils';
 import { TemplateType } from '@/react/portainer/templates/app-templates/types';
 import { TemplateViewModel } from '@/react/portainer/templates/app-templates/view-model';
 import { NameField } from '@/react/docker/stacks/common/NameField';
@@ -36,31 +33,20 @@ export function StackDeployForm({
   const isDeployable = useIsDeployable(template.Type);
 
   const router = useRouter();
-  const isEdgeAdminQuery = useIsEdgeAdmin();
 
-  const { user } = useCurrentUser();
   const environmentId = useEnvironmentId();
   const swarmIdQuery = useSwarmId(environmentId);
   const mutation = useCreateStack();
   const validation = useValidation({
-    isAdmin: isEdgeAdminQuery.isAdmin,
     environmentId,
     envVarDefinitions: template.Env,
   });
-
-  if (isEdgeAdminQuery.isLoading) {
-    return null;
-  }
 
   const initialValues: FormValues = {
     name: template.Name || '',
     envVars:
       Object.fromEntries(template.Env?.map((env) => [env.name, env.value])) ||
       {},
-    accessControl: parseAccessControlFormData(
-      isEdgeAdminQuery.isAdmin,
-      user.Id
-    ),
   };
 
   if (!isDeployable) {
@@ -96,14 +82,6 @@ export function StackDeployForm({
               options={template.Env || []}
             />
           </FormSection>
-
-          <AccessControlForm
-            formNamespace="accessControl"
-            onChange={(values) => setFieldValue('accessControl', values)}
-            values={values.accessControl}
-            errors={errors.accessControl}
-            environmentId={environmentId}
-          />
 
           <FormActions
             isLoading={mutation.isLoading}
@@ -143,7 +121,6 @@ export function StackDeployForm({
         ComposeFilePathInRepository: template.Repository.stackfile,
       },
       fromAppTemplate: true,
-      accessControl: values.accessControl,
     };
 
     return mutation.mutate(

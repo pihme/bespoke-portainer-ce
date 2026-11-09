@@ -63,8 +63,6 @@ func calculateEndpointsOrTags(tx dataservices.DataStoreTx, edgeGroup *portainer.
 // @summary Create an EdgeGroup
 // @description **Access policy**: administrator
 // @tags edge_groups
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body edgeGroupCreatePayload true "EdgeGroup data"

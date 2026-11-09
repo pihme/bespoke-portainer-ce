@@ -1,6 +1,5 @@
 import { Form, useFormikContext } from 'formik';
 
-import { AccessControlForm } from '@/react/portainer/access-control/AccessControlForm';
 import { NameField } from '@/react/docker/stacks/common/NameField';
 import { useDockerComposeSchema } from '@/react/hooks/useDockerComposeSchema/useDockerComposeSchema';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
@@ -112,15 +111,6 @@ export function CreateStackInnerForm({
         values={values.env}
         onChange={(env) => setFieldValue('env', env)}
         errors={errors.env}
-      />
-
-      <AccessControlForm
-        values={values.accessControl}
-        onChange={(accessControl) =>
-          setFieldValue('accessControl', accessControl)
-        }
-        environmentId={environment.Id}
-        errors={errors.accessControl}
       />
 
       <FormSection title="Actions">

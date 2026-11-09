@@ -1,10 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { AccessControlPanel } from '@/react/portainer/access-control/AccessControlPanel/AccessControlPanel';
-import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
-import { ResourceControlType } from '@/react/portainer/access-control/types';
 import {
   ContainerGroup,
   ResourceGroup,
@@ -30,7 +26,6 @@ export function ItemView() {
 
   const environmentId = useEnvironmentId();
 
-  const queryClient = useQueryClient();
 
   const subscriptionQuery = useSubscription(environmentId, subscriptionId);
   const resourceGroupQuery = useResourceGroup(
@@ -205,25 +200,6 @@ export function ItemView() {
           </Widget>
         </div>
       </div>
-
-      <AccessControlPanel
-        onUpdateSuccess={() =>
-          queryClient.invalidateQueries([
-            'azure',
-            environmentId,
-            'subscriptions',
-            subscriptionId,
-            'resourceGroups',
-            resourceGroupQuery.data.name,
-            'containerGroups',
-            containerQuery.data.name,
-          ])
-        }
-        resourceId={id}
-        resourceControl={container.resourceControl}
-        resourceType={ResourceControlType.ContainerGroup}
-        environmentId={environmentId}
-      />
     </>
   );
 }
@@ -249,10 +225,6 @@ function aggregateContainerData(
 ) {
   const containerInstanceData = aggregateContainerInstance();
 
-  const resourceControl = containerGroup.Portainer?.ResourceControl
-    ? new ResourceControlViewModel(containerGroup.Portainer.ResourceControl)
-    : undefined;
-
   return {
     name: containerGroup.name,
     subscriptionName: subscription.displayName,
@@ -260,7 +232,6 @@ function aggregateContainerData(
     location: containerGroup.location,
     osType: containerGroup.properties.osType,
     ipAddress: containerGroup.properties.ipAddress.ip,
-    resourceControl,
     ...containerInstanceData,
   };
 

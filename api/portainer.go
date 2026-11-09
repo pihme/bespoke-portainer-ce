@@ -82,8 +82,6 @@ type (
 		AddrHTTPS                 *string
 		TunnelAddr                *string
 		TunnelPort                *string
-		AdminPassword             *string
-		AdminPasswordFile         *string
 		Assets                    *string
 		CSP                       *bool
 		CompactDB                 *bool
@@ -116,8 +114,6 @@ type (
 		KubectlShellImageSet      bool
 		PullLimitCheckDisabled    *bool
 		TrustedOrigins            *string
-		NoSetupToken              *bool
-		SetupToken                *string
 		EdgePortainerURL          *string
 		EdgeTrustOnFirstConnect   *bool
 	}
@@ -2224,10 +2220,6 @@ const (
 	CSPEnvVar = "CSP"
 	// CompactDBEnvVar is the environment variable used to enable/disable the startup compaction of the database
 	CompactDBEnvVar = "COMPACT_DB"
-	// NoSetupTokenEnvVar is the environment variable used to disable the setup token requirement on an uninitialized instance
-	NoSetupTokenEnvVar = "PORTAINER_NO_SETUP_TOKEN"
-	// SetupTokenEnvVar is the environment variable used to provide a custom setup token for admin initialization and restore on an uninitialized instance
-	SetupTokenEnvVar = "PORTAINER_SETUP_TOKEN"
 	// CSRFAllowNoOriginEnvVar is the environment variable used to allow unsafe cookie-authenticated requests that carry no Origin or Sec-Fetch-Site header, reverting the CSRF protection to fail open for such requests
 	CSRFAllowNoOriginEnvVar = "CSRF_ALLOW_NO_ORIGIN"
 	// EdgeComputeEnvVar is the environment variable used to enable Edge Compute features

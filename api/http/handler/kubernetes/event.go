@@ -15,7 +15,6 @@ import (
 // @description Get events by optional query param resourceId for a given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name the events are associated to"
@@ -64,7 +63,6 @@ func (handler *Handler) getKubernetesEventsForNamespace(w http.ResponseWriter, r
 // @description Get events by query param resourceId
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param resourceId query string false "The resource id of the involved kubernetes object"  example:"e5b021b6-4bce-4c06-bd3b-6cca906797aa"

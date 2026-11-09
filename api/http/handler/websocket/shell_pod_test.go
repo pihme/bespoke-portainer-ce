@@ -33,7 +33,7 @@ func newWebsocketTestHandler(t *testing.T) (*Handler, *portainer.Endpoint) {
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	bouncer := security.NewRequestBouncer(t.Context(), store, nil, nil)
+	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	handler := &Handler{
 		DataStore:      store,
@@ -44,12 +44,14 @@ func newWebsocketTestHandler(t *testing.T) (*Handler, *portainer.Endpoint) {
 	return handler, endpoint
 }
 
-// TestWebsocketShellPodExec_deniesUnauthorizedEndpoint asserts a non-admin with no access
-// policy on the environment is rejected with 403 — the environment-access (L2) gate (BE-13027).
-func TestWebsocketShellPodExec_deniesUnauthorizedEndpoint(t *testing.T) {
+// TestREQ_TAI_001_WebsocketShellPodExec_NoPerUserEnvironmentGate asserts that
+// a request with no environment access policy passes the environment gate and
+// reaches the (nil) Kubernetes client factory: per-user and per-team
+// environment access is removed (TAI-001, REQ-USR-07).
+func TestREQ_TAI_001_WebsocketShellPodExec_NoPerUserEnvironmentGate(t *testing.T) {
 	handler, _ := newWebsocketTestHandler(t)
 
-	user := &portainer.User{Username: "restricted", Role: portainer.StandardUserRole}
+	user := &portainer.User{Username: "legacy", Role: portainer.StandardUserRole}
 	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		return tx.User().Create(user)
 	})
@@ -58,10 +60,9 @@ func TestWebsocketShellPodExec_deniesUnauthorizedEndpoint(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/websocket/kubernetes-shell?endpointId=2", nil)
 	req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
 
-	handlerErr := handler.websocketShellPodExec(httptest.NewRecorder(), req)
-
-	require.NotNil(t, handlerErr, "expected an authorization error for a denied environment")
-	assert.Equal(t, http.StatusForbidden, handlerErr.StatusCode)
+	assert.Panics(t, func() {
+		_ = handler.websocketShellPodExec(httptest.NewRecorder(), req)
+	})
 }
 
 // TestWebsocketShellPodExec_allowsAuthorizedEndpoint asserts an admin passes authorization and

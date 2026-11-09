@@ -31,85 +31,77 @@ vi.mock('../users/user.helpers', () => ({
   isPureAdmin: vi.fn(() => true),
 }));
 
-vi.mock('./session-storage', () => ({
-  clear: vi.fn(),
-}));
-
 await import('./authentication.js');
 const { getCurrentUser } = await import('../users/queries/useLoadCurrentUser');
 const userHelpers = await import('../users/user.helpers');
-const { clear: clearSessionStorage } = await import('./session-storage');
 const { hasAuthorizations: useUserHasAuthorization } = await import('@/react/hooks/useUser');
 
-function buildAuth(overrides = {}) {
+function buildAuth() {
   const $async = (fn, ...args) => fn(...args);
   const $state = { go: vi.fn() };
-  const Auth = {
-    login: vi.fn(() => ({ $promise: Promise.resolve({}) })),
-    logout: vi.fn(() => ({ $promise: Promise.resolve({}) })),
-  };
-  const OAuth = { validate: vi.fn(() => ({ $promise: Promise.resolve({}) })) };
   const LocalStorage = {
     getUserId: vi.fn(() => null),
     storeUserId: vi.fn(),
-    cleanAuthData: vi.fn(),
-    storeLoginStateUUID: vi.fn(),
   };
-  const StateManager = { clean: vi.fn() };
   const EndpointProvider = {
-    clean: vi.fn(),
     currentEndpoint: vi.fn(() => ({ Id: 1 })),
     endpointID: vi.fn(() => 1),
   };
   const ThemeManager = { autoTheme: vi.fn(), setTheme: vi.fn() };
-  const auth = factoryState.factory($async, $state, Auth, OAuth, LocalStorage, StateManager, EndpointProvider, ThemeManager);
-  return { auth, $state, Auth, OAuth, LocalStorage, StateManager, EndpointProvider, ThemeManager, ...overrides };
+  const auth = factoryState.factory($async, $state, LocalStorage, EndpointProvider, ThemeManager);
+  return { auth, $state, LocalStorage, EndpointProvider, ThemeManager };
 }
 
-describe('REQ-AUTH-03 Authentication session plumbing', () => {
+describe('REQ-TAI-001 Authentication serves the local operator without login', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete window.ddExtension;
   });
 
-  it('login loads user data and applies theme', async () => {
+  it('exposes no login, logout or OAuth entry points', () => {
+    const { auth } = buildAuth();
+    expect(auth.login).toBeUndefined();
+    expect(auth.logout).toBeUndefined();
+    expect(auth.OAuthLogin).toBeUndefined();
+  });
+
+  it('init loads the local operator from /users/me and applies the stored theme', async () => {
     getCurrentUser.mockResolvedValue({
       Username: 'admin',
-      Id: 1,
+      Id: 2,
       Role: 1,
-      forceChangePassword: false,
+      ThemeSettings: { color: 'light' },
       EndpointAuthorizations: {},
       PortainerAuthorizations: {},
-      ThemeSettings: { color: 'dark' },
     });
-    const { auth, Auth, LocalStorage, ThemeManager } = buildAuth();
-    await auth.login('admin', 'secret');
-    expect(Auth.login).toHaveBeenCalledWith({ username: 'admin', password: 'secret' });
+    const { auth, LocalStorage, ThemeManager } = buildAuth();
+    await expect(auth.init()).resolves.toBe(true);
+    expect(getCurrentUser).toHaveBeenCalledTimes(1);
     expect(auth.isAuthenticated()).toBe(true);
-    expect(auth.getUserDetails()).toMatchObject({ username: 'admin', ID: 1 });
-    expect(ThemeManager.setTheme).toHaveBeenCalledWith('dark');
-    expect(LocalStorage.storeUserId).toHaveBeenCalledWith(1);
+    expect(auth.getUserDetails()).toMatchObject({ username: 'admin', ID: 2, role: 1 });
+    expect(ThemeManager.setTheme).toHaveBeenCalledWith('light');
+    expect(LocalStorage.storeUserId).toHaveBeenCalledWith(2);
   });
 
-  it('logout clears session storage and auth data when authenticated', async () => {
-    getCurrentUser.mockResolvedValue({
-      Username: 'admin',
-      Id: 1,
-      Role: 1,
-      ThemeSettings: { color: 'auto' },
-      EndpointAuthorizations: {},
-      PortainerAuthorizations: {},
-    });
-    const { auth, Auth, LocalStorage, StateManager, EndpointProvider, ThemeManager } = buildAuth();
-    await auth.login('admin', 'secret');
+  it('init falls back to the auto theme when none is stored', async () => {
+    getCurrentUser.mockResolvedValue({ Username: 'admin', Id: 1, Role: 1, ThemeSettings: {} });
+    const { auth, ThemeManager } = buildAuth();
+    await auth.init();
     expect(ThemeManager.autoTheme).toHaveBeenCalled();
-    await auth.logout();
-    expect(Auth.logout).toHaveBeenCalled();
-    expect(clearSessionStorage).toHaveBeenCalled();
-    expect(StateManager.clean).toHaveBeenCalled();
-    expect(EndpointProvider.clean).toHaveBeenCalled();
-    expect(LocalStorage.cleanAuthData).toHaveBeenCalled();
-    expect(auth.isAuthenticated()).toBe(false);
+  });
+
+  it('init reuses the loaded operator when the stored id matches', async () => {
+    getCurrentUser.mockResolvedValue({ Username: 'admin', Id: 3, Role: 1, ThemeSettings: {} });
+    const { auth, LocalStorage } = buildAuth();
+    await auth.init();
+    LocalStorage.getUserId.mockReturnValue(3);
+    await expect(auth.init()).resolves.toBe(true);
+    expect(getCurrentUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('init rejects when the local operator cannot be loaded', async () => {
+    getCurrentUser.mockRejectedValue(new Error('down'));
+    const { auth } = buildAuth();
+    await expect(auth.init()).rejects.toThrow('down');
   });
 
   it('isAdmin/isPureAdmin/hasAuthorizations and redirectIfUnauthorized', async () => {
@@ -121,36 +113,15 @@ describe('REQ-AUTH-03 Authentication session plumbing', () => {
       EndpointAuthorizations: { 1: ['DockerContainerList'] },
       PortainerAuthorizations: {},
     });
-    const { auth, $state, EndpointProvider } = buildAuth();
-    await auth.login('admin', 'x');
+    const { auth, $state } = buildAuth();
+    await auth.init();
     expect(auth.isAdmin()).toBe(true);
     expect(auth.isPureAdmin()).toBe(true);
     expect(auth.hasAuthorizations(['DockerContainerList'])).toBe(true);
     expect(userHelpers.isEdgeAdmin).toHaveBeenCalled();
-    useUserHasAuthorization.mockReturnValueOnce(false);
-    userHelpers.isEdgeAdmin.mockReturnValueOnce(false);
-    auth.redirectIfUnauthorized(['Nope']);
-    // when still edge admin from previous mock, hasAuthorizations short-circuits true —
-    // force non-admin path:
     userHelpers.isEdgeAdmin.mockReturnValue(false);
     useUserHasAuthorization.mockReturnValue(false);
     auth.redirectIfUnauthorized(['Nope']);
     expect($state.go).toHaveBeenCalledWith('portainer.home');
-    void EndpointProvider;
-  });
-
-  it('init returns true after loading user data', async () => {
-    getCurrentUser.mockResolvedValue({
-      Username: 'admin',
-      Id: 2,
-      Role: 1,
-      ThemeSettings: { color: 'light' },
-      EndpointAuthorizations: {},
-      PortainerAuthorizations: {},
-    });
-    const { auth, LocalStorage } = buildAuth();
-    LocalStorage.getUserId.mockReturnValue(null);
-    await expect(auth.init()).resolves.toBe(true);
-    expect(auth.isAuthenticated()).toBe(true);
   });
 });

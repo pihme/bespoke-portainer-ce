@@ -13,7 +13,6 @@ function StateManagerFactory($async, $q, SystemService, InfoHelper, LocalStorage
     UI: {
       dismissedInfoPanels: {},
       dismissedInfoHash: '',
-      timesPasswordChangeSkipped: {},
       dismissedUpdateVersion: '',
     },
   };
@@ -25,30 +24,6 @@ function StateManagerFactory($async, $q, SystemService, InfoHelper, LocalStorage
 
   manager.dismissImportantInformation = function (hash) {
     state.UI.dismissedInfoHash = hash;
-    LocalStorage.storeUIState(state.UI);
-  };
-
-  manager.setRequiredPasswordLength = function (length) {
-    state.UI.requiredPasswordLength = length;
-    LocalStorage.storeUIState(state.UI);
-  };
-
-  manager.setPasswordChangeSkipped = function (userID) {
-    state.UI.instanceId = state.UI.instanceId || state.application.instanceId;
-    state.UI.timesPasswordChangeSkipped[userID] = state.UI.timesPasswordChangeSkipped[userID] + 1 || 1;
-    LocalStorage.storeUIState(state.UI);
-  };
-
-  manager.resetPasswordChangeSkips = function (userID) {
-    if (!state.UI.timesPasswordChangeSkipped) {
-      return;
-    }
-    if (state.UI.timesPasswordChangeSkipped[userID]) state.UI.timesPasswordChangeSkipped[userID] = 0;
-    LocalStorage.storeUIState(state.UI);
-  };
-
-  manager.clearPasswordChangeSkips = function () {
-    state.UI.timesPasswordChangeSkipped = {};
     LocalStorage.storeUIState(state.UI);
   };
 
@@ -132,11 +107,6 @@ function StateManagerFactory($async, $q, SystemService, InfoHelper, LocalStorage
       const UIState = LocalStorage.getUIState();
       if (UIState) {
         state.UI = UIState;
-        if (state.UI.instanceId && state.UI.instanceId !== state.application.instanceId) {
-          state.UI.instanceId = state.application.instanceId;
-          state.UI.timesPasswordChangeSkipped = {};
-          LocalStorage.storeUIState(state.UI);
-        }
       }
 
       state.loading = false;

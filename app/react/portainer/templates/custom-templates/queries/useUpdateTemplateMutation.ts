@@ -8,8 +8,6 @@ import {
 } from '@/react-tools/react-query';
 import { StackType } from '@/react/common/stacks/types';
 import { VariableDefinition } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField/CustomTemplatesVariablesDefinitionField';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
-import { applyResourceControl } from '@/react/portainer/access-control/access-control.service';
 
 import { CustomTemplate, EdgeTemplateSettings } from '../types';
 import { Platform } from '../../types';
@@ -20,20 +18,8 @@ export function useUpdateTemplateMutation() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (
-      payload: CustomTemplateUpdatePayload & {
-        AccessControl?: AccessControlFormData;
-        resourceControlId?: number;
-      }
-    ) => {
+    async (payload: CustomTemplateUpdatePayload) => {
       await updateTemplate(payload);
-
-      if (payload.resourceControlId && payload.AccessControl) {
-        await applyResourceControl(
-          payload.AccessControl,
-          payload.resourceControlId
-        );
-      }
     },
     mutationOptions(
       withInvalidate(queryClient, [['custom-templates']]),

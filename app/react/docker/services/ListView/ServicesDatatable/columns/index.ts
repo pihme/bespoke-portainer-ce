@@ -3,7 +3,6 @@ import _ from 'lodash';
 
 import { ServiceViewModel } from '@/docker/models/service';
 import { isoDate } from '@/portainer/filters/filters';
-import { createOwnershipColumn } from '@/react/docker/components/datatable/createOwnershipColumn';
 
 import { buildNameColumn } from '@@/datatables/buildNameColumn';
 import { buildExpandColumn } from '@@/datatables/expand-column';
@@ -35,7 +34,6 @@ export function useColumns(isStackColumnVisible?: boolean) {
           header: 'Last Update',
           cell: ({ getValue }) => isoDate(getValue()),
         }),
-        createOwnershipColumn<ServiceViewModel>(),
       ]),
     [isStackColumnVisible]
   );

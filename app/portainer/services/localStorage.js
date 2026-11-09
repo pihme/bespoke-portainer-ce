@@ -2,12 +2,6 @@ angular.module('portainer.app').factory('LocalStorage', [
   'localStorageService',
   function LocalStorageFactory(localStorageService) {
     return {
-      storeLoginStateUUID: function (uuid) {
-        localStorageService.set('LOGIN_STATE_UUID', uuid);
-      },
-      getLoginStateUUID: function () {
-        return localStorageService.get('LOGIN_STATE_UUID');
-      },
       storeEndpointState: function (state) {
         localStorageService.set('ENDPOINT_STATE', state);
       },
@@ -112,14 +106,8 @@ angular.module('portainer.app').factory('LocalStorage', [
       getNamespaceFilter: function (environmentId, userID) {
         return localStorageService.get(`kubernetes_namespace_filter_${environmentId}_${userID}`);
       },
-      storeLogoutReason: (reason) => localStorageService.set('logout_reason', reason),
-      getLogoutReason: () => localStorageService.get('logout_reason'),
-      cleanLogoutReason: () => localStorageService.remove('logout_reason'),
       clean: function () {
         localStorageService.clearAll();
-      },
-      cleanAuthData() {
-        localStorageService.remove('USER_ID', 'APPLICATION_STATE', 'LOGIN_STATE_UUID', 'ALLOWED_NAMESPACES');
       },
       storeKubernetesSummaryToggle(value) {
         localStorageService.set('kubernetes_summary_expanded', value);

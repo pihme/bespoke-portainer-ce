@@ -39,8 +39,6 @@ func (payload *stackMigratePayload) Validate(r *http.Request) error {
 // @description  Migrate a stack from an environment(endpoint) to another environment(endpoint). It will re-create the stack inside the target environment(endpoint) before removing the original stack.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Stack identifier"
 // @param endpointId query int false "Stacks created before version 1.18.0 might not have an associated environment(endpoint) identifier. Use this optional parameter to set the environment(endpoint) identifier used by the stack."

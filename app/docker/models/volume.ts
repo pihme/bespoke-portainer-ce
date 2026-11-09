@@ -1,10 +1,9 @@
 import { Volume } from 'docker-types';
 
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
-import { IResource } from '@/react/docker/components/datatable/createOwnershipColumn';
 import { PortainerResponse } from '@/react/docker/types';
 
-export class VolumeViewModel implements IResource {
+export class VolumeViewModel {
   Id: string;
 
   Name: Volume['Name'];

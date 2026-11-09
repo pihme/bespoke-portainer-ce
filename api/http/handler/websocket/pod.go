@@ -21,8 +21,6 @@ import (
 // @summary Execute a websocket on pod
 // @description The request will be upgraded to the websocket protocol.
 // @description **Access policy**: authenticated
-// @security ApiKeyAuth
-// @security jwt
 // @tags websocket
 // @accept json
 // @produce json

@@ -1,4 +1,3 @@
-import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
 import { VolumesNFSFormData } from '../../../components/volumesNFSForm/volumesNFSFormModel';
 import { VolumesCIFSFormData } from '../../../components/volumesCIFSForm/volumesCifsFormModel';
 
@@ -7,18 +6,14 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
   '$state',
   'VolumeService',
   'PluginService',
-  'ResourceControlService',
-  'Authentication',
   'Notifications',
-  'FormValidator',
   'endpoint',
-  function ($scope, $state, VolumeService, PluginService, ResourceControlService, Authentication, Notifications, FormValidator, endpoint) {
+  function ($scope, $state, VolumeService, PluginService, Notifications, endpoint) {
     $scope.endpoint = endpoint;
 
     $scope.formValues = {
       Driver: 'local',
       DriverOptions: [],
-      AccessControlData: new AccessControlFormData(),
       NodeName: null,
       NFSData: new VolumesNFSFormData(),
       CIFSData: new VolumesCIFSFormData(),
@@ -55,17 +50,6 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
         $scope.formValues.CIFSData.useCIFS = checked;
         $scope.formValues.NFSData.useNFS = false;
       });
-    }
-
-    function validateForm(accessControlData, isAdmin) {
-      $scope.state.formValidationError = '';
-      var error = FormValidator.validateAccessControl(accessControlData, isAdmin);
-
-      if (error) {
-        $scope.state.formValidationError = error;
-        return false;
-      }
-      return true;
     }
 
     function prepareCIFSConfiguration(driverOptions) {
@@ -114,23 +98,10 @@ angular.module('portainer.docker').controller('CreateVolumeController', [
       }
 
       var volumeConfiguration = VolumeService.createVolumeConfiguration(name, driver, driverOptions);
-      var accessControlData = $scope.formValues.AccessControlData;
-      var userDetails = Authentication.getUserDetails();
-      var isAdmin = Authentication.isAdmin();
-
-      if (!validateForm(accessControlData, isAdmin)) {
-        return;
-      }
-
       var nodeName = $scope.formValues.NodeName;
 
       $scope.state.actionInProgress = true;
       VolumeService.createVolume(volumeConfiguration, nodeName)
-        .then(function success(data) {
-          const userId = userDetails.ID;
-          const resourceControl = data.ResourceControl;
-          return ResourceControlService.applyResourceControl(userId, accessControlData, resourceControl);
-        })
         .then(function success() {
           Notifications.success('Success', 'Volume successfully created');
           $state.go('docker.volumes', {}, { reload: true });

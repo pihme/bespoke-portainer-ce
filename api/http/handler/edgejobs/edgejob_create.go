@@ -76,8 +76,6 @@ func (payload *edgeJobCreateFromFileContentPayload) Validate(r *http.Request) er
 // @summary Create an EdgeJob from a text
 // @description **Access policy**: administrator
 // @tags edge_jobs
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body edgeJobCreateFromFileContentPayload true "EdgeGroup data when method is string"
 // @success 200 {object} portainer.EdgeGroup
@@ -176,8 +174,6 @@ func (payload *edgeJobCreateFromFilePayload) Validate(r *http.Request) error {
 // @description **Access policy**: administrator
 // @tags edge_jobs
 // @accept multipart/form-data
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param file formData file true "Content of the Stack file"
 // @param Name formData string true "Name of the stack"

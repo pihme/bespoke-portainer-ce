@@ -23,8 +23,6 @@ import (
 // @description List available custom templates.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param type query []int true "Template types" Enums(1,2,3)
 // @param edge query boolean false "Filter by edge templates"

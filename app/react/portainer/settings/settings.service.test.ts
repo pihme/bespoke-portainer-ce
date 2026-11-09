@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  buildUrl,
+  getGlobalDeploymentOptions,
+  getPublicSettings,
+  getSettings,
+  updateSettings,
+} from './settings.service';
+
 const { get, put, parseAxiosError } = vi.hoisted(() => ({
   get: vi.fn(),
   put: vi.fn(),
@@ -10,15 +18,6 @@ vi.mock('@/portainer/services/axios/axios', () => ({
   default: { get, put },
   parseAxiosError: (e: unknown, msg: string) => parseAxiosError(e, msg),
 }));
-
-import {
-  buildUrl,
-  getGlobalDeploymentOptions,
-  getPublicSettings,
-  getSettings,
-  updateSettings,
-} from './settings.service';
-import { AuthenticationMethod, OAuthStyle } from './types';
 
 describe('settings.service KEEP helpers', () => {
   beforeEach(() => {
@@ -75,17 +74,5 @@ describe('settings.service KEEP helpers', () => {
     await expect(updateSettings({ LogoURL: 'z' })).rejects.toThrow(
       'Unable to update application settings'
     );
-  });
-});
-
-describe('settings types enums', () => {
-  it('exposes authentication and oauth style enums', () => {
-    expect(AuthenticationMethod.Internal).toBe(1);
-    expect(AuthenticationMethod.LDAP).toBe(2);
-    expect(AuthenticationMethod.OAuth).toBe(3);
-    expect(AuthenticationMethod.AD).toBe(4);
-    expect(OAuthStyle.AutoDetect).toBe(0);
-    expect(OAuthStyle.InParams).toBe(1);
-    expect(OAuthStyle.InHeader).toBe(2);
   });
 });

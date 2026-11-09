@@ -11,17 +11,14 @@ import (
 
 type CurrentUserInspectResponse struct {
 	*portainer.User
-	ForceChangePassword bool `json:"forceChangePassword"`
 }
 
 // @id CurrentUserInspect
-// @summary Inspect the current user user
-// @description Retrieve details about the current  user.
+// @summary Inspect the local operator
+// @description Retrieve the local operator's record (UI preferences).
 // @description User passwords are filtered out, and should never be accessible.
-// @description **Access policy**: authenticated
+// @description **Access policy**: local
 // @tags users
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} portainer.User "Success"
 // @failure 400 "Invalid request"
@@ -30,19 +27,16 @@ type CurrentUserInspectResponse struct {
 // @failure 500 "Server error"
 // @router /users/me [get]
 func (handler *Handler) userInspectMe(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	tokenData, err := security.RetrieveTokenData(r)
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve user authentication token", err)
-	}
-
 	securityContext, err := security.RetrieveRestrictedRequestContext(r)
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve info from request context", err)
 	}
 
 	user, err := handler.DataStore.User().Read(securityContext.UserID)
-	if handler.DataStore.IsErrObjectNotFound(err) {
-		return httperror.NotFound("Unable to find a user with the specified identifier inside the database", err)
+	if handler.DataStore.IsErrObjectNotFound(err) && securityContext.User != nil {
+		// the local operator has not been stored yet
+		u := *securityContext.User
+		user = &u
 	} else if err != nil {
 		return httperror.InternalServerError("Unable to find a user with the specified identifier inside the database", err)
 	}
@@ -51,8 +45,7 @@ func (handler *Handler) userInspectMe(w http.ResponseWriter, r *http.Request) *h
 	return response.JSON(
 		w,
 		&CurrentUserInspectResponse{
-			User:                user,
-			ForceChangePassword: tokenData.ForceChangePassword,
+			User: user,
 		},
 	)
 }

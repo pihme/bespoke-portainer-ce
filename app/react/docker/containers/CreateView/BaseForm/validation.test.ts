@@ -1,17 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-
 import { validation } from './validation';
 
 const validBase = {
   name: 'web',
   alwaysPull: true,
-  accessControl: {
-    ownership: ResourceControlOwnership.ADMINISTRATORS,
-    authorizedUsers: [],
-    authorizedTeams: [],
-  },
   autoRemove: false,
   enableWebhook: false,
   nodeName: '',
@@ -31,7 +24,6 @@ describe('REQ-CTR-03 BaseForm validation for create form', () => {
 
   it('rejects pull when Docker Hub is rate limited', async () => {
     const schema = validation({
-      isAdmin: false,
       isDuplicating: false,
       isDuplicatingPortainer: false,
       isDockerhubRateLimited: true,
@@ -44,7 +36,6 @@ describe('REQ-CTR-03 BaseForm validation for create form', () => {
 
   it('allows duplicating when a registry id is present', async () => {
     const schema = validation({
-      isAdmin: false,
       isDuplicating: true,
       isDuplicatingPortainer: false,
       isDockerhubRateLimited: false,
@@ -62,7 +53,6 @@ describe('REQ-CTR-03 BaseForm validation for create form', () => {
 
   it('rejects duplicating the Portainer container', async () => {
     const schema = validation({
-      isAdmin: false,
       isDuplicating: true,
       isDuplicatingPortainer: true,
       isDockerhubRateLimited: false,

@@ -12,9 +12,6 @@ import { EdgeTemplateSettings } from '@/react/portainer/templates/custom-templat
 import { EdgeSettingsFieldset } from '@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset';
 import { StackType } from '@/react/common/stacks/types';
 import { textByType } from '@/react/common/stacks/common/form-texts';
-import { EnvironmentId } from '@/react/portainer/environments/types';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
 
 import { WebEditorForm, usePreventExit } from '@@/WebEditorForm';
 import { FormActions } from '@@/form-components/FormActions';
@@ -27,14 +24,12 @@ import { FormValues } from './types';
 
 export function InnerForm({
   isLoading,
-  environmentId,
   isEditorReadonly,
   gitFileContent,
   gitFileError,
   refreshGitFile,
 }: {
   isLoading: boolean;
-  environmentId?: EnvironmentId;
   isEditorReadonly: boolean;
   gitFileContent?: string;
   gitFileError?: string;
@@ -148,16 +143,6 @@ export function InnerForm({
           onChange={(values) => setFieldValue('Variables', values)}
           isVariablesNamesFromParent={!isEditorReadonly}
           errors={errors.Variables}
-        />
-      )}
-
-      {!!values.AccessControl && (
-        <AccessControlForm
-          environmentId={environmentId || 0}
-          onChange={(values) => setFieldValue('AccessControl', values)}
-          values={values.AccessControl}
-          errors={errors.AccessControl as FormikErrors<AccessControlFormData>}
-          formNamespace="accessControl"
         />
       )}
 

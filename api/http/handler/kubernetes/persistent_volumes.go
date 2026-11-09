@@ -19,7 +19,6 @@ import (
 // @description Get a list of all PersistentVolumes in the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} models.K8sPersistentVolume "Success"
@@ -52,7 +51,6 @@ func (handler *Handler) getAllKubernetesPersistentVolumes(w http.ResponseWriter,
 // @description Get a PersistentVolume by name in the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param name path string true "PersistentVolume name"
@@ -96,7 +94,6 @@ func (handler *Handler) getKubernetesPersistentVolume(w http.ResponseWriter, r *
 // @description Delete the provided list of PersistentVolumes.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -140,7 +137,6 @@ func (handler *Handler) deleteKubernetesPersistentVolumes(w http.ResponseWriter,
 // @description Update the reclaim policy of a PersistentVolume.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

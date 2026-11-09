@@ -1,7 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 
 import { isoDate } from '@/portainer/filters/filters';
-import { createOwnershipColumn } from '@/react/docker/components/datatable/createOwnershipColumn';
 
 import { buildNameColumnFromObject } from '@@/datatables/buildNameColumn';
 
@@ -22,5 +21,4 @@ export const columns = [
       return <time dateTime={date}>{isoDate(date)}</time>;
     },
   }),
-  createOwnershipColumn<ConfigViewModel>(),
 ];

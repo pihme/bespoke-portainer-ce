@@ -26,7 +26,6 @@ type KubernetesPodListResponse corev1.PodList
 // @description for recreating the pod. For naked pods the pod is removed permanently.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"
@@ -74,7 +73,6 @@ func (handler *Handler) deleteKubernetesPod(w http.ResponseWriter, r *http.Reque
 // @description subresource (and the matching feature gate to be enabled).
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"
@@ -124,7 +122,6 @@ func (handler *Handler) restartKubernetesPod(w http.ResponseWriter, r *http.Requ
 // @description Get the list of Kubernetes pods across all namespaces the user can access.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param labelSelector query string false "Kubernetes label selector to filter the pods (e.g. app=nginx)"
@@ -161,7 +158,6 @@ func (handler *Handler) getAllKubernetesPods(w http.ResponseWriter, r *http.Requ
 // @description Get the list of Kubernetes pods in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"
@@ -214,7 +210,6 @@ const podLogStreamChunkSize = 2048
 // @description container query parameter is required.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce plain
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"

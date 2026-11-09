@@ -1,7 +1,5 @@
 import featureFlagModule from '@/react/portainer/feature-flags';
 
-import './rbac';
-
 import componentsModule from './components';
 import settingsModule from './settings';
 import userActivityModule from './user-activity';
@@ -19,8 +17,6 @@ async function initAuthentication(Authentication) {
 
 angular
   .module('portainer.app', [
-    'portainer.oauth',
-    'portainer.rbac',
     'portainer.registrymanagement',
     componentsModule,
     settingsModule,
@@ -38,19 +34,15 @@ angular
       var root = {
         name: 'root',
         abstract: true,
-        onEnter: /* @ngInject */ function onEnter($async, StateManager, Authentication, Notifications, $state) {
+        onEnter: /* @ngInject */ function onEnter($async, StateManager, Authentication, Notifications) {
           return $async(async () => {
             const appState = StateManager.getState();
             if (!appState.loading) {
               return;
             }
             try {
-              const loggedIn = await initAuthentication(Authentication);
+              await initAuthentication(Authentication);
               await StateManager.initialize();
-              if (!loggedIn && isTransitionRequiresAuthentication($state.transition)) {
-                $state.go('portainer.logout');
-                return Promise.reject('Unauthenticated');
-              }
             } catch (err) {
               Notifications.error('Failure', err, 'Unable to retrieve application settings');
               throw err;
@@ -109,21 +101,10 @@ angular
         views: {
           'content@': {
             templateUrl: './views/account/account.html',
-            controller: 'AccountController',
           },
         },
         data: {
           docs: '/user/account-settings',
-        },
-      };
-
-      const tokenCreation = {
-        name: 'portainer.account.new-access-token',
-        url: '/tokens/new',
-        views: {
-          'content@': {
-            component: 'createUserAccessToken',
-          },
         },
       };
 
@@ -134,44 +115,6 @@ angular
           'content@': {
             component: 'createHelmRepositoryView',
           },
-        },
-      };
-
-      var authentication = {
-        name: 'portainer.auth',
-        url: '/auth',
-        params: {
-          reload: false,
-        },
-        views: {
-          'content@': {
-            templateUrl: './views/auth/auth.html',
-            controller: 'AuthenticationController',
-            controllerAs: 'ctrl',
-          },
-          'sidebar@': {},
-        },
-        data: {
-          access: undefined,
-        },
-      };
-
-      const logout = {
-        name: 'portainer.logout',
-        url: '/logout',
-        params: {
-          error: '',
-        },
-        views: {
-          'content@': {
-            templateUrl: './views/logout/logout.html',
-            controller: 'LogoutController',
-            controllerAs: 'ctrl',
-          },
-          'sidebar@': {},
-        },
-        data: {
-          access: undefined,
         },
       };
 
@@ -211,18 +154,6 @@ angular
         },
         data: {
           docs: '/admin/environments/aeec',
-        },
-      };
-
-      var endpointAccess = {
-        name: 'portainer.endpoints.endpoint.access',
-        url: '/access',
-        views: {
-          'content@': {
-            templateUrl: './views/endpoints/access/endpointAccess.html',
-            controller: 'EndpointAccessController',
-            controllerAs: 'ctrl',
-          },
         },
       };
 
@@ -378,17 +309,6 @@ angular
         },
       };
 
-      var initAdmin = {
-        name: 'portainer.init.admin',
-        url: '/admin',
-        views: {
-          'content@': {
-            templateUrl: './views/init/admin/initAdmin.html',
-            controller: 'InitAdminController',
-          },
-        },
-      };
-
       const initEdge = {
         name: 'portainer.init.edge',
         url: '/edge',
@@ -410,20 +330,6 @@ angular
         data: {
           docs: '/admin/settings',
           access: AccessHeaders.Admin,
-        },
-      };
-
-      var settingsAuthentication = {
-        name: 'portainer.settings.authentication',
-        url: '/auth',
-        views: {
-          'content@': {
-            templateUrl: './views/settings/authentication/settingsAuthentication.html',
-            controller: 'SettingsAuthenticationController',
-          },
-        },
-        data: {
-          docs: '/admin/settings/authentication',
         },
       };
 
@@ -455,41 +361,12 @@ angular
         },
       };
 
-      var users = {
-        name: 'portainer.users',
-        url: '/users',
-        views: {
-          'content@': {
-            component: 'usersListView',
-          },
-        },
-        data: {
-          docs: '/admin/user/users',
-          access: AccessHeaders.Restricted, // allow for team leaders
-        },
-      };
-
-      var user = {
-        name: 'portainer.users.user',
-        url: '/:id',
-        views: {
-          'content@': {
-            templateUrl: './views/users/edit/user.html',
-            controller: 'UserController',
-          },
-        },
-      };
-
       $stateRegistryProvider.register(root);
       $stateRegistryProvider.register(endpointRoot);
       $stateRegistryProvider.register(portainer);
       $stateRegistryProvider.register(account);
-      $stateRegistryProvider.register(tokenCreation);
-      $stateRegistryProvider.register(authentication);
-      $stateRegistryProvider.register(logout);
       $stateRegistryProvider.register(endpoints);
       $stateRegistryProvider.register(endpoint);
-      $stateRegistryProvider.register(endpointAccess);
       $stateRegistryProvider.register(edgeAutoCreateScript);
       $stateRegistryProvider.register(groups);
       $stateRegistryProvider.register(group);
@@ -502,28 +379,14 @@ angular
       $stateRegistryProvider.register(gitopsSourceDetail);
       $stateRegistryProvider.register(gitopsSourceCreate);
       $stateRegistryProvider.register(init);
-      $stateRegistryProvider.register(initAdmin);
       $stateRegistryProvider.register(initEdge);
       $stateRegistryProvider.register(settings);
-      $stateRegistryProvider.register(settingsAuthentication);
       $stateRegistryProvider.register(settingsEdgeCompute);
       $stateRegistryProvider.register(tags);
-      $stateRegistryProvider.register(users);
-      $stateRegistryProvider.register(user);
       $stateRegistryProvider.register(createHelmRepository);
     },
   ])
   .run(run);
-
-function isTransitionRequiresAuthentication(transition) {
-  const UNAUTHENTICATED_ROUTES = ['portainer.logout', 'portainer.auth'];
-  if (!transition) {
-    return true;
-  }
-  const nextTransition = transition && transition.to();
-  const nextTransitionName = nextTransition ? nextTransition.name : '';
-  return !UNAUTHENTICATED_ROUTES.some((route) => nextTransitionName.startsWith(route));
-}
 
 /* @ngInject */
 function run($transitions) {

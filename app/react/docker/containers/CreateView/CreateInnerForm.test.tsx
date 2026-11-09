@@ -5,7 +5,6 @@ import { Formik } from 'formik';
 import { http, HttpResponse } from 'msw';
 import { vi } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import { ContainerEngine } from '@/react/portainer/environments/types';
 import {
   createMockEnvironment,
@@ -125,11 +124,6 @@ const values: Values = {
   image: { image: 'nginx', registryId: 0, useRegistry: true },
   alwaysPull: true,
   ports: [],
-  accessControl: {
-    ownership: ResourceControlOwnership.ADMINISTRATORS,
-    authorizedUsers: [],
-    authorizedTeams: [],
-  },
   nodeName: '',
   autoRemove: false,
   commands: {

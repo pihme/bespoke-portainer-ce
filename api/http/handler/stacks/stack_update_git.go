@@ -54,8 +54,6 @@ func (payload *stackGitUpdatePayload) Validate(r *http.Request) error {
 // @description Update the Git settings in a stack, e.g., RepositoryReferenceName and AutoUpdate. When SourceID is set, URL/auth/TLS are taken from the referenced Source.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Stack identifier"

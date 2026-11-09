@@ -15,8 +15,6 @@ import (
 // @description Use this environment(endpoint) to upload TLS files.
 // @description **Access policy**: administrator
 // @tags upload
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param certificate path string true "TLS file type. Valid values are 'ca', 'cert' or 'key'." Enums(ca,cert,key)

@@ -109,7 +109,7 @@ describe('REQ-TPL-03 EditForm for local Compose templates', () => {
       refetch: vi.fn(),
     });
     const { container, rerender } = render(
-      <EditForm template={template as never} environmentId={1} viewType="docker" />
+      <EditForm template={template as never} viewType="docker" />
     );
     expect(container).toBeEmptyDOMElement();
 
@@ -121,7 +121,7 @@ describe('REQ-TPL-03 EditForm for local Compose templates', () => {
     });
     useInitialValues.mockReturnValue(undefined);
     rerender(
-      <EditForm template={template as never} environmentId={1} viewType="docker" />
+      <EditForm template={template as never} viewType="docker" />
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -131,7 +131,7 @@ describe('REQ-TPL-03 EditForm for local Compose templates', () => {
     mutate.mockImplementation((_payload, opts) => opts?.onSuccess?.());
 
     render(
-      <EditForm template={template as never} environmentId={1} viewType="docker" />
+      <EditForm template={template as never} viewType="docker" />
     );
 
     expect(screen.getByTestId('title')).toHaveTextContent('Nginx');
@@ -158,7 +158,6 @@ describe('REQ-TPL-03 EditForm for local Compose templates', () => {
     render(
       <EditForm
         template={{ ...template, GitConfig: { URL: 'git' } } as never}
-        environmentId={1}
         viewType="docker"
       />
     );

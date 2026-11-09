@@ -1,7 +1,3 @@
-import { parseAccessControlFormData } from '@/react/portainer/access-control/utils';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-import { UserId } from '@/portainer/users/types';
-
 import { getDefaultImageConfig } from '@@/ImageConfigFieldset/getImageConfig';
 
 import { ContainerDetailsResponse } from '../../queries/useContainer';
@@ -11,22 +7,11 @@ import { Values } from './BaseForm';
 
 export function toViewModel(
   config: ContainerDetailsResponse,
-  isPureAdmin: boolean,
-  currentUserId: UserId,
   nodeName: string,
   image: Values['image'],
   enableWebhook: boolean
 ): Values {
-  // accessControl shouldn't be copied to new container
-
-  const accessControl = parseAccessControlFormData(isPureAdmin, currentUserId);
-
-  if (config.Portainer?.ResourceControl?.Public) {
-    accessControl.ownership = ResourceControlOwnership.PUBLIC;
-  }
-
   return {
-    accessControl,
     name: config.Name ? config.Name.replace('/', '') : '',
     alwaysPull: true,
     autoRemove: config.HostConfig?.AutoRemove || false,
@@ -38,18 +23,11 @@ export function toViewModel(
   };
 }
 
-export function getDefaultViewModel(
-  isPureAdmin: boolean,
-  currentUserId: UserId,
-  nodeName: string
-): Values {
-  const accessControl = parseAccessControlFormData(isPureAdmin, currentUserId);
-
+export function getDefaultViewModel(nodeName: string): Values {
   return {
     nodeName,
     enableWebhook: false,
     image: getDefaultImageConfig(),
-    accessControl,
     name: '',
     alwaysPull: true,
     autoRemove: false,

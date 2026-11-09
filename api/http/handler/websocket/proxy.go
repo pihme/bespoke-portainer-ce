@@ -7,13 +7,10 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/logoutcontext"
 	"github.com/portainer/portainer/pkg/fips"
 
 	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
-	"github.com/rs/zerolog/log"
 )
 
 func (handler *Handler) proxyEdgeAgentWebsocketRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
@@ -82,15 +79,6 @@ func (handler *Handler) doProxyWebsocketRequest(
 	agentURL *url.URL,
 	isEdge bool,
 ) error {
-	tokenData, err := security.RetrieveTokenData(r)
-	if err != nil {
-		log.
-			Warn().
-			Err(err).
-			Msg("unable to retrieve user details from authentication token")
-		return err
-	}
-
 	enableTLS := !isEdge && (params.endpoint.TLSConfig.TLS || params.endpoint.TLSConfig.TLSSkipVerify)
 
 	agentURL.Scheme = "ws"
@@ -121,11 +109,7 @@ func (handler *Handler) doProxyWebsocketRequest(
 	proxy.Dialer.NetDial = func(network, addr string) (net.Conn, error) {
 		netDialer := &net.Dialer{}
 
-		logoutCtx := logoutcontext.GetContext(tokenData.Token)
-
-		conn, err := netDialer.DialContext(logoutCtx, network, addr)
-
-		return conn, err
+		return netDialer.Dial(network, addr)
 	}
 
 	proxy.ServeHTTP(w, r)

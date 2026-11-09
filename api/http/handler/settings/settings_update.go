@@ -8,7 +8,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/internal/edge"
 	"github.com/portainer/portainer/pkg/libhelm"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -18,7 +17,6 @@ import (
 	"github.com/portainer/portainer/pkg/validate"
 
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 )
 
 type settingsUpdatePayload struct {
@@ -26,11 +24,6 @@ type settingsUpdatePayload struct {
 	LogoURL *string `example:"https://mycompany.mydomain.tld/logo.png"`
 	// A list of label name & value that will be used to hide containers when querying containers
 	BlackListedLabels []portainer.Pair
-	// Active authentication method for the Portainer instance. Valid values are: 1 for internal, 2 for LDAP, or 3 for oauth
-	AuthenticationMethod *int `example:"1"`
-	InternalAuthSettings *portainer.InternalAuthSettings
-	LDAPSettings         *portainer.LDAPSettings
-	OAuthSettings        *portainer.OAuthSettings
 	// The interval in which environment(endpoint) snapshots are created
 	SnapshotInterval *string `example:"5m"`
 	// URL to the templates that will be displayed in the UI when navigating to App Templates
@@ -40,8 +33,6 @@ type settingsUpdatePayload struct {
 	EdgeAgentCheckinInterval *int                               `example:"5"`
 	// Whether edge compute features are enabled
 	EnableEdgeComputeFeatures *bool `example:"true"`
-	// The duration of a user session
-	UserSessionTimeout *string `example:"5m"`
 	// The expiry of a Kubeconfig
 	KubeconfigExpiry *string `example:"24h" default:"0"`
 	// Helm repository URL
@@ -59,10 +50,6 @@ type settingsUpdatePayload struct {
 }
 
 func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
-	if payload.AuthenticationMethod != nil && *payload.AuthenticationMethod != 1 && *payload.AuthenticationMethod != 2 && *payload.AuthenticationMethod != 3 {
-		return errors.New("Invalid authentication method value. Value must be one of: 1 (internal), 2 (LDAP/AD) or 3 (OAuth)")
-	}
-
 	if payload.LogoURL != nil && *payload.LogoURL != "" && !validate.IsURL(*payload.LogoURL) {
 		return errors.New("Invalid logo URL. Must correspond to a valid URL format")
 	}
@@ -81,12 +68,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		}
 	}
 
-	if payload.UserSessionTimeout != nil {
-		if _, err := time.ParseDuration(*payload.UserSessionTimeout); err != nil {
-			return errors.New("Invalid user session timeout")
-		}
-	}
-
 	if payload.KubeconfigExpiry != nil {
 		if _, err := time.ParseDuration(*payload.KubeconfigExpiry); err != nil {
 			return errors.New("Invalid Kubeconfig Expiry")
@@ -99,12 +80,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 		}
 	}
 
-	if payload.OAuthSettings != nil {
-		if payload.OAuthSettings.AuthStyle < oauth2.AuthStyleAutoDetect || payload.OAuthSettings.AuthStyle > oauth2.AuthStyleInHeader {
-			return errors.New("Invalid OAuth AuthStyle")
-		}
-	}
-
 	return nil
 }
 
@@ -113,8 +88,6 @@ func (payload *settingsUpdatePayload) Validate(r *http.Request) error {
 // @description Update Portainer settings.
 // @description **Access policy**: administrator
 // @tags settings
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body settingsUpdatePayload true "New settings"
@@ -148,10 +121,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 		return nil, httperror.InternalServerError("Unable to retrieve the settings from the database", err)
 	}
 
-	if payload.AuthenticationMethod != nil {
-		settings.AuthenticationMethod = portainer.AuthenticationMethod(*payload.AuthenticationMethod)
-	}
-
 	settings.LogoURL = *cmp.Or(payload.LogoURL, &settings.LogoURL)
 	settings.TemplatesURL = *cmp.Or(payload.TemplatesURL, &settings.TemplatesURL)
 
@@ -177,36 +146,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 		settings.BlackListedLabels = payload.BlackListedLabels
 	}
 
-	if payload.InternalAuthSettings != nil {
-		settings.InternalAuthSettings.RequiredPasswordLength = payload.InternalAuthSettings.RequiredPasswordLength
-	}
-
-	if payload.LDAPSettings != nil {
-		ldapReaderDN := cmp.Or(payload.LDAPSettings.ReaderDN, settings.LDAPSettings.ReaderDN)
-		ldapPassword := cmp.Or(payload.LDAPSettings.Password, settings.LDAPSettings.Password)
-
-		settings.LDAPSettings = *payload.LDAPSettings
-		settings.LDAPSettings.ReaderDN = ldapReaderDN
-		settings.LDAPSettings.Password = ldapPassword
-	}
-
-	if payload.OAuthSettings != nil {
-		clientSecret := payload.OAuthSettings.ClientSecret
-		if clientSecret == "" {
-			clientSecret = settings.OAuthSettings.ClientSecret
-		}
-
-		kubeSecret := payload.OAuthSettings.KubeSecretKey
-		if kubeSecret == nil {
-			kubeSecret = settings.OAuthSettings.KubeSecretKey
-		}
-
-		settings.OAuthSettings = *payload.OAuthSettings
-		settings.OAuthSettings.ClientSecret = clientSecret
-		settings.OAuthSettings.KubeSecretKey = kubeSecret
-		settings.OAuthSettings.AuthStyle = payload.OAuthSettings.AuthStyle
-	}
-
 	settings.EnableEdgeComputeFeatures = *cmp.Or(payload.EnableEdgeComputeFeatures, &settings.EnableEdgeComputeFeatures)
 	settings.TrustOnFirstConnect = *cmp.Or(payload.TrustOnFirstConnect, &settings.TrustOnFirstConnect)
 	settings.EnforceEdgeID = *cmp.Or(payload.EnforceEdgeID, &settings.EnforceEdgeID)
@@ -222,18 +161,6 @@ func (handler *Handler) updateSettings(tx dataservices.DataStoreTx, payload sett
 	settings.EdgeAgentCheckinInterval = *cmp.Or(payload.EdgeAgentCheckinInterval, &settings.EdgeAgentCheckinInterval)
 	settings.KubeconfigExpiry = *cmp.Or(payload.KubeconfigExpiry, &settings.KubeconfigExpiry)
 
-	if payload.UserSessionTimeout != nil {
-		settings.UserSessionTimeout = *payload.UserSessionTimeout
-
-		userSessionDuration, _ := time.ParseDuration(*payload.UserSessionTimeout)
-
-		handler.JWTService.SetUserSessionDuration(userSessionDuration)
-	}
-
-	if err := handler.updateTLS(settings); err != nil {
-		return nil, err
-	}
-
 	settings.KubectlShellImage = *cmp.Or(payload.KubectlShellImage, &settings.KubectlShellImage)
 
 	if err := tx.Settings().UpdateSettings(settings); err != nil {
@@ -247,21 +174,4 @@ func (handler *Handler) updateSnapshotInterval(settings *portainer.Settings, sna
 	settings.SnapshotInterval = snapshotInterval
 
 	return handler.SnapshotService.SetSnapshotInterval(snapshotInterval)
-}
-
-func (handler *Handler) updateTLS(settings *portainer.Settings) error {
-	if (settings.LDAPSettings.TLSConfig.TLS || settings.LDAPSettings.StartTLS) && !settings.LDAPSettings.TLSConfig.TLSSkipVerify {
-		caCertPath, _ := handler.FileService.GetPathForTLSFile(filesystem.LDAPStorePath, portainer.TLSFileCA)
-		settings.LDAPSettings.TLSConfig.TLSCACertPath = caCertPath
-
-		return nil
-	}
-
-	settings.LDAPSettings.TLSConfig.TLSCACertPath = ""
-
-	if err := handler.FileService.DeleteTLSFiles(filesystem.LDAPStorePath); err != nil {
-		return httperror.InternalServerError("Unable to remove TLS files from disk", err)
-	}
-
-	return nil
 }

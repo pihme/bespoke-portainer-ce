@@ -2,8 +2,6 @@ import { Form, Formik, FormikHelpers } from 'formik';
 import { useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-import { useIsPureAdmin } from '@/react/hooks/useUser';
 
 import { Widget } from '@@/Widget';
 
@@ -18,7 +16,6 @@ type Props = {
 };
 
 export function CreateForm({ steps }: Props) {
-  const isAdmin = useIsPureAdmin();
   const mutation = useCreateSourceMutation();
   const router = useRouter();
   const { currentStep, isLastStep, goToNextStep } = useWizardContext();
@@ -37,11 +34,6 @@ export function CreateForm({ steps }: Props) {
       },
       connectionOk: false,
     },
-    authorizedTeams: [],
-    authorizedUsers: [],
-    ownership: isAdmin
-      ? ResourceControlOwnership.ADMINISTRATORS
-      : ResourceControlOwnership.PRIVATE,
   };
 
   return (

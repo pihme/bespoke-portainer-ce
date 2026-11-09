@@ -21,15 +21,13 @@ vi.mock('@@/Stepper/useWizardSteps', () => ({
   }),
 }));
 vi.mock('./CreateForm', () => ({
-  CreateForm: () => <div data-cy="create-form">form</div>,
+  CreateForm: ({ steps }: { steps: Array<{ id: string }> }) => (
+    <div data-cy="create-form">{steps.map((s) => s.id).join(',')}</div>
+  ),
 }));
 vi.mock('./steps/ConfigureStep', () => ({
   ConfigureStep: () => null,
   validateConfigureStep: () => ({}),
-}));
-vi.mock('./steps/AccessControlStep', () => ({
-  AccessControlStep: () => null,
-  validateAccessControlStep: () => ({}),
 }));
 
 describe('REQ-GIT-02 CreateView', () => {
@@ -37,5 +35,11 @@ describe('REQ-GIT-02 CreateView', () => {
     render(<CreateView />);
     expect(screen.getByText('Create Source')).toBeVisible();
     expect(screen.getByTestId('create-form')).toBeVisible();
+  });
+
+  it('REQ-TAI-001 has no access control wizard step', () => {
+    render(<CreateView />);
+    expect(screen.getByTestId('create-form')).toHaveTextContent('configure');
+    expect(screen.getByTestId('create-form')).not.toHaveTextContent('access');
   });
 });

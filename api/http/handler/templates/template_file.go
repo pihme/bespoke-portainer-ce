@@ -23,8 +23,6 @@ type fileResponse struct {
 // @description Get a template's file
 // @description **Access policy**: authenticated
 // @tags templates
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Template identifier"

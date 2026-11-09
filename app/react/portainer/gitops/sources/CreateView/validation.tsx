@@ -1,7 +1,4 @@
-import { array, bool, mixed, number, object, SchemaOf, string } from 'yup';
-
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-import { stringEnumValues } from '@/types';
+import { bool, mixed, object, SchemaOf, string } from 'yup';
 
 import { isValidUrl } from '@@/form-components/validate-url';
 
@@ -17,11 +14,6 @@ export function validationSchema(): SchemaOf<FormValues> {
       .required()
       .default('git'),
     git: validateGit(),
-    ownership: mixed<ResourceControlOwnership>()
-      .oneOf(stringEnumValues(ResourceControlOwnership))
-      .required(),
-    authorizedTeams: array().of(number().required()),
-    authorizedUsers: array().of(number().required()),
   });
 }
 

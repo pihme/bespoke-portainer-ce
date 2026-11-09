@@ -15,7 +15,6 @@ import (
 // @description Get a list of kubernetes Jobs that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param includeCronJobChildren query bool false "Whether to include Jobs that have a cronjob owner"
@@ -53,7 +52,6 @@ func (handler *Handler) getAllKubernetesJobs(w http.ResponseWriter, r *http.Requ
 // @description Delete the provided list of Jobs.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param payload body models.K8sJobDeleteRequests true "A map where the key is the namespace and the value is an array of Jobs to delete"

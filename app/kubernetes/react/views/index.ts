@@ -21,7 +21,6 @@ import { ClusterRolesView } from '@/react/kubernetes/more-resources/ClusterRoles
 import { RolesView } from '@/react/kubernetes/more-resources/RolesView';
 import { VolumesView } from '@/react/kubernetes/volumes/ListView/VolumesView';
 import { NamespaceView } from '@/react/kubernetes/namespaces/ItemView/NamespaceView';
-import { AccessView } from '@/react/kubernetes/namespaces/AccessView/AccessView';
 import { JobsView } from '@/react/kubernetes/more-resources/JobsView/JobsView';
 import { ClusterView } from '@/react/kubernetes/cluster/ClusterView';
 import { HelmApplicationView } from '@/react/kubernetes/helm/HelmApplicationView';
@@ -43,10 +42,6 @@ export const viewsModule = angular
   .component(
     'kubernetesNamespacesView',
     r2a(withUIRouter(withReactQuery(withCurrentUser(NamespacesView))), [])
-  )
-  .component(
-    'kubernetesNamespaceAccessView',
-    r2a(withUIRouter(withReactQuery(withCurrentUser(AccessView))), [])
   )
   .component(
     'kubernetesServicesView',

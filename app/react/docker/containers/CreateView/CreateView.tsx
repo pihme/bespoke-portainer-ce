@@ -2,7 +2,7 @@ import { Formik } from 'formik';
 import { useRouter } from '@uirouter/react';
 import { useEffect, useState } from 'react';
 
-import { useIsEdgeAdmin, useIsEnvironmentAdmin } from '@/react/hooks/useUser';
+import { useIsEnvironmentAdmin } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
@@ -48,7 +48,6 @@ function CreateForm() {
   const environmentId = useEnvironmentId();
   const router = useRouter();
   const isWindows = useIsWindows(environmentId);
-  const isAdminQuery = useIsEdgeAdmin();
   const { authorized: isEnvironmentAdmin } = useIsEnvironmentAdmin();
   const [isDockerhubRateLimited, setIsDockerhubRateLimited] = useState(false);
 
@@ -68,7 +67,6 @@ function CreateForm() {
   const envQuery = useCurrentEnvironment();
 
   const validationSchema = useValidation({
-    isAdmin: isAdminQuery.isAdmin,
     maxCpu,
     maxMemory,
     isDuplicating: initialValuesQuery?.isDuplicating,
@@ -152,7 +150,6 @@ function CreateForm() {
         config,
         environment,
         values: {
-          accessControl: values.accessControl,
           imageName: values.image.image,
           name: values.name,
           alwaysPull: values.alwaysPull,

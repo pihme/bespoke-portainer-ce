@@ -8,7 +8,6 @@ import { gitopsHandlers } from './gitops';
 import { kubernetesHandlers } from './kubernetes';
 import { settingsHandlers } from './settings';
 import { templatesHandlers } from './templates';
-import { userHandlers } from './users';
 import { dockerImagesHandlers } from './docker/images';
 
 async function get(path: string) {
@@ -27,7 +26,6 @@ describe('shared frontend setup HTTP handlers', () => {
     expect(kubernetesHandlers.length).toBeGreaterThan(0);
     expect(settingsHandlers.length).toBeGreaterThan(0);
     expect(templatesHandlers.length).toBeGreaterThan(0);
-    expect(userHandlers.length).toBeGreaterThan(0);
     expect(dockerImagesHandlers.length).toBeGreaterThan(0);
   });
 
@@ -55,7 +53,7 @@ describe('shared frontend setup HTTP handlers', () => {
     );
   });
 
-  it('serves settings users and template stubs', async () => {
+  it('serves settings and template stubs', async () => {
     await expect(get('/api/ssl')).resolves.toEqual({});
     await expect(get('/api/settings')).resolves.toEqual({});
     await expect(get('/api/settings/edge/mtls_certificate')).resolves.toEqual(
@@ -70,10 +68,6 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/support/debug_log')).resolves.toEqual({});
     const pub = await get('/api/settings/public');
     expect(pub.Features).toEqual({});
-
-    const users = await get('/api/users');
-    expect(users).toHaveLength(10);
-    await expect(get('/api/users/1/memberships')).resolves.toEqual([]);
 
     await expect(get('/api/custom_templates')).resolves.toEqual([]);
     await expect(get('/api/templates/helm/values')).resolves.toEqual({});

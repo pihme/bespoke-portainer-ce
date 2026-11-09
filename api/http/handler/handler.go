@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer/api/http/handler/auth"
 	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	"github.com/portainer/portainer/api/http/handler/docker"
@@ -19,19 +18,14 @@ import (
 	"github.com/portainer/portainer/api/http/handler/gitops"
 	"github.com/portainer/portainer/api/http/handler/helm"
 	"github.com/portainer/portainer/api/http/handler/kubernetes"
-	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
-	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
-	"github.com/portainer/portainer/api/http/handler/roles"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	"github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
 	"github.com/portainer/portainer/api/http/handler/storybook"
 	"github.com/portainer/portainer/api/http/handler/system"
 	"github.com/portainer/portainer/api/http/handler/tags"
-	"github.com/portainer/portainer/api/http/handler/teammemberships"
-	"github.com/portainer/portainer/api/http/handler/teams"
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
@@ -41,7 +35,6 @@ import (
 
 // Handler is a collection of all the service handlers.
 type Handler struct {
-	AuthHandler            *auth.Handler
 	BackupHandler          *backup.Handler
 	CustomTemplatesHandler *customtemplates.Handler
 	DockerHandler          *docker.Handler
@@ -57,19 +50,14 @@ type Handler struct {
 	HelmTemplatesHandler   *helm.Handler
 	KubernetesHandler      *kubernetes.Handler
 	FileHandler            *file.Handler
-	LDAPHandler            *ldap.Handler
 	MOTDHandler            *motd.Handler
 	RegistryHandler        *registries.Handler
-	ResourceControlHandler *resourcecontrols.Handler
-	RoleHandler            *roles.Handler
 	SettingsHandler        *settings.Handler
 	SSLHandler             *ssl.Handler
 	StackHandler           *stacks.Handler
 	StorybookHandler       *storybook.Handler
 	SystemHandler          *system.Handler
 	TagHandler             *tags.Handler
-	TeamMembershipHandler  *teammemberships.Handler
-	TeamHandler            *teams.Handler
 	TemplatesHandler       *templates.Handler
 	UploadHandler          *upload.Handler
 	UserHandler            *users.Handler
@@ -81,7 +69,7 @@ type Handler struct {
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Access Control","tags":["auth","roles","team_memberships","teams","users"]},{"name":"Administration","tags":["backup","ldap","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","resource_controls","stacks","webhooks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]},{"name":"Kubernetes","tags":["helm","kubernetes"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","webhooks","websocket"]},{"name":"Edge Compute","tags":["edge_agent","edge_groups","edge_jobs","edge","edge_stacks"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]},{"name":"Kubernetes","tags":["helm","kubernetes"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -93,17 +81,6 @@ type Handler struct {
 // @BasePath /api
 // @schemes http https
 
-// @securitydefinitions.apikey ApiKeyAuth
-// @in header
-// @name X-API-KEY
-
-// @securitydefinitions.apikey jwt
-// @in header
-// @name Authorization
-
-// @tag.name auth
-// @tag.description Authenticate against Portainer HTTP API
-// @tag.x-displayName Authentication
 // @tag.name backup
 // @tag.description Manage backups
 // @tag.x-displayName Backup
@@ -146,21 +123,12 @@ type Handler struct {
 // @tag.name kubernetes
 // @tag.description Manage Kubernetes cluster
 // @tag.x-displayName Kubernetes
-// @tag.name ldap
-// @tag.description Manage LDAP settings
-// @tag.x-displayName LDAP
 // @tag.name motd
 // @tag.description Fetch the message of the day
 // @tag.x-displayName Message of the day
 // @tag.name registries
 // @tag.description Manage Docker registries
 // @tag.x-displayName Registries
-// @tag.name resource_controls
-// @tag.description Manage access control on Docker resources
-// @tag.x-displayName Resource controls
-// @tag.name roles
-// @tag.description Manage roles
-// @tag.x-displayName Roles
 // @tag.name settings
 // @tag.description Manage Portainer settings
 // @tag.x-displayName Portainer settings
@@ -179,12 +147,6 @@ type Handler struct {
 // @tag.name tags
 // @tag.description Manage tags
 // @tag.x-displayName Tags
-// @tag.name team_memberships
-// @tag.description Manage team memberships
-// @tag.x-displayName Team memberships
-// @tag.name teams
-// @tag.description Manage teams
-// @tag.x-displayName Teams
 // @tag.name templates
 // @tag.description Manage App Templates
 // @tag.x-displayName App templates
@@ -192,8 +154,8 @@ type Handler struct {
 // @tag.description Upload files
 // @tag.x-displayName Upload files
 // @tag.name users
-// @tag.description Manage users
-// @tag.x-displayName Users
+// @tag.description Local operator UI preferences
+// @tag.x-displayName Local operator
 // @tag.name webhooks
 // @tag.description Manage webhooks
 // @tag.x-displayName Webhooks
@@ -206,8 +168,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/api/endpoints") && strings.Contains(r.URL.Path, "/edge/"):
 		h.EndpointEdgeHandler.ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/auth"):
-		http.StripPrefix("/api", h.AuthHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/backup"):
 		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/restore"):
@@ -246,16 +206,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	case strings.HasPrefix(r.URL.Path, "/api/gitops"):
 		http.StripPrefix("/api", h.GitOperationHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/ldap"):
-		http.StripPrefix("/api", h.LDAPHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/motd"):
 		http.StripPrefix("/api", h.MOTDHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/registries"):
 		http.StripPrefix("/api", h.RegistryHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/resource_controls"):
-		http.StripPrefix("/api", h.ResourceControlHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/roles"):
-		http.StripPrefix("/api", h.RoleHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/settings"):
 		http.StripPrefix("/api", h.SettingsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/stacks"):
@@ -276,10 +230,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.UserHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/ssl"):
 		http.StripPrefix("/api", h.SSLHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/teams"):
-		http.StripPrefix("/api", h.TeamHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/team_memberships"):
-		http.StripPrefix("/api", h.TeamMembershipHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/websocket"):
 		http.StripPrefix("/api", h.WebSocketHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/webhooks"):

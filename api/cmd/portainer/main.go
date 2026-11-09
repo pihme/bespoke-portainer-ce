@@ -10,7 +10,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/cli"
 	"github.com/portainer/portainer/api/crypto"
@@ -30,7 +29,7 @@ import (
 	"github.com/portainer/portainer/api/http"
 	"github.com/portainer/portainer/api/http/proxy"
 	kubeproxy "github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-	"github.com/portainer/portainer/api/http/security/setuptoken"
+	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer/api/internal/endpointutils"
@@ -40,9 +39,7 @@ import (
 	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/kubernetes"
 	kubecli "github.com/portainer/portainer/api/kubernetes/cli"
-	"github.com/portainer/portainer/api/ldap"
 	"github.com/portainer/portainer/api/logs"
-	"github.com/portainer/portainer/api/oauth"
 	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/api/pendingactions/actions"
 	"github.com/portainer/portainer/api/pendingactions/handlers"
@@ -180,10 +177,6 @@ func initKubernetesDeployer(kubernetesTokenCacheManager *kubeproxy.TokenCacheMan
 	return exec.NewKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, reverseTunnelService, signatureService, proxyManager)
 }
 
-func initAPIKeyService(datastore dataservices.DataStore) apikey.APIKeyService {
-	return apikey.NewAPIKeyService(datastore.APIKeyRepository(), datastore.User())
-}
-
 func initJWTService(userSessionTimeout string, dataStore dataservices.DataStore) (portainer.JWTService, error) {
 	if userSessionTimeout == "" {
 		userSessionTimeout = portainer.DefaultUserSessionTimeout
@@ -229,30 +222,6 @@ func initSnapshotService(
 	}
 
 	return snapshotService, nil
-}
-
-func resolveSetupToken(tx dataservices.DataStoreTx, providedToken string) (string, error) {
-	admins, err := tx.User().UsersByRole(portainer.AdministratorRole)
-	if err != nil {
-		return "", err
-	}
-	if len(admins) > 0 {
-		return "", nil
-	}
-
-	if providedToken != "" {
-		log.Info().Msg("using custom setup token; admin initialization and backup restore require this token in the X-Setup-Token header")
-		return providedToken, nil
-	}
-
-	token, err := setuptoken.Generate()
-	if err != nil {
-		return "", err
-	}
-
-	setuptoken.LogToken(token)
-
-	return token, nil
 }
 
 func initStatus(instanceID string) *portainer.Status {
@@ -421,8 +390,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		log.Fatal().Err(err).Msg("failed getting instance id")
 	}
 
-	apiKeyService := initAPIKeyService(dataStore)
-
 	settings, err := dataStore.Settings().Settings()
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
@@ -432,10 +399,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing JWT service")
 	}
-
-	ldapService := ldap.Service{}
-
-	oauthService := oauth.NewService()
 
 	gitService := git.NewService(shutdownCtx)
 
@@ -510,63 +473,23 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	applicationStatus := initStatus(instanceID)
 
-	// channel to control when the admin user is created
-	adminCreationDone := make(chan struct{}, 1)
-
-	go endpointutils.InitEndpoint(shutdownCtx, adminCreationDone, flags, dataStore, snapshotService)
-
-	adminPasswordHash := ""
-
-	if *flags.AdminPasswordFile != "" {
-		content, err := fileService.GetFileContent(*flags.AdminPasswordFile, "")
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed getting admin password file")
+	// There is no first-administrator setup (TAI-001): store the local
+	// operator right away, then create the environment given with -H.
+	if err := dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		created, err := security.EnsureLocalOperator(tx)
+		if created {
+			log.Info().Msg("created the local operator record")
 		}
 
-		adminPasswordHash, err = cryptoService.Hash(strings.TrimSuffix(string(content), "\n"))
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed hashing admin password")
-		}
-	} else if *flags.AdminPassword != "" {
-		adminPasswordHash = *flags.AdminPassword
+		return err
+	}); err != nil {
+		log.Fatal().Err(err).Msg("failed creating the local operator record")
 	}
 
-	if adminPasswordHash != "" {
-		users, err := dataStore.User().UsersByRole(portainer.AdministratorRole)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed getting admin user")
-		}
+	localOperatorReady := make(chan struct{}, 1)
+	localOperatorReady <- struct{}{}
 
-		if len(users) == 0 {
-			log.Info().Msg("created admin user with the given password.")
-
-			user := &portainer.User{
-				Username: "admin",
-				Role:     portainer.AdministratorRole,
-				Password: adminPasswordHash,
-			}
-
-			if err := dataStore.User().Create(user); err != nil {
-				log.Fatal().Err(err).Msg("failed creating admin user")
-			}
-
-			// notify the admin user is created, the endpoint initialization can start
-			adminCreationDone <- struct{}{}
-		} else {
-			log.Info().Msg("instance already has an administrator user defined, skipping admin password related flags.")
-		}
-	}
-
-	setupToken := ""
-	if adminPasswordHash == "" && !*flags.NoSetupToken {
-		if err := dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
-			var txErr error
-			setupToken, txErr = resolveSetupToken(tx, *flags.SetupToken)
-			return txErr
-		}); err != nil {
-			log.Fatal().Err(err).Msg("failed initializing setup token")
-		}
-	}
+	go endpointutils.InitEndpoint(shutdownCtx, localOperatorReady, flags, dataStore, snapshotService)
 
 	if err := reverseTunnelService.StartTunnelServer(*flags.TunnelAddr, *flags.TunnelPort, snapshotService); err != nil {
 		log.Fatal().Err(err).Msg("failed starting tunnel server")
@@ -653,12 +576,9 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		ComposeStackManager:         composeStackManager,
 		KubernetesDeployer:          kubernetesDeployer,
 		HelmPackageManager:          helmPackageManager,
-		APIKeyService:               apiKeyService,
 		CryptoService:               cryptoService,
 		JWTService:                  jwtService,
 		FileService:                 fileService,
-		LDAPService:                 ldapService,
-		OAuthService:                oauthService,
 		GitService:                  gitService,
 		ProxyManager:                proxyManager,
 		KubernetesTokenCacheManager: kubernetesTokenCacheManager,
@@ -672,12 +592,10 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		ShutdownTrigger:             shutdownTrigger,
 		StackDeployer:               stackDeployer,
 		UpgradeService:              upgradeService,
-		AdminCreationDone:           adminCreationDone,
 		PendingActionsService:       pendingActionsService,
 		PlatformService:             platformService,
 		PullLimitCheckDisabled:      *flags.PullLimitCheckDisabled,
 		TrustedOrigins:              trustedOrigins,
-		SetupToken:                  setupToken,
 	}
 }
 

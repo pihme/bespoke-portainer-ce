@@ -1,8 +1,6 @@
 import _ from 'lodash';
 import { useMemo } from 'react';
 
-import { createOwnershipColumn } from '@/react/docker/components/datatable/createOwnershipColumn';
-
 import { buildExpandColumn } from '@@/datatables/expand-column';
 
 import { DecoratedNetwork } from '../types';
@@ -56,7 +54,6 @@ export function useColumns(isHostColumnVisible?: boolean) {
           columnHelper.accessor('NodeName', {
             header: 'Node',
           }),
-        createOwnershipColumn<DecoratedNetwork>(),
       ]),
     [isHostColumnVisible]
   );

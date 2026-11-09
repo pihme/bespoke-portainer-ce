@@ -17,8 +17,6 @@ import (
 // @description Returns the workflows (stacks or edge stacks) currently deployed from this source.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Source identifier"
 // @success 200 {array} Workflow

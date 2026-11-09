@@ -10,12 +10,10 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/chisel"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/roar"
 
 	"github.com/segmentio/encoding/json"
@@ -85,13 +83,6 @@ func mustSetupHandler(t testing.TB) *Handler {
 
 	_, store := datastore.MustNewTestStore(t, true, true)
 
-	jwtService, err := jwt.NewService("1h", store)
-	if err != nil {
-		t.Fatalf("could not start a new JWT service: %s", err)
-	}
-
-	apiKeyService := apikey.NewAPIKeyService(nil, nil)
-
 	settings, err := store.Settings().Settings()
 	if err != nil {
 		t.Fatalf("could not create new settings: %s", err)
@@ -103,7 +94,7 @@ func mustSetupHandler(t testing.TB) *Handler {
 	}
 
 	handler := NewHandler(
-		security.NewRequestBouncer(t.Context(), store, jwtService, apiKeyService),
+		security.NewRequestBouncer(t.Context(), store),
 		store,
 		fs,
 		chisel.NewService(store, t.Context(), nil),

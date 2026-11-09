@@ -1,12 +1,10 @@
 import { object, string, number, boolean, array } from 'yup';
 
-import { validationSchema as accessControlSchema } from '@/react/portainer/access-control/AccessControlForm/AccessControlForm.validation';
-
 import { buildUniquenessTest } from '@@/form-components/validate-unique';
 
 import { validationSchema as portsSchema } from './PortsMappingField.validation';
 
-export function validationSchema(isAdmin: boolean) {
+export function validationSchema() {
   return object().shape({
     name: string().required('Name is required.'),
     image: string().required('Image is required.'),
@@ -18,7 +16,6 @@ export function validationSchema(isAdmin: boolean) {
     memory: number().positive(),
     allocatePublicIP: boolean(),
     ports: portsSchema(),
-    accessControl: accessControlSchema(isAdmin),
     env: array()
       .of(
         object().shape({

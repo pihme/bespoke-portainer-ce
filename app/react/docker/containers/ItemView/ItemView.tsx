@@ -1,8 +1,6 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { AccessControlPanel } from '@/react/portainer/access-control/AccessControlPanel';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
-import { ResourceControlType } from '@/react/portainer/access-control/types';
 import { trimContainerName } from '@/docker/filters/utils';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
@@ -45,10 +43,6 @@ export function ItemView() {
   const container = containerQuery.data;
   const registryId = getRegistryId(container, registriesQuery.data);
 
-  async function handleSuccess() {
-    containerQuery.refetch();
-  }
-
   const containerName =
     trimContainerName(container.Name) || container.Id || 'unknown';
 
@@ -76,14 +70,6 @@ export function ItemView() {
           registryId={registryId}
         />
       </div>
-
-      <AccessControlPanel
-        resourceId={container.Id || ''}
-        resourceControl={container.ResourceControl}
-        resourceType={ResourceControlType.Container}
-        onUpdateSuccess={handleSuccess}
-        environmentId={environmentId}
-      />
 
       {container.State?.Health && (
         <HealthStatus health={container.State.Health} />

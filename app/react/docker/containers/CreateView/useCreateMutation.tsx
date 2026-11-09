@@ -13,12 +13,6 @@ import {
 import { createWebhook } from '@/react/portainer/webhooks/useCreateWebhook';
 import { WebhookType } from '@/react/portainer/webhooks/types';
 import {
-  AccessControlFormData,
-  ResourceControlResponse,
-} from '@/react/portainer/access-control/types';
-import { applyResourceControl } from '@/react/portainer/access-control/access-control.service';
-import PortainerError from '@/portainer/error';
-import {
   mutationOptions,
   withError,
   withInvalidate,
@@ -65,7 +59,6 @@ interface CreateOptions {
   values: {
     name: Values['name'];
     imageName: string;
-    accessControl: Values['accessControl'];
     nodeName?: Values['nodeName'];
     alwaysPull?: Values['alwaysPull'];
     enableWebhook?: Values['enableWebhook'];
@@ -113,9 +106,7 @@ async function create({
   await applyContainerSettings(
     containerResponse.Id,
     environment,
-    values.accessControl,
     values.enableWebhook,
-    containerResponse.Portainer?.ResourceControl,
     registry
   );
 }
@@ -147,9 +138,7 @@ async function replace({
   await applyContainerSettings(
     containerResponse.Id,
     environment,
-    values.accessControl,
     values.enableWebhook,
-    containerResponse.Portainer?.ResourceControl,
     registry
   );
 
@@ -204,27 +193,17 @@ async function renameAndCreate(
 }
 
 /**
- * creates a webhook if necessary and applies resource control
+ * creates a webhook if necessary
  */
 async function applyContainerSettings(
   containerId: string,
   environment: Environment,
-  accessControl: AccessControlFormData,
   enableWebhook?: boolean,
-  resourceControl?: ResourceControlResponse,
   registry?: Registry
 ) {
   if (enableWebhook) {
     await createContainerWebhook(containerId, environment, registry?.Id);
   }
-
-  // Portainer will always return a resource control, but since types mark it as optional, we need to check it.
-  // Ignoring the missing value will result with bugs, hence it's better to throw an error
-  if (!resourceControl) {
-    throw new PortainerError('resource control expected after creation');
-  }
-
-  await applyResourceControl(accessControl, resourceControl.Id);
 }
 
 /**

@@ -80,7 +80,6 @@ func (payload *drainNodePayload) drainOptions() libkubectl.DrainOptions {
 // @description Returns the list of Kubernetes nodes for the selected environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {array} KubernetesNodeResponse "Success"
@@ -124,7 +123,6 @@ func (handler *Handler) getKubernetesNodes(w http.ResponseWriter, r *http.Reques
 // @description Drain a Kubernetes node by safely evicting all pods from the node, preparing it for maintenance or removal
 // @description **Access policy**: authenticated
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param name path string true "Name of the node to drain"

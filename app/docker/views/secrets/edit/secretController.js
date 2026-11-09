@@ -1,14 +1,9 @@
-import { ResourceControlType } from '@/react/portainer/access-control/types';
 
 angular.module('portainer.docker').controller('SecretController', SecretController);
 
 /* @ngInject */
 function SecretController($scope, $transition$, $state, SecretService, Notifications, endpoint) {
-  $scope.resourceType = ResourceControlType.Secret;
   $scope.endpoint = endpoint;
-  $scope.onUpdateResourceControlSuccess = function () {
-    $state.reload();
-  };
 
   $scope.removeSecret = function removeSecret(secretId) {
     SecretService.remove(secretId)

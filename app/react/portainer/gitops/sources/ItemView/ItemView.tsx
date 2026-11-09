@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { GitCommit, PenBoxIcon, Settings, UsersIcon } from 'lucide-react';
+import { GitCommit, PenBoxIcon, Settings } from 'lucide-react';
 
 import { useIdParam } from '@/react/hooks/useIdParam';
-import { useCurrentUser } from '@/react/hooks/useUser';
 
 import { PageHeader } from '@@/PageHeader';
 import { Tab, WidgetTabs, useCurrentTabIndex } from '@@/Widget/WidgetTabs';
@@ -17,7 +16,6 @@ import { SettingsTab } from './SettingsTab/SettingsTab';
 import { WorkflowsTab } from './WorkflowsTab';
 import { SourceResourceHeader } from './SourceResourceHeader';
 import { WorkflowsCountDot } from './WorkflowsCountDot';
-import { AccessTab } from './AccessTab';
 
 const breadcrumbs = [
   { label: 'GitOps Sources', link: 'portainer.gitops.sources' },
@@ -61,7 +59,6 @@ export function ItemView() {
 
 function PageContent({ source }: { source: SourceDetail }) {
   const [isEditing, setIsEditing] = useState(false);
-  const { isPureAdmin } = useCurrentUser();
 
   const tabs: Array<Tab & { isEditable?: boolean }> = useMemo(
     () => [
@@ -88,21 +85,8 @@ function PageContent({ source }: { source: SourceDetail }) {
         widget: <WorkflowsTab sourceId={source.id} />,
         selectedTabParam: 'workflows',
       },
-      {
-        name: 'Access',
-        icon: UsersIcon,
-        widget: (
-          <AccessTab
-            source={source}
-            isEditing={isEditing}
-            onEditingChange={setIsEditing}
-          />
-        ),
-        selectedTabParam: 'accessTab',
-        isEditable: isPureAdmin,
-      },
     ],
-    [isEditing, isPureAdmin, source]
+    [isEditing, source]
   );
 
   const currentTabIndex = useCurrentTabIndex(tabs);

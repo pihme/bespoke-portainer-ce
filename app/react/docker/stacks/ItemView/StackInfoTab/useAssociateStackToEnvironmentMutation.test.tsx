@@ -5,7 +5,6 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { Stack } from '@/react/common/stacks/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import { suppressConsoleLogs } from '@/setup-tests/suppress-console';
 
 import { useAssociateStackToEnvironmentMutation } from './useAssociateStackToEnvironmentMutation';
@@ -37,10 +36,7 @@ describe('useAssociateStackToEnvironmentMutation', () => {
               Type: 6,
             },
           } as Partial<Stack>);
-        }),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json({ success: true })
-        )
+        })
       );
 
       const { result } = renderMutationHook();
@@ -49,11 +45,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
         environmentId: 5,
         stackId: 123,
         isOrphanedRunning: true,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
         swarmId: 'swarm-123',
       });
 
@@ -67,45 +58,27 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       expect(capturedParams?.get('swarmId')).toBe('swarm-123');
     });
 
-    it('should apply resource control after association', async () => {
-      let resourceControlRequestBody: unknown;
-
+    it('REQ-TAI-001 associates without applying any ownership', async () => {
+      const resourceControlCalls = vi.fn();
       server.use(
         http.put('/api/stacks/:id/associate', () =>
-          HttpResponse.json({
-            Id: 123,
-            Name: 'test-stack',
-            ResourceControl: {
-              Id: 42,
-              ResourceId: 123,
-              Type: 6,
-            },
-          } as Partial<Stack>)
+          HttpResponse.json({ Id: 123, Name: 'test-stack' } as Partial<Stack>)
         ),
-        http.put('/api/resource_controls/:id', async ({ request, params }) => {
-          resourceControlRequestBody = await request.json();
-          expect(params.id).toBe('42');
-          return HttpResponse.json({ success: true });
+        http.all('/api/resource_controls*', () => {
+          resourceControlCalls();
+          return HttpResponse.json(null, { status: 404 });
         })
       );
 
       const { result } = renderMutationHook();
 
-      result.current.mutate({
-        environmentId: 1,
-        stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [1, 2],
-          authorizedTeams: [3],
-        },
-      });
+      result.current.mutate({ environmentId: 1, stackId: 123 });
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(resourceControlRequestBody).toBeDefined();
+      expect(resourceControlCalls).not.toHaveBeenCalled();
     });
 
     it('should handle optional swarmId parameter', async () => {
@@ -123,10 +96,7 @@ describe('useAssociateStackToEnvironmentMutation', () => {
               Type: 6,
             },
           } as Partial<Stack>);
-        }),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json({ success: true })
-        )
+        })
       );
 
       const { result } = renderMutationHook();
@@ -134,11 +104,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
         // swarmId is undefined
       });
 
@@ -165,10 +130,7 @@ describe('useAssociateStackToEnvironmentMutation', () => {
               Type: 6,
             },
           } as Partial<Stack>);
-        }),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json({ success: true })
-        )
+        })
       );
 
       const { result } = renderMutationHook();
@@ -176,11 +138,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
         // isOrphanedRunning is undefined
       });
 
@@ -215,11 +172,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
       });
 
       await waitFor(() => {
@@ -229,78 +181,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       expect(result.current.error).toBeDefined();
     });
 
-    it('should throw error when ResourceControl is missing from response', async () => {
-      server.use(
-        http.put('/api/stacks/:id/associate', () =>
-          HttpResponse.json({
-            Id: 123,
-            Name: 'test-stack',
-            // ResourceControl is missing
-          } as Partial<Stack>)
-        )
-      );
-
-      const { result } = renderMutationHook();
-
-      result.current.mutate({
-        environmentId: 1,
-        stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
-      });
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true);
-      });
-
-      expect(result.current.error).toBeDefined();
-      expect((result.current.error as Error).message).toContain(
-        'resource control expected after creation'
-      );
-    });
-
-    it('should handle error when applying resource control fails', async () => {
-      server.use(
-        http.put('/api/stacks/:id/associate', () =>
-          HttpResponse.json({
-            Id: 123,
-            Name: 'test-stack',
-            ResourceControl: {
-              Id: 1,
-              ResourceId: 123,
-              Type: 6,
-            },
-          } as Partial<Stack>)
-        ),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json(
-            { message: 'Failed to update resource control' },
-            { status: 500 }
-          )
-        )
-      );
-
-      const { result } = renderMutationHook();
-
-      result.current.mutate({
-        environmentId: 1,
-        stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
-      });
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true);
-      });
-
-      expect(result.current.error).toBeDefined();
-    });
   });
 
   describe('mutation states', () => {
@@ -319,10 +199,7 @@ describe('useAssociateStackToEnvironmentMutation', () => {
               Type: 6,
             },
           } as Partial<Stack>);
-        }),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json({ success: true })
-        )
+        })
       );
 
       const { result } = renderMutationHook();
@@ -332,11 +209,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
       });
 
       await waitFor(() => {
@@ -364,9 +236,6 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       server.use(
         http.put('/api/stacks/:id/associate', () =>
           HttpResponse.json(mockStack)
-        ),
-        http.put('/api/resource_controls/:id', () =>
-          HttpResponse.json({ success: true })
         )
       );
 
@@ -375,100 +244,13 @@ describe('useAssociateStackToEnvironmentMutation', () => {
       result.current.mutate({
         environmentId: 1,
         stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
       });
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);
       });
 
-      expect(result.current.data).toBeUndefined(); // Mutation returns void after applying resource control
-    });
-  });
-
-  describe('access control integration', () => {
-    it('should handle private ownership', async () => {
-      let resourceControlBody: unknown;
-
-      server.use(
-        http.put('/api/stacks/:id/associate', () =>
-          HttpResponse.json({
-            Id: 123,
-            Name: 'test-stack',
-            ResourceControl: {
-              Id: 1,
-              ResourceId: 123,
-              Type: 6,
-            },
-          } as Partial<Stack>)
-        ),
-        http.put('/api/resource_controls/:id', async ({ request }) => {
-          resourceControlBody = await request.json();
-          return HttpResponse.json({ success: true });
-        })
-      );
-
-      const { result } = renderMutationHook();
-
-      result.current.mutate({
-        environmentId: 1,
-        stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [],
-          authorizedTeams: [],
-        },
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(resourceControlBody).toBeDefined();
-    });
-
-    it('should handle restricted ownership with users and teams', async () => {
-      let resourceControlBody: unknown;
-
-      server.use(
-        http.put('/api/stacks/:id/associate', () =>
-          HttpResponse.json({
-            Id: 123,
-            Name: 'test-stack',
-            ResourceControl: {
-              Id: 1,
-              ResourceId: 123,
-              Type: 6,
-            },
-          } as Partial<Stack>)
-        ),
-        http.put('/api/resource_controls/:id', async ({ request }) => {
-          resourceControlBody = await request.json();
-          return HttpResponse.json({ success: true });
-        })
-      );
-
-      const { result } = renderMutationHook();
-
-      result.current.mutate({
-        environmentId: 1,
-        stackId: 123,
-        accessControl: {
-          ownership: ResourceControlOwnership.RESTRICTED,
-          authorizedUsers: [1, 2, 3],
-          authorizedTeams: [10, 20],
-        },
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(resourceControlBody).toBeDefined();
+      expect(result.current.data).toBeUndefined();
     });
   });
 });

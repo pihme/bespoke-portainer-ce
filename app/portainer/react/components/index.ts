@@ -17,7 +17,6 @@ import { Icon } from '@@/Icon';
 import { ReactQueryDevtoolsWrapper } from '@@/ReactQueryDevtoolsWrapper';
 import { PageHeader } from '@@/PageHeader';
 import { Loading } from '@@/Widget/Loading';
-import { PasswordCheckHint } from '@@/PasswordCheckHint';
 import { Tooltip } from '@@/Tip/Tooltip';
 import { TableColumnHeaderAngular } from '@@/datatables/TableHeaderCell';
 import { TerminalTooltip } from '@@/TerminalTooltip';
@@ -31,30 +30,18 @@ import { fileUploadField } from './file-upload-field';
 import { switchField } from './switch-field';
 import { customTemplatesModule } from './custom-templates';
 import { gitFormModule } from './git-form';
-import { settingsModule } from './settings';
-import { accessControlModule } from './access-control';
 import { environmentsModule } from './environments';
 import { registriesModule } from './registries';
 import { accountModule } from './account';
-import { usersModule } from './users';
-import { activityLogsModule } from './activity-logs';
-import { rbacModule } from './rbac';
 import { stacksModule } from './stacks';
-import { authModule } from './auth';
 
 export const ngModule = angular
   .module('portainer.app.react.components', [
-    authModule,
-    accessControlModule,
     customTemplatesModule,
     environmentsModule,
     gitFormModule,
     registriesModule,
-    settingsModule,
     accountModule,
-    usersModule,
-    activityLogsModule,
-    rbacModule,
     stacksModule,
   ])
   .component(
@@ -76,13 +63,6 @@ export const ngModule = angular
   .component('terminalTooltip', r2a(TerminalTooltip, []))
   .component('fileUploadField', fileUploadField)
   .component('porSwitchField', switchField)
-  .component(
-    'passwordCheckHint',
-    r2a(withReactQuery(PasswordCheckHint), [
-      'forceChangePassword',
-      'passwordValid',
-    ])
-  )
   .component('rdLoading', r2a(Loading, []))
   .component(
     'tableColumnHeader',

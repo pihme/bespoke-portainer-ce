@@ -42,8 +42,6 @@ var errChartNameInvalid = errors.New("invalid chart name. " +
 // @description
 // @description **Access policy**: authenticated
 // @tags helm
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"

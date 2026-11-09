@@ -22,15 +22,6 @@ vi.mock('angular', () => ({
   copy: angularMock.copy,
 }));
 
-vi.mock('../../../../portainer/components/accessControlForm/porAccessControlFormModel', () => ({
-  AccessControlFormData: function AccessControlFormData() {
-    this.AccessControlEnabled = true;
-    this.Ownership = 'private';
-    this.AuthorizedUsers = [];
-    this.AuthorizedTeams = [];
-  },
-}));
-
 vi.mock('../../../components/network-macvlan-form/networkMacvlanFormModel', () => ({
   MacvlanFormData: function MacvlanFormData() {
     this.Scope = 'local';
@@ -79,9 +70,6 @@ function buildController(options = {}) {
     pluginsError = null,
     networkCreateResult = { Id: 'net-1', Portainer: { ResourceControl: { Id: 9 } } },
     networkCreateError = null,
-    validateAccessControl = () => '',
-    isAdmin = true,
-    userDetails = { ID: 42 },
   } = options;
 
   const $scope = buildScope(scopeOverrides);
@@ -97,14 +85,6 @@ function buildController(options = {}) {
       });
       return out;
     }),
-  };
-  const Authentication = {
-    getUserDetails: vi.fn(() => userDetails),
-    isAdmin: vi.fn(() => isAdmin),
-  };
-  const FormValidator = { validateAccessControl: vi.fn(validateAccessControl) };
-  const ResourceControlService = {
-    applyResourceControl: vi.fn(() => Promise.resolve()),
   };
   const HttpRequestHelper = {};
 
@@ -128,9 +108,6 @@ function buildController(options = {}) {
     Notifications,
     NetworkService,
     LabelHelper,
-    Authentication,
-    ResourceControlService,
-    FormValidator,
     HttpRequestHelper,
     endpoint
   );
@@ -148,9 +125,6 @@ function buildController(options = {}) {
     PluginService,
     NetworkService,
     LabelHelper,
-    Authentication,
-    ResourceControlService,
-    FormValidator,
     createPromise,
     networkCreateResult,
     networkCreateError,
@@ -187,6 +161,8 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     expect(ctx.$scope.config.IPAM).toEqual({ Driver: 'default', Config: [] });
     expect(ctx.$scope.formValues.IPV4.Subnet).toBe('');
     expect(ctx.$scope.formValues.Labels).toEqual([]);
+    // REQ-TAI-001: no ownership/access-control section on the create form
+    expect(ctx.$scope.formValues.AccessControlData).toBeUndefined();
     expect(ctx.$scope.state.actionInProgress).toBe(false);
     expect(ctx.PluginService.networkPlugins).toHaveBeenCalledWith(false);
     expect(ctx.$scope.availableNetworkDrivers).toEqual(['bridge', 'macvlan', 'ipvlan', 'overlay']);
@@ -233,6 +209,8 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     expect(ctx.$scope.formValues.Labels).toEqual([{ key: '', value: '' }]);
     ctx.$scope.removeLabel(0);
     expect(ctx.$scope.formValues.Labels).toEqual([]);
+    // REQ-TAI-001: no ownership/access-control section on the create form
+    expect(ctx.$scope.formValues.AccessControlData).toBeUndefined();
 
     ctx.$scope.addIPV4AuxAddress();
     ctx.$scope.addIPV6AuxAddress();
@@ -283,17 +261,6 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     expect(ctx.$scope.config.Attachable).toBe(true);
   });
 
-  it('stops create when access-control validation fails', async () => {
-    const ctx = buildController({
-      validateAccessControl: () => 'You must specify at least one team or user.',
-    });
-    await ctx.settlePlugins();
-
-    ctx.$scope.create();
-
-    expect(ctx.$scope.state.formValidationError).toBe('You must specify at least one team or user.');
-    expect(ctx.NetworkService.create).not.toHaveBeenCalled();
-  });
 
   it('creates a bridge network with IPv4 subnet, gateway, IP range, aux addresses, labels and driver options', async () => {
     const ctx = buildController();
@@ -335,11 +302,6 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     ]);
 
     await ctx.settleCreate();
-    expect(ctx.ResourceControlService.applyResourceControl).toHaveBeenCalledWith(
-      42,
-      ctx.$scope.formValues.AccessControlData,
-      { Id: 9 }
-    );
     expect(ctx.Notifications.success).toHaveBeenCalledWith('Success', 'Network successfully created');
     expect(ctx.$state.go).toHaveBeenCalledWith('docker.networks', {}, { reload: true });
     expect(ctx.$scope.state.actionInProgress).toBe(false);

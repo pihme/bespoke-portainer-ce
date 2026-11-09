@@ -1,10 +1,9 @@
-import { IResource } from '@/react/docker/components/datatable/createOwnershipColumn';
 import { ContainerDetailsResponse } from '@/react/docker/containers/queries/useContainer';
 import { PortainerResponse } from '@/react/docker/types';
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 
 export class ContainerDetailsViewModel
-  implements IResource, Pick<PortainerResponse<unknown>, 'IsPortainer'>
+  implements Pick<PortainerResponse<unknown>, 'IsPortainer'>
 {
   Model: ContainerDetailsResponse;
 
@@ -28,7 +27,7 @@ export class ContainerDetailsViewModel
 
   Mounts: ContainerDetailsResponse['Mounts'];
 
-  // IResource
+  // Leftover backend field; ownership UI is removed (TAI-001)
   ResourceControl?: ResourceControlViewModel;
 
   // PortainerResponse

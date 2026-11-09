@@ -10,7 +10,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/internal/ssl"
@@ -60,7 +59,7 @@ func blockExternalRequests(t *testing.T) {
 	})
 }
 
-func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigins []string, setupToken string) (*Server, context.Context, context.CancelFunc) {
+func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigins []string) (*Server, context.Context, context.CancelFunc) {
 	t.Helper()
 	blockExternalRequests(t)
 
@@ -73,6 +72,7 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 	store := testhelpers.NewDatastore(
 		testhelpers.WithSettingsService(&portainer.Settings{}),
 		testhelpers.WithSSLSettingsService(&portainer.SSLSettings{HTTPEnabled: httpEnabled}),
+		testhelpers.WithUsers([]portainer.User{}),
 	)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -94,14 +94,11 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 		Status:                 &portainer.Status{Version: "test"},
 		FileService:            fileService,
 		DataStore:              store,
-		APIKeyService:          apikey.NewAPIKeyService(nil, nil),
 		ProxyManager:           proxy.NewManager(nil),
 		SSLService:             sslService,
 		ShutdownTrigger:        cancel,
-		AdminCreationDone:      make(chan struct{}),
 		PullLimitCheckDisabled: true,
 		TrustedOrigins:         trustedOrigins,
-		SetupToken:             setupToken,
 	}
 
 	return server, ctx, cancel
@@ -111,7 +108,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	t.Helper()
 	require.NotNil(t, server.Handler)
 	h := server.Handler
-	assert.NotNil(t, h.AuthHandler)
 	assert.NotNil(t, h.BackupHandler)
 	assert.NotNil(t, h.CustomTemplatesHandler)
 	assert.NotNil(t, h.DockerHandler)
@@ -120,10 +116,7 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.EndpointProxyHandler)
 	assert.NotNil(t, h.FileHandler)
 	assert.NotNil(t, h.GitOperationHandler)
-	assert.NotNil(t, h.LDAPHandler)
 	assert.NotNil(t, h.MOTDHandler)
-	assert.NotNil(t, h.ResourceControlHandler)
-	assert.NotNil(t, h.RoleHandler)
 	assert.NotNil(t, h.SettingsHandler)
 	assert.NotNil(t, h.SSLHandler)
 	assert.NotNil(t, h.StackHandler)
@@ -142,8 +135,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.EndpointEdgeHandler)
 	assert.NotNil(t, h.KubernetesHandler)
 	assert.NotNil(t, h.RegistryHandler)
-	assert.NotNil(t, h.TeamHandler)
-	assert.NotNil(t, h.TeamMembershipHandler)
 	assert.NotNil(t, h.EndpointHelmHandler)
 	assert.NotNil(t, h.HelmTemplatesHandler)
 }
@@ -151,7 +142,7 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 // TestREQ_SRV_01_Start_WiresLocalDockerHandlersAndListens starts the HTTP
 // server for a local Docker bind, checks route-handler wiring, then shuts down.
 func TestREQ_SRV_01_Start_WiresLocalDockerHandlersAndListens(t *testing.T) {
-	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil, "setup-token-local")
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -194,7 +185,7 @@ func TestREQ_SRV_01_Start_WiresLocalDockerHandlersAndListens(t *testing.T) {
 // TestREQ_SRV_05_Start_HTTPSOnlyWhenHTTPDisabled covers the HTTPS-only arm
 // used when plain HTTP is turned off for a local instance.
 func TestREQ_SRV_05_Start_HTTPSOnlyWhenHTTPDisabled(t *testing.T) {
-	server, ctx, cancel := newLocalDockerHTTPServer(t, false, true, nil, "")
+	server, ctx, cancel := newLocalDockerHTTPServer(t, false, true, nil)
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -224,7 +215,7 @@ func TestREQ_SRV_05_Start_HTTPSOnlyWhenHTTPDisabled(t *testing.T) {
 // TestREQ_SRV_08_Start_RejectsInvalidTrustedOrigin ensures CSRF protect
 // fails closed when a trusted origin is not a valid origin URL.
 func TestREQ_SRV_08_Start_RejectsInvalidTrustedOrigin(t *testing.T) {
-	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, []string{"not a valid origin"}, "")
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, []string{"not a valid origin"})
 	defer cancel()
 
 	err := server.Start(ctx)
@@ -237,7 +228,7 @@ func TestREQ_SRV_08_Start_RejectsInvalidTrustedOrigin(t *testing.T) {
 // TestREQ_SRV_10_Start_DisablesCSPWhenConfigured covers the CSP-off branch
 // that disables the security header middleware during server construction.
 func TestREQ_SRV_10_Start_DisablesCSPWhenConfigured(t *testing.T) {
-	server, ctx, cancel := newLocalDockerHTTPServer(t, true, false, []string{"https://portainer.example.com"}, "")
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, false, []string{"https://portainer.example.com"})
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -298,7 +289,7 @@ func TestREQ_SRV_01_shutdown_ClosesIdleServer(t *testing.T) {
 // ListenAndServe error arm when the bind address cannot be used; HTTPS still
 // starts and shuts down cleanly for the local Docker instance.
 func TestREQ_SRV_01_Start_HTTPListenFailureIsLogged(t *testing.T) {
-	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil, "")
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
 	server.BindAddress = "127.0.0.1:1" // privileged port; listen fails for non-root
 
 	errCh := make(chan error, 1)
@@ -310,6 +301,74 @@ func TestREQ_SRV_01_Start_HTTPListenFailureIsLogged(t *testing.T) {
 	assertLocalDockerHandlersWired(t, server)
 
 	cancel()
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+// TestREQ_TAI_001_Start_LoginAndUserManagementRoutesAreGone starts the local
+// server and checks that the login, first-admin setup, user, team, role,
+// ownership, LDAP and token routes are not served any more, while the local
+// operator's preferences answer without credentials.
+func TestREQ_TAI_001_Start_LoginAndUserManagementRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct{ method, path string }{
+		{http.MethodPost, "/api/auth"},
+		{http.MethodPost, "/api/auth/logout"},
+		{http.MethodPost, "/api/auth/oauth/validate"},
+		{http.MethodPost, "/api/ldap/check"},
+		{http.MethodGet, "/api/users/admin/check"},
+		{http.MethodPost, "/api/users/admin/init"},
+		{http.MethodGet, "/api/users"},
+		{http.MethodPost, "/api/users"},
+		{http.MethodPut, "/api/users/1/passwd"},
+		{http.MethodGet, "/api/users/1/tokens"},
+		{http.MethodPost, "/api/users/1/tokens"},
+		{http.MethodDelete, "/api/users/1/tokens/1"},
+		{http.MethodGet, "/api/users/1/memberships"},
+		{http.MethodGet, "/api/users/1/effective-access"},
+		{http.MethodGet, "/api/teams"},
+		{http.MethodPost, "/api/teams"},
+		{http.MethodGet, "/api/team_memberships"},
+		{http.MethodGet, "/api/roles"},
+		{http.MethodPost, "/api/resource_controls"},
+		{http.MethodPut, "/api/resource_controls/1"},
+		{http.MethodPut, "/api/gitops/sources/1/access"},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
+	}
+
+	resp, err := client.Get(base + "/api/users/me")
+	require.NoError(t, err)
+	_ = resp.Body.Close()
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "GET /api/users/me without credentials")
+
+	cancel()
+
 	select {
 	case err := <-errCh:
 		require.ErrorIs(t, err, http.ErrServerClosed)

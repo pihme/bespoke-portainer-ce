@@ -1,9 +1,5 @@
 import { Formik, Form } from 'formik';
 
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useCurrentUser, useIsEdgeAdmin } from '@/react/hooks/useUser';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { parseAccessControlFormData } from '@/react/portainer/access-control/utils';
 import { NameField } from '@/react/docker/containers/CreateView/BaseForm/NameField';
 import { NetworkSelector } from '@/react/docker/containers/components/NetworkSelector';
 import { PortsMappingField } from '@/react/docker/containers/CreateView/BaseForm/PortsMappingField';
@@ -32,18 +28,13 @@ export function ContainerDeployForm({
   template: TemplateViewModel;
   unselect: () => void;
 }) {
-  const { user } = useCurrentUser();
-  const isEdgeAdminQuery = useIsEdgeAdmin();
-  const environmentId = useEnvironmentId();
-
   const validation = useValidation({
-    isAdmin: isEdgeAdminQuery.isAdmin,
     envVarDefinitions: template.Env,
   });
 
   const createMutation = useCreate(template);
 
-  if (!createMutation || isEdgeAdminQuery.isLoading) {
+  if (!createMutation) {
     return null;
   }
 
@@ -52,10 +43,6 @@ export function ContainerDeployForm({
     envVars:
       Object.fromEntries(template.Env?.map((env) => [env.name, env.value])) ||
       {},
-    accessControl: parseAccessControlFormData(
-      isEdgeAdminQuery.isAdmin,
-      user.Id
-    ),
     hostname: '',
     hosts: [],
     labels: [],
@@ -99,14 +86,6 @@ export function ContainerDeployForm({
               options={template.Env || []}
             />
           </FormSection>
-
-          <AccessControlForm
-            formNamespace="accessControl"
-            onChange={(values) => setFieldValue('accessControl', values)}
-            values={values.accessControl}
-            errors={errors.accessControl}
-            environmentId={environmentId}
-          />
 
           <AdvancedSettings
             label={(isOpen) =>

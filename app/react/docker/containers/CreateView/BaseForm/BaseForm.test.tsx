@@ -4,7 +4,6 @@ import { Formik } from 'formik';
 import { http, HttpResponse } from 'msw';
 import { vi } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import {
   ContainerEngine,
   EnvironmentType,
@@ -69,10 +68,6 @@ vi.mock('@@/ImageConfigFieldset', () => ({
   },
 }));
 
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: () => <div>access-control</div>,
-}));
-
 vi.mock('./PortsMappingField', () => ({
   PortsMappingField: ({
     onChange,
@@ -99,11 +94,6 @@ const values: Values = {
   image: { image: 'nginx', registryId: 0, useRegistry: true },
   alwaysPull: true,
   ports: [],
-  accessControl: {
-    ownership: ResourceControlOwnership.ADMINISTRATORS,
-    authorizedUsers: [],
-    authorizedTeams: [],
-  },
   nodeName: '',
   autoRemove: false,
 };
@@ -151,7 +141,8 @@ describe('REQ-CTR-03 BaseForm local Docker create fields', () => {
       { containerPort: '80', hostPort: '8080', protocol: 'tcp' },
     ]);
 
-    expect(screen.getByText('access-control')).toBeVisible();
+    // REQ-TAI-001: no access control section on the create form
+    expect(screen.queryByText('Access control')).not.toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Deploy the container' })
     ).toBeVisible();

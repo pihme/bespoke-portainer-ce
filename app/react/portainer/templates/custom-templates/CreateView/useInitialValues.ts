@@ -1,7 +1,5 @@
 import { useCurrentStateAndParams } from '@uirouter/react';
 
-import { parseAccessControlFormData } from '@/react/portainer/access-control/utils';
-import { useCurrentUser } from '@/react/hooks/useUser';
 import { StackType } from '@/react/common/stacks/types';
 
 import { Platform } from '../../types';
@@ -19,8 +17,6 @@ export function useInitialValues({
   isEdge?: boolean;
   buildMethods: Array<Method>;
 }): FormValues | undefined {
-  const { user, isPureAdmin } = useCurrentUser();
-
   const { appTemplateId, type = defaultType } = useAppTemplateParams();
 
   // don't make the file path 'docker-compose.yml' in a kube environment. Keep it empty with the existing 'manifest.yml' placeholder
@@ -53,9 +49,6 @@ export function useInitialValues({
       ComposeFilePathInRepository: initialFilePathInRepository,
       AdditionalFiles: [],
     },
-    AccessControl: isEdge
-      ? undefined
-      : parseAccessControlFormData(isPureAdmin, user.Id),
     EdgeSettings: isEdge ? getDefaultEdgeTemplateSettings() : undefined,
   };
 }

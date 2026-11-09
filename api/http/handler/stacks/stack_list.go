@@ -28,8 +28,6 @@ type stackListOperationFilters struct {
 // @description Limited stacks will not be returned by this endpoint.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @param filters query string false "Filters to process on the stack list. Encoded as JSON (a map[string]string). For example, {'SwarmID': 'jpofkc0i9uo9wtx1zesuk649w'} will only return stacks that are part of the specified Swarm cluster. Available filters: EndpointID, SwarmID."
 // @success 200 {array} portainer.Stack "Success"
 // @success 204 "Success"

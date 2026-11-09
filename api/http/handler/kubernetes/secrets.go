@@ -16,7 +16,6 @@ import (
 // @description Get a Secret by name for a given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name where the secret is located"
@@ -77,7 +76,6 @@ func (handler *Handler) getKubernetesSecret(w http.ResponseWriter, r *http.Reque
 // @description Get a list of Secrets for a given namespace. If isUsed is set to true, information about the applications that use the secrets is also returned.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param isUsed query bool true "When set to true, associate the Secrets with the applications that use them"
@@ -102,7 +100,6 @@ func (handler *Handler) GetAllKubernetesSecrets(w http.ResponseWriter, r *http.R
 // @description Get the count of Secrets across all namespaces that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -128,7 +125,6 @@ func (handler *Handler) getAllKubernetesSecretsCount(w http.ResponseWriter, r *h
 // @description Secret's metadata only, not its data.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -175,7 +171,6 @@ func (handler *Handler) createKubernetesSecret(w http.ResponseWriter, r *http.Re
 // @description changed. The response carries the updated Secret's metadata only.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -232,7 +227,6 @@ func (handler *Handler) updateKubernetesSecret(w http.ResponseWriter, r *http.Re
 // @description Delete a Secret in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name where the secret is located"

@@ -15,7 +15,6 @@ import (
 // @description Get a list of kubernetes cluster roles within the given environment at the cluster level.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} kubernetes.K8sClusterRole "Success"
@@ -51,7 +50,6 @@ func (handler *Handler) getAllKubernetesClusterRoles(w http.ResponseWriter, r *h
 // @description Delete the provided list of cluster roles.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param payload body models.K8sClusterRoleDeleteRequests true "A list of cluster roles to delete"

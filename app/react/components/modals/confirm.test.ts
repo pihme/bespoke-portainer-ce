@@ -2,7 +2,6 @@ import { vi } from 'vitest';
 
 import {
   confirm,
-  confirmChangePassword,
   confirmDelete,
   confirmDestructive,
   confirmGenericDiscard,
@@ -60,12 +59,5 @@ describe('confirm helpers', () => {
     const cb = vi.fn();
     await confirmUpdate('update me', cb);
     expect(cb).toHaveBeenCalledWith(true);
-  });
-
-  it('confirmChangePassword opens a warn dialog', async () => {
-    await confirmChangePassword();
-    expect(openDialog).toHaveBeenCalledWith(
-      expect.objectContaining({ modalType: ModalType.Warn })
-    );
   });
 });

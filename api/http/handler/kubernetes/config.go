@@ -27,7 +27,6 @@ import (
 // @description Generate a kubeconfig file that allows a client to communicate with the Kubernetes API server
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce application/json, application/yaml
 // @param ids query []int false "will include only these environments(endpoints)"
 // @param excludeIds query []int false "will exclude these environments(endpoints)"

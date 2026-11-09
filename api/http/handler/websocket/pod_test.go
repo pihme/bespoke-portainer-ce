@@ -16,12 +16,14 @@ import (
 // check in websocketPodExec.
 const podExecQuery = "/websocket/pod?endpointId=2&namespace=default&podName=p&containerName=c&command=sh"
 
-// TestWebsocketPodExec_deniesUnauthorizedEndpoint asserts a non-admin with no access policy on
-// the environment is rejected with 403 — the environment-access (L2) gate (BE-13027).
-func TestWebsocketPodExec_deniesUnauthorizedEndpoint(t *testing.T) {
+// TestREQ_TAI_001_WebsocketPodExec_NoPerUserEnvironmentGate asserts that a
+// request with no environment access policy passes the environment gate and
+// reaches the (nil) Kubernetes client: per-user and per-team environment
+// access is removed (TAI-001, REQ-USR-07).
+func TestREQ_TAI_001_WebsocketPodExec_NoPerUserEnvironmentGate(t *testing.T) {
 	handler, _ := newWebsocketTestHandler(t)
 
-	user := &portainer.User{Username: "restricted", Role: portainer.StandardUserRole}
+	user := &portainer.User{Username: "legacy", Role: portainer.StandardUserRole}
 	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		return tx.User().Create(user)
 	})
@@ -30,10 +32,9 @@ func TestWebsocketPodExec_deniesUnauthorizedEndpoint(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, podExecQuery, nil)
 	req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
 
-	handlerErr := handler.websocketPodExec(httptest.NewRecorder(), req)
-
-	require.NotNil(t, handlerErr, "expected an authorization error for a denied environment")
-	assert.Equal(t, http.StatusForbidden, handlerErr.StatusCode)
+	assert.Panics(t, func() {
+		_ = handler.websocketPodExec(httptest.NewRecorder(), req)
+	})
 }
 
 // TestWebsocketPodExec_allowsAuthorizedNonAdmin asserts a non-admin granted environment access

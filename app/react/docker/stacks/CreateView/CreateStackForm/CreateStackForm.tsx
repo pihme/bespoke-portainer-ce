@@ -8,8 +8,6 @@ import {
   useCreateStack,
   CreateStackPayload,
 } from '@/react/common/stacks/queries/useCreateStack/useCreateStack';
-import { useCurrentUser, useIsEdgeAdmin } from '@/react/hooks/useUser';
-import { defaultValues } from '@/react/portainer/access-control/utils';
 import { getDefaultModel } from '@/react/portainer/gitops/types';
 import { notifySuccess } from '@/portainer/services/notifications';
 
@@ -29,8 +27,6 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
     params: { yaml },
   } = useCurrentStateAndParams();
   const createStackMutation = useCreateStack();
-  const { user } = useCurrentUser();
-  const { isAdmin } = useIsEdgeAdmin();
   const [webhookId] = useState(() => uuidv4());
   const validationSchema = useValidationSchema(environmentId);
 
@@ -56,7 +52,6 @@ export function CreateStackForm({ environmentId, isSwarm, swarmId }: Props) {
     env: [],
     enableWebhook: false,
     registries: [],
-    accessControl: defaultValues(isAdmin, user.Id),
   };
 
   return (
@@ -117,7 +112,6 @@ function buildCreateStackPayload({
     name: values.name,
     environmentId,
     env: values.env,
-    accessControl: values.accessControl,
     registries: values.registries,
   };
 

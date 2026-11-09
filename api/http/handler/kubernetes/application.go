@@ -16,7 +16,6 @@ import (
 // @description Get the total CPU (cores) and memory (bytes) requests and limits of all applications across all namespaces.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param node query string true "Node name"
@@ -64,7 +63,6 @@ func (handler *Handler) getApplicationsResources(w http.ResponseWriter, r *http.
 // @description Get a list of applications across all namespaces in the cluster. If the nodeName is provided, it will return the applications running on that node.
 // @description **Access policy**: authenticated
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace query string true "Namespace name"
@@ -90,7 +88,6 @@ func (handler *Handler) GetAllKubernetesApplications(w http.ResponseWriter, r *h
 // @description Get the count of Applications across all namespaces in the cluster. If the nodeName is provided, it will return the count of applications running on that node.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"

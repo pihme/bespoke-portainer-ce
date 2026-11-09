@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
@@ -33,56 +32,20 @@ func (s *stubSnapshotService) FillSnapshotData(*portainer.Endpoint, bool) error 
 	return nil
 }
 
-type stubJWTService struct {
-	duration time.Duration
-}
-
-func (s *stubJWTService) GenerateToken(*portainer.TokenData) (string, time.Time, error) {
-	return "token", time.Now().Add(time.Hour), nil
-}
-func (s *stubJWTService) GenerateTokenForKubeconfig(*portainer.TokenData, portainer.EndpointID) (string, error) {
-	return "kube-token", nil
-}
-func (s *stubJWTService) GenerateTokensForKubeconfig(*portainer.TokenData, []portainer.EndpointID) (map[portainer.EndpointID]string, error) {
-	return map[portainer.EndpointID]string{}, nil
-}
-func (s *stubJWTService) ParseAndVerifyToken(string) (*portainer.ScopedTokenData, string, time.Time, error) {
-	return &portainer.ScopedTokenData{TokenData: &portainer.TokenData{ID: 1}, Scope: portainer.DefaultTokenScope}, "jti", time.Now().Add(time.Hour), nil
-}
-func (s *stubJWTService) ParseAndVerifySessionToken(string) (*portainer.TokenData, string, time.Time, error) {
-	return &portainer.TokenData{ID: 1}, "jti", time.Now().Add(time.Hour), nil
-}
-func (s *stubJWTService) SetUserSessionDuration(d time.Duration) { s.duration = d }
-
-
-type failingTLSFileService struct {
-	*filesystem.Service
-	deleteErr error
-}
-
-func (f *failingTLSFileService) DeleteTLSFiles(folder string) error {
-	if f.deleteErr != nil {
-		return f.deleteErr
-	}
-	return f.Service.DeleteTLSFiles(folder)
-}
-
-func setUpHandler(t *testing.T, store *datastore.Store) (*Handler, *stubSnapshotService, *stubJWTService) {
+func setUpHandler(t *testing.T, store *datastore.Store) (*Handler, *stubSnapshotService) {
 	t.Helper()
 
 	fs, err := filesystem.NewService(t.TempDir(), "")
 	require.NoError(t, err)
 
 	snap := &stubSnapshotService{}
-	jwt := &stubJWTService{}
 
 	handler := NewHandler(testhelpers.NewTestRequestBouncer())
 	handler.DataStore = store
 	handler.FileService = fs
 	handler.SnapshotService = snap
-	handler.JWTService = jwt
 
-	return handler, snap, jwt
+	return handler, snap
 }
 
 func withAdminContext(r *http.Request) *http.Request {

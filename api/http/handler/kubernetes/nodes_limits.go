@@ -14,7 +14,6 @@ import (
 // @description Get CPU and memory limits of all nodes within k8s cluster.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {object} portainer.K8sNodesLimits "Success"
@@ -51,7 +50,6 @@ func (handler *Handler) getKubernetesNodesLimits(w http.ResponseWriter, r *http.
 // @description Get max CPU and memory limits (unused resources) of all nodes within k8s cluster.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {object} portainer.K8sNodesLimits "Success"

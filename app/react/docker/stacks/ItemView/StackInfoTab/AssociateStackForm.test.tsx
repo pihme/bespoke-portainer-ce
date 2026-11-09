@@ -16,25 +16,6 @@ vi.mock('@/react/docker/proxy/queries/useSwarm', () => ({
   useSwarmId: vi.fn(),
 }));
 
-// Mock the AccessControlForm to simplify testing
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: vi.fn(({ onChange, values }) => (
-    <div data-cy="access-control-form">
-      <button
-        type="button"
-        onClick={() =>
-          onChange({
-            ...values,
-            ownership: 'private',
-          })
-        }
-      >
-        Change Access Control
-      </button>
-    </div>
-  )),
-}));
-
 beforeEach(() => {
   vi.mocked(useSwarmId).mockReturnValue({
     data: undefined,
@@ -53,7 +34,8 @@ it('should render correctly', () => {
     screen.getByText(/This feature allows you to re-associate this stack/i)
   ).toBeVisible();
 
-  expect(screen.getByTestId('access-control-form')).toBeVisible();
+  // REQ-TAI-001: no ownership/access control section
+  expect(screen.queryByTestId('access-control-form')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Associate' })).toBeVisible();
 });
 
@@ -68,11 +50,7 @@ describe('form submission', () => {
           requestUrl = request.url;
           return HttpResponse.json(createMockStackResponse(params.id));
         }
-      ),
-      http.put('/api/resource_controls/:id', async ({ request }) => {
-        await request.json();
-        return HttpResponse.json({ success: true });
-      })
+      )
     );
 
     const user = userEvent.setup();
@@ -103,10 +81,7 @@ describe('form submission', () => {
         associateCalled = true;
         await delay(50);
         return HttpResponse.json(createMockStackResponse());
-      }),
-      http.put('/api/resource_controls/:id', () =>
-        HttpResponse.json({ success: true })
-      )
+      })
     );
 
     const user = userEvent.setup();
@@ -148,14 +123,14 @@ describe('form submission', () => {
     const associateButton = screen.getByRole('button', { name: 'Associate' });
     await user.click(associateButton);
 
-    // Verify both API calls were made
     await waitFor(
       () => {
         expect(associateCalled).toBe(true);
-        expect(resourceControlCalled).toBe(true);
       },
       { timeout: 3000 }
     );
+    // REQ-TAI-001: no ownership is applied after association
+    expect(resourceControlCalled).toBe(false);
   });
 });
 
@@ -171,10 +146,7 @@ describe('swarmId integration', () => {
       http.put('/api/stacks/:id/associate', async ({ request }) => {
         requestUrl = request.url;
         return HttpResponse.json(createMockStackResponse());
-      }),
-      http.put('/api/resource_controls/:id', () =>
-        HttpResponse.json({ success: true })
-      )
+      })
     );
 
     const user = userEvent.setup();
@@ -199,10 +171,7 @@ describe('swarmId integration', () => {
       http.put('/api/stacks/:id/associate', async ({ request }) => {
         requestUrl = request.url;
         return HttpResponse.json(createMockStackResponse());
-      }),
-      http.put('/api/resource_controls/:id', () =>
-        HttpResponse.json({ success: true })
-      )
+      })
     );
 
     const user = userEvent.setup();
@@ -226,10 +195,7 @@ describe('orphanedRunning parameter', () => {
       http.put('/api/stacks/:id/associate', async ({ request }) => {
         requestUrl = request.url;
         return HttpResponse.json(createMockStackResponse());
-      }),
-      http.put('/api/resource_controls/:id', () =>
-        HttpResponse.json({ success: true })
-      )
+      })
     );
 
     const user = userEvent.setup();
@@ -250,10 +216,7 @@ describe('orphanedRunning parameter', () => {
       http.put('/api/stacks/:id/associate', async ({ request }) => {
         requestUrl = request.url;
         return HttpResponse.json(createMockStackResponse());
-      }),
-      http.put('/api/resource_controls/:id', () =>
-        HttpResponse.json({ success: true })
-      )
+      })
     );
 
     const user = userEvent.setup();

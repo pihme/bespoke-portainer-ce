@@ -18,11 +18,6 @@ describe('REQ-CTR-03 BaseForm toRequest for ports and publish flags', () => {
     image: { image: 'nginx', registryId: 0, useRegistry: true },
     alwaysPull: true,
     ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' }],
-    accessControl: {
-      ownership: 'administrators',
-      authorizedUsers: [],
-      authorizedTeams: [],
-    },
     nodeName: '',
     autoRemove: true,
   };

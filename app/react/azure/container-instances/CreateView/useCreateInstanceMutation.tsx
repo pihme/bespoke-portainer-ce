@@ -9,7 +9,6 @@ import {
   ContainerInstanceFormValues,
   ResourceGroup,
 } from '@/react/azure/types';
-import { applyResourceControl } from '@/react/portainer/access-control/access-control.service';
 
 import { getSubscriptionResourceGroups } from './utils';
 
@@ -45,14 +44,7 @@ export function useCreateInstanceMutation(
       );
     },
     {
-      async onSuccess(containerGroup, values) {
-        const resourceControl = containerGroup.Portainer?.ResourceControl;
-        if (!resourceControl) {
-          throw new PortainerError('resource control expected after creation');
-        }
-
-        const accessControlData = values.accessControl;
-        await applyResourceControl(accessControlData, resourceControl.Id);
+      async onSuccess() {
         return queryClient.invalidateQueries(
           queryKeys.subscriptions(environmentId)
         );

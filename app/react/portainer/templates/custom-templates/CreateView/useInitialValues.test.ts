@@ -3,17 +3,12 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { StackType } from '@/react/common/stacks/types';
 import { Platform } from '@/react/portainer/templates/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 
-const mockUseCurrentUser = vi.fn();
+import { useInitialValues } from './useInitialValues';
+
 const mockUseCurrentStateAndParams = vi.fn();
 const mockUseAppTemplateFile = vi.fn();
-const mockParseAccessControlFormData = vi.fn();
 const mockGetDefaultEdgeTemplateSettings = vi.fn();
-
-vi.mock('@/react/hooks/useUser', () => ({
-  useCurrentUser: () => mockUseCurrentUser(),
-}));
 
 vi.mock('@uirouter/react', () => ({
   useCurrentStateAndParams: () => mockUseCurrentStateAndParams(),
@@ -21,11 +16,6 @@ vi.mock('@uirouter/react', () => ({
 
 vi.mock('../../app-templates/queries/useAppTemplateFile', () => ({
   useAppTemplateFile: (...args: unknown[]) => mockUseAppTemplateFile(...args),
-}));
-
-vi.mock('@/react/portainer/access-control/utils', () => ({
-  parseAccessControlFormData: (...args: unknown[]) =>
-    mockParseAccessControlFormData(...args),
 }));
 
 vi.mock('../types', async (importOriginal) => {
@@ -36,25 +26,12 @@ vi.mock('../types', async (importOriginal) => {
   };
 });
 
-import { useInitialValues } from './useInitialValues';
-
 describe('REQ-TPL-03 useInitialValues', () => {
   beforeEach(() => {
-    mockUseCurrentUser.mockReset();
     mockUseCurrentStateAndParams.mockReset();
     mockUseAppTemplateFile.mockReset();
-    mockParseAccessControlFormData.mockReset();
     mockGetDefaultEdgeTemplateSettings.mockReset();
 
-    mockUseCurrentUser.mockReturnValue({
-      user: { Id: 7 },
-      isPureAdmin: true,
-    });
-    mockParseAccessControlFormData.mockReturnValue({
-      ownership: ResourceControlOwnership.ADMINISTRATORS,
-      authorizedUsers: [],
-      authorizedTeams: [],
-    });
     mockGetDefaultEdgeTemplateSettings.mockReturnValue({
       PrePullImage: false,
       RetryDeploy: false,
@@ -88,7 +65,7 @@ describe('REQ-TPL-03 useInitialValues', () => {
     expect(mockUseAppTemplateFile).toHaveBeenCalledWith(12);
   });
 
-  it('builds local compose defaults with access control and compose file path', () => {
+  it('builds local compose defaults with compose file path', () => {
     const { result } = renderHook(() =>
       useInitialValues({
         defaultType: StackType.DockerCompose,
@@ -114,12 +91,8 @@ describe('REQ-TPL-03 useInitialValues', () => {
       },
       EdgeSettings: undefined,
     });
-    expect(result.current?.AccessControl).toEqual({
-      ownership: ResourceControlOwnership.ADMINISTRATORS,
-      authorizedUsers: [],
-      authorizedTeams: [],
-    });
-    expect(mockParseAccessControlFormData).toHaveBeenCalledWith(true, 7);
+    // REQ-TAI-001: no ownership defaults
+    expect(result.current).not.toHaveProperty('AccessControl');
     expect(mockGetDefaultEdgeTemplateSettings).not.toHaveBeenCalled();
   });
 
@@ -183,7 +156,7 @@ describe('REQ-TPL-03 useInitialValues', () => {
     expect(result.current?.Git.ComposeFilePathInRepository).toBe('');
   });
 
-  it('omits access control and sets edge settings for edge create', () => {
+  it('sets edge settings for edge create', () => {
     const { result } = renderHook(() =>
       useInitialValues({
         defaultType: StackType.DockerCompose,
@@ -192,12 +165,10 @@ describe('REQ-TPL-03 useInitialValues', () => {
       })
     );
 
-    expect(result.current?.AccessControl).toBeUndefined();
     expect(result.current?.EdgeSettings).toEqual({
       PrePullImage: false,
       RetryDeploy: false,
     });
-    expect(mockParseAccessControlFormData).not.toHaveBeenCalled();
     expect(mockGetDefaultEdgeTemplateSettings).toHaveBeenCalled();
   });
 

@@ -16,8 +16,6 @@ import (
 // @summary Inspects an EdgeGroup
 // @description **Access policy**: administrator
 // @tags edge_groups
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "EdgeGroup Id"
 // @success 200 {object} portainer.EdgeGroup

@@ -24,8 +24,6 @@ import (
 // @description Retrieve details about a template created from git repository method.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Template identifier"
 // @success 200 {object} fileResponse "Success"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/portainer/portainer/api/adminmonitor"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/offlinegate"
 	"github.com/portainer/portainer/api/http/security"
@@ -21,8 +20,6 @@ type Handler struct {
 	gate            *offlinegate.OfflineGate
 	filestorePath   string
 	shutdownTrigger context.CancelFunc
-	adminMonitor    *adminmonitor.Monitor
-	SetupToken      string
 }
 
 // NewHandler creates an new instance of backup handler
@@ -32,7 +29,6 @@ func NewHandler(
 	gate *offlinegate.OfflineGate,
 	filestorePath string,
 	shutdownTrigger context.CancelFunc,
-	adminMonitor *adminmonitor.Monitor,
 ) *Handler {
 	h := &Handler{
 		Router:          mux.NewRouter(),
@@ -41,7 +37,6 @@ func NewHandler(
 		gate:            gate,
 		filestorePath:   filestorePath,
 		shutdownTrigger: shutdownTrigger,
-		adminMonitor:    adminMonitor,
 	}
 
 	h.Handle("/backup", bouncer.RestrictedAccess(adminAccess(httperror.LoggerHandler(h.backup)))).Methods(http.MethodPost)

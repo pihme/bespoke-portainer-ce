@@ -54,8 +54,6 @@ func (payload *GitSourceUpdatePayload) Validate(_ *http.Request) error {
 // @description Updates an existing GitOps source backed by a Git repository.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Source identifier"

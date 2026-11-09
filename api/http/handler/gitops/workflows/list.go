@@ -22,8 +22,6 @@ import (
 // @description Returns a list of GitOps workflows, each with its aggregated status and the artifacts it contains.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param search      query string  false "Search term (matches workflow name)"
 // @param sort        query string  false "Sort field" Enums(name,status,creationDate,lastSyncDate)

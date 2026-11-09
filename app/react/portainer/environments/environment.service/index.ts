@@ -13,8 +13,6 @@ import {
   EdgeGroupId,
 } from '@/react/portainer/environments/types';
 import { type TagId } from '@/portainer/tags/types';
-import { UserId } from '@/portainer/users/types';
-import { TeamId } from '@/react/portainer/users/teams/types';
 import {
   EdgeStack,
   StatusType as EdgeStackStatusType,
@@ -237,26 +235,6 @@ export async function disassociateEndpoint(id: EnvironmentId) {
 export async function deleteEndpoint(id: EnvironmentId) {
   try {
     await axios.delete(buildUrl(id));
-  } catch (e) {
-    throw parseAxiosError(e as Error);
-  }
-}
-
-export async function updatePoolAccess(
-  id: EnvironmentId,
-  resourcePool: string,
-  usersToAdd: UserId[],
-  teamsToAdd: TeamId[],
-  usersToRemove: UserId[],
-  teamsToRemove: TeamId[]
-) {
-  try {
-    await axios.put<void>(`${buildUrl(id, 'pools')}/${resourcePool}/access`, {
-      usersToAdd,
-      teamsToAdd,
-      usersToRemove,
-      teamsToRemove,
-    });
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

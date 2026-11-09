@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/datastore"
 	dockerdomain "github.com/portainer/portainer/api/docker"
 	dockerclient "github.com/portainer/portainer/api/docker/client"
@@ -37,7 +36,7 @@ func newDashboardAuthTestHandler(t *testing.T) (*Handler, *jwt.Service, *datasto
 	jwtService, err := jwt.NewService("1h", store)
 	require.NoError(t, err)
 
-	bouncer := security.NewRequestBouncer(t.Context(), store, jwtService, apikey.NewAPIKeyService(nil, nil))
+	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	factory := dockerclient.NewClientFactory(nil, nil)
 	authorizationService := authorization.NewService(store)
@@ -59,25 +58,6 @@ func dashboardRequest(t *testing.T, handler *Handler, jwtService *jwt.Service, u
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	return rr
-}
-
-// TestEndpointAuthorization_DeniedUser_Returns403 verifies that the docker /dashboard
-// route rejects users with no access policy for the target environment (R8S-1057).
-func TestEndpointAuthorization_DeniedUser_Returns403(t *testing.T) {
-	handler, jwtService, store := newDashboardAuthTestHandler(t)
-
-	noAccessUser := &portainer.User{
-		Username:                "no-access",
-		Role:                    portainer.StandardUserRole,
-		PortainerAuthorizations: authorization.DefaultPortainerAuthorizations(),
-	}
-	require.NoError(t, store.User().Create(noAccessUser))
-
-	// A standard user with no access policy must be rejected before the dashboard handler
-	// builds a docker client for the environment.
-	rr := dashboardRequest(t, handler, jwtService, noAccessUser)
-
-	assert.Equal(t, http.StatusForbidden, rr.Code)
 }
 
 // TestEndpointAuthorization_AuthorizedUser_NotForbidden verifies that the docker /dashboard

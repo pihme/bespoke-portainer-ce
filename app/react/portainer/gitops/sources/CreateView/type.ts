@@ -3,11 +3,6 @@ import {
   type SourcesGitSourceCreatePayload,
 } from '@api/types.gen';
 
-import {
-  AccessControlFormData,
-  ResourceControlOwnership,
-} from '@/react/portainer/access-control/types';
-
 import { CreateSourcePayload } from './useSourceCreateMutation';
 
 type GitFormValues = {
@@ -28,7 +23,7 @@ type GitFormValues = {
 
 export const FormValueTypes = ['git', 'registry', 'helm'] as const;
 
-export type FormValues = AccessControlFormData & {
+export type FormValues = {
   name: string;
   type: (typeof FormValueTypes)[number];
   git: GitFormValues;
@@ -38,9 +33,6 @@ export function formValuesToCreatePayload({
   name,
   type,
   git: { authentication, tlsSkipVerify, url, polling },
-  authorizedTeams,
-  authorizedUsers,
-  ownership,
 }: FormValues): CreateSourcePayload {
   return {
     type,
@@ -49,10 +41,6 @@ export function formValuesToCreatePayload({
       tlsSkipVerify,
       url,
       authentication: buildAuthPayload(authentication),
-      administratorsOnly: ownership === ResourceControlOwnership.ADMINISTRATORS,
-      public: ownership === ResourceControlOwnership.PUBLIC,
-      teamAccesses: authorizedTeams,
-      userAccesses: authorizedUsers,
       interval: polling.enabled ? polling.interval : '',
     },
   };

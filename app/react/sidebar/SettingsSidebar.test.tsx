@@ -23,7 +23,6 @@ describe('SettingsSidebar', () => {
       select?: (settings: PublicSettingsResponse) => PublicSettingsResponse;
     }) => {
       const settings: PublicSettingsResponse = {
-        TeamSync: false,
         EnableEdgeComputeFeatures: false,
       } as unknown as PublicSettingsResponse;
       return {
@@ -45,15 +44,14 @@ describe('SettingsSidebar', () => {
 
       expect(screen.getByText('Administration')).toBeInTheDocument();
       expect(
-        screen.getByTestId('portainerSidebar-userRelated')
-      ).toBeInTheDocument();
-      expect(
         screen.getByTestId('portainerSidebar-environments-area')
       ).toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-registries')
       ).toBeInTheDocument();
-      expect(screen.getByTestId('k8sSidebar-logs')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('portainerSidebar-activityLogs')
+      ).toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-notifications')
       ).toBeInTheDocument();
@@ -62,12 +60,17 @@ describe('SettingsSidebar', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render user-related submenu items', () => {
+    it('REQ-TAI-001 renders no user-related section', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
-      expect(screen.getByTestId('portainerSidebar-users')).toBeInTheDocument();
-      expect(screen.getByTestId('portainerSidebar-teams')).toBeInTheDocument();
-      expect(screen.getByTestId('portainerSidebar-roles')).toBeInTheDocument();
+      for (const id of [
+        'portainerSidebar-userRelated',
+        'portainerSidebar-users',
+        'portainerSidebar-teams',
+        'portainerSidebar-roles',
+      ]) {
+        expect(screen.queryByTestId(id)).not.toBeInTheDocument();
+      }
     });
 
     it('should render environment-related submenu items', () => {
@@ -88,11 +91,12 @@ describe('SettingsSidebar', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
       expect(
-        screen.getByTestId('portainerSidebar-authLogs')
-      ).toBeInTheDocument();
-      expect(
         screen.getByTestId('portainerSidebar-activityLogs')
       ).toBeInTheDocument();
+      // REQ-TAI-001: no authentication logs
+      expect(
+        screen.queryByTestId('portainerSidebar-authLogs')
+      ).not.toBeInTheDocument();
     });
 
     it('should render settings submenu items', () => {
@@ -101,9 +105,10 @@ describe('SettingsSidebar', () => {
       expect(
         screen.getByTestId('portainerSidebar-generalSettings')
       ).toBeInTheDocument();
+      // REQ-TAI-001: no authentication settings
       expect(
-        screen.getByTestId('portainerSidebar-authentication')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-authentication')
+      ).not.toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-edgeCompute')
       ).toBeInTheDocument();
@@ -139,95 +144,6 @@ describe('SettingsSidebar', () => {
     });
   });
 
-  describe('Team Leader User', () => {
-    it('should render user-related section for team leader when TeamSync is disabled', () => {
-      vi.mocked(usePublicSettings).mockReturnValue({
-        data: false,
-        isLoading: false,
-        isError: false,
-      } as ReturnType<typeof usePublicSettings>);
-
-      renderComponent({
-        isPureAdmin: false,
-        isAdmin: false,
-        isTeamLeader: true,
-      });
-
-      expect(
-        screen.getByTestId('portainerSidebar-userRelated')
-      ).toBeInTheDocument();
-      expect(screen.getByTestId('portainerSidebar-users')).toBeInTheDocument();
-      expect(screen.getByTestId('portainerSidebar-teams')).toBeInTheDocument();
-    });
-
-    it('should not render Roles for team leader', () => {
-      vi.mocked(usePublicSettings).mockReturnValue({
-        data: false,
-        isLoading: false,
-        isError: false,
-      } as ReturnType<typeof usePublicSettings>);
-
-      renderComponent({
-        isPureAdmin: false,
-        isAdmin: false,
-        isTeamLeader: true,
-      });
-
-      expect(
-        screen.queryByTestId('portainerSidebar-roles')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should not render user-related section when TeamSync is enabled', () => {
-      vi.mocked(usePublicSettings).mockReturnValue({
-        data: true,
-        isLoading: false,
-        isError: false,
-      } as ReturnType<typeof usePublicSettings>);
-
-      renderComponent({
-        isPureAdmin: false,
-        isAdmin: false,
-        isTeamLeader: true,
-      });
-
-      expect(
-        screen.queryByTestId('portainerSidebar-userRelated')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should not render admin-only sections for team leader', () => {
-      renderComponent({
-        isPureAdmin: false,
-        isAdmin: false,
-        isTeamLeader: true,
-      });
-
-      expect(
-        screen.queryByTestId('portainerSidebar-environments-area')
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('portainerSidebar-registries')
-      ).not.toBeInTheDocument();
-      expect(screen.queryByTestId('k8sSidebar-logs')).not.toBeInTheDocument();
-      expect(
-        screen.queryByTestId('portainerSidebar-settings')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should render notifications for team leader', () => {
-      renderComponent({
-        isPureAdmin: false,
-        isAdmin: false,
-        isTeamLeader: true,
-      });
-
-      expect(
-        screen.getByTestId('portainerSidebar-notifications')
-      ).toBeInTheDocument();
-    });
-  });
-
   describe('Regular Admin User (not Pure Admin)', () => {
     it('should not render admin-only sections', () => {
       renderComponent({ isPureAdmin: false, isAdmin: true });
@@ -241,7 +157,9 @@ describe('SettingsSidebar', () => {
       expect(
         screen.queryByTestId('portainerSidebar-registries')
       ).not.toBeInTheDocument();
-      expect(screen.queryByTestId('k8sSidebar-logs')).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('portainerSidebar-activityLogs')
+      ).not.toBeInTheDocument();
       expect(
         screen.queryByTestId('portainerSidebar-settings')
       ).not.toBeInTheDocument();
@@ -257,26 +175,6 @@ describe('SettingsSidebar', () => {
   });
 
   describe('DD Extension Environment', () => {
-    it('should not render user-related section when ddExtension is enabled', () => {
-      window.ddExtension = true;
-
-      renderComponent({ isPureAdmin: true, isAdmin: true });
-
-      expect(
-        screen.queryByTestId('portainerSidebar-userRelated')
-      ).not.toBeInTheDocument();
-    });
-
-    it('should not render authentication settings when ddExtension is enabled', () => {
-      window.ddExtension = true;
-
-      renderComponent({ isPureAdmin: true, isAdmin: true });
-
-      expect(
-        screen.queryByTestId('portainerSidebar-authentication')
-      ).not.toBeInTheDocument();
-    });
-
     it('should still render other admin sections when ddExtension is enabled', () => {
       window.ddExtension = true;
 
@@ -300,8 +198,7 @@ describe('SettingsSidebar', () => {
         select?: (settings: PublicSettingsResponse) => PublicSettingsResponse;
       }) => {
         const settings: PublicSettingsResponse = {
-          TeamSync: false,
-          EnableEdgeComputeFeatures: false,
+            EnableEdgeComputeFeatures: false,
         } as unknown as PublicSettingsResponse;
         return {
           data: options?.select ? options.select(settings) : settings,
@@ -322,8 +219,7 @@ describe('SettingsSidebar', () => {
         select?: (settings: PublicSettingsResponse) => PublicSettingsResponse;
       }) => {
         const settings: PublicSettingsResponse = {
-          TeamSync: false,
-          EnableEdgeComputeFeatures: true,
+            EnableEdgeComputeFeatures: true,
         } as unknown as PublicSettingsResponse;
         return {
           data: options?.select ? options.select(settings) : settings,
@@ -370,11 +266,9 @@ describe('SettingsSidebar', () => {
 function renderComponent({
   isPureAdmin,
   isAdmin,
-  isTeamLeader = false,
 }: {
   isPureAdmin: boolean;
   isAdmin: boolean;
-  isTeamLeader?: boolean;
 }) {
   const user = new UserViewModel({ Username: 'user' });
 
@@ -385,7 +279,6 @@ function renderComponent({
       <Wrapped
         isPureAdmin={isPureAdmin}
         isAdmin={isAdmin}
-        isTeamLeader={isTeamLeader}
       />
     </TestSidebarProvider>
   );

@@ -5,7 +5,6 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { StackType } from '@/react/common/stacks/types';
 import { Platform } from '@/react/portainer/templates/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 
 import { FormValues, initialBuildMethods } from './types';
 import { InnerForm } from './InnerForm';
@@ -78,27 +77,6 @@ vi.mock('@/react/portainer/gitops/GitForm', () => ({
     <div data-cy="git-form" data-deploy-method={deployMethod}>
       <button type="button" onClick={() => onChange({ SourceId: 9 })}>
         Set git source {value.SourceId}
-      </button>
-    </div>
-  ),
-}));
-
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: ({
-    values,
-    onChange,
-  }: {
-    values: { ownership: string };
-    onChange: (values: { ownership: string }) => void;
-  }) => (
-    <div data-cy="access-control">
-      <button
-        type="button"
-        onClick={() =>
-          onChange({ ownership: ResourceControlOwnership.PUBLIC })
-        }
-      >
-        Access {values.ownership}
       </button>
     </div>
   ),
@@ -227,11 +205,6 @@ function baseValues(overrides: Partial<FormValues> = {}): FormValues {
       AdditionalFiles: [],
     },
     Variables: [],
-    AccessControl: {
-      ownership: ResourceControlOwnership.ADMINISTRATORS,
-      authorizedUsers: [],
-      authorizedTeams: [],
-    },
     EdgeSettings: undefined,
     ...overrides,
   };
@@ -245,7 +218,6 @@ function renderInner(
     <Formik initialValues={values} onSubmit={vi.fn()} validateOnMount>
       <InnerForm
         isLoading={false}
-        environmentId={1}
         buildMethods={[...initialBuildMethods]}
         {...props}
       />
@@ -271,7 +243,8 @@ describe('REQ-TPL-03 / REQ-TPL-04 InnerForm', () => {
       'data-from-parent',
       'true'
     );
-    expect(screen.getByTestId('access-control')).toBeInTheDocument();
+    // REQ-TAI-001: no ownership section
+    expect(screen.queryByText(/access control/i)).toBeNull();
     expect(
       screen.getByRole('button', { name: /create custom template/i })
     ).toBeInTheDocument();
@@ -345,7 +318,7 @@ describe('REQ-TPL-03 / REQ-TPL-04 InnerForm', () => {
     );
   });
 
-  it('updates platform, type, title, variables and access control', async () => {
+  it('updates platform, type, title and variables', async () => {
     const user = userEvent.setup();
     renderInner();
 
@@ -373,20 +346,12 @@ describe('REQ-TPL-03 / REQ-TPL-04 InnerForm', () => {
     expect(
       screen.getByRole('button', { name: /Add variable \(1\)/i })
     ).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /Access/i }));
-    expect(
-      screen.getByRole('button', {
-        name: new RegExp(`Access ${ResourceControlOwnership.PUBLIC}`),
-      })
-    ).toBeInTheDocument();
   });
 
   it('renders edge settings when EdgeSettings are present', async () => {
     const user = userEvent.setup();
     renderInner(
       baseValues({
-        AccessControl: undefined,
         EdgeSettings: {
           PrePullImage: false,
           RetryDeploy: false,
@@ -397,7 +362,6 @@ describe('REQ-TPL-03 / REQ-TPL-04 InnerForm', () => {
       })
     );
 
-    expect(screen.queryByTestId('access-control')).toBeNull();
     expect(screen.getByTestId('edge-settings')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Edge prepull/i }));
     expect(

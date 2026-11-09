@@ -29,8 +29,6 @@ type Source struct {
 // @description Returns a deduplicated list of git repositories used across all GitOps workflows.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param search query string false "Search term (matches URL)"
 // @param sort   query string false "Sort field: name | status | type"

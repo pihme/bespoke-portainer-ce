@@ -103,8 +103,6 @@ func (payload *edgeStackFromGitRepositoryPayload) Validate(r *http.Request) erro
 // @summary Create an EdgeStack from a git repository
 // @description **Access policy**: administrator
 // @tags edge_stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body edgeStackFromGitRepositoryPayload true "stack config"
 // @param dryrun query string false "if true, will not create an edge stack, but just will check the settings and return a non-persisted edge stack object"

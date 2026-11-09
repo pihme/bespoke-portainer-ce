@@ -3,7 +3,6 @@ import { useRouter } from '@uirouter/react';
 
 import { ContainerInstanceFormValues } from '@/react/azure/types';
 import * as notifications from '@/portainer/services/notifications';
-import { useCurrentUser } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 
 import { validationSchema } from './CreateContainerInstanceForm.validation';
@@ -17,7 +16,6 @@ export function CreateContainerInstanceForm({
   defaultValues?: Partial<ContainerInstanceFormValues>;
 }) {
   const environmentId = useEnvironmentId();
-  const { isPureAdmin } = useCurrentUser();
 
   const { providers, subscriptions, resourceGroups, isLoading } =
     useLoadFormState(environmentId);
@@ -43,7 +41,7 @@ export function CreateContainerInstanceForm({
   return (
     <Formik<ContainerInstanceFormValues>
       initialValues={initialValues}
-      validationSchema={() => validationSchema(isPureAdmin)}
+      validationSchema={() => validationSchema()}
       onSubmit={onSubmit}
       validateOnMount
       validateOnChange
@@ -54,7 +52,6 @@ export function CreateContainerInstanceForm({
           // eslint-disable-next-line react/jsx-props-no-spreading
           {...formikProps}
           subscriptionOptions={subscriptionOptions}
-          environmentId={environmentId}
           resourceGroups={resourceGroups}
           providers={providers}
         />

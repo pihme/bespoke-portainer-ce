@@ -11,6 +11,7 @@ import {
 import { server, http } from '@/setup-tests/server';
 import { Role } from '@/portainer/users/types';
 import { RegistryTypes } from '@/react/portainer/registries/types/registry';
+import { EnvironmentType } from '@/react/portainer/environments/types';
 
 import { EnvironmentRegistriesDatatable } from './EnvironmentRegistriesDatatable';
 
@@ -36,7 +37,9 @@ const mockRegistry = {
 beforeEach(() => {
   server.use(
     http.get('/api/endpoints/1', () =>
-      HttpResponse.json(createMockEnvironment({ Id: 1 }))
+      HttpResponse.json(
+        createMockEnvironment({ Id: 1, Type: EnvironmentType.KubernetesLocal })
+      )
     ),
     http.get('/api/endpoints/1/registries', () =>
       HttpResponse.json([mockRegistry])
@@ -73,6 +76,23 @@ describe('EnvironmentRegistriesDatatable', () => {
 
   it('hides the manage access action from standard users', async () => {
     const TestComponent = createTestComponent(Role.Standard);
+    render(<TestComponent />);
+
+    expect(await screen.findByText('my-registry')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Manage access')).not.toBeInTheDocument();
+    });
+  });
+
+  it('REQ-TAI-001 offers no per-user registry access on a Docker environment', async () => {
+    server.use(
+      http.get('/api/endpoints/1', () =>
+        HttpResponse.json(
+          createMockEnvironment({ Id: 1, Type: EnvironmentType.Docker })
+        )
+      )
+    );
+    const TestComponent = createTestComponent(Role.Admin);
     render(<TestComponent />);
 
     expect(await screen.findByText('my-registry')).toBeInTheDocument();

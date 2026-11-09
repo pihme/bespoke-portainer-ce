@@ -5,8 +5,9 @@ import { vi } from 'vitest';
 
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 
-import { useColumns } from './index';
 import { name } from './name';
+
+import { useColumns } from './index';
 
 vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 1,
@@ -53,7 +54,7 @@ vi.mock('@/react/hooks/useUser', async (importOriginal: () => Promise<object>) =
 });
 
 describe('REQ-VOL-01 volume table columns', () => {
-  it('builds non-swarm columns including name stack driver mount created ownership', () => {
+  it('builds non-swarm columns including name stack driver mount created', () => {
     isSwarmMock.mockReturnValue(false);
     const Wrapper = withTestQueryProvider(({ children }) =>
       createElement(Fragment, null, children)
@@ -72,6 +73,8 @@ describe('REQ-VOL-01 volume table columns', () => {
       ])
     );
     expect(headers).not.toContain('Host');
+    // REQ-TAI-001: no ownership column
+    expect(headers).not.toContain('Ownership');
 
     const mountCol = result.current.find((c) => c.header === 'Mount point') as {
       cell?: (p: never) => unknown;

@@ -7,7 +7,6 @@ import (
 
 	"github.com/pkg/errors"
 	operations "github.com/portainer/portainer/api/backup"
-	"github.com/portainer/portainer/api/http/security/setuptoken"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 )
@@ -21,29 +20,23 @@ type restorePayload struct {
 // @id Restore
 // @summary Triggers a system restore using provided backup file
 // @description Triggers a system restore using provided backup file
-// @description **Access policy**: public (requires the X-Setup-Token header on an uninitialized instance unless --no-setup-token is set)
+// @description Only an instance without environments can be restored.
+// @description **Access policy**: public
 // @tags backup
 // @accept json
-// @param X-Setup-Token header string false "Setup token (required when instance is uninitialized and --no-setup-token is not set)"
 // @param restorePayload body restorePayload true "Restore request payload"
 // @success 200 "Success"
 // @failure 400 "Invalid request"
-// @failure 403 "Access denied - invalid or missing setup token"
 // @failure 500 "Server error"
 // @router /restore [post]
 func (h *Handler) restore(w http.ResponseWriter, r *http.Request) *httperror.HandlerError {
-	if err := setuptoken.Validate(r, h.SetupToken); err != nil {
-		return err
-	}
-
-	initialized, err := h.adminMonitor.WasInitialized()
+	endpoints, err := h.dataStore.Endpoint().Endpoints()
 	if err != nil {
 		return httperror.InternalServerError("Failed to check system initialization", err)
 	}
-	if initialized {
+	if len(endpoints) > 0 {
 		return httperror.BadRequest("Cannot restore already initialized instance", errors.New("system already initialized"))
 	}
-	h.adminMonitor.Stop()
 
 	var payload restorePayload
 	err = decodeForm(r, &payload)

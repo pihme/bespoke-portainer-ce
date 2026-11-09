@@ -2,7 +2,6 @@ import { Formik } from 'formik';
 import { useRouter } from '@uirouter/react';
 
 import { notifySuccess } from '@/portainer/services/notifications';
-import { EnvironmentId } from '@/react/portainer/environments/types';
 import { useEnvironmentDeploymentOptions } from '@/react/portainer/environments/queries/useEnvironment';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { isKubernetesEnvironment } from '@/react/portainer/environments/utils';
@@ -21,14 +20,11 @@ import { InnerForm } from './InnerForm';
 
 export function EditForm({
   template,
-  environmentId,
   viewType,
 }: {
   template: CustomTemplate;
-  environmentId?: EnvironmentId;
   viewType: TemplateViewType;
 }) {
-  const isEdge = template.EdgeTemplate;
   const isGit = !!template.GitConfig;
 
   const router = useRouter();
@@ -46,7 +42,6 @@ export function EditForm({
   const fileContentQuery = useCustomTemplateFile(template.Id);
 
   const initialValues = useInitialValues({
-    isEdge,
     template,
     templateFile: fileContentQuery.data,
   });
@@ -64,7 +59,6 @@ export function EditForm({
     >
       <InnerForm
         isLoading={mutation.isLoading}
-        environmentId={environmentId}
         isEditorReadonly={disableEditor}
         refreshGitFile={fileContentQuery.refetch}
         gitFileContent={fileContentQuery.data}
@@ -91,8 +85,6 @@ export function EditForm({
         Platform: values.Platform,
         Variables: values.Variables,
         EdgeSettings: values.EdgeSettings,
-        AccessControl: values.AccessControl,
-        resourceControlId: template.ResourceControl?.Id,
         ...values.Git,
       },
       {

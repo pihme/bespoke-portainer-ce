@@ -15,8 +15,6 @@ import (
 // @description List all agent versions based on the current user authorizations and query parameters.
 // @description **Access policy**: restricted
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {array} string "List of available agent versions"
 // @failure 500 "Server error"

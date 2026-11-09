@@ -20,16 +20,6 @@ vi.mock('@/portainer/services/notifications', () => ({
 vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 3,
 }));
-vi.mock('@/react/hooks/useUser', () => ({
-  useCurrentUser: () => ({ user: { Id: 1 } }),
-  useIsEdgeAdmin: () => ({ isAdmin: true, isLoading: false }),
-}));
-vi.mock('@/react/portainer/access-control/utils', () => ({
-  parseAccessControlFormData: () => ({ AccessControlEnabled: false }),
-}));
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: () => <div>access-control</div>,
-}));
 vi.mock('@/react/docker/stacks/common/NameField', () => ({
   NameField: ({
     value,
@@ -102,7 +92,8 @@ describe('REQ-TPL-01 StackDeployForm for compose templates', () => {
 
     expect(screen.getByLabelText('Name')).toHaveValue('stack');
     expect(screen.getByText('env-vars')).toBeVisible();
-    expect(screen.getByText('access-control')).toBeVisible();
+    // REQ-TAI-001: no ownership section
+    expect(screen.queryByText(/access control/i)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Hide' }));
     expect(unselect).toHaveBeenCalled();

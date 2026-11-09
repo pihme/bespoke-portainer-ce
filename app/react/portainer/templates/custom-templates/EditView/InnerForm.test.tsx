@@ -25,9 +25,6 @@ vi.mock('@/react/portainer/custom-templates/components/CustomTemplatesVariablesD
 vi.mock('@/react/portainer/gitops/GitForm', () => ({
   GitForm: () => <div>git-form</div>,
 }));
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlForm: () => <div>access-control</div>,
-}));
 vi.mock('@/react/portainer/templates/custom-templates/CreateView/EdgeSettingsFieldset', () => ({
   EdgeSettingsFieldset: () => <div>edge-settings</div>,
 }));
@@ -99,7 +96,7 @@ describe('REQ-TPL-03 InnerForm for local Compose edit', () => {
   it('renders compose editor fields without Kubernetes/edge arms', () => {
     render(
       <Formik initialValues={baseValues} onSubmit={vi.fn()}>
-        <InnerForm isLoading={false} environmentId={1} isEditorReadonly={false} />
+        <InnerForm isLoading={false} isEditorReadonly={false} />
       </Formik>
     );
     expect(screen.getByText('common-fields')).toBeVisible();
@@ -151,22 +148,12 @@ describe('REQ-TPL-03 InnerForm for local Compose edit', () => {
     expect(screen.queryByText('type')).toBeNull();
   });
 
-  it('renders access control when present', () => {
+  it('REQ-TAI-001 renders no access control section', () => {
     render(
-      <Formik
-        initialValues={{
-          ...baseValues,
-          AccessControl: {
-            ownership: 'administrators',
-            authorizedUsers: [],
-            authorizedTeams: [],
-          },
-        }}
-        onSubmit={vi.fn()}
-      >
-        <InnerForm isLoading={false} environmentId={1} isEditorReadonly={false} />
+      <Formik initialValues={baseValues} onSubmit={vi.fn()}>
+        <InnerForm isLoading={false} isEditorReadonly={false} />
       </Formik>
     );
-    expect(screen.getByText('access-control')).toBeVisible();
+    expect(screen.queryByText(/access control/i)).toBeNull();
   });
 });

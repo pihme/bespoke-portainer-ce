@@ -51,7 +51,6 @@ export function CreateForm({
     >
       <InnerForm
         isLoading={mutation.isLoading}
-        environmentId={environmentId}
         buildMethods={buildMethods}
       />
     </Formik>

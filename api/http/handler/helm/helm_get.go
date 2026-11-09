@@ -15,7 +15,6 @@ import (
 // @description Get details of a helm release by release name
 // @description **Access policy**: authenticated
 // @tags helm
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param release path string true "Helm release name"

@@ -20,10 +20,6 @@ vi.mock('angular', () => ({
   module: angularMock.module,
 }));
 
-vi.mock('@/react/docker/components/datatable/createOwnershipColumn', () => ({
-  ownershipIcon: () => 'fa-user',
-}));
-
 vi.mock('@/react/common/string-utils', () => ({
   stripProtocol: (v) => v,
 }));
@@ -48,7 +44,6 @@ describe('portainer.app filter registration', () => {
       'arraytostr',
       'labelsToStr',
       'endpointtypename',
-      'ownershipicon',
     ];
     expect(Object.keys(filterFns).sort()).toEqual(names.sort());
     for (const name of names) {

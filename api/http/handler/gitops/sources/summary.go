@@ -14,8 +14,6 @@ import (
 // @description Returns a count of sources per status.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} ce.StatusSummary
 // @failure 403 "Access denied"

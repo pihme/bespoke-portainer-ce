@@ -23,7 +23,6 @@ type containerGpusResponse struct {
 // @description
 // @description **Access policy**:
 // @tags docker
-// @security jwt
 // @accept json
 // @produce json
 // @param environmentId path int true "Environment identifier"

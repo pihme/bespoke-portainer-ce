@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/testhelpers"
@@ -58,8 +57,7 @@ func setupSystemHandler(t *testing.T, platform plf.Service) (*Handler, *datastor
 
 	jwtService, err := jwt.NewService("1h", store)
 	require.NoError(t, err)
-	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	bouncer := security.NewRequestBouncer(t.Context(), store, jwtService, apiKeyService)
+	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	status := &portainer.Status{Version: portainer.APIVersion}
 	h := NewHandler(bouncer, status, store, platform, nil)
@@ -120,7 +118,9 @@ func TestREQ_ENV_02_SystemVersion_AdminIncludesRuntime(t *testing.T) {
 		assert.NotNil(t, resp.Runtime.Env)
 	})
 
-	t.Run("standard user omits runtime details", func(t *testing.T) {
+	// REQ-TAI-001: there are no roles; a leftover standard-user cookie is
+	// ignored and the request is served as the local operator.
+	t.Run("REQ-TAI-001 leftover standard-user cookie is served as the local operator", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/system/version", nil)
 		testhelpers.AddTestSecurityCookie(req, userJWT)
 		rr := httptest.NewRecorder()
@@ -130,7 +130,7 @@ func TestREQ_ENV_02_SystemVersion_AdminIncludesRuntime(t *testing.T) {
 		var resp versionResponse
 		require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 		assert.Equal(t, "CE", resp.ServerEdition)
-		assert.Nil(t, resp.Runtime.Env)
+		assert.NotNil(t, resp.Runtime.Env)
 	})
 }
 
@@ -164,7 +164,7 @@ func TestREQ_ENV_02_SystemInfo_CountsLocalAgentsAndPlatform(t *testing.T) {
 	require.Equal(t, http.StatusOK, rr.Code)
 	var resp systemInfoResponse
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
-	assert.Equal(t, 2, resp.Agents)  // agent + edge agent types
+	assert.Equal(t, 2, resp.Agents) // agent + edge agent types
 	assert.Equal(t, 1, resp.EdgeAgents)
 	assert.Equal(t, plf.PlatformDockerStandalone, resp.Platform)
 }
@@ -260,4 +260,3 @@ func TestGetLatestVersion_ExternalRequestDisabled(t *testing.T) {
 
 	assert.Empty(t, GetLatestVersion())
 }
-

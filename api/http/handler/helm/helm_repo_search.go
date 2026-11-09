@@ -22,8 +22,6 @@ import (
 // @param repo query string true "Helm repository URL"
 // @param chart query string false "Helm chart name"
 // @param useCache query string false "If true will use cache to search"
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} string "Success"
 // @failure 400 "Bad request"

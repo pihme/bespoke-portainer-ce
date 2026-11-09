@@ -18,25 +18,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestWebsocketAttach_deniesUnauthorizedEndpoint asserts a non-admin with no access policy on
-// the environment is rejected with 403 — the environment-access (L2) gate (BE-13027).
-func TestWebsocketAttach_deniesUnauthorizedEndpoint(t *testing.T) {
+// TestREQ_TAI_001_WebsocketAttach_NoPerUserEnvironmentGate asserts that a
+// request with no environment access policy is not refused: per-user and
+// per-team environment access is removed (TAI-001, REQ-USR-07).
+func TestREQ_TAI_001_WebsocketAttach_NoPerUserEnvironmentGate(t *testing.T) {
 	handler, _ := newWebsocketTestHandler(t)
 
-	user := &portainer.User{Username: "restricted", Role: portainer.StandardUserRole}
+	user := &portainer.User{Username: "legacy", Role: portainer.StandardUserRole}
 	err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		return tx.User().Create(user)
 	})
 	require.NoError(t, err)
 
-	// attach requires a hexadecimal `id` query parameter to reach the authorization check.
 	req := httptest.NewRequest(http.MethodGet, "/websocket/attach?id=abcdef&endpointId=2", nil)
 	req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
 
 	handlerErr := handler.websocketAttach(httptest.NewRecorder(), req)
 
-	require.NotNil(t, handlerErr, "expected an authorization error for a denied environment")
-	assert.Equal(t, http.StatusForbidden, handlerErr.StatusCode)
+	if handlerErr != nil {
+		assert.NotEqual(t, http.StatusForbidden, handlerErr.StatusCode)
+	}
 }
 
 func TestREQ_CTR_12_WebsocketAttach_RejectsInvalidQuery(t *testing.T) {
@@ -140,7 +141,7 @@ func newLocalDockerWebsocketTestHandler(t *testing.T, dockerURL string) (*Handle
 	}
 	require.NoError(t, store.Endpoint().Create(endpoint))
 
-	bouncer := security.NewRequestBouncer(t.Context(), store, nil, nil)
+	bouncer := security.NewRequestBouncer(t.Context(), store)
 	handler := &Handler{
 		DataStore:          store,
 		requestBouncer:     bouncer,

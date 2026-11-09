@@ -16,7 +16,6 @@ import (
 // @description Get a ConfigMap by name for a given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name where the configmap is located"
@@ -77,7 +76,6 @@ func (handler *Handler) getKubernetesConfigMap(w http.ResponseWriter, r *http.Re
 // @description Get a list of ConfigMaps across all namespaces in the cluster. For non-admin users, it will only return ConfigMaps based on the namespaces that they have access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param isUsed query bool true "Set to true to include information about applications that use the ConfigMaps in the response"
@@ -102,7 +100,6 @@ func (handler *Handler) GetAllKubernetesConfigMaps(w http.ResponseWriter, r *htt
 // @description Get the count of ConfigMaps across all namespaces in the cluster. For non-admin users, it will only return the count of ConfigMaps based on the namespaces that they have access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -127,7 +124,6 @@ func (handler *Handler) getAllKubernetesConfigMapsCount(w http.ResponseWriter, r
 // @description created ConfigMap's metadata only, not its data.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -174,7 +170,6 @@ func (handler *Handler) createKubernetesConfigMap(w http.ResponseWriter, r *http
 // @description The response carries the updated ConfigMap's metadata only.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -231,7 +226,6 @@ func (handler *Handler) updateKubernetesConfigMap(w http.ResponseWriter, r *http
 // @description Delete a ConfigMap in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "The namespace name where the configmap is located"

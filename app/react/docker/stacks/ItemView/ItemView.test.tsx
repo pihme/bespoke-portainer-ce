@@ -83,12 +83,6 @@ vi.mock('./StackServicesDatatable', () => ({
   ),
 }));
 
-vi.mock('@/react/portainer/access-control', () => ({
-  AccessControlPanel: ({ resourceId }: { resourceId: string }) => (
-    <div data-cy="access-control-stub" data-resource-id={resourceId} />
-  ),
-}));
-
 vi.mock('./useUpdateStackResourcesOnDeployment', () => ({
   useUpdateStackResourcesOnDeployment: vi.fn(),
 }));
@@ -135,10 +129,8 @@ describe('REQ-STK-04 ItemView', () => {
       'compose-stack'
     );
     expect(screen.queryByTestId('stack-services-stub')).not.toBeInTheDocument();
-    expect(screen.getByTestId('access-control-stub')).toHaveAttribute(
-      'data-resource-id',
-      '1_compose-stack'
-    );
+    // REQ-TAI-001: no ownership panel
+    expect(screen.queryByText('Access control')).not.toBeInTheDocument();
   });
 
   it('shows swarm services instead of containers for a swarm stack type', async () => {
@@ -161,7 +153,7 @@ describe('REQ-STK-04 ItemView', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('hides containers and access control for an orphaned non-running stack', async () => {
+  it('hides containers for an orphaned non-running stack', async () => {
     routeParams.orphaned = 'true';
     routeParams.regular = 'false';
     routeParams.orphanedRunning = 'false';
@@ -179,7 +171,6 @@ describe('REQ-STK-04 ItemView', () => {
     expect(
       screen.queryByTestId('stack-containers-stub')
     ).not.toBeInTheDocument();
-    expect(screen.queryByTestId('access-control-stub')).not.toBeInTheDocument();
   });
 
   it('notifies on an invalid external stack type', async () => {

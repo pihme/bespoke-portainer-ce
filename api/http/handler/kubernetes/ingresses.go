@@ -21,7 +21,6 @@ import (
 // @description Get a list of ingress controllers for the given environment. If the allowedOnly query parameter is set, only ingress controllers that are allowed by the environment's ingress configuration will be returned.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param allowedOnly query boolean false "Only return allowed ingress controllers"
@@ -137,7 +136,6 @@ func (handler *Handler) getAllKubernetesIngressControllers(w http.ResponseWriter
 // @description Get a list of ingress controllers for the given environment in the provided namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace"
@@ -260,7 +258,6 @@ func (handler *Handler) getKubernetesIngressControllersByNamespace(w http.Respon
 // @description Update (block/unblock) ingress controllers for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -375,7 +372,6 @@ func (handler *Handler) updateKubernetesIngressControllers(w http.ResponseWriter
 // @description Update (block/unblock) ingress controllers by namespace for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -492,7 +488,6 @@ func (handler *Handler) updateKubernetesIngressControllersByNamespace(w http.Res
 // @description Get kubernetes ingresses at the cluster level for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param withServices query boolean false "Lookup services associated with each ingress"
@@ -517,7 +512,6 @@ func (handler *Handler) GetAllKubernetesClusterIngresses(w http.ResponseWriter, 
 // @description Get the number of kubernetes ingresses within the given environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {integer} integer "Success"
@@ -583,7 +577,6 @@ func (handler *Handler) getKubernetesClusterIngresses(r *http.Request) ([]models
 // @description Get a list of Ingresses. If namespace is provided, it will return the list of Ingresses in that namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace name"
@@ -625,7 +618,6 @@ func (handler *Handler) getKubernetesIngresses(w http.ResponseWriter, r *http.Re
 // @description Get an Ingress by name for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace name"
@@ -679,7 +671,6 @@ func (handler *Handler) getKubernetesIngress(w http.ResponseWriter, r *http.Requ
 // @description Create an Ingress for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -742,7 +733,6 @@ func (handler *Handler) createKubernetesIngress(w http.ResponseWriter, r *http.R
 // @description Delete one or more Ingresses in the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"
@@ -791,7 +781,6 @@ func (handler *Handler) deleteKubernetesIngresses(w http.ResponseWriter, r *http
 // @description Update an Ingress for the provided environment.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment identifier"

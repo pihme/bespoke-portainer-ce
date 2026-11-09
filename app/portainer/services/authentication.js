@@ -1,32 +1,22 @@
 import { hasAuthorizations as useUserHasAuthorization } from '@/react/hooks/useUser';
 import { getCurrentUser } from '../users/queries/useLoadCurrentUser';
 import * as userHelpers from '../users/user.helpers';
-import { clear as clearSessionStorage } from './session-storage';
-const DEFAULT_USER = 'admin';
-const DEFAULT_PASSWORD = 'K7yJPP5qNK4hf1QsRnfV';
 
+// Login and user management are removed (TAI-001): the UI always acts as the
+// local operator returned by GET /api/users/me. There is no login or logout.
 angular.module('portainer.app').factory('Authentication', [
   '$async',
   '$state',
-  'Auth',
-  'OAuth',
   'LocalStorage',
-  'StateManager',
   'EndpointProvider',
   'ThemeManager',
-  function AuthenticationFactory($async, $state, Auth, OAuth, LocalStorage, StateManager, EndpointProvider, ThemeManager) {
+  function AuthenticationFactory($async, $state, LocalStorage, EndpointProvider, ThemeManager) {
     'use strict';
 
     var user = {};
-    if (process.env.NODE_ENV === 'development') {
-      window.login = loginAsync;
-    }
 
     return {
       init,
-      OAuthLogin,
-      login,
-      logout,
       isAuthenticated,
       getUserDetails,
       isAdmin,
@@ -37,57 +27,16 @@ angular.module('portainer.app').factory('Authentication', [
     };
 
     async function initAsync() {
-      try {
-        const userId = LocalStorage.getUserId();
-        if (userId && user.ID === userId) {
-          return true;
-        }
-        await tryAutoLoginExtension();
-        await loadUserData();
+      const userId = LocalStorage.getUserId();
+      if (userId && user.ID === userId) {
         return true;
-      } catch (error) {
-        return tryAutoLoginExtension();
       }
-    }
-
-    async function logoutAsync() {
-      if (isAuthenticated()) {
-        await Auth.logout().$promise;
-      }
-
-      clearSessionStorage();
-      StateManager.clean();
-      EndpointProvider.clean();
-      LocalStorage.cleanAuthData();
-      LocalStorage.storeLoginStateUUID('');
-      tryAutoLoginExtension();
-      cleanUserData();
-    }
-
-    function logout() {
-      return $async(logoutAsync);
+      await loadUserData();
+      return true;
     }
 
     function init() {
       return $async(initAsync);
-    }
-
-    async function OAuthLoginAsync(code) {
-      await OAuth.validate({ code: code }).$promise;
-      await loadUserData();
-    }
-
-    function OAuthLogin(code) {
-      return $async(OAuthLoginAsync, code);
-    }
-
-    async function loginAsync(username, password) {
-      await Auth.login({ username: username, password: password }).$promise;
-      await loadUserData();
-    }
-
-    function login(username, password) {
-      return $async(loginAsync, username, password);
     }
 
     function isAuthenticated() {
@@ -98,16 +47,11 @@ angular.module('portainer.app').factory('Authentication', [
       return user;
     }
 
-    function cleanUserData() {
-      user = {};
-    }
-
     async function loadUserData() {
       const userData = await getCurrentUser();
       user.username = userData.Username;
       user.ID = userData.Id;
       user.role = userData.Role;
-      user.forceChangePassword = userData.forceChangePassword;
       user.endpointAuthorizations = userData.EndpointAuthorizations;
       user.portainerAuthorizations = userData.PortainerAuthorizations;
 
@@ -120,14 +64,6 @@ angular.module('portainer.app').factory('Authentication', [
       }
 
       LocalStorage.storeUserId(userData.Id);
-    }
-
-    function tryAutoLoginExtension() {
-      if (!window.ddExtension) {
-        return false;
-      }
-
-      return login(DEFAULT_USER, DEFAULT_PASSWORD);
     }
 
     // To avoid creating divergence between CE and EE

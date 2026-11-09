@@ -57,25 +57,16 @@ describe('REQ-SET-01 LocalStorage UI and endpoint state', () => {
     expect(localStorageService.remove).toHaveBeenCalledWith('ENDPOINT_STATE');
   });
 
-  it('stores login UUID, user id and logout reason', () => {
+  it('stores the local operator id and has no login/logout bookkeeping', () => {
     const { service, localStorageService, store } = buildService();
-    service.storeLoginStateUUID('uuid');
     service.storeUserId(7);
-    expect(service.getLoginStateUUID()).toBe('uuid');
     expect(service.getUserId()).toBe(7);
     service.deleteUserId();
     expect(localStorageService.remove).toHaveBeenCalledWith('USER_ID');
-    service.storeLogoutReason('AdminInitTimeout');
-    expect(service.getLogoutReason()).toBe('AdminInitTimeout');
-    service.cleanLogoutReason();
-    expect(localStorageService.remove).toHaveBeenCalledWith('logout_reason');
-    service.cleanAuthData();
-    expect(localStorageService.remove).toHaveBeenCalledWith(
-      'USER_ID',
-      'APPLICATION_STATE',
-      'LOGIN_STATE_UUID',
-      'ALLOWED_NAMESPACES'
-    );
+    // REQ-TAI-001
+    expect(service.storeLoginStateUUID).toBeUndefined();
+    expect(service.storeLogoutReason).toBeUndefined();
+    expect(service.cleanAuthData).toBeUndefined();
     service.clean();
     expect(localStorageService.clearAll).toHaveBeenCalled();
     void store;

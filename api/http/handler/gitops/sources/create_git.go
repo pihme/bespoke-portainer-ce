@@ -55,8 +55,6 @@ func (payload *GitSourceCreatePayload) Validate(_ *http.Request) error {
 // @description Creates a new GitOps source backed by a Git repository.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body GitSourceCreatePayload true "Git source details"

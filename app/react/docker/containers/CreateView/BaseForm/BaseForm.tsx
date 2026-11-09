@@ -2,8 +2,6 @@ import { useFormikContext } from 'formik';
 
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { Authorized } from '@/react/hooks/useUser';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
 import { EnvironmentType } from '@/react/portainer/environments/types';
 import { NodeSelector } from '@/react/docker/agent/NodeSelector';
 import { useIsSwarm } from '@/react/docker/proxy/queries/useInfo';
@@ -30,7 +28,6 @@ export interface Values {
   image: ImageConfigValues;
   alwaysPull: boolean;
   ports: PortMappingValue;
-  accessControl: AccessControlFormData;
   nodeName: string;
   autoRemove: boolean;
 }
@@ -163,15 +160,6 @@ export function BaseForm({
             />
           </FormSection>
         )}
-
-        <AccessControlForm
-          onChange={(accessControl) =>
-            setFieldValue('accessControl', accessControl)
-          }
-          errors={errors?.accessControl}
-          values={values.accessControl}
-          environmentId={environment.Id}
-        />
 
         <div className="form-group">
           <div className="col-sm-12">

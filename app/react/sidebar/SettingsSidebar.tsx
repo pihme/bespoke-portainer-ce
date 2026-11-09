@@ -1,5 +1,4 @@
 import {
-  Users,
   Award,
   Settings,
   HardDrive,
@@ -18,56 +17,11 @@ import { SidebarParent } from './SidebarItem/SidebarParent';
 interface Props {
   isPureAdmin: boolean;
   isAdmin: boolean;
-  isTeamLeader?: boolean;
 }
 
-export function SettingsSidebar({
-  isPureAdmin,
-  isAdmin,
-  isTeamLeader = false,
-}: Props) {
-  const teamSyncQuery = usePublicSettings<boolean>({
-    select: (settings) => settings.TeamSync,
-  });
-
-  const isPureAdminOrTeamLeader =
-    isPureAdmin || (isTeamLeader && !teamSyncQuery.data && !isAdmin);
-  const showUsersSection = !window.ddExtension && isPureAdminOrTeamLeader;
-
+export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
   return (
     <SidebarSection title="Administration">
-      {showUsersSection && (
-        <SidebarParent
-          label="User-related"
-          icon={Users}
-          to="portainer.users"
-          pathOptions={{ includePaths: ['portainer.teams', 'portainer.roles'] }}
-          data-cy="portainerSidebar-userRelated"
-          listId="portainerSidebar-userRelated"
-        >
-          <SidebarItem
-            to="portainer.users"
-            label="Users"
-            isSubMenu
-            data-cy="portainerSidebar-users"
-          />
-          <SidebarItem
-            to="portainer.teams"
-            label="Teams"
-            isSubMenu
-            data-cy="portainerSidebar-teams"
-          />
-
-          {isPureAdmin && (
-            <SidebarItem
-              to="portainer.roles"
-              label="Roles"
-              isSubMenu
-              data-cy="portainerSidebar-roles"
-            />
-          )}
-        </SidebarParent>
-      )}
       {isPureAdmin && (
         <>
           <SidebarParent
@@ -123,29 +77,12 @@ export function SettingsSidebar({
             />
           )}
 
-          <SidebarParent
-            label="Logs"
-            to="portainer.authLogs"
+          <SidebarItem
+            to="portainer.activityLogs"
+            label="Activity logs"
             icon={FileText}
-            pathOptions={{
-              includePaths: ['portainer.activityLogs'],
-            }}
-            data-cy="k8sSidebar-logs"
-            listId="k8sSidebar-logs"
-          >
-            <SidebarItem
-              label="Authentication"
-              to="portainer.authLogs"
-              isSubMenu
-              data-cy="portainerSidebar-authLogs"
-            />
-            <SidebarItem
-              to="portainer.activityLogs"
-              label="Activity"
-              isSubMenu
-              data-cy="portainerSidebar-activityLogs"
-            />
-          </SidebarParent>
+            data-cy="portainerSidebar-activityLogs"
+          />
         </>
       )}
       {isBE && !isPureAdmin && isAdmin && (
@@ -179,20 +116,11 @@ export function SettingsSidebar({
             label="General"
             isSubMenu
             ignorePaths={[
-              'portainer.settings.authentication',
               'portainer.settings.sharedcredentials',
               'portainer.settings.edgeCompute',
             ]}
             data-cy="portainerSidebar-generalSettings"
           />
-          {!window.ddExtension && (
-            <SidebarItem
-              to="portainer.settings.authentication"
-              label="Authentication"
-              isSubMenu
-              data-cy="portainerSidebar-authentication"
-            />
-          )}
           {isBE && (
             <SidebarItem
               to="portainer.settings.sharedcredentials"

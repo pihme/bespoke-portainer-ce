@@ -6,14 +6,12 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/edge/edgestacks"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/roar"
 
 	"github.com/pkg/errors"
@@ -26,21 +24,14 @@ func setupHandler(t *testing.T) (*Handler, string) {
 
 	_, store := datastore.MustNewTestStore(t, true, true)
 
-	jwtService, err := jwt.NewService("1h", store)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	user := &portainer.User{ID: 2, Username: "admin", Role: portainer.AdministratorRole}
 	if err := store.User().Create(user); err != nil {
 		t.Fatal(err)
 	}
 
-	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	rawAPIKey, _, err := apiKeyService.GenerateApiKey(*user, "test")
-	if err != nil {
-		t.Fatal(err)
-	}
+	// API keys are gone (TAI-001); requests run as the local operator and
+	// the header the tests still send is ignored.
+	rawAPIKey := "ignored"
 
 	fs, err := filesystem.NewService(t.TempDir(), "")
 	if err != nil {
@@ -48,7 +39,7 @@ func setupHandler(t *testing.T) (*Handler, string) {
 	}
 
 	handler := NewHandler(
-		security.NewRequestBouncer(t.Context(), store, jwtService, apiKeyService),
+		security.NewRequestBouncer(t.Context(), store),
 		store,
 		edgestacks.NewService(store, fs),
 	)

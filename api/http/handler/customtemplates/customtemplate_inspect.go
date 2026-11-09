@@ -21,8 +21,6 @@ import (
 // @description Retrieve details about a template.
 // @description **Access policy**: authenticated
 // @tags custom_templates
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Template identifier"
 // @success 200 {object} portainer.CustomTemplate "Success"

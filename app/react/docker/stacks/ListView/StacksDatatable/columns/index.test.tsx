@@ -5,10 +5,6 @@ import { createMockStack } from '@/react-tools/test-mocks';
 import { StackType } from '@/react/common/stacks/types';
 import { StackViewModel } from '@/react/docker/stacks/view-models/stack';
 
-vi.mock('@/react/docker/components/datatable/createOwnershipColumn', () => ({
-  createOwnershipColumn: () => ({ id: 'ownership', header: 'Ownership' }),
-}));
-
 import { useColumns } from './index';
 
 function Probe({
@@ -38,10 +34,11 @@ describe('stacks datatable useColumns', () => {
         'control',
         'creationDate',
         'updateDate',
-        'ownership',
       ])
     );
     expect(ids).not.toContain('imageNotification');
+    // REQ-TAI-001: no ownership column
+    expect(ids).not.toContain('ownership');
   });
 
   it('includes the image notification column when enabled', () => {

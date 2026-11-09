@@ -1,21 +1,15 @@
-import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
-
 angular.module('portainer.docker').controller('CreateSecretController', [
   '$scope',
   '$state',
   'Notifications',
   'SecretService',
   'LabelHelper',
-  'Authentication',
-  'ResourceControlService',
-  'FormValidator',
-  function ($scope, $state, Notifications, SecretService, LabelHelper, Authentication, ResourceControlService, FormValidator) {
+  function ($scope, $state, Notifications, SecretService, LabelHelper) {
     $scope.formValues = {
       Name: '',
       Data: '',
       Labels: [],
       encodeSecret: true,
-      AccessControlData: new AccessControlFormData(),
     };
 
     $scope.state = {
@@ -59,34 +53,10 @@ angular.module('portainer.docker').controller('CreateSecretController', [
       return config;
     }
 
-    function validateForm(accessControlData, isAdmin) {
-      $scope.state.formValidationError = '';
-      var error = FormValidator.validateAccessControl(accessControlData, isAdmin);
-
-      if (error) {
-        $scope.state.formValidationError = error;
-        return false;
-      }
-      return true;
-    }
-
     $scope.create = function () {
-      const accessControlData = $scope.formValues.AccessControlData;
-      const userDetails = Authentication.getUserDetails();
-      const isAdmin = Authentication.isAdmin();
-
-      if (!validateForm(accessControlData, isAdmin)) {
-        return;
-      }
-
       $scope.state.actionInProgress = true;
       var secretConfiguration = prepareConfiguration();
       SecretService.create(secretConfiguration)
-        .then(function success(data) {
-          const userId = userDetails.ID;
-          const resourceControl = data.Portainer.ResourceControl;
-          return ResourceControlService.applyResourceControl(userId, accessControlData, resourceControl);
-        })
         .then(function success() {
           Notifications.success('Success', 'Secret successfully created');
           $state.go('docker.secrets', {}, { reload: true });

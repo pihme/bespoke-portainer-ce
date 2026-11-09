@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-
 import { RestartPolicy } from './RestartPolicyTab/types';
 import { toRequest } from './toRequest';
 import { Values } from './useInitialValues';
@@ -14,11 +12,6 @@ function buildValues(overrides: Partial<Values> = {}): Values {
     image: { image: 'nginx', registryId: 0, useRegistry: false },
     alwaysPull: true,
     ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' }],
-    accessControl: {
-      ownership: ResourceControlOwnership.ADMINISTRATORS,
-      authorizedUsers: [],
-      authorizedTeams: [],
-    },
     nodeName: '',
     autoRemove: false,
     commands: {

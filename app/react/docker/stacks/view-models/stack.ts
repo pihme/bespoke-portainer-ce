@@ -8,9 +8,8 @@ import {
 
 import { EnvVar } from '@@/form-components/EnvironmentVariablesFieldset/types';
 
-import { IResource } from '../../components/datatable/createOwnershipColumn';
 
-export class StackViewModel implements IResource {
+export class StackViewModel {
   Id: number;
 
   Type: StackType;

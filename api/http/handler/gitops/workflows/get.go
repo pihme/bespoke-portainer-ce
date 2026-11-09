@@ -19,8 +19,6 @@ import (
 // @description stack or edge stack artifact.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Workflow identifier"
 // @success 200 {object} svc.Workflow

@@ -3,10 +3,7 @@ import { useMemo } from 'react';
 
 import { useIsSwarm } from '@/react/docker/proxy/queries/useInfo';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { createOwnershipColumn } from '@/react/docker/components/datatable/createOwnershipColumn';
 import { isoDate, truncateLeftRight } from '@/portainer/filters/filters';
-
-import { DecoratedVolume } from '../../types';
 
 import { columnHelper } from './helper';
 import { name } from './name';
@@ -41,7 +38,6 @@ export function useColumns() {
           columnHelper.accessor((item) => item.NodeName || '-', {
             header: 'Host',
           }),
-        createOwnershipColumn<DecoratedVolume>(),
       ]),
     [isSwarm]
   );

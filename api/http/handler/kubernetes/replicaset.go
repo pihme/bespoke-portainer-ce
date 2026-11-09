@@ -22,7 +22,6 @@ type KubernetesReplicaSetListResponse appsv1.ReplicaSetList
 // @description revisions view. The response uses the Kubernetes list shape ({items: [...]}).
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @param namespace path string true "Namespace"

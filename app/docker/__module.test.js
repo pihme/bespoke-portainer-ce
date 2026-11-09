@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PortainerEndpointTypes } from '@/portainer/models/endpoint/models';
-import { AccessHeaders } from '@/portainer/authorization-guard';
 import { EnvironmentStatus } from '@/react/portainer/environments/types';
 
 const { moduleApi, angularMock, registeredStates, configFns, moduleRegistrations } = vi.hoisted(() => {
@@ -231,7 +230,7 @@ describe('Docker Angular module wiring', () => {
     });
   });
 
-  it('registers host feature-config and registry access states with admin access headers', () => {
+  it('registers host feature-config and registry states', () => {
     expect(stateByName('docker.host.featuresConfiguration')).toMatchObject({
       url: '/feat-config',
       views: { 'content@': { component: 'dockerFeaturesConfigurationView' } },
@@ -241,11 +240,10 @@ describe('Docker Angular module wiring', () => {
       url: '/registries',
       views: { 'content@': { component: 'environmentRegistriesView' } },
     });
-    expect(stateByName('docker.host.registries.access')).toMatchObject({
-      url: '/:id/access',
-      views: { 'content@': { component: 'dockerRegistryAccessView' } },
-      data: { access: AccessHeaders.Admin },
-    });
+    // REQ-TAI-001: per-user/team registry access is gone
+    const names = registeredStates.map((s) => s.name);
+    expect(names).not.toContain('docker.host.registries.access');
+    expect(names).not.toContain('docker.swarm.registries.access');
   });
 });
 
@@ -340,7 +338,7 @@ describe('REQ-HOST-01 Docker environment onEnter gate', () => {
       SystemService: {
         ping: vi.fn().mockImplementation(async () => {
           // Reject without a value so checkEndpointStatus returns { status: Down, error: undefined }
-          // eslint-disable-next-line prefer-promise-reject-errors
+           
           return Promise.reject();
         }),
       },

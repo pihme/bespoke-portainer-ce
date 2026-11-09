@@ -68,8 +68,6 @@ func (payload *repositoryFilePreviewPayload) Validate(r *http.Request) error {
 // @description Retrieve the compose file content based on git repository configuration
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body repositoryFilePreviewPayload true "Template details"
 // @success 200 {object} fileResponse "Success"

@@ -1,9 +1,6 @@
 import _ from 'lodash';
 import { useMemo } from 'react';
 
-import { createOwnershipColumn } from '@/react/docker/components/datatable/createOwnershipColumn';
-import { ContainerListViewModel } from '@/react/docker/containers/types';
-
 import { created } from './created';
 import { host } from './host';
 import { image } from './image';
@@ -32,7 +29,6 @@ export function useColumns(
         isHostColumnVisible && host,
         isGPUsColumnVisible && gpus,
         ports,
-        createOwnershipColumn<ContainerListViewModel>(),
       ]),
     [isHostColumnVisible, isGPUsColumnVisible]
   );

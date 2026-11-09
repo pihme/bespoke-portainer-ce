@@ -20,7 +20,6 @@ const { moduleApi, angularMock, directiveDefs } = vi.hoisted(() => {
 
 vi.mock('angular', () => ({ default: angularMock, module: angularMock.module }));
 vi.mock('./form-components', () => ({ default: 'form' }));
-vi.mock('./accessManagement', () => ({ default: 'access' }));
 vi.mock('./widget', () => ({ default: 'widget' }));
 vi.mock('./BoxSelector', () => ({ boxSelectorModule: 'box' }));
 vi.mock('./BEFeatureIndicator', () => ({ beFeatureIndicator: {} }));
@@ -38,6 +37,11 @@ await import('./index.js');
 describe('portainer components parent directives (backwards compatibility)', () => {
   it('registers the components module wiring', () => {
     expect(angularMock.module).toHaveBeenCalled();
+    // REQ-TAI-001: no access-management component module
+    const call = angularMock.module.mock.calls.find(
+      ([name]) => name === 'portainer.app.components'
+    );
+    expect(call?.[1] ?? []).not.toContain('access');
     expect(moduleApi.component).toHaveBeenCalledWith(
       'informationPanel',
       expect.anything()

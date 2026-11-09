@@ -40,7 +40,6 @@ type dashboardResponse struct {
 // @summary Get counters for the dashboard
 // @description **Access policy**: restricted
 // @tags docker
-// @security jwt
 // @param environmentId path int true "Environment identifier"
 // @accept json
 // @produce json

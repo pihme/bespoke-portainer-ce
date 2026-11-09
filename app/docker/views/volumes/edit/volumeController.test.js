@@ -15,7 +15,6 @@ const { controllerState, angularMock, confirmDeleteMock } = vi.hoisted(() => {
 
 vi.mock('angular', () => ({ default: angularMock, module: angularMock.module }));
 vi.mock('@@/modals/confirm', () => ({ confirmDelete: (...a) => confirmDeleteMock(...a) }));
-vi.mock('@/react/portainer/access-control/types', () => ({ ResourceControlType: { Volume: 2 } }));
 
 await import('./volumeController.js');
 
@@ -131,10 +130,11 @@ describe('REQ-VOL-03 VolumeController local volume details', () => {
     expect(ctx.Notifications.error).toHaveBeenCalledWith('Failure', err, 'Unable to remove volume');
   });
 
-  it('reloads on resource control update success', async () => {
+  it('REQ-TAI-001 exposes no ownership panel hooks', async () => {
     const ctx = buildController();
     await ctx.settle();
-    ctx.$scope.onUpdateResourceControlSuccess();
-    expect(ctx.$state.reload).toHaveBeenCalled();
+    expect(ctx.$scope.resourceType).toBeUndefined();
+    expect(ctx.$scope.onUpdateResourceControlSuccess).toBeUndefined();
   });
+
 });

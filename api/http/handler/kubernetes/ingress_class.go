@@ -15,7 +15,6 @@ import (
 // @description models, distinct from the ingress controllers returned by /ingresscontrollers.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {array} kubernetes.K8sIngressClass "Success"

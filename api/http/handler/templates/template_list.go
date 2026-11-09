@@ -12,8 +12,6 @@ import (
 // @description List available templates.
 // @description **Access policy**: authenticated
 // @tags templates
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} listResponse "Success"
 // @failure 500 "Server error"

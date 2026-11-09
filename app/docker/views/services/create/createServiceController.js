@@ -2,7 +2,6 @@ import _ from 'lodash-es';
 
 import * as envVarsUtils from '@/react/components/form-components/EnvironmentVariablesFieldset/utils';
 import { PorImageRegistryModel } from '@/docker/models/porImageRegistry';
-import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
 
 require('./includes/update-restart.html');
 require('./includes/secret.html');
@@ -25,9 +24,7 @@ angular.module('portainer.docker').controller('CreateServiceController', [
   'ImageHelper',
   'LabelHelper',
   'Authentication',
-  'ResourceControlService',
   'Notifications',
-  'FormValidator',
   'PluginService',
   'NodeService',
   'WebhookService',
@@ -48,9 +45,7 @@ angular.module('portainer.docker').controller('CreateServiceController', [
     ImageHelper,
     LabelHelper,
     Authentication,
-    ResourceControlService,
     Notifications,
-    FormValidator,
     PluginService,
     NodeService,
     WebhookService,
@@ -83,7 +78,6 @@ angular.module('portainer.docker').controller('CreateServiceController', [
       FailureAction: 'pause',
       Secrets: [],
       Configs: [],
-      AccessControlData: new AccessControlFormData(),
       CpuLimit: 0,
       CpuReservation: 0,
       MemoryLimit: 0,
@@ -517,18 +511,14 @@ angular.module('portainer.docker').controller('CreateServiceController', [
       return config;
     }
 
-    function createNewService(config, accessControlData) {
+    function createNewService(config) {
       const registryModel = $scope.formValues.RegistryModel;
 
       ServiceService.create(config, registryModel.Registry.Authentication ? registryModel.Registry.Id : 0)
         .then(function success(data) {
           const serviceId = data.ID;
-          const resourceControl = data.Portainer.ResourceControl;
-          const userId = Authentication.getUserDetails().ID;
-          const rcPromise = ResourceControlService.applyResourceControl(userId, accessControlData, resourceControl);
           const registryID = $scope.formValues.RegistryModel.Registry.Id;
-          const webhookPromise = $q.when(endpoint.Type !== 4 && $scope.formValues.Webhook && WebhookService.createServiceWebhook(serviceId, endpoint.Id, registryID));
-          return $q.all([rcPromise, webhookPromise]);
+          return $q.when(endpoint.Type !== 4 && $scope.formValues.Webhook && WebhookService.createServiceWebhook(serviceId, endpoint.Id, registryID));
         })
         .then(function success() {
           Notifications.success('Success', 'Service successfully created');
@@ -542,9 +532,9 @@ angular.module('portainer.docker').controller('CreateServiceController', [
         });
     }
 
-    function validateForm(accessControlData, isAdmin) {
+    function validateForm() {
       $scope.state.formValidationError = '';
-      var error = FormValidator.validateAccessControl(accessControlData, isAdmin) || $scope.formValues.Secrets.$error || $scope.formValues.Configs.$error;
+      var error = $scope.formValues.Secrets.$error || $scope.formValues.Configs.$error;
 
       if (error) {
         $scope.state.formValidationError = error;
@@ -560,15 +550,13 @@ angular.module('portainer.docker').controller('CreateServiceController', [
     }
 
     $scope.create = function createService() {
-      var accessControlData = $scope.formValues.AccessControlData;
-
-      if (!validateForm(accessControlData, $scope.isAdmin)) {
+      if (!validateForm()) {
         return;
       }
 
       $scope.state.actionInProgress = true;
       var config = prepareConfiguration();
-      createNewService(config, accessControlData);
+      createNewService(config);
     };
 
     function initSlidersMaxValuesBasedOnNodeData(nodes) {

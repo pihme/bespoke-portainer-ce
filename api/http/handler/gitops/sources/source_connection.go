@@ -22,8 +22,6 @@ import (
 // @description Tests connectivity for a GitOps source, applying optional overrides to the stored configuration.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Source identifier"
@@ -88,8 +86,6 @@ type ConnectionTestResult struct {
 // @description Tests connectivity for Git connection details that have not been persisted yet.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body GitSourceCreatePayload true "Git connection details"

@@ -43,23 +43,16 @@ describe('REQ-SET-01 SettingsService', () => {
           SnapshotInterval: '5m',
           TemplatesURL: '',
           EdgeAgentCheckinInterval: 5,
-          AuthenticationMethod: 1,
-          InternalAuthSettings: { RequiredPasswordLength: 12 },
-          LDAPSettings: {},
-          OAuthSettings: {},
         })
       ),
       update: vi.fn(() => promiseResource({})),
       publicSettings: vi.fn(() =>
         promiseResource({
-          AuthenticationMethod: 1,
-          RequiredPasswordLength: 12,
-          EnableEdgeComputeFeatures: false,
+          EnableEdgeComputeFeatures: true,
           Features: {},
           Edge: {},
         })
       ),
-      checkLDAPConnectivity: vi.fn(() => promiseResource({})),
     };
     const service = buildService(Settings);
     const settings = await service.settings();
@@ -84,22 +77,19 @@ describe('REQ-SET-01 SettingsService', () => {
       update: vi.fn(() => promiseResource({ ok: true })),
       publicSettings: vi.fn(() =>
         promiseResource({
-          AuthenticationMethod: 1,
-          RequiredPasswordLength: 12,
-          EnableEdgeComputeFeatures: false,
+          EnableEdgeComputeFeatures: true,
           Features: {},
           Edge: {},
         })
       ),
-      checkLDAPConnectivity: vi.fn(() => promiseResource({ connected: true })),
     };
     const service = buildService(Settings);
     await service.update({ SnapshotInterval: '10m' });
     const pub = await service.publicSettings();
-    await service.checkLDAPConnectivity({});
     expect(Settings.update).toHaveBeenCalled();
-    expect(pub.RequiredPasswordLength).toBe(12);
-    expect(Settings.checkLDAPConnectivity).toHaveBeenCalled();
+    expect(pub.EnableEdgeComputeFeatures).toBe(true);
+    // REQ-TAI-001: no LDAP connectivity check
+    expect(service.checkLDAPConnectivity).toBeUndefined();
   });
 
   it('publicSettings rejects with a clear message on failure', async () => {

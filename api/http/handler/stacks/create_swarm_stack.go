@@ -59,8 +59,6 @@ func createStackPayloadFromSwarmFileContentPayload(name string, swarmID string, 
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param body body swarmStackFromFileContentPayload true "stack config"
@@ -185,8 +183,6 @@ func createStackPayloadFromSwarmGitPayload(name, swarmID, repoUrl, repoReference
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @accept json
 // @param endpointId query int true "Identifier of the environment that will be used to deploy the stack"
@@ -310,8 +306,6 @@ func (payload *swarmStackFromFileUploadPayload) Validate(r *http.Request) error 
 // @description Deploy a new stack into a Docker environment specified via the environment identifier.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string false "Name of the stack"

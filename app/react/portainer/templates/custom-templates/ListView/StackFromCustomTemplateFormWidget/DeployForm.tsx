@@ -7,9 +7,6 @@ import {
   useCreateStack,
 } from '@/react/common/stacks/queries/useCreateStack/useCreateStack';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useCurrentUser, useIsEdgeAdmin } from '@/react/hooks/useUser';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { parseAccessControlFormData } from '@/react/portainer/access-control/utils';
 import { NameField } from '@/react/docker/stacks/common/NameField';
 import {
   CustomTemplate,
@@ -47,31 +44,20 @@ export function DeployForm({
   isDeployable: boolean;
 }) {
   const router = useRouter();
-  const { user } = useCurrentUser();
-  const isEdgeAdminQuery = useIsEdgeAdmin();
   const environmentId = useEnvironmentId();
   const swarmIdQuery = useSwarmId(environmentId);
   const mutation = useCreateStack();
   const validation = useValidation({
     isDeployable,
     variableDefs: template.Variables,
-    isAdmin: isEdgeAdminQuery.isAdmin,
     environmentId,
   });
-
-  if (isEdgeAdminQuery.isLoading) {
-    return null;
-  }
 
   const isGit = !!template.GitConfig;
 
   const initialValues: FormValues = {
     name: '',
     variables: getVariablesFieldDefaultValues(template.Variables),
-    accessControl: parseAccessControlFormData(
-      isEdgeAdminQuery.isAdmin,
-      user.Id
-    ),
     fileContent: templateFile,
   };
 
@@ -142,14 +128,6 @@ export function DeployForm({
             </WebEditorForm>
           </AdvancedSettings>
 
-          <AccessControlForm
-            formNamespace="accessControl"
-            onChange={(values) => setFieldValue('accessControl', values)}
-            values={values.accessControl}
-            errors={errors.accessControl}
-            environmentId={environmentId}
-          />
-
           <FormActions
             isLoading={mutation.isLoading}
             isValid={isValid}
@@ -202,7 +180,6 @@ export function DeployForm({
                 getTemplateSourceId(template),
                 template.GitConfig
               ),
-              accessControl: values.accessControl,
             },
           }
         : {
@@ -216,7 +193,6 @@ export function DeployForm({
                 getTemplateSourceId(template),
                 template.GitConfig
               ),
-              accessControl: values.accessControl,
             },
           };
     }
@@ -229,7 +205,6 @@ export function DeployForm({
             name: values.name,
             environmentId,
             fileContent: values.fileContent,
-            accessControl: values.accessControl,
           },
         }
       : {
@@ -240,7 +215,6 @@ export function DeployForm({
             environmentId,
             swarmId: swarmIdQuery.data || '',
             fileContent: values.fileContent,
-            accessControl: values.accessControl,
           },
         };
   }

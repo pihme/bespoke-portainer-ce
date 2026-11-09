@@ -1,8 +1,3 @@
-import {
-  AccessControlFormData,
-  ResourceControlOwnership,
-} from '@/react/portainer/access-control/types';
-
 import { formValuesToCreatePayload, gitFormValuesToTestPayload } from './type';
 
 const baseGit = {
@@ -12,16 +7,9 @@ const baseGit = {
   connectionOk: false,
 };
 
-const baseUAC: AccessControlFormData = {
-  authorizedTeams: [],
-  authorizedUsers: [],
-  ownership: ResourceControlOwnership.ADMINISTRATORS,
-};
-
 describe('formValuesToCreatePayload', () => {
   it('populates authentication when authEnabled with username and password', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -42,7 +30,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('omits authentication when authEnabled is false', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -56,7 +43,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('omits authentication when authEnabled but username is missing', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -73,7 +59,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('omits authentication when authEnabled but password is missing', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -90,7 +75,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('sends the interval when polling is enabled', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -105,7 +89,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('sends an empty interval when polling is disabled', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -120,7 +103,6 @@ describe('formValuesToCreatePayload', () => {
 
   it('does not include connectionOk in the create payload', () => {
     const payload = formValuesToCreatePayload({
-      ...baseUAC,
       name: 'my-source',
       type: 'git',
       git: {
@@ -131,6 +113,21 @@ describe('formValuesToCreatePayload', () => {
     });
 
     expect(payload.git).not.toHaveProperty('connectionOk');
+  });
+});
+
+describe('REQ-TAI-001 formValuesToCreatePayload', () => {
+  it('sends no ownership or per-user/team access fields', () => {
+    const payload = formValuesToCreatePayload({
+      name: 'my-source',
+      type: 'git',
+      git: { ...baseGit, authentication: { authEnabled: false } },
+    });
+
+    expect(payload.git).not.toHaveProperty('administratorsOnly');
+    expect(payload.git).not.toHaveProperty('public');
+    expect(payload.git).not.toHaveProperty('teamAccesses');
+    expect(payload.git).not.toHaveProperty('userAccesses');
   });
 });
 

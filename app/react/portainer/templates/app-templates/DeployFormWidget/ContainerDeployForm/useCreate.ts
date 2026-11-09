@@ -49,7 +49,6 @@ export function useCreate(template: TemplateViewModel) {
             }),
             values: {
               name: values.name,
-              accessControl: values.accessControl,
               imageName: template.RegistryModel.Image,
               alwaysPull: true,
             },

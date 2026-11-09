@@ -26,8 +26,6 @@ import (
 // @description Starts a stopped Stack.
 // @description **Access policy**: authenticated
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "Stack identifier"
 // @param endpointId query int true "Environment identifier"
 // @success 200 {object} portainer.Stack "Success"

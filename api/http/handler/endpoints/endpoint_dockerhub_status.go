@@ -31,8 +31,6 @@ type dockerhubStatusResponse struct {
 // @description get docker pull limits for a docker hub registry in the environment
 // @description **Access policy**:
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "endpoint ID"
 // @param registryId path int true "registry ID"

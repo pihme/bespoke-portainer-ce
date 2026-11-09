@@ -86,14 +86,13 @@ function buildManager(overrides = {}) {
 describe('REQ-SET-01 StateManager local Docker state', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('dismiss and password-skip helpers persist UI state', () => {
+  it('dismiss helpers persist UI state', () => {
     const { manager, LocalStorage } = buildManager();
     manager.dismissInformationPanel('welcome');
     manager.dismissImportantInformation('hash');
-    manager.setRequiredPasswordLength(12);
-    manager.setPasswordChangeSkipped(1);
-    manager.resetPasswordChangeSkips(1);
-    manager.clearPasswordChangeSkips();
+    // REQ-TAI-001: password-change skip bookkeeping is gone
+    expect(manager.setPasswordChangeSkipped).toBeUndefined();
+    expect(manager.setRequiredPasswordLength).toBeUndefined();
     expect(LocalStorage.storeUIState).toHaveBeenCalled();
     expect(manager.getState().UI.dismissedInfoPanels.welcome).toBe(true);
   });
@@ -140,7 +139,7 @@ describe('REQ-SET-01 StateManager local Docker state', () => {
           validity: now,
           instanceId: 'iid',
         })),
-        getUIState: vi.fn(() => ({ dismissedInfoHash: 'x', timesPasswordChangeSkipped: {} })),
+        getUIState: vi.fn(() => ({ dismissedInfoHash: 'x' })),
       },
     });
     const state = await manager.initialize();

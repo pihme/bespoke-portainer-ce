@@ -11,7 +11,6 @@ import { Sidebar } from './Sidebar';
 let isPureAdmin = true;
 let isAdmin = true;
 let isAdminLoading = false;
-let isTeamLeader = false;
 let settingsData: { LogoURL?: string } | undefined = { LogoURL: '' };
 
 vi.mock('@/react/hooks/useUser', async (importOriginal) => {
@@ -23,10 +22,6 @@ vi.mock('@/react/hooks/useUser', async (importOriginal) => {
     useIsEdgeAdmin: () => ({ isAdmin, isLoading: isAdminLoading }),
   };
 });
-
-vi.mock('@/portainer/users/queries', () => ({
-  useIsCurrentUserTeamLeader: () => isTeamLeader,
-}));
 
 vi.mock('@/react/portainer/settings/queries', () => ({
   usePublicSettings: () => ({
@@ -51,14 +46,14 @@ vi.mock('./SettingsSidebar', () => ({
   SettingsSidebar: ({
     isPureAdmin: pure,
     isAdmin: admin,
-    isTeamLeader: leader,
+    ...rest
   }: {
     isPureAdmin: boolean;
     isAdmin: boolean;
-    isTeamLeader: boolean;
   }) => (
     <div data-cy="stub-settings">
-      Settings pure={String(pure)} admin={String(admin)} leader={String(leader)}
+      Settings pure={String(pure)} admin={String(admin)} props=
+      {Object.keys(rest).join(',')}
     </div>
   ),
 }));
@@ -89,7 +84,6 @@ describe('Sidebar shell', () => {
     isPureAdmin = true;
     isAdmin = true;
     isAdminLoading = false;
-    isTeamLeader = false;
     settingsData = { LogoURL: 'https://example.com/logo.png' };
     window.ddExtension = false;
   });
@@ -113,7 +107,7 @@ describe('Sidebar shell', () => {
     expect(screen.getByTestId('stub-env-sidebar')).toBeInTheDocument();
     expect(screen.getByTestId('stub-app-delivery')).toBeInTheDocument();
     expect(screen.getByTestId('stub-settings')).toHaveTextContent(
-      'pure=true admin=true leader=false'
+      'pure=true admin=true'
     );
     expect(screen.getByTestId('stub-footer')).toBeInTheDocument();
     expect(screen.getByTestId('stub-header')).toHaveTextContent(
@@ -134,13 +128,10 @@ describe('Sidebar shell', () => {
     expect(screen.queryByTestId('stub-edge')).not.toBeInTheDocument();
   });
 
-  it('passes team leader flag into SettingsSidebar', () => {
-    isTeamLeader = true;
-    isPureAdmin = false;
-    isAdmin = false;
+  it('REQ-TAI-001 passes no team leader flag into SettingsSidebar', () => {
     renderSidebar();
-    expect(screen.getByTestId('stub-settings')).toHaveTextContent(
-      'pure=false admin=false leader=true'
+    expect(screen.getByTestId('stub-settings')).not.toHaveTextContent(
+      'isTeamLeader'
     );
   });
 });

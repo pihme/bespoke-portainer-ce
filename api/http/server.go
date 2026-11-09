@@ -8,8 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/adminmonitor"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/docker"
@@ -18,7 +16,6 @@ import (
 	"github.com/portainer/portainer/api/gitops/scheduling"
 	"github.com/portainer/portainer/api/http/csrf"
 	"github.com/portainer/portainer/api/http/handler"
-	"github.com/portainer/portainer/api/http/handler/auth"
 	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer/api/http/handler/docker"
@@ -33,19 +30,14 @@ import (
 	"github.com/portainer/portainer/api/http/handler/gitops"
 	"github.com/portainer/portainer/api/http/handler/helm"
 	kubehandler "github.com/portainer/portainer/api/http/handler/kubernetes"
-	"github.com/portainer/portainer/api/http/handler/ldap"
 	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/registries"
-	"github.com/portainer/portainer/api/http/handler/resourcecontrols"
-	"github.com/portainer/portainer/api/http/handler/roles"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	sslhandler "github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
 	"github.com/portainer/portainer/api/http/handler/storybook"
 	"github.com/portainer/portainer/api/http/handler/system"
 	"github.com/portainer/portainer/api/http/handler/tags"
-	"github.com/portainer/portainer/api/http/handler/teammemberships"
-	"github.com/portainer/portainer/api/http/handler/teams"
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
@@ -91,10 +83,7 @@ type Server struct {
 	FileService                 portainer.FileService
 	DataStore                   dataservices.DataStore
 	GitService                  portainer.GitService
-	APIKeyService               apikey.APIKeyService
 	JWTService                  portainer.JWTService
-	LDAPService                 portainer.LDAPService
-	OAuthService                portainer.OAuthService
 	SwarmStackManager           portainer.SwarmStackManager
 	ProxyManager                *proxy.Manager
 	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
@@ -109,39 +98,20 @@ type Server struct {
 	ShutdownTrigger             context.CancelFunc
 	StackDeployer               deployments.StackDeployer
 	UpgradeService              upgrade.Service
-	AdminCreationDone           chan struct{}
 	PendingActionsService       *pendingactions.PendingActionsService
 	PlatformService             platform.Service
 	PullLimitCheckDisabled      bool
 	TrustedOrigins              []string
-	SetupToken                  string
 }
 
 // Start starts the HTTP server
 func (server *Server) Start(ctx context.Context) error {
-	kubernetesTokenCacheManager := server.KubernetesTokenCacheManager
-
-	requestBouncer := security.NewRequestBouncer(ctx, server.DataStore, server.JWTService, server.APIKeyService)
+	requestBouncer := security.NewRequestBouncer(ctx, server.DataStore)
 	if !server.CSP {
 		requestBouncer.DisableCSP()
 	}
 
-	rateLimiter := security.NewRateLimiter(10, 1*time.Second, 1*time.Hour, nil)
 	offlineGate := offlinegate.NewOfflineGate()
-
-	passwordStrengthChecker := security.NewPasswordStrengthChecker(server.DataStore.Settings())
-
-	var authHandler = auth.NewHandler(requestBouncer, rateLimiter, passwordStrengthChecker, server.KubernetesClientFactory)
-	authHandler.DataStore = server.DataStore
-	authHandler.CryptoService = server.CryptoService
-	authHandler.JWTService = server.JWTService
-	authHandler.LDAPService = server.LDAPService
-	authHandler.ProxyManager = server.ProxyManager
-	authHandler.KubernetesTokenCacheManager = kubernetesTokenCacheManager
-	authHandler.OAuthService = server.OAuthService
-
-	adminMonitor := adminmonitor.New(5*time.Minute, server.DataStore)
-	adminMonitor.Start(ctx)
 
 	var backupHandler = backup.NewHandler(
 		requestBouncer,
@@ -149,12 +119,7 @@ func (server *Server) Start(ctx context.Context) error {
 		offlineGate,
 		server.FileService.GetDatastorePath(),
 		server.ShutdownTrigger,
-		adminMonitor,
 	)
-	backupHandler.SetupToken = server.SetupToken
-
-	var roleHandler = roles.NewHandler(requestBouncer)
-	roleHandler.DataStore = server.DataStore
 
 	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.DataStore, server.FileService, server.GitService)
 
@@ -205,18 +170,13 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var dockerHandler = dockerhandler.NewHandler(requestBouncer, server.AuthorizationService, server.DataStore, server.DockerClientFactory, containerService)
 
-	var fileHandler = file.NewHandler(filesystem.JoinPaths(server.AssetsPath, "public"), server.CSP, adminMonitor.WasInstanceDisabled)
+	var fileHandler = file.NewHandler(filesystem.JoinPaths(server.AssetsPath, "public"), server.CSP)
 
 	var endpointHelmHandler = helm.NewHandler(requestBouncer, server.DataStore, server.JWTService, server.KubernetesDeployer, server.HelmPackageManager, server.KubeClusterAccessService)
 
 	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService, server.KubernetesClientFactory, server.SourceScheduler)
 
 	var helmTemplatesHandler = helm.NewTemplateHandler(requestBouncer, server.HelmPackageManager)
-
-	var ldapHandler = ldap.NewHandler(requestBouncer)
-	ldapHandler.DataStore = server.DataStore
-	ldapHandler.FileService = server.FileService
-	ldapHandler.LDAPService = server.LDAPService
 
 	motdSvc := motdservice.NewService(portainer.MessageOfTheDayURL)
 	motdSvc.Start(ctx)
@@ -229,16 +189,10 @@ func (server *Server) Start(ctx context.Context) error {
 	registryHandler.ProxyManager = server.ProxyManager
 	registryHandler.K8sClientFactory = server.KubernetesClientFactory
 
-	var resourceControlHandler = resourcecontrols.NewHandler(requestBouncer)
-	resourceControlHandler.DataStore = server.DataStore
-
 	var settingsHandler = settings.NewHandler(requestBouncer)
 	settingsHandler.DataStore = server.DataStore
 	settingsHandler.FileService = server.FileService
-	settingsHandler.JWTService = server.JWTService
-	settingsHandler.LDAPService = server.LDAPService
 	settingsHandler.SnapshotService = server.SnapshotService
-	settingsHandler.SetupTokenRequired = server.SetupToken != ""
 
 	var sslHandler = sslhandler.NewHandler(requestBouncer)
 	sslHandler.SSLService = server.SSLService
@@ -261,14 +215,6 @@ func (server *Server) Start(ctx context.Context) error {
 	var tagHandler = tags.NewHandler(requestBouncer)
 	tagHandler.DataStore = server.DataStore
 
-	var teamHandler = teams.NewHandler(requestBouncer)
-	teamHandler.DataStore = server.DataStore
-	teamHandler.K8sClientFactory = server.KubernetesClientFactory
-
-	var teamMembershipHandler = teammemberships.NewHandler(requestBouncer)
-	teamMembershipHandler.DataStore = server.DataStore
-	teamMembershipHandler.K8sClientFactory = server.KubernetesClientFactory
-
 	var systemHandler = system.NewHandler(requestBouncer,
 		server.Status,
 		server.DataStore,
@@ -283,14 +229,8 @@ func (server *Server) Start(ctx context.Context) error {
 	var uploadHandler = upload.NewHandler(requestBouncer)
 	uploadHandler.FileService = server.FileService
 
-	var userHandler = users.NewHandler(requestBouncer, rateLimiter, server.APIKeyService, passwordStrengthChecker)
+	var userHandler = users.NewHandler(requestBouncer)
 	userHandler.DataStore = server.DataStore
-	userHandler.CryptoService = server.CryptoService
-	userHandler.AdminCreationDone = server.AdminCreationDone
-	userHandler.FileService = server.FileService
-	userHandler.SetupToken = server.SetupToken
-	userHandler.AuthorizationService = server.AuthorizationService
-	userHandler.K8sClientFactory = server.KubernetesClientFactory
 
 	var websocketHandler = websocket.NewHandler(server.KubernetesTokenCacheManager, requestBouncer)
 	websocketHandler.DataStore = server.DataStore
@@ -303,8 +243,6 @@ func (server *Server) Start(ctx context.Context) error {
 	webhookHandler.DockerClientFactory = server.DockerClientFactory
 
 	server.Handler = &handler.Handler{
-		RoleHandler:            roleHandler,
-		AuthHandler:            authHandler,
 		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
 		DockerHandler:          dockerHandler,
@@ -318,20 +256,16 @@ func (server *Server) Start(ctx context.Context) error {
 		EndpointProxyHandler:   endpointProxyHandler,
 		GitOperationHandler:    gitOperationHandler,
 		FileHandler:            fileHandler,
-		LDAPHandler:            ldapHandler,
 		HelmTemplatesHandler:   helmTemplatesHandler,
 		KubernetesHandler:      kubernetesHandler,
 		MOTDHandler:            motdHandler,
 		RegistryHandler:        registryHandler,
-		ResourceControlHandler: resourceControlHandler,
 		SettingsHandler:        settingsHandler,
 		SSLHandler:             sslHandler,
 		StackHandler:           stackHandler,
 		StorybookHandler:       storybookHandler,
 		SystemHandler:          systemHandler,
 		TagHandler:             tagHandler,
-		TeamHandler:            teamHandler,
-		TeamMembershipHandler:  teamMembershipHandler,
 		TemplatesHandler:       templatesHandler,
 		UploadHandler:          uploadHandler,
 		UserHandler:            userHandler,
@@ -341,7 +275,7 @@ func (server *Server) Start(ctx context.Context) error {
 
 	errorLogger := NewHTTPLogger()
 
-	handler := adminMonitor.WithRedirect(offlineGate.WaitingMiddleware(time.Minute, server.Handler))
+	var handler http.Handler = offlineGate.WaitingMiddleware(time.Minute, server.Handler)
 
 	handler = middlewares.WithPanicLogger(middlewares.WithSlowRequestsLogger(handler))
 

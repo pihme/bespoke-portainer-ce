@@ -11,7 +11,7 @@ import (
 
 func TestNormalServe(t *testing.T) {
 	t.Parallel()
-	handler := file.NewHandler("", false, func() bool { return false })
+	handler := file.NewHandler("", false)
 	require.NotNil(t, handler)
 
 	request := func(path string) (*http.Request, *httptest.ResponseRecorder) {
@@ -21,20 +21,29 @@ func TestNormalServe(t *testing.T) {
 		return req, rr
 	}
 
-	_, rr := request("/timeout.html")
-	require.Equal(t, http.StatusTemporaryRedirect, rr.Result().StatusCode)
-	loc, err := rr.Result().Location()
-	require.NoError(t, err)
-	require.NotNil(t, loc)
-	require.Equal(t, "/", loc.Path)
-
-	_, rr = request("/")
+	_, rr := request("/")
 	require.Equal(t, http.StatusOK, rr.Result().StatusCode)
+}
+
+// TAI-001: there is no admin-init timeout, so the timeout page is no longer
+// special and the UI root is never redirected to it.
+func TestREQ_TAI_001_NoAdminInitTimeoutRedirect(t *testing.T) {
+	t.Parallel()
+	handler := file.NewHandler("", false)
+
+	for _, path := range []string{"/", "/timeout.html"} {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		handler.ServeHTTP(rr, req)
+
+		require.NotEqual(t, http.StatusTemporaryRedirect, rr.Result().StatusCode, path)
+		require.Empty(t, rr.Result().Header.Get("Location"), path)
+	}
 }
 
 func TestPermissionsPolicyHeader(t *testing.T) {
 	t.Parallel()
-	handler := file.NewHandler("", false, func() bool { return false })
+	handler := file.NewHandler("", false)
 	require.NotNil(t, handler)
 
 	test := func(path string, exist bool) {
@@ -51,30 +60,9 @@ func TestPermissionsPolicyHeader(t *testing.T) {
 	test("/an/image.png", false)
 }
 
-func TestRedirectInstanceDisabled(t *testing.T) {
-	t.Parallel()
-	handler := file.NewHandler("", false, func() bool { return true })
-	require.NotNil(t, handler)
-
-	test := func(path string) {
-		rr := httptest.NewRecorder()
-		req := httptest.NewRequest(http.MethodGet, path, nil)
-		handler.ServeHTTP(rr, req)
-
-		require.Equal(t, http.StatusTemporaryRedirect, rr.Result().StatusCode)
-		loc, err := rr.Result().Location()
-		require.NoError(t, err)
-		require.NotNil(t, loc)
-		require.Equal(t, "/timeout.html", loc.Path)
-	}
-
-	test("/")
-	test("/index.html")
-}
-
 func TestHTMLAcceptSetsNoCache(t *testing.T) {
 	t.Parallel()
-	handler := file.NewHandler("", false, func() bool { return false })
+	handler := file.NewHandler("", false)
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

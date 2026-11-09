@@ -32,7 +32,6 @@ type kubernetesVersionResponse struct {
 // @description flags Portainer uses to gate UI features (e.g. supportsPodRestart).
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment(Endpoint) identifier"
 // @success 200 {object} kubernetesVersionResponse "Success"

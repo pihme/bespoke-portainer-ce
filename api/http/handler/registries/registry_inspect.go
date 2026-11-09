@@ -17,8 +17,6 @@ import (
 // @description Retrieve details about a registry.
 // @description **Access policy**: restricted
 // @tags registries
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Registry identifier"
 // @success 200 {object} portainer.Registry "Success"

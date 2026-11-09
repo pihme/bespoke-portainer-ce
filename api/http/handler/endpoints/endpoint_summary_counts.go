@@ -54,8 +54,6 @@ const UnassignedGroupID = portainer.EndpointGroupID(1)
 // @description Returns counts of environments by status (up, down) and ungrouped environments (unassigned), plus breakdowns by group, type, and health.
 // @description **Access policy**: restricted
 // @tags endpoints
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @success 200 {object} EnvironmentSummaryCountsResponse "Environment summary counts"
 // @failure 500 "Server error"

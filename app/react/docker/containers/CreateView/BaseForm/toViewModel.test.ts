@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
-
 import { ContainerDetailsResponse } from '../../queries/useContainer';
 
 import { getDefaultViewModel, toViewModel } from './toViewModel';
 
 describe('REQ-CTR-06 BaseForm toViewModel when duplicating a container', () => {
-  it('copies name, ports and publish flags and clears ownership to defaults', () => {
+  it('copies name, ports and publish flags without any ownership', () => {
     const config = {
       Name: '/web',
       HostConfig: {
@@ -30,7 +28,7 @@ describe('REQ-CTR-06 BaseForm toViewModel when duplicating a container', () => {
       useRegistry: true,
     };
 
-    const result = toViewModel(config, false, 7, 'node-a', image, true);
+    const result = toViewModel(config, 'node-a', image, true);
 
     expect(result.name).toBe('web');
     expect(result.autoRemove).toBe(true);
@@ -42,13 +40,12 @@ describe('REQ-CTR-06 BaseForm toViewModel when duplicating a container', () => {
     expect(result.ports).toEqual([
       { hostPort: '8080', containerPort: '80', protocol: 'tcp' },
     ]);
-    expect(result.accessControl.ownership).toBe(
-      ResourceControlOwnership.PUBLIC
-    );
+    // REQ-TAI-001: no ownership is carried into the create form
+    expect(result).not.toHaveProperty('accessControl');
   });
 
   it('builds an empty default create form', () => {
-    const result = getDefaultViewModel(true, 1, '');
+    const result = getDefaultViewModel('');
 
     expect(result.name).toBe('');
     expect(result.ports).toEqual([]);

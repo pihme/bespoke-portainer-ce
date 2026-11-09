@@ -25,8 +25,6 @@ var ErrSourceInUse = errors.New("source is used by one or more workflows or cust
 // @description Deletes an existing GitOps source. Returns 409 if the source is referenced by any workflow or custom template.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "Source identifier"
 // @success 204 "Source deleted"
 // @failure 400 "Invalid request"

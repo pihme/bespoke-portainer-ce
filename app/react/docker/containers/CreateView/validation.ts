@@ -13,14 +13,12 @@ import { envVarsTabUtils } from './EnvVarsTab';
 import { Values } from './useInitialValues';
 
 export function useValidation({
-  isAdmin,
   maxCpu,
   maxMemory,
   isDuplicating,
   isDuplicatingPortainer,
   isDockerhubRateLimited,
 }: {
-  isAdmin: boolean;
   maxCpu: number;
   maxMemory: number;
   isDuplicating: boolean | undefined;
@@ -40,14 +38,12 @@ export function useValidation({
         env: envVarsTabUtils.validation(),
       }).concat(
         baseFormUtils.validation({
-          isAdmin,
           isDuplicating,
           isDuplicatingPortainer,
           isDockerhubRateLimited,
         })
       ),
     [
-      isAdmin,
       isDockerhubRateLimited,
       isDuplicating,
       isDuplicatingPortainer,

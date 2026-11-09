@@ -20,12 +20,9 @@ func hideFields(settings *portainer.Settings) {
 // Handler is the HTTP handler used to handle settings operations.
 type Handler struct {
 	*mux.Router
-	DataStore          dataservices.DataStore
-	FileService        portainer.FileService
-	JWTService         portainer.JWTService
-	LDAPService        portainer.LDAPService
-	SnapshotService    portainer.SnapshotService
-	SetupTokenRequired bool
+	DataStore       dataservices.DataStore
+	FileService     portainer.FileService
+	SnapshotService portainer.SnapshotService
 }
 
 // NewHandler creates a handler to manage settings operations.

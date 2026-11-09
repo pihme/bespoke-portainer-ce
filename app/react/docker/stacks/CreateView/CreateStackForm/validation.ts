@@ -1,6 +1,5 @@
 import { object, array, number, mixed, SchemaOf, bool } from 'yup';
 
-import { accessControlFormValidation } from '@/react/portainer/access-control/AccessControlForm';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 import { nameValidation } from '@/react/docker/stacks/common/NameField';
 import { Stack } from '@/react/common/stacks/types';
@@ -14,17 +13,15 @@ import { getTemplateValidationSchema } from './TemplateSection/validation';
 import { getUploadValidationSchema } from './UploadSection/validation';
 
 export function getValidationSchema({
-  isAdmin,
   environmentId,
   stacks,
   containerNames = [],
 }: {
-  isAdmin: boolean;
   environmentId: EnvironmentId;
   stacks?: Array<Stack>;
   containerNames?: Array<string>;
 }): SchemaOf<FormValues> {
-  return getBaseValidationSchema({ isAdmin, environmentId, stacks }).concat(
+  return getBaseValidationSchema({ environmentId, stacks }).concat(
     object({
       git: getGitValidationSchema().when('method', {
         is: 'repository',
@@ -51,11 +48,9 @@ export function getValidationSchema({
 }
 
 function getBaseValidationSchema({
-  isAdmin,
   environmentId,
   stacks,
 }: {
-  isAdmin: boolean;
   environmentId: EnvironmentId;
   stacks?: Array<Stack>;
 }): SchemaOf<BaseFormValues> {
@@ -67,7 +62,6 @@ function getBaseValidationSchema({
       'Stack name is required'
     ),
     env: envVarValidation(),
-    accessControl: accessControlFormValidation(isAdmin),
     enableWebhook: bool().default(false),
     registries: array(number().required()).default([]),
   });

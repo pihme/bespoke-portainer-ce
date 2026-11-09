@@ -20,10 +20,9 @@ import (
 type Service struct{}
 
 var (
-	ErrInvalidEndpointProtocol       = errors.New("Invalid environment protocol: Portainer only supports unix://, npipe:// or tcp://")
-	ErrSocketOrNamedPipeNotFound     = errors.New("Unable to locate Unix socket or named pipe")
-	ErrInvalidSnapshotInterval       = errors.New("Invalid snapshot interval")
-	ErrAdminPassExcludeAdminPassFile = errors.New("Cannot use --admin-password with --admin-password-file")
+	ErrInvalidEndpointProtocol   = errors.New("Invalid environment protocol: Portainer only supports unix://, npipe:// or tcp://")
+	ErrSocketOrNamedPipeNotFound = errors.New("Unable to locate Unix socket or named pipe")
+	ErrInvalidSnapshotInterval   = errors.New("Invalid snapshot interval")
 )
 
 // CLIFlags declares the flags shared by both editions. secretsDir is the directory a relative
@@ -45,8 +44,6 @@ func CLIFlags(secretsDir string) *portainer.CLIFlags {
 		HTTPEnabled:               kingpin.Flag("http-enabled", "Serve portainer on http").Default(defaultHTTPEnabled).Bool(),
 		Rollback:                  kingpin.Flag("rollback", "Rollback the database to the previous backup").Bool(),
 		SnapshotInterval:          kingpin.Flag("snapshot-interval", "Duration between each environment snapshot job").String(),
-		AdminPassword:             kingpin.Flag("admin-password", "Set admin password with provided hash").String(),
-		AdminPasswordFile:         kingpin.Flag("admin-password-file", "Path to the file containing the password for the admin user").String(),
 		Labels:                    pairs(kingpin.Flag("hide-label", "Hide containers with a specific label in the UI").Short('l')),
 		Logo:                      kingpin.Flag("logo", "URL for the logo displayed in the UI").String(),
 		Templates:                 kingpin.Flag("templates", "URL to the templates definitions.").Short('t').String(),
@@ -61,8 +58,6 @@ func CLIFlags(secretsDir string) *portainer.CLIFlags {
 		TrustedOrigins:            kingpin.Flag("trusted-origins", "List of trusted origins for CSRF protection. Separate multiple origins with a comma.").Envar(portainer.TrustedOriginsEnvVar).String(),
 		CSP:                       kingpin.Flag("csp", "Content Security Policy (CSP) header").Envar(portainer.CSPEnvVar).Default("true").Bool(),
 		CompactDB:                 kingpin.Flag("compact-db", "Enable database compaction on startup").Envar(portainer.CompactDBEnvVar).Default("false").Bool(),
-		NoSetupToken:              kingpin.Flag("no-setup-token", "Disable the setup token requirement for admin initialization and restore on an uninitialized instance").Envar(portainer.NoSetupTokenEnvVar).Bool(),
-		SetupToken:                kingpin.Flag("setup-token", "Set a custom setup token for admin initialization and restore on an uninitialized instance (overrides auto-generation)").Envar(portainer.SetupTokenEnvVar).String(),
 		EdgePortainerURL:          kingpin.Flag("edge-portainer-url", "HTTPS URL that edge agents connect back to, e.g. https://edge.example.com:9443. Use a hostname distinct from the web UI when edge mTLS is enabled.").Envar(portainer.EdgePortainerURLEnvVar).String(),
 		EdgeTrustOnFirstConnect:   kingpin.Flag("edge-trust-on-first-connect", "Auto-trust edge agents on first connect (disables the waiting room).").Envar(portainer.EdgeTrustOnFirstConnectEnvVar).Bool(),
 	}
@@ -174,10 +169,6 @@ func (Service) ValidateFlags(flags *portainer.CLIFlags) error {
 
 	if err := ValidateSnapshotInterval(*flags.SnapshotInterval); err != nil {
 		return err
-	}
-
-	if *flags.AdminPassword != "" && *flags.AdminPasswordFile != "" {
-		return ErrAdminPassExcludeAdminPassFile
 	}
 
 	if err := ValidateEdgePortainerURL(*flags.EdgePortainerURL); err != nil {

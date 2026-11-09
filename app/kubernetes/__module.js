@@ -554,19 +554,6 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
       },
     };
 
-    const namespaceAccess = {
-      name: 'kubernetes.resourcePools.resourcePool.access',
-      url: '/access',
-      views: {
-        'content@': {
-          component: 'kubernetesNamespaceAccessView',
-        },
-      },
-      data: {
-        docs: '/user/kubernetes/namespaces/access',
-      },
-    };
-
     const volumes = {
       name: 'kubernetes.volumes',
       url: '/volumes?tab',
@@ -932,7 +919,6 @@ angular.module('portainer.kubernetes', ['portainer.app', registriesModule, custo
     $stateRegistryProvider.register(namespaces);
     $stateRegistryProvider.register(namespaceCreation);
     $stateRegistryProvider.register(namespace);
-    $stateRegistryProvider.register(namespaceAccess);
     $stateRegistryProvider.register(volumes);
     $stateRegistryProvider.register(volume);
     $stateRegistryProvider.register(persistentVolume);

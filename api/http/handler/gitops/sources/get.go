@@ -40,8 +40,6 @@ type SourceDetail struct {
 // @description Returns a single GitOps source with its connection settings and access rules.
 // @description **Access policy**: authenticated
 // @tags gitops
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param id path int true "Source identifier"
 // @success 200 {object} SourceDetail

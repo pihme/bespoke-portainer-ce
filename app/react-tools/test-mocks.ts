@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { QueryObserverResult } from '@tanstack/react-query';
 
-import { Team } from '@/react/portainer/users/teams/types';
 import { Role, User, UserId } from '@/portainer/users/types';
 import {
   ContainerEngine,
@@ -16,7 +15,6 @@ export function createMockUser(overrides: Partial<User> = {}) {
     Id: 1,
     Username: 'user',
     RoleName: '',
-    AuthenticationMethod: '',
     Checked: false,
     EndpointAuthorizations: {},
     PortainerAuthorizations: {},
@@ -63,13 +61,6 @@ function getRoles(
   // The number of roles is not necessarily the same length as the number of users
   // so we need to distribute the roles evenly and consistently
   return roles[(id - 1) % roles.length];
-}
-
-export function createMockTeams(count: number): Team[] {
-  return _.range(1, count + 1).map((value) => ({
-    Id: value,
-    Name: `team${value}`,
-  }));
 }
 
 export function createMockSubscriptions(count: number) {

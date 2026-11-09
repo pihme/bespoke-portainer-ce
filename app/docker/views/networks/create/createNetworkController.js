@@ -1,5 +1,4 @@
 import _ from 'lodash-es';
-import { AccessControlFormData } from '../../../../portainer/components/accessControlForm/porAccessControlFormModel';
 import { MacvlanFormData } from '../../../components/network-macvlan-form/networkMacvlanFormModel';
 
 angular.module('portainer.docker').controller('CreateNetworkController', [
@@ -10,12 +9,9 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
   'Notifications',
   'NetworkService',
   'LabelHelper',
-  'Authentication',
-  'ResourceControlService',
-  'FormValidator',
   'HttpRequestHelper',
   'endpoint',
-  function ($q, $scope, $state, PluginService, Notifications, NetworkService, LabelHelper, Authentication, ResourceControlService, FormValidator, HttpRequestHelper, endpoint) {
+  function ($q, $scope, $state, PluginService, Notifications, NetworkService, LabelHelper, HttpRequestHelper, endpoint) {
     $scope.endpoint = endpoint;
 
     $scope.formValues = {
@@ -33,7 +29,6 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
         AuxiliaryAddresses: [],
       },
       Labels: [],
-      AccessControlData: new AccessControlFormData(),
       NodeName: null,
       Macvlan: new MacvlanFormData(),
     };
@@ -217,26 +212,9 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
       });
     };
 
-    function validateForm(accessControlData, isAdmin) {
-      $scope.state.formValidationError = '';
-      var error = FormValidator.validateAccessControl(accessControlData, isAdmin);
-
-      if (error) {
-        $scope.state.formValidationError = error;
-        return false;
-      }
-      return true;
-    }
-
     function createNetwork(context) {
       $scope.state.actionInProgress = true;
       NetworkService.create(context.networkConfiguration, { nodeName: context.nodeName, agentManagerOperation: context.managerOperation })
-        .then(function success(data) {
-          const userId = context.userDetails.ID;
-          const accessControlData = context.accessControlData;
-          const resourceControl = data.Portainer.ResourceControl;
-          return ResourceControlService.applyResourceControl(userId, accessControlData, resourceControl);
-        })
         .then(function success() {
           Notifications.success('Success', 'Network successfully created');
           if (context.reload) {
@@ -259,20 +237,10 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
 
     $scope.create = function () {
       var networkConfiguration = prepareConfiguration();
-      var accessControlData = $scope.formValues.AccessControlData;
-      var userDetails = Authentication.getUserDetails();
-      var isAdmin = Authentication.isAdmin();
-
-      if (!validateForm(accessControlData, isAdmin)) {
-        return;
-      }
-
       var creationContext = {
         nodeName: $scope.formValues.NodeName,
         managerOperation: false,
         networkConfiguration: networkConfiguration,
-        userDetails: userDetails,
-        accessControlData: accessControlData,
         reload: true,
       };
 

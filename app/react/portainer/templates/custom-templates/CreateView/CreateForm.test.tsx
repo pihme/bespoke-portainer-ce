@@ -5,9 +5,10 @@ import { object, string, number, mixed, array } from 'yup';
 
 import { StackType } from '@/react/common/stacks/types';
 import { Platform } from '@/react/portainer/templates/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { EnvironmentType } from '@/react/portainer/environments/types';
+
+import { CreateForm } from './CreateForm';
 
 const mockMutate = vi.fn();
 const mockGo = vi.fn();
@@ -82,8 +83,6 @@ vi.mock('./InnerForm', () => ({
   },
 }));
 
-import { CreateForm } from './CreateForm';
-
 const baseValues = {
   Title: 'my-template',
   Description: 'desc',
@@ -101,11 +100,6 @@ const baseValues = {
     AdditionalFiles: [],
   },
   Variables: [],
-  AccessControl: {
-    ownership: ResourceControlOwnership.ADMINISTRATORS,
-    authorizedUsers: [],
-    authorizedTeams: [],
-  },
   EdgeSettings: undefined,
 };
 
@@ -147,7 +141,6 @@ describe('REQ-TPL-03 CreateForm', () => {
         File: mixed().nullable(),
         Git: mixed(),
         Variables: array(),
-        AccessControl: mixed(),
         EdgeSettings: mixed().nullable(),
       })
     );

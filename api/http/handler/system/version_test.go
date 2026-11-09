@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/apikey"
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/http/security"
@@ -39,8 +38,7 @@ func Test_getSystemVersion(t *testing.T) {
 	jwtService, err := jwt.NewService("1h", store)
 	require.NoError(t, err, "Error initiating jwt service")
 
-	apiKeyService := apikey.NewAPIKeyService(store.APIKeyRepository(), store.User())
-	requestBouncer := security.NewRequestBouncer(t.Context(), store, jwtService, apiKeyService)
+	requestBouncer := security.NewRequestBouncer(t.Context(), store)
 
 	h := NewHandler(requestBouncer, &portainer.Status{}, store, nil, nil)
 

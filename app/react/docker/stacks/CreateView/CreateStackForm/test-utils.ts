@@ -1,6 +1,5 @@
 import _ from 'lodash';
 
-import { defaultValues } from '@/react/portainer/access-control/utils';
 import { DeepPartial } from '@/types';
 
 import { FormValues } from './types';
@@ -11,7 +10,6 @@ export function mockFormValues(overrides: DeepPartial<FormValues>): FormValues {
       method: 'editor',
       name: 'test-stack',
       env: [],
-      accessControl: defaultValues(false, 1),
       enableWebhook: false,
       registries: [],
       editor: {

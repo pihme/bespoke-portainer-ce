@@ -40,8 +40,6 @@ func (payload *edgeJobUpdatePayload) Validate(r *http.Request) error {
 // @summary Update an EdgeJob
 // @description **Access policy**: administrator
 // @tags edge_jobs
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "EdgeJob Id"

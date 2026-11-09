@@ -14,8 +14,6 @@ import (
 // @description Retrieve details abont an environment(endpoint) group.
 // @description **Access policy**: administrator
 // @tags endpoint_groups
-// @security ApiKeyAuth
-// @security jwt
 // @accept json
 // @produce json
 // @param id path int true "Environment(Endpoint) group identifier"

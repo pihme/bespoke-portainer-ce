@@ -1,5 +1,8 @@
-import { TeamId } from '@/react/portainer/users/teams/types';
+// Resource ownership (UI and API) is removed (TAI-001). These types only
+// describe the ResourceControl field the backend still attaches to resources.
 import { UserId } from '@/portainer/users/types/user-id';
+
+type TeamId = number;
 
 export type ResourceControlId = number;
 
@@ -10,17 +13,6 @@ export enum ResourceControlOwnership {
   PRIVATE = 'private',
   RESTRICTED = 'restricted',
   ADMINISTRATORS = 'administrators',
-}
-
-/**
- * Transient type from view data to payload
- */
-export interface OwnershipParameters {
-  administratorsOnly: boolean;
-  public: boolean;
-  users: UserId[];
-  teams: TeamId[];
-  subResourcesIds: ResourceId[];
 }
 
 export enum ResourceControlType {
@@ -67,10 +59,4 @@ export interface ResourceControlResponse {
   Public: boolean;
   AdministratorsOnly: boolean;
   System: boolean;
-}
-
-export interface AccessControlFormData {
-  ownership: ResourceControlOwnership;
-  authorizedUsers: UserId[];
-  authorizedTeams: TeamId[];
 }

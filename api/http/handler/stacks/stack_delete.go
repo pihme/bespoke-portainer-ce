@@ -25,8 +25,6 @@ import (
 // @description Remove a stack.
 // @description **Access policy**: restricted
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @param id path int true "Stack identifier"
 // @param external query boolean false "Set to true to delete an external stack. Only external Swarm stacks are supported"
 // @param endpointId query int true "Environment identifier"
@@ -190,8 +188,6 @@ func (handler *Handler) deleteExternalStack(r *http.Request, w http.ResponseWrit
 // @description Remove a stack.
 // @description **Access policy**: restricted
 // @tags stacks
-// @security ApiKeyAuth
-// @security jwt
 // @param name path string true "Stack name"
 // @param external query boolean false "Set to true to delete an external stack. Only external Swarm stacks are supported"
 // @param endpointId query int true "Environment identifier"

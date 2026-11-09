@@ -6,9 +6,6 @@ import {
   GitFormModel,
   RelativePathModel,
 } from '@/react/portainer/gitops/types';
-import { applyResourceControl } from '@/react/portainer/access-control/access-control.service';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
-import PortainerError from '@/portainer/error';
 import { withError, withInvalidate } from '@/react-tools/react-query';
 import { transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
 import { RegistryId } from '@/react/portainer/registries/types/registry';
@@ -41,7 +38,6 @@ type BasePayload = {
 
 type DockerBasePayload = BasePayload & {
   env?: Array<Pair>;
-  accessControl: AccessControlFormData;
 };
 
 type SwarmBasePayload = DockerBasePayload & {
@@ -143,25 +139,8 @@ export type CreateStackPayload =
   | ({ type: 'standalone' } & StandaloneCreatePayload)
   | ({ type: 'kubernetes' } & KubernetesCreatePayload);
 
-async function createStack(payload: CreateStackPayload) {
-  const stack = await createActualStack(payload);
-
-  if (payload.type === 'standalone' || payload.type === 'swarm') {
-    const resourceControl = stack.ResourceControl;
-
-    // Portainer will always return a resource control, but since types mark it as optional, we need to check it.
-    // Ignoring the missing value will result with bugs, hence it's better to throw an error
-    if (!resourceControl) {
-      throw new PortainerError('resource control expected after creation');
-    }
-
-    await applyResourceControl(
-      payload.payload.accessControl,
-      resourceControl.Id
-    );
-  }
-
-  return stack;
+function createStack(payload: CreateStackPayload) {
+  return createActualStack(payload);
 }
 
 function createActualStack(payload: CreateStackPayload) {

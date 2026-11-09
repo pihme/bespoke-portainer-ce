@@ -20,7 +20,6 @@ import _ from 'lodash-es';
 
 import * as envVarsUtils from '@/react/components/form-components/EnvironmentVariablesFieldset/utils';
 import { PorImageRegistryModel } from '@/docker/models/porImageRegistry';
-import { ResourceControlType } from '@/react/portainer/access-control/types';
 import { confirmServiceForceUpdate } from '@/react/docker/services/common/update-service-modal';
 import { confirm, confirmDelete } from '@@/modals/confirm';
 import { ModalType } from '@@/modals';
@@ -91,12 +90,7 @@ angular.module('portainer.docker').controller('ServiceController', [
     RegistryService,
     endpoint
   ) {
-    $scope.resourceType = ResourceControlType.Service;
     $scope.WebhookExists = false;
-
-    $scope.onUpdateResourceControlSuccess = function () {
-      $state.reload();
-    };
 
     $scope.endpoint = endpoint;
 

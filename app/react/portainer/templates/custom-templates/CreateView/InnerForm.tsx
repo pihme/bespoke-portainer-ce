@@ -6,10 +6,7 @@ import { PlatformField } from '@/react/portainer/custom-templates/components/Pla
 import { GitForm } from '@/react/portainer/gitops/GitForm';
 import { isTemplateVariablesEnabled } from '@/react/portainer/custom-templates/components/utils';
 import { TemplateTypeSelector } from '@/react/portainer/custom-templates/components/TemplateTypeSelector';
-import { AccessControlForm } from '@/react/portainer/access-control';
-import { EnvironmentId } from '@/react/portainer/environments/types';
 import { applySetStateAction } from '@/react-tools/apply-set-state-action';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
 import { textByType } from '@/react/common/stacks/common/form-texts';
 import { StackType } from '@/react/common/stacks/types';
 
@@ -27,11 +24,9 @@ import { FormValues, Method, initialBuildMethods } from './types';
 
 export function InnerForm({
   isLoading,
-  environmentId,
   buildMethods,
 }: {
   isLoading: boolean;
-  environmentId?: EnvironmentId;
   buildMethods: Array<(typeof initialBuildMethods)[number]>;
 }) {
   const {
@@ -140,16 +135,6 @@ export function InnerForm({
           onChange={(values) => setFieldValue('Variables', values)}
           isVariablesNamesFromParent={isEditor}
           errors={errors.Variables}
-        />
-      )}
-
-      {!!values.AccessControl && (
-        <AccessControlForm
-          environmentId={environmentId || 0}
-          onChange={(values) => setFieldValue('AccessControl', values)}
-          values={values.AccessControl}
-          errors={errors.AccessControl as FormikErrors<AccessControlFormData>}
-          formNamespace="accessControl"
         />
       )}
 

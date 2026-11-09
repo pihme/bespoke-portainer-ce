@@ -15,11 +15,9 @@ import {
 const sampleSettings = {
   LogoURL: '',
   BlackListedLabels: [],
-  AuthenticationMethod: 1,
   SnapshotInterval: '5m',
   TemplatesURL: '',
   EnableEdgeComputeFeatures: false,
-  UserSessionTimeout: '8h',
   EnableTelemetry: false,
   HelmRepositoryURL: '',
   KubectlShellImage: '',

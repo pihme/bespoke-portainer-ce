@@ -25,10 +25,7 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
     expect(tag.Name).toMatch(/^tag-/);
   });
 
-  it('serves teams, endpoint group, status and version', async () => {
-    const teams = await fetch('/api/teams');
-    expect((await teams.json()).length).toBe(10);
-
+  it('serves endpoint group, status and version', async () => {
     const group = await fetch('/api/endpoint_groups/5');
     expect((await group.json()).Name).toBe('group5');
 
@@ -60,56 +57,37 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
 });
 
 describe('setup-tests server handlers extra arms', () => {
-  it('creates a team and membership', async () => {
-    expect(
-      (
-        await fetch('/api/teams', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ name: 'ops' }),
-        })
-      ).status
-    ).toBe(204);
-    expect(
-      (
-        await fetch('/api/team_memberships', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ userId: 1 }),
-        })
-      ).status
-    ).toBe(204);
+  it('REQ-TAI-001 has no team, membership, role or resource-control stubs', () => {
+    const paths = handlers.map(
+      (h) => (h.info as { path?: unknown }).path as string
+    );
+    for (const gone of [
+      '/api/teams',
+      '/api/team_memberships',
+      '/api/teams/:id/memberships',
+      '/api/roles',
+      '/api/resource_controls/:id',
+      '/api/users',
+    ]) {
+      expect(paths).not.toContain(gone);
+    }
   });
 
-  it('covers remaining local stub GETs and resource control', async () => {
+  it('covers remaining local stub GETs', async () => {
     for (const path of [
       '/api/status',
       '/api/system/info',
       '/api/backup/s3/status',
       '/api/endpoint_groups',
-      '/api/teams/1/memberships',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',
       '/api/omni/1/machines',
       '/api/registries/1',
       '/api/webhooks',
       '/api/policies',
-      '/api/roles',
     ]) {
       expect((await fetch(path)).ok).toBe(true);
     }
-
-    expect(
-      (
-        await (
-          await fetch('/api/resource_controls/1', {
-            method: 'PUT',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({}),
-          })
-        ).json()
-      ).success
-    ).toBe(true);
   });
 
   it('rejects non-string endpoint group ids', async () => {

@@ -65,8 +65,6 @@ func (payload *edgeStackFromStringPayload) Validate(r *http.Request) error {
 // @summary Create an EdgeStack from a text
 // @description **Access policy**: administrator
 // @tags edge_stacks
-// @security ApiKeyAuth
-// @security jwt
 // @produce json
 // @param body body edgeStackFromStringPayload true "stack config"
 // @param dryrun query string false "if true, will not create an edge stack, but just will check the settings and return a non-persisted edge stack object"

@@ -3,9 +3,8 @@ import { Config } from 'docker-types';
 import { PortainerResponse } from '@/react/docker/types';
 import { ResourceControlViewModel } from '@/react/portainer/access-control/models/ResourceControlViewModel';
 
-import { IResource } from '../components/datatable/createOwnershipColumn';
 
-export class ConfigViewModel implements IResource {
+export class ConfigViewModel {
   Id: string;
 
   CreatedAt: string;

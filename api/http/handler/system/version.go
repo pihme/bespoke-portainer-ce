@@ -35,8 +35,6 @@ type versionResponse struct {
 // @summary Check for portainer updates
 // @description Check if portainer has an update available
 // @description **Access policy**: authenticated
-// @security ApiKeyAuth
-// @security jwt
 // @tags system
 // @produce json
 // @success 200 {object} versionResponse "Success"

@@ -14,8 +14,6 @@ import {
 } from '@/react/portainer/templates/custom-templates/types';
 import { GitFormModel } from '@/react/portainer/gitops/types';
 import { DefinitionFieldValues } from '@/react/portainer/custom-templates/components/CustomTemplatesVariablesDefinitionField';
-import { AccessControlFormData } from '@/react/portainer/access-control/types';
-import { applyResourceControl } from '@/react/portainer/access-control/access-control.service';
 import { json2formData } from '@/portainer/helpers/json';
 
 import { Platform } from '../../types';
@@ -43,18 +41,7 @@ export function useCreateTemplateMutation() {
   const queryClient = useQueryClient();
 
   return useMutation(
-    async (
-      payload: CreateTemplatePayload & { AccessControl?: AccessControlFormData }
-    ) => {
-      const template = await createTemplate(payload);
-      const resourceControl = template.ResourceControl;
-
-      if (resourceControl && payload.AccessControl) {
-        await applyResourceControl(payload.AccessControl, resourceControl.Id);
-      }
-
-      return template;
-    },
+    (payload: CreateTemplatePayload) => createTemplate(payload),
     mutationOptions(
       withInvalidate(queryClient, [queryKeys.base()]),
       withError('Failed to create template')

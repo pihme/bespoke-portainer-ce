@@ -6,7 +6,6 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { server } from '@/setup-tests/server';
 import { StackType } from '@/react/common/stacks/types';
 import { Platform } from '@/react/portainer/templates/types';
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 import { getDefaultModel } from '@/react/portainer/gitops/types';
 import { suppressConsoleLogs } from '@/setup-tests/suppress-console';
 
@@ -166,16 +165,15 @@ describe('REQ-TPL-03 useCreateTemplateMutation', () => {
     });
   });
 
-  it('applies access control after create when ResourceControl is present', async () => {
+  it('REQ-TAI-001 creates without applying any ownership', async () => {
     let resourceControlCalled = false;
     server.use(
       http.post('/api/custom_templates/create/string', () =>
         HttpResponse.json(createdTemplate)
       ),
-      http.put('/api/resource_controls/:id', ({ params }) => {
-        expect(params.id).toBe('55');
+      http.all('/api/resource_controls*', () => {
         resourceControlCalled = true;
-        return HttpResponse.json({ success: true });
+        return HttpResponse.json(null, { status: 404 });
       })
     );
 
@@ -187,15 +185,10 @@ describe('REQ-TPL-03 useCreateTemplateMutation', () => {
       await result.current.mutateAsync({
         ...basePayload,
         Method: 'editor',
-        AccessControl: {
-          ownership: ResourceControlOwnership.PRIVATE,
-          authorizedUsers: [1],
-          authorizedTeams: [],
-        },
       });
     });
 
-    expect(resourceControlCalled).toBe(true);
+    expect(resourceControlCalled).toBe(false);
   });
 
   it('surfaces API errors on create from editor', async () => {

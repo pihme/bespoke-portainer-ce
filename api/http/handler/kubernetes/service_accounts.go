@@ -16,7 +16,6 @@ import (
 // @description Get a list of kubernetes service accounts that the user has access to.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @success 200 {array} kubernetes.K8sServiceAccount "Success"
@@ -47,7 +46,6 @@ func (handler *Handler) getAllKubernetesServiceAccounts(w http.ResponseWriter, r
 // @description Get a kubernetes service account in the given namespace.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @produce json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace"
@@ -99,7 +97,6 @@ func (handler *Handler) getKubernetesServiceAccount(w http.ResponseWriter, r *ht
 // @description Delete the provided list of service accounts.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param payload body models.K8sServiceAccountDeleteRequests true "A map where the key is the namespace and the value is an array of service accounts to delete"
@@ -135,7 +132,6 @@ func (handler *Handler) deleteKubernetesServiceAccounts(w http.ResponseWriter, r
 // @description Replace the imagePullSecrets list on a service account with the provided list.
 // @description **Access policy**: Authenticated user.
 // @tags kubernetes
-// @security ApiKeyAuth || jwt
 // @accept json
 // @param id path int true "Environment identifier"
 // @param namespace path string true "Namespace"

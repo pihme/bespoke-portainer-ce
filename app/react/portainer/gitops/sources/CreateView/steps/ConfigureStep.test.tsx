@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/react';
 import { Formik } from 'formik';
 import { vi } from 'vitest';
 
-import { ResourceControlOwnership } from '@/react/portainer/access-control/types';
 
 import { ConfigureStep, validateConfigureStep } from './ConfigureStep';
 
@@ -31,9 +30,6 @@ const baseValues = {
     authentication: { authEnabled: false },
     polling: { enabled: false, interval: '' },
   },
-  authorizedTeams: [],
-  authorizedUsers: [],
-  ownership: ResourceControlOwnership.ADMINISTRATORS,
 };
 
 describe('REQ-GIT-02 ConfigureStep', () => {

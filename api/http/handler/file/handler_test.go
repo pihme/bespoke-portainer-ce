@@ -71,3 +71,15 @@ func TestRedirectInstanceDisabled(t *testing.T) {
 	test("/")
 	test("/index.html")
 }
+
+func TestHTMLAcceptSetsNoCache(t *testing.T) {
+	t.Parallel()
+	handler := file.NewHandler("", false, func() bool { return false })
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml")
+	handler.ServeHTTP(rr, req)
+
+	require.Equal(t, "no-cache, no-store, must-revalidate", rr.Header().Get("Cache-Control"))
+}

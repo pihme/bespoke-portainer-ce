@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Formik } from 'formik';
 
 import { EditPollingWidget } from './EditPollingWidget';
@@ -46,5 +47,24 @@ describe('EditPollingWidget', () => {
     expect(
       screen.queryByText(/only applies to regular stacks/i)
     ).not.toBeInTheDocument();
+  });
+
+  it('shows the interval field after enabling polling', async () => {
+    const user = userEvent.setup();
+    renderEditPollingWidget(false);
+
+    await user.click(screen.getByTestId('source-polling-switch'));
+
+    expect(screen.getByText(/only applies to regular stacks/i)).toBeVisible();
+  });
+
+  it('updates the interval value while polling is enabled', async () => {
+    const user = userEvent.setup();
+    renderEditPollingWidget(true);
+
+    const intervalInput = screen.getByTestId('repository-fetch-interval-input');
+    await user.clear(intervalInput);
+    await user.type(intervalInput, '10m');
+    expect(intervalInput).toHaveValue('10m');
   });
 });

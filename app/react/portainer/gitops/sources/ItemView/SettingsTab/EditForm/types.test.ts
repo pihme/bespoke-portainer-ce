@@ -46,3 +46,47 @@ describe('validationSchema polling/interval', () => {
     expect(result).toBe(true);
   });
 });
+
+describe('validationSchema auth and required fields', () => {
+  it('fails when name or url is missing', async () => {
+    await expect(
+      validationSchema.isValid({
+        ...baseValues,
+        name: '',
+        pollingEnabled: false,
+        interval: '',
+      })
+    ).resolves.toBe(false);
+
+    await expect(
+      validationSchema.isValid({
+        ...baseValues,
+        url: '',
+        pollingEnabled: false,
+        interval: '',
+      })
+    ).resolves.toBe(false);
+  });
+
+  it('requires username when authentication is enabled', async () => {
+    await expect(
+      validationSchema.isValid({
+        ...baseValues,
+        authEnabled: true,
+        username: '',
+        pollingEnabled: false,
+        interval: '',
+      })
+    ).resolves.toBe(false);
+
+    await expect(
+      validationSchema.isValid({
+        ...baseValues,
+        authEnabled: true,
+        username: 'gituser',
+        pollingEnabled: false,
+        interval: '',
+      })
+    ).resolves.toBe(true);
+  });
+});

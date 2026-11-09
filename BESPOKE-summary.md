@@ -21,7 +21,7 @@ Only facts recorded in BESPOKE.md or verified in the repo. Say when a number was
 
 Per stage, 2 to 4 sentences on what changed in the content (what was added, tested, removed, customized, trimmed or packaged), with the decision ID range in parentheses. No process details here.
 
-**1-raw** (RAW-001 to RAW-013). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009). Added the feature spec `docs/portainer-spec.md`, a numbered list of upstream Portainer features (including Business Edition-only ones, labeled) written from docs.portainer.io (RAW-013).
+**1-raw** (RAW-001 to RAW-014). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. Removed the leftover lint-staged config and the unused husky and lint-staged dependencies (RAW-014). An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009). Added the feature spec `docs/portainer-spec.md`, a numbered list of upstream Portainer features (including Business Edition-only ones, labeled) written from docs.portainer.io (RAW-013).
 
 **2-covered** (COV-001 to COV-nnn). <...>
 

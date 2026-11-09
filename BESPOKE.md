@@ -48,13 +48,14 @@ A single-user Portainer for a local Docker environment. It runs on the same mach
 | RAW-004 | Remove `SECURITY.md` and `CODE_OF_CONDUCT.md`. | The user asked to drop them. They pointed reports at security@portainer.io and contribute@portainer.io. | user | Do not restore these files. |
 | RAW-005 | Remove `.github/ISSUE_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/`, `.github/DISCUSSION_TEMPLATE/`, and `.github/PULL_REQUEST_TEMPLATE.md`. | The user asked to drop the issue, pull-request, and discussion templates. They routed people to upstream discussions and advertised Portainer Business Edition. | user | Do not restore these paths. |
 | RAW-006 | Strip upstream contacts and Portainer Business Edition advertising from `README.md`. Keep the Community Edition description, intended-use text that is not a BE upsell, Getting started documentation links, and the licensing section. | The user asked to strip contacts and BE advertising from the README. | user | Do not put back Take3/BE links, contribute@portainer.io, the careers pitch, or links to portainer/portainer issues and releases. |
-| RAW-007 | Remove the `.husky` pre-commit hook. | The user asked to drop the hook that forced `pnpm lint-staged` on every commit. | user | Do not restore `.husky`. Leave `lint-staged.config.js` and the husky devDependency; they are unused hook wiring, not this drop. |
+| RAW-007 | Remove the `.husky` pre-commit hook. | The user asked to drop the hook that forced `pnpm lint-staged` on every commit. | user | Do not restore `.husky`. The leftover `lint-staged.config.js` and husky/lint-staged dependencies were removed in RAW-014. |
 | RAW-008 | Remove the upstream banner image and the docs.portainer.io Getting started links from `README.md`. | The user asked to drop the remaining upstream README links. | user | Do not restore the banner URL or the documentation links. |
 | RAW-009 | Add the optional zlib acknowledgment (that this software is based on Portainer Community Edition by Portainer.io) in the last stage, `6-bespoke` (shrink-wrap). | The user asked to include that courtesy credit at the end of the line, not earlier. | user | Do it in shrink-wrap. Do not add the credit in raw, covered, tailored, customized, or trimmed. Keep `LICENSE` as required by the license notice rule. |
 | RAW-010 | Record the vision and the do-not-touch constraint from the user's product-vision message. | The user stated them. Later stages check decisions against these sections. | user | Keep the wording in Vision / North Star and Constraints unless the user changes it. |
 | RAW-011 | Extend the vision: backup and restore are also removed. | The user asked to drop backup/restore as well. | user | Keep “no backup/restore” in Vision / North Star unless the user changes it. |
 | RAW-012 | Record the raw-stage inventory from the tree and the upstream 2.45.3 release. Tests were not run. | Taking stock is part of the raw stage. | agent | Re-run `make test` on a full checkout with Node ^22.22.1 and Go 1.26.10 before treating the test result as measured. |
 | RAW-013 | The feature spec is `docs/portainer-spec.md`. No testspec yet. | Upstream docs at docs.portainer.io are not a numbered-requirements list, so a new spec was written from them (178 requirements, BE-only features labeled, the planned maintenance screen kept out as not upstream). The location and the list are the agent's choice; the user has not yet seen or approved the list. | agent (location) | Keep later stages on this file. Mark removed or changed requirements by ID there instead of renumbering. |
+| RAW-014 | Remove `lint-staged.config.js` and the unused `husky` and `lint-staged` devDependencies from `package.json`. | The user asked to drop the leftover hook wiring after RAW-007 removed the hook itself. | user | Do not restore `lint-staged.config.js` or add `husky` or `lint-staged` back to `package.json`. |
 
 ### Interventions
 
@@ -65,7 +66,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 ### Last run
 
-- 2026-11-09. Inventory recorded (RAW-012). Tests not measured. Feature spec `docs/portainer-spec.md` added (RAW-013), not yet reviewed by the user.
+- 2026-11-09. Inventory recorded (RAW-012). Tests not measured. Feature spec `docs/portainer-spec.md` added (RAW-013) and shown to the user. Leftover lint-staged and Husky wiring removed (RAW-014).
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 2 covered

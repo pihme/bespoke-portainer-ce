@@ -443,7 +443,7 @@ Questions raised while mapping. The user decides; an empty Decision means open. 
 
 ## Coverage plan (phase C)
 
-Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `519947b42`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 % (open point; bar unchanged; Deferred tests not started in this slice). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added.
+Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `0769c07f2`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 % (open point; bar unchanged; Deferred tests not started in this slice). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added.
 
 ### Uncoverable methods and functions
 

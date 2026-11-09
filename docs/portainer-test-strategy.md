@@ -234,7 +234,7 @@ Inside `nix develop` (Go 1.26.10), output in `/workspace/a0-runs/a2/` outside th
 
 COV-008 measured once on 2026-11-09 without `coverage.include` (48.8 % project-wide; client 68.5 % of loaded files only). COV-009 (user, 2026-11-09) set `coverage.include: ['app/**']` in `vitest.config.mts` (generated-api exclude kept from COV-004) and remeasured. This section holds the remeasurement.
 
-One run of the authoritative command on 2026-11-09, 16:18 to 16:22 (Europe/Berlin), inside `nix develop` (Go 1.26.10, Node 22.22.1), on `2-covered@7476f68ef` (the `coverage.include` commit; this section recorded in `519947b42`). Output in `/workspace/a0-runs/c-baseline-include/` on the agent box, outside the repo.
+One run of the authoritative command on 2026-11-09, 16:18 to 16:22 (Europe/Berlin), inside `nix develop` (Go 1.26.10, Node 22.22.1), on `2-covered@7476f68ef` (the `coverage.include` commit; this section recorded in `0769c07f2`). Output in `/workspace/a0-runs/c-baseline-include/` on the agent box, outside the repo.
 
 ```
 nix develop -c make test COVERPROFILE=/workspace/a0-runs/c-baseline-include/coverage.out \

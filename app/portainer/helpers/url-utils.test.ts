@@ -75,3 +75,15 @@ describe('isSameDocumentUrl', () => {
     ).toBe(false);
   });
 });
+
+describe('url-utils invalid URL catch paths', () => {
+  it('isValidReturnUrl returns false when URL construction throws', () => {
+    expect(isValidReturnUrl('http://[', 'http://localhost:9000')).toBe(false);
+  });
+
+  it('isSameDocumentUrl returns false when URL construction throws', () => {
+    expect(isSameDocumentUrl('http://[', 'http://localhost:9000/#!/auth')).toBe(
+      false
+    );
+  });
+});

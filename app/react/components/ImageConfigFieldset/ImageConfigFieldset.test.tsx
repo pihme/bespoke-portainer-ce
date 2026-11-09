@@ -53,6 +53,23 @@ it('should call setFieldValue with useRegistry set to true when "Simple mode" bu
   expect(setFieldValue).toHaveBeenCalledWith('useRegistry', true);
 });
 
+it('renders children and RateLimits when enabled in simple mode', () => {
+  const { getByText, queryByText } = renderComponent({
+    values: { useRegistry: true },
+    onRateLimit: vi.fn(),
+  });
+  expect(getByText('Advanced mode')).toBeInTheDocument();
+});
+
+it('hides RateLimits in advanced mode even when onRateLimit is set', () => {
+  const { queryByText } = renderComponent({
+    values: { useRegistry: false },
+    onRateLimit: vi.fn(),
+  });
+  expect(queryByText('Advanced mode')).toBeNull();
+  expect(queryByText('Simple mode')).toBeInTheDocument();
+});
+
 function renderComponent({
   values = {
     useRegistry: true,
@@ -91,6 +108,8 @@ function renderComponent({
       setFieldValue={setFieldValue}
       onChangeImage={onChangeImage}
       onRateLimit={onRateLimit}
-    />
+    >
+      <div>extra-child</div>
+    </Wrapped>
   );
 }

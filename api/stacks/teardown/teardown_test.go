@@ -254,3 +254,74 @@ func deleteRecords(t *testing.T, store *datastore.Store, svc teardown.Service, s
 		return svc.DeleteRecords(tx, stack)
 	})
 }
+
+func TestDeleteRecords_ResourceControlLookupFails(t *testing.T) {
+	t.Parallel()
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+
+	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
+	require.NoError(t, store.Stack().Create(stack))
+
+	lookupErr := errors.New("rc lookup failed")
+	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return svc.DeleteRecords(&failingRCLookupTx{DataStoreTx: tx, lookupErr: lookupErr}, stack)
+	})
+	require.ErrorIs(t, err, lookupErr)
+}
+
+func TestDeleteRecords_ResourceControlDeleteFails(t *testing.T) {
+	t.Parallel()
+	svc, store := newService(t, &stubFileService{}, &stubSwarmStackManager{}, &stubComposeStackManager{}, &stubStackDeployer{}, &stubKubernetesDeployer{})
+
+	stack := &portainer.Stack{ID: 1, EndpointID: 1, Type: portainer.DockerComposeStack, Name: "test-stack"}
+	require.NoError(t, store.Stack().Create(stack))
+
+	resourceControl := &portainer.ResourceControl{ResourceID: "1_test-stack", Type: portainer.StackResourceControl}
+	require.NoError(t, store.ResourceControl().Create(resourceControl))
+
+	deleteErr := errors.New("rc delete failed")
+	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return svc.DeleteRecords(&failingRCDeleteTx{DataStoreTx: tx, deleteErr: deleteErr}, stack)
+	})
+	require.ErrorIs(t, err, deleteErr)
+}
+
+type failingRCLookupTx struct {
+	dataservices.DataStoreTx
+	lookupErr error
+}
+
+func (tx *failingRCLookupTx) ResourceControl() dataservices.ResourceControlService {
+	return &failingRCLookupService{ResourceControlService: tx.DataStoreTx.ResourceControl(), lookupErr: tx.lookupErr}
+}
+
+type failingRCLookupService struct {
+	dataservices.ResourceControlService
+	lookupErr error
+}
+
+func (s *failingRCLookupService) ResourceControlByResourceIDAndType(string, portainer.ResourceControlType) (*portainer.ResourceControl, error) {
+	return nil, s.lookupErr
+}
+
+type failingRCDeleteTx struct {
+	dataservices.DataStoreTx
+	deleteErr error
+}
+
+func (tx *failingRCDeleteTx) ResourceControl() dataservices.ResourceControlService {
+	return &failingRCDeleteService{ResourceControlService: tx.DataStoreTx.ResourceControl(), deleteErr: tx.deleteErr}
+}
+
+type failingRCDeleteService struct {
+	dataservices.ResourceControlService
+	deleteErr error
+}
+
+func (s *failingRCDeleteService) ResourceControlByResourceIDAndType(resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error) {
+	return s.ResourceControlService.ResourceControlByResourceIDAndType(resourceID, resourceType)
+}
+
+func (s *failingRCDeleteService) Delete(portainer.ResourceControlID) error {
+	return s.deleteErr
+}

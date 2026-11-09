@@ -328,6 +328,13 @@ func Test_InRange(t *testing.T) {
 			right:          2,
 			expectedResult: false,
 		},
+		{
+			name:           "swapped bounds",
+			f:              1.5,
+			left:           2,
+			right:          1,
+			expectedResult: true,
+		},
 	}
 
 	for _, tc := range testCases {

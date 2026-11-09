@@ -442,6 +442,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-359 | Close Priority work on `environments/TagsView`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-360 | Close Priority work on `environment-groups` (parent; ItemView child not retargeted). Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-361 | Close Priority work on `AssociatedEnvironmentsSelector`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 69.6 % → 90.2 % (64 → 83 of 92; +19). FormMode covered; thin drawer/row-click leftovers. Package left at 90.2 % (83 of 92; 9 missed). | Preferred AssociatedEnvironmentsSelector covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-362 | Close Priority work on `environment-groups/utils`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 88.2 % (0 → 15 of 17; +15). Deferred-within-package: K8s/Podman label arms. Package left at 88.2 % (15 of 17; 2 missed). | Preferred environment-groups utils covered; K8s/Podman arms deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -895,6 +896,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-359: close Priority work on TagsView. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
 - 2026-11-09. COV-360: close Priority work on environment-groups parent. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
 - 2026-11-09. COV-361: close Priority work on AssociatedEnvironmentsSelector. Parallel isolated 69.6 % → 90.2 % (64 → 83 of 92; +19). Thin drawer/row-click leftovers. Do not grind further.
+- 2026-11-09. COV-362: close Priority work on environment-groups utils. Parallel isolated 0 % → 88.2 % (0 → 15 of 17; +15). Deferred K8s/Podman label arms. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

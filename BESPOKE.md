@@ -429,6 +429,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-346 | Close Priority work on `gitops/sources/components`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 26.3 % → 100 % (5 → 19 of 19; +14). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-347 | Close Priority work on `volumesCIFSForm`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Leftovers: none. Deferred-within-package: none. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-348 | Close Priority work on `EditGitSettings`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 83.0 % → 92.5 % (44 → 49 of 53; +5). Deferred-within-package: K8s StackName / platform arms. Package left at 92.5 % (49 of 53; 4 missed). | Preferred EditGitSettings covered; K8s/platform arms deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-349 | Close Priority work on `InsightsBox`. Parallel batch merged from `2-covered-parallel-fe-batch-350` (`75b4b2867`). Isolated remasure: 62.5 % → 100 % (10 → 16 of 16; +6). Stories deferred-within-package (KEEP production). Package left at 100 % (16 of 16; 0 missed). | Statement coverage complete for preferred InsightsBox; stories deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -869,6 +870,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-346: close Priority work on gitops source components. Parallel isolated 26.3 % → 100 % (5 → 19 of 19; +14). Do not grind further.
 - 2026-11-09. COV-347: close Priority work on volumesCIFSForm. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - 2026-11-09. COV-348: close Priority work on EditGitSettings. Parallel isolated 83.0 % → 92.5 % (44 → 49 of 53; +5). Deferred K8s StackName/platform arms. Do not grind further.
+- 2026-11-09. COV-349: close Priority work on InsightsBox helpers. Parallel isolated 62.5 % → 100 % (10 → 16 of 16; +6). Stories deferred. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

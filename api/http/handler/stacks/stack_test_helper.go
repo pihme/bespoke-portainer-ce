@@ -1,7 +1,6 @@
 package stacks
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -52,12 +51,4 @@ func mockCreateStackRequestWithSecurityContext(method, target string, body io.Re
 	})
 
 	return req.WithContext(ctx)
-}
-
-func securityStoreNonAdmin(req *http.Request, user *portainer.User) context.Context {
-	return security.StoreRestrictedRequestContext(req, &security.RestrictedRequestContext{
-		IsAdmin: false,
-		UserID:  user.ID,
-		User:    user,
-	})
 }

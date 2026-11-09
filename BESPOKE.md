@@ -285,6 +285,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-202 | Close Priority work on `pkg/schedule`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): ticker_test.go (+1). Isolated remasure: 90.0 % → 100 % (9 → 10 of 10; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (10 of 10; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-203 | Close Priority work on `pkg/validate`. Parallel batch merged from `2-covered-parallel-go-batch-398` (`9865511e7`): validate_test.go (+1 case). Isolated remasure: 96.9 % → 100 % (31 → 32 of 32; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (32 of 32; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-204 | Close Priority work on `app/react/docker/containers` (parent; not CreateView/ListView/ItemView). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 41.6 % → 100 % (32 → 77 of 77; +45). Leftovers: none. Deferred-within-package: none (child packages out of scope). Package left at 100 % (77 of 77; 0 missed). | Statement coverage complete for parent container helpers. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-205 | Close Priority work on `app/react/portainer/gitops` (parent; not sources/ or workflows/). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 49.6 % → 88.7 % (57 → 102 of 115; +45). Leftovers: 13 thin/deferred-within-package edges. Package left at 88.7 % (102 of 115; 13 missed). | Preferred gitops form helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -571,6 +572,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-203: close Priority work on validate helpers. Parallel isolated 96.9 % → 100 % (31 → 32 of 32; +1). Do not grind further.
 - 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-135` (`80f42818f`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-204: close Priority work on Docker container helpers. Parallel isolated 41.6 % → 100 % (32 → 77 of 77; +45). Do not grind further.
+- 2026-11-09. COV-205: close Priority work on gitops form helpers. Parallel isolated 49.6 % → 88.7 % (57 → 102 of 115; +45). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

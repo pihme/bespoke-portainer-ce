@@ -143,3 +143,20 @@ describe('REQ-CTR-04 ContainerNetworksDatatable for local containers', () => {
     );
   });
 });
+
+describe('container network column accessors and leave action', () => {
+  it('column accessors fall back to dash for empty IP gateway and MAC', () => {
+    const cols = buildColumns();
+    const ip = cols.find((c) => c.id === 'ip') as { accessorFn?: (r: object) => string };
+    const gateway = cols.find((c) => c.id === 'gateway') as {
+      accessorFn?: (r: object) => string;
+    };
+    const mac = cols.find((c) => c.id === 'macAddress') as {
+      accessorFn?: (r: object) => string;
+    };
+    expect(ip.accessorFn?.({ IPAddress: '' })).toBe('-');
+    expect(ip.accessorFn?.({ IPAddress: '1.2.3.4' })).toBe('1.2.3.4');
+    expect(gateway.accessorFn?.({ Gateway: '' })).toBe('-');
+    expect(mac.accessorFn?.({ MacAddress: 'aa' })).toBe('aa');
+  });
+});

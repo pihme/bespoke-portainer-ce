@@ -239,3 +239,42 @@ func builderWorkflowSourceID(t *testing.T, builder *GitMethodStackBuilder) porta
 	require.Len(t, wf.Artifacts[0].Files, 1)
 	return wf.Artifacts[0].Files[0].SourceID
 }
+
+func TestREQ_STK_03_GitMethodStackBuilder_ManifestFileOverridesComposePath(t *testing.T) {
+	t.Parallel()
+	builder := newGitMethodBuilder(t, "manifest-hash")
+	builder.stack.ID = 11
+	builder.stack.Name = "k8s-style-path"
+
+	require.NoError(t, builder.prepare(context.Background(), &StackPayload{
+		ComposeFile:  "docker-compose.yml",
+		ManifestFile: "deploy/manifest.yaml",
+		RepositoryConfigPayload: RepositoryConfigPayload{
+			URL: "https://github.com/org/manifests",
+		},
+	}, portainer.UserID(1)))
+
+	wf, err := builder.dataStore.Workflow().Read(builder.stack.WorkflowID)
+	require.NoError(t, err)
+	require.Len(t, wf.Artifacts, 1)
+	require.Len(t, wf.Artifacts[0].Files, 1)
+	assert.Equal(t, "deploy/manifest.yaml", wf.Artifacts[0].Files[0].Path)
+}
+
+func TestREQ_STK_03_GitMethodStackBuilder_postDeploy_NilScheduler(t *testing.T) {
+	t.Parallel()
+	builder := newGitMethodBuilder(t, "abc")
+	builder.resolvedSourceID = 1
+	require.NoError(t, builder.postDeploy(context.Background(), &portainer.Stack{ID: 1}))
+}
+
+func TestREQ_STK_03_GitMethodStackBuilder_MissingUser_ReturnsError(t *testing.T) {
+	t.Parallel()
+	builder := newGitMethodBuilder(t, "abc")
+	builder.stack.ID = 12
+
+	err := builder.prepare(context.Background(), &StackPayload{
+		RepositoryConfigPayload: RepositoryConfigPayload{URL: "https://github.com/org/x"},
+	}, portainer.UserID(999))
+	require.Error(t, err)
+}

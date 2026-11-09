@@ -511,6 +511,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-428 | Close Priority work on `GeneralEnvironmentForm`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 95.8 % → 100 % (23 → 24 of 24; +1). Existing K8s/Edge cases left; no new Azure/K8s/Edge arms. Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-429 | Close Priority work on environments `NameField`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 0 % → 100 % (0 → 15 of 15; +15). Leftovers: none. Deferred-within-package: none. Package left at 100 % (15 of 15; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-430 | Close Priority work on `gitops/components` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7). edgeStack / namespace label arms unused, deferred. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete for preferred parent; unused Edge/K8s label arms deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-431 | Close Priority work on `gitops/workflows/test-utils`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 0 % → 100 % (0 → 9 of 9; +9). Fixtures include Edge/K8s data; lookup covered. Package left at 100 % (9 of 9; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -1037,6 +1038,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-428: close Priority work on GeneralEnvironmentForm. Parallel isolated 95.8 % → 100 % (23 → 24 of 24; +1). Do not grind further.
 - 2026-11-09. COV-429: close Priority work on NameField. Parallel isolated 0 % → 100 % (0 → 15 of 15; +15). Do not grind further.
 - 2026-11-09. COV-430: close Priority work on gitops components parent. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Deferred unused edgeStack/namespace label arms. Do not grind further.
+- 2026-11-09. COV-431: close Priority work on workflow test-utils. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

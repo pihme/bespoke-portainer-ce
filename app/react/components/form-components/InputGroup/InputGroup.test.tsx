@@ -29,6 +29,17 @@ describe('InputGroup', () => {
     expect(screen.getByText('req')).toHaveClass('required');
   });
 
+  it('uses no size class when size is omitted', () => {
+    const { container } = render(
+      <InputGroup>
+        <InputGroup.Addon>x</InputGroup.Addon>
+      </InputGroup>
+    );
+    expect(container.querySelector('.input-group-lg')).toBeNull();
+    expect(container.querySelector('.input-group-sm')).toBeNull();
+    expect(container.querySelector('.input-group')).toBeTruthy();
+  });
+
   it('throws when Addon is used outside InputGroup', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<InputGroup.Addon>x</InputGroup.Addon>)).toThrow(

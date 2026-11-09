@@ -75,7 +75,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - Upstream commit: 7382c727c46cf7c61701e09c8b61eb6432f0d91a
 - Built from: 1-raw@7382c727c46cf7c61701e09c8b61eb6432f0d91a
 - Skill: increase-test-coverage
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: `nix develop -c make test` (no CI workflows at this pin; run locally on 2026-11-09)
 - Details: test strategy and A0 inventory in [docs/portainer-test-strategy.md](docs/portainer-test-strategy.md); test spec in [docs/portainer-testspec.md](docs/portainer-testspec.md)
 
 ### Decisions
@@ -1043,7 +1043,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-431: close Priority work on workflow test-utils. Parallel isolated 0 % → 100 % (0 → 9 of 9; +9). Do not grind further.
 - 2026-11-09. COV-432: close Priority work on templates components parent. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Deferred unused typeLabel==='manifest' K8s icon arm. Do not grind further.
 - 2026-11-09. COV-433: close Priority work on react utils parent. Parallel isolated 69.2 % → 100 % (18 → 26 of 26; +8). Do not grind further.
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: covered-stage goal met under COV-012 (Priority KEEP packages exhausted through COV-433; Deferred and vision-removed surfaces left untested; phase D mutation and fuzz not run). Project-wide coverage remeasured on `36abdaa410e00d7518e31ca25a4ce1f48cadaa5c` with `nix develop -c make test`: 52.9 % of statements (35,849 of 67,724; Go 60.5 %, 19,604 of 32,392; client 46.0 %, 16,245 of 35,332). Both suites green (Go 5,089 tests, 69 skipped, 0 failed; client 5,073 passed, 5 skipped, 11 todo, 0 failed). Versus COV-009: 32.7 % (22,118 of 67,714). No CI gate to run: this pin has no workflows. User confirmed the exit.
 
 ## 3 tailored
 

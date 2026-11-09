@@ -26,8 +26,8 @@ A single-user Portainer for a local Docker environment. It runs on the same mach
 - Upstream commit: 0fa764dc81c76bb7914d65d8e62b026d7c746899
 - Built from: upstream
 - Skill: fork
-- Gate: <command(s) that must pass at the end of this stage>
-- Details: none (or bespoke/1-raw.md)
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Details: none
 
 ### Inventory
 
@@ -35,7 +35,7 @@ A single-user Portainer for a local Docker environment. It runs on the same mach
 - Build: `make deps` installs client packages with `pnpm install` (CE `server-deps` is empty). `make all` / `make build-all` runs `go mod tidy`, those deps, `make build-server` (`./build/build_binary.sh`) and `make build-client` (`pnpm run build`). `make build-image` then builds a local image tagged `portainerci/portainer-ce:local`. `make dev-server` runs the binary in a `portainer/base` container, publishing ports 8000, 9000 and 9443, and mounting `dist` plus the Docker socket. `make dev-client` runs `pnpm run dev`.
 - Tests and result: `make test` runs `make test-server` (`gotestsum` over `./...` with `-cover`) and `make test-client` (`pnpm run test --coverage`, which is `vitest run`). Result: not measured on 2026-11-09. The working copy used for this walk was a sparse checkout, and the inventory host had Node v24.22.1 and Go 1.27.3 (the tree asks for Node `^22.22.1` and Go 1.26.10). This commit has no GitHub Actions workflows to read a CI result from.
 - License: zlib. The `LICENSE` file is the zlib text, Copyright (c) 2018 Portainer.io. `ATTRIBUTIONS.md` lists third-party code under CC BY 4.0 (angular-json-tree, caniuse-db, caniuse-lite, Font Awesome icons), CC BY 3.0 (spdx-exceptions), and MIT (UI For Docker, rdash-angular).
-- Direct dependencies: 66 direct Go modules in the first `require` block of `go.mod`, including Docker/Compose/containerd, Kubernetes/Helm clients, LDAP, JWT, chisel, bbolt, and AWS ECR. The frontend `package.json` lists 105 runtime dependencies and 101 devDependencies (including husky ^8.0.0; the `.husky` hook itself was removed in RAW-007).
+- Direct dependencies: 66 direct Go modules in the first `require` block of `go.mod`, including Docker/Compose/containerd, Kubernetes/Helm clients, LDAP, JWT, chisel, bbolt, and AWS ECR. The frontend `package.json` listed 105 runtime dependencies and 101 devDependencies at inventory (RAW-012), including husky ^8.0.0; the `.husky` hook was removed in RAW-007 and the leftover husky and lint-staged dependencies in RAW-014.
 - Shipped artifacts and size: this fork has no GitHub release. Upstream portainer/portainer release 2.45.3 (published 2026-10-21T23:20:29Z, 22 Oct 2026, 00:20 Europe/Berlin) ships these tarballs, sizes in bytes: linux-amd64 44,172,112; linux-arm 41,534,633; linux-arm64 40,410,984; linux-ppc64le 40,116,764; windows1809-amd64 44,927,455; windowsltsc2022-amd64 44,927,329; windowsltsc2025-amd64 44,927,428. Docker Hub tag `portainer/portainer-ce:2.45.3` was last updated 2026-10-21T23:28:31Z; the linux/amd64 image size reported there is 44,868,306 bytes.
 
 ### Decisions
@@ -68,14 +68,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - 2026-11-09. Inventory recorded (RAW-012). Tests not measured. Feature spec `docs/portainer-spec.md` added (RAW-013) and shown to the user. Second-pass drops: leftover lint-staged and Husky wiring (RAW-014), upstream contacts in package.json (RAW-015).
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
 
 ## 2 covered
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 1-raw@<sha>
 - Skill: increase-test-coverage
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
 - Details: none (or bespoke/2-covered.md)
 
 ### Decisions
@@ -94,14 +94,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
 
 ## 3 tailored
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 2-covered@<sha>
 - Skill: remove-features
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
 - Details: none (or bespoke/3-tailored.md)
 
 ### Decisions
@@ -120,14 +120,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
 
 ## 4 customized
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 3-tailored@<sha>
 - Skill: customize-features
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
 - Details: none (or bespoke/4-customized.md)
 
 ### Decisions
@@ -146,14 +146,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
 
 ## 5 trimmed
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 4-customized@<sha>
 - Skill: trim
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
 - Details: none (or bespoke/5-trimmed.md)
 
 ### Decisions
@@ -172,14 +172,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
 
 ## 6 bespoke
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 5-trimmed@<sha>
 - Skill: shrink-wrap
-- Gate: <command(s) that must pass at the end of this stage>
+- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
 - Details: none (or bespoke/6-bespoke.md)
 
 ### Decisions
@@ -198,4 +198,4 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
+- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.

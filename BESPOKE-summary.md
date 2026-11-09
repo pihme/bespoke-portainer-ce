@@ -21,7 +21,7 @@ Only facts recorded in BESPOKE.md or verified in the repo. Say when a number was
 
 Per stage, 2 to 4 sentences on what changed in the content (what was added, tested, removed, customized, trimmed or packaged), with the decision ID range in parentheses. No process details here.
 
-**1-raw** (RAW-001 to RAW-015). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. Removed the leftover lint-staged config and the unused husky and lint-staged dependencies (RAW-014). Removed upstream homepage, bugs, repository and license URL fields from package.json (RAW-015). An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009). Added the feature spec `docs/portainer-spec.md`, a numbered list of upstream Portainer features (including Business Edition-only ones, labeled) written from docs.portainer.io (RAW-013).
+**1-raw** (RAW-001 to RAW-015). Forked Portainer Community Edition 2.45.3 as `bespoke-portainer-ce`. Removed upstream agent instructions, contribution and security/conduct files, GitHub issue, pull-request and discussion templates, README contacts, Business Edition advertising, the upstream banner and documentation links, and the Husky pre-commit hook. Removed the leftover lint-staged config and the unused husky and lint-staged dependencies (RAW-014). Removed upstream homepage, bugs, repository and license URL fields from package.json (RAW-015). An optional zlib acknowledgment is scheduled for `6-bespoke` (RAW-009). Added the feature spec `docs/portainer-spec.md`, a numbered list of upstream Portainer features (including Business Edition-only ones, labeled) written from docs.portainer.io (RAW-013). The user confirmed the raw-stage exit on 2026-11-09, with no CI gate to run and tests not measured.
 
 **2-covered** (COV-001 to COV-nnn). <...>
 
@@ -48,3 +48,4 @@ Customized:
 Process issues only: commits without a decision ID, a gate that CI no longer runs, commits after a stage's exit, anything the protocol and the repo disagree on. Name the commit or decision.
 
 - This commit of portainer/portainer has no `.github/workflows`, no FUNDING file, no CODEOWNERS, and no Dependabot config, so there was nothing in those classes for the first pass to keep or drop.
+- The raw stage exited on 2026-11-09 without a CI-passing gate (no workflows at this pin) and without a measured test result. The user confirmed that exit.

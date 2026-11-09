@@ -71,7 +71,7 @@ function env(overrides: Record<string, unknown> = {}) {
     Name: 'local',
     URL: 'unix:///var/run/docker.sock',
     Type: EnvironmentType.Docker,
-    Status: EnvironmentStatus.Active,
+    Status: EnvironmentStatus.Up,
     GroupName: 'default',
     ...overrides,
   };
@@ -126,6 +126,17 @@ describe('REQ-ENV-03 environment list columns for local Docker', () => {
     expect(screen.getByText('Docker')).toBeVisible();
   });
 
+  it('builds the type accessor from the environment row', () => {
+    const accessor = type.accessorFn as (row: ReturnType<typeof env>) => {
+      type: EnvironmentType;
+      containerEngine?: unknown;
+    };
+    expect(accessor(env({ Type: EnvironmentType.Docker }))).toEqual({
+      type: EnvironmentType.Docker,
+      containerEngine: undefined,
+    });
+  });
+
   it('shows the local URL and can dismiss a status error', async () => {
     const user = userEvent.setup();
     mockMutate.mockImplementation((_payload, opts) => opts?.onSuccess?.());
@@ -149,8 +160,35 @@ describe('REQ-ENV-03 environment list columns for local Docker', () => {
     );
   });
 
+  it('renders a local URL without a status message', () => {
+    renderCell(url, env({ StatusMessage: undefined }));
+    expect(screen.getByText('unix:///var/run/docker.sock')).toBeVisible();
+  });
+
+  it('shows a provisioning spinner and summary in the URL cell', () => {
+    renderCell(
+      url,
+      env({
+        Status: EnvironmentStatus.Provisioning,
+        StatusMessage: { summary: 'creating', detail: 'almost done' },
+        URL: '',
+      })
+    );
+    expect(screen.getByText('creating')).toBeVisible();
+  });
+
   it('hides manage-access for provisioning environments', () => {
     renderCell(actions, env({ Status: EnvironmentStatus.Provisioning }));
     expect(screen.getByText('-')).toBeVisible();
+  });
+
+  it('hides manage access for environments in error', () => {
+    renderCell(actions, env({ Status: EnvironmentStatus.Error }));
+    expect(screen.getByText('-')).toBeVisible();
+  });
+
+  it('shows manage access for an active local environment', () => {
+    renderCell(actions, env({ Status: EnvironmentStatus.Up }));
+    expect(screen.getByText('Manage access')).toBeVisible();
   });
 });

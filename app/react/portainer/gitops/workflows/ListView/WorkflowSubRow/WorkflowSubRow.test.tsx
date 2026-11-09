@@ -50,4 +50,16 @@ describe('REQ-GIT-01 WorkflowSubRow for local Compose artifacts', () => {
     expect(screen.getByText('No source')).toBeVisible();
     expect(screen.getByText('No files')).toBeVisible();
   });
+
+  it('shows Unknown source when the source query has no data', () => {
+    const artifact = mockWorkflowHealthy.artifacts[0];
+    render(
+      <WorkflowSubRow
+        artifact={artifact}
+        sources={[{ sourceId: 25, query: { data: undefined } }]}
+        showHeader={false}
+      />
+    );
+    expect(screen.getByText('Unknown source')).toBeVisible();
+  });
 });

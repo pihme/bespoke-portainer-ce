@@ -324,6 +324,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-241 | Close Priority work on `VolumesDatatable/columns`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 92.6 % (0 → 25 of 27; +25). Leftovers: 2 thin. Deferred-within-package: none. Package left at 92.6 % (25 of 27; 2 missed). | Preferred volumes table columns covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-242 | Close Priority work on `docker/views/host`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 88.9 % (0 → 24 of 27; +24). KEEP host-view; deferred-within-package host-browser-view. Package left at 88.9 % (24 of 27; 3 missed). | Preferred Docker host view covered; host-browser-view deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-243 | Close Priority work on `primitives`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure excluding stories: 0 % → 100 % (0 → 27 of 27; +27). Deferred-within-package: stories. Package left at 100 % excluding stories (27 of 27; 0 missed). | Statement coverage complete excluding stories. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-244 | Close Priority work on `app/react/portainer/gitops/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 100 % (0 → 38 of 38; +38). Leftovers: none. Deferred-within-package: none. Package left at 100 % (38 of 38; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -650,6 +651,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-241: close Priority work on volumes table columns. Parallel isolated 0 % → 92.6 % (0 → 25 of 27; +25). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-242: close Priority work on Docker host view. Parallel isolated 0 % → 88.9 % (0 → 24 of 27; +24). Deferred host-browser-view. Do not grind further.
 - 2026-11-09. COV-243: close Priority work on UI primitives. Parallel isolated excluding stories 0 % → 100 % (0 → 27 of 27; +27). Deferred stories. Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-203` (`11a13fe00`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-244: close Priority work on gitops queries. Parallel isolated 0 % → 100 % (0 → 38 of 38; +38). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

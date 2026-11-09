@@ -72,8 +72,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 ## 2 covered
 
-- Upstream commit: <sha of 1-raw this run started from>
-- Built from: 1-raw@<sha>
+- Upstream commit: 7382c727c46cf7c61701e09c8b61eb6432f0d91a
+- Built from: 1-raw@7382c727c46cf7c61701e09c8b61eb6432f0d91a
 - Skill: increase-test-coverage
 - Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/2-covered.md)

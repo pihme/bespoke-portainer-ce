@@ -395,6 +395,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-312 | Close Priority work on `FormControl`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure remains 54.2 % (13 of 24; +0; no new test commit). KEEP FormControl.tsx 100 %; stories deferred 0/11. Package left at 54.2 % (13 of 24; 11 missed). | Preferred FormControl covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-313 | Close Priority work on `form-components/Slider`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 38.9 % → 50.0 % (7 → 9 of 18; +2). KEEP production 100 %; stories deferred. Package left at 50.0 % (9 of 18; 9 missed). | Preferred Slider helpers covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-314 | Close Priority work on `CustomTemplatesVariablesDefinitionField`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 0 % → 72.7 % (0 → 8 of 11; +8). KEEP file 100 %; stories deferred; error arms uncoverable due to renderItem arity vs InputList. Package left at 72.7 % (8 of 11; 3 missed). | Preferred definition field covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-315 | Close Priority work on `environment-groups/ItemView`. Parallel batch merged from `2-covered-parallel-fe-batch-314` (`decff7176`). Isolated remasure: 77.0 % → 90.5 % (57 → 67 of 74; +10). Deferred-within-package: AccessTab leftovers (user access). Package left at 90.5 % (67 of 74; 7 missed). | Preferred environment-groups ItemView covered; AccessTab deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -799,6 +800,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-312: close Priority work on FormControl helpers. Parallel isolated remains 54.2 % (13 of 24; +0). KEEP FormControl.tsx 100 %. Deferred stories. Do not grind further.
 - 2026-11-09. COV-313: close Priority work on Slider helpers. Parallel isolated 38.9 % → 50.0 % (7 → 9 of 18; +2). KEEP production 100 %. Deferred stories. Do not grind further.
 - 2026-11-09. COV-314: close Priority work on custom template variables definition field. Parallel isolated 0 % → 72.7 % (0 → 8 of 11; +8). KEEP file 100 %. Deferred stories. Do not grind further.
+- 2026-11-09. COV-315: close Priority work on environment-groups ItemView. Parallel isolated 77.0 % → 90.5 % (57 → 67 of 74; +10). Deferred AccessTab. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

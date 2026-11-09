@@ -509,6 +509,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-426 | Close Priority work on `CreateStackForm/UploadSection`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 92.9 % → 100 % (13 → 14 of 14; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (14 of 14; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-427 | Close Priority work on `HomeView/EnvironmentHeader`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 95.5 % → 100 % (21 → 22 of 22; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (22 of 22; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-428 | Close Priority work on `GeneralEnvironmentForm`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 95.8 % → 100 % (23 → 24 of 24; +1). Existing K8s/Edge cases left; no new Azure/K8s/Edge arms. Package left at 100 % (24 of 24; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-429 | Close Priority work on environments `NameField`. Parallel batch merged from `2-covered-parallel-fe-batch-512` (`fcf5d3cc5`). Isolated remasure: 0 % → 100 % (0 → 15 of 15; +15). Leftovers: none. Deferred-within-package: none. Package left at 100 % (15 of 15; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -1033,6 +1034,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-426: close Priority work on UploadSection. Parallel isolated 92.9 % → 100 % (13 → 14 of 14; +1). Do not grind further.
 - 2026-11-09. COV-427: close Priority work on EnvironmentHeader. Parallel isolated 95.5 % → 100 % (21 → 22 of 22; +1). Do not grind further.
 - 2026-11-09. COV-428: close Priority work on GeneralEnvironmentForm. Parallel isolated 95.8 % → 100 % (23 → 24 of 24; +1). Do not grind further.
+- 2026-11-09. COV-429: close Priority work on NameField. Parallel isolated 0 % → 100 % (0 → 15 of 15; +15). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

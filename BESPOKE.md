@@ -361,6 +361,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-278 | Close Priority work on `CommandPalette`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 95.0 % (38 of 40; +0; no new test commit). Leftovers: thin lines 39/42. Deferred-within-package: none. Package left at 95.0 % (38 of 40; 2 missed). | Preferred CommandPalette covered; thin leftovers. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-279 | Close Priority work on `PrimaryActions`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 100 % (0 → 38 of 38; +38). Leftovers: none. Deferred-within-package: none. Package left at 100 % (38 of 38; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-280 | Close Priority work on `containers/components`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 94.7 % (0 → 18 of 19; +18). Deferred-within-package: Podman bridge rename. Package left at 94.7 % (18 of 19; 1 missed). | Preferred container components covered; Podman bridge rename deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-281 | Close Priority work on `app/react/docker/images` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 14.3 % → 73.8 % (6 → 31 of 42; +25). Deferred-within-package: GitHub/GitLab/Quay registry URI builders. Package left at 73.8 % (31 of 42; 11 missed). | Preferred images parent covered; registry URI builders deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -726,6 +727,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-278: close Priority work on CommandPalette. Parallel isolated remains 95.0 % (38 of 40; +0). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-279: close Priority work on PrimaryActions. Parallel isolated 0 % → 100 % (0 → 38 of 38; +38). Do not grind further.
 - 2026-11-09. COV-280: close Priority work on container components. Parallel isolated 0 % → 94.7 % (0 → 18 of 19; +18). Deferred Podman bridge rename. Do not grind further.
+- 2026-11-09. COV-281: close Priority work on images parent. Parallel isolated 14.3 % → 73.8 % (6 → 31 of 42; +25). Deferred GitHub/GitLab/Quay URI builders. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

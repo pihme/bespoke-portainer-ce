@@ -171,3 +171,29 @@ function renderComponent(onClose = vi.fn()) {
 
   return render(<Wrapped stack={mockStack} onClose={onClose} />);
 }
+
+test('aborts save when redeploy confirmation is cancelled', async () => {
+  const onClose = vi.fn();
+  let settingsApiCalled = false;
+
+  vi.mocked(confirmStackUpdate).mockResolvedValue(undefined);
+
+  server.use(
+    http.post('/api/stacks/:id/git', () => {
+      settingsApiCalled = true;
+      return HttpResponse.json({});
+    })
+  );
+
+  const user = userEvent.setup();
+  renderComponent(onClose);
+
+  await user.click(screen.getByRole('checkbox', { name: /redeploy/i }));
+  await user.click(screen.getByRole('button', { name: /save settings/i }));
+
+  await waitFor(() => {
+    expect(confirmStackUpdate).toHaveBeenCalled();
+  });
+  expect(settingsApiCalled).toBe(false);
+  expect(onClose).not.toHaveBeenCalled();
+});

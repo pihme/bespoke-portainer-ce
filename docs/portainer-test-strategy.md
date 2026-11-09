@@ -1,6 +1,6 @@
 # Portainer test strategy
 
-Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), and the labeled fuzz and performance tests left out of the reference test set (A2, COV-005). The test spec (B), coverage (C), and mutation and fuzz testing (D) come later.
+Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), the labeled fuzz and performance tests left out of the reference test set (A2, COV-005), and a pointer to the test spec (B, COV-006, section 8). Coverage (C) and mutation and fuzz testing (D) come later.
 
 Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for it. Sections 1 and 2 describe the suite as inventoried; where COV-002 changed something since, the line says so. Section 3 lists the decisions.
 
@@ -218,7 +218,18 @@ Inside `nix develop` (Go 1.26.10), output in `/workspace/a0-runs/a2/` outside th
 | `make -n test-performance`; `go test -tags performance -run '^(Test_encryptAndDecrypt_withTheSamePassword)$' -v ./api/crypto` | target selects exactly that test and the seven benchmark packages; the test passed in 13.5 s. The benchmarks were listed with `-list '^Benchmark'`, not run |
 | Frontend | no file changed; the client suite was not re-run for A2 |
 
-## 8. Open for later phases
+## 8. Test spec (B, COV-006)
 
-- B: test spec against `docs/portainer-spec.md`.
+[portainer-testspec.md](portainer-testspec.md) maps all 178 requirements of [portainer-spec.md](portainer-spec.md) to the existing tests, by test name and file, on 2026-11-09 at `2-covered@af382f49d`. It was built by reading the tests; no test was run, added, renamed or changed, and no production code was touched.
+
+- Result: 57 requirements are checked directly and 39 partially (96 with tests); 18 have only loosely related tests, 29 have none, 30 are BE-only with nothing to test in CE, and 5 live outside this repository. Per-area counts are in the test spec summary.
+- Layers used by the mapped tests are the ones in section 1: Go unit and handler tests (`testing` + `testify`, `httptest`, temporary BoltDB) and Vitest/jsdom component and hook tests with MSW, both in the reference test set (section 7, `nix develop -c make test`). Gated integration tests (`INTEGRATION_TEST`) are marked in the test spec and are not part of the reference set. There is still no end-to-end layer, so requirements that need a running server (for example REQ-SRV-01 ports, REQ-SRV-08 `--base-url`) can only be checked partly.
+- Naming: existing upstream tests keep their names (no mass rename in a fork); new phase C tests carry the ID, `TestREQ_<AREA>_<NN>_<Behaviour>` in Go and `describe('REQ-<AREA>-<NN> …')` in Vitest.
+- Open: 13 requirement questions (C-01 to C-13) and 14 resource-limit questions (L-01 to L-14) wait for the user, listed in the test spec under "Clarifications during tests". One deduced requirement, REQ-DED-01 (Git polling interval at least 1 minute), is proposed and not accepted. Behaviour without an ID is listed under "Behaviour without a requirement ID" for the phase C backwards-compatibility tests.
+- Phase B is done as far as the agent can take it: every requirement is mapped. The spec and the test spec change again once the user answers the clarifications.
+
+## 9. Open for later phases
+
+- B: apply the user's answers to C-01 to C-13 and L-01 to L-14 to the spec and the test spec.
 - C: cover the `api/crypto` paths that only the `performance` test reached (section 7, effect on coverage) with small inputs.
+- C: write the backwards-compatibility tests listed in the test spec, and the boundary tests for accepted limits.

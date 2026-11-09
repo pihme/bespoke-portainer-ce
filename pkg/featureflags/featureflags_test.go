@@ -1,15 +1,23 @@
 package featureflags
 
 import (
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
+// saveFeatureFlags restores the package-level featureFlags map after the test.
+func saveFeatureFlags(t *testing.T) {
+	t.Helper()
+
+	orig := featureFlags
+	t.Cleanup(func() { featureFlags = orig })
+}
+
 func Test_enableFeaturesFromFlags(t *testing.T) {
+	saveFeatureFlags(t)
+
 	is := assert.New(t)
 
 	supportedFeatures := []Feature{"supported", "supported2", "supported3", "supported4", "supported5"}
@@ -36,9 +44,6 @@ func Test_enableFeaturesFromFlags(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		err := os.Unsetenv("PORTAINER_FEATURE_FLAGS")
-		require.NoError(t, err)
-
 		t.Setenv("PORTAINER_FEATURE_FLAGS", strings.Join(test.envFeatureFlags, ","))
 
 		t.Run("testing", func(t *testing.T) {

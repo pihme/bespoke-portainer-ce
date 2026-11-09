@@ -14,6 +14,7 @@ import (
 
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/pkg/libstack"
+	"github.com/portainer/portainer/pkg/testhelpers"
 
 	"github.com/compose-spec/compose-go/v2/consts"
 	"github.com/compose-spec/compose-go/v2/types"
@@ -29,6 +30,8 @@ import (
 )
 
 func Test_UpAndDown(t *testing.T) {
+	testhelpers.IntegrationTest(t)
+
 	const projectName = "composetest"
 
 	const composeFileContent = `
@@ -86,6 +89,8 @@ services:
 // Ref BE-12432
 // Ref https://github.com/portainer/portainer/issues/12909
 func Test_UpAndDownWithInjection(t *testing.T) {
+	testhelpers.IntegrationTest(t)
+
 	const content = `
 services:
   test:
@@ -140,6 +145,8 @@ configs:
 }
 
 func TestRun(t *testing.T) {
+	testhelpers.IntegrationTest(t)
+
 	w := NewComposeDeployer()
 
 	filePath := createFile(t, t.TempDir(), "docker-compose.yml", `
@@ -420,6 +427,8 @@ networks:
 }
 
 func Test_DeployWithRemoveOrphans(t *testing.T) {
+	testhelpers.IntegrationTest(t)
+
 	const projectName = "compose_remove_orphans_test"
 
 	const composeFileContent = `services:
@@ -547,6 +556,8 @@ func (l *logger) Write(p []byte) (n int, err error) {
 }
 
 func Test_DeployWithIgnoreOrphans(t *testing.T) {
+	testhelpers.IntegrationTest(t)
+
 	var logOutput logger
 	oldLogger := zerolog.Logger
 	zerolog.Logger = zerolog.Output(&logOutput)

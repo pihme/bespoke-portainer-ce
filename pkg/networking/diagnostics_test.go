@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/portainer/portainer/pkg/fips"
+	"github.com/portainer/portainer/pkg/testhelpers"
 )
 
 // Response structs for each function
@@ -38,6 +39,9 @@ type proxyResponse struct {
 
 func TestProbeDNSConnection(t *testing.T) {
 	t.Parallel()
+	// Both cases resolve real host names, so the result depends on the host's resolver and network.
+	testhelpers.IntegrationTest(t)
+
 	tests := []struct {
 		name           string
 		host           string

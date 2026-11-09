@@ -11,10 +11,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWithPanicLoggerRecoversAndLogsRegularPanic(t *testing.T) {
-	t.Parallel()
+// These tests replace the global log.Logger, so they must not run in parallel
+// with other tests that log, and they restore the original logger afterwards.
+func setupLogOutput(t *testing.T) *bytes.Buffer {
+	t.Helper()
+
 	buf := &bytes.Buffer{}
+	oldLogger := log.Logger
 	log.Logger = zerolog.New(buf)
+	t.Cleanup(func() {
+		log.Logger = oldLogger
+	})
+
+	return buf
+}
+
+func TestWithPanicLoggerRecoversAndLogsRegularPanic(t *testing.T) {
+	buf := setupLogOutput(t)
 
 	handler := WithPanicLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic("boom")
@@ -30,9 +43,7 @@ func TestWithPanicLoggerRecoversAndLogsRegularPanic(t *testing.T) {
 }
 
 func TestWithPanicLoggerRePanicsErrAbortHandler(t *testing.T) {
-	t.Parallel()
-	buf := &bytes.Buffer{}
-	log.Logger = zerolog.New(buf)
+	buf := setupLogOutput(t)
 
 	handler := WithPanicLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		panic(http.ErrAbortHandler)

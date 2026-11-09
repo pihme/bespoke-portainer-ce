@@ -20,6 +20,8 @@ func TestGetUpdaterImage(t *testing.T) {
 	})
 
 	t.Run("updater image Environment Variable not set", func(t *testing.T) {
+		// t.Setenv registers the restore of the original value; then unset it for this test.
+		t.Setenv(updaterImageEnvVar, "")
 		err := os.Unsetenv(updaterImageEnvVar)
 		require.NoError(t, err)
 

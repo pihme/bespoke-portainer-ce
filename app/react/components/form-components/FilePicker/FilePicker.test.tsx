@@ -102,4 +102,88 @@ describe('FilePicker', () => {
     await user.click(screen.getByRole('button', { name: /clear/i }));
     expect(screen.getByText('0 selected')).toBeVisible();
   });
+
+  it('shows No files available when the tree is empty', () => {
+    renderFilePicker({ files: [] });
+    expect(screen.getByText(/no files available/i)).toBeVisible();
+  });
+
+  it('normalizes leading slashes in the controlled value', () => {
+    renderFilePicker({
+      files: [{ name: 'foo.yml' }],
+      initialValue: ['/foo.yml'],
+    });
+    expect(screen.getByText('1 selected')).toBeVisible();
+    expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+
+  it('deselects a previously selected file when its checkbox is clicked again', async () => {
+    const { user, onChange } = renderFilePicker({
+      files: [{ name: 'foo.yml' }],
+      initialValue: ['/foo.yml'],
+    });
+    await user.click(screen.getByRole('checkbox'));
+    expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+
+  it('expands a directory to show children and collapses it again', async () => {
+    const { user } = renderFilePicker({
+      files: [{ name: 'src', children: [{ name: 'a.ts' }] }],
+    });
+    expect(screen.queryByText('a.ts')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /expand/i }));
+    expect(screen.getByText('a.ts')).toBeVisible();
+    await user.click(screen.getByRole('button', { name: /collapse/i }));
+    expect(screen.queryByText('a.ts')).not.toBeInTheDocument();
+  });
+
+  it('removes a single selected file from the selected panel', async () => {
+    const { user, onChange } = renderFilePicker({
+      files: [{ name: 'foo.yml' }, { name: 'bar.ts' }],
+      initialValue: ['/foo.yml', '/bar.ts'],
+    });
+    await user.click(
+      screen.getByRole('button', { name: /remove file \/foo\.yml/i })
+    );
+    expect(onChange).toHaveBeenLastCalledWith(['/bar.ts']);
+  });
+
+  it('portals matching filter paths into the tree area', async () => {
+    const { user } = renderFilePicker({
+      files: [{ name: 'foo.yml' }, { name: 'bar.ts' }],
+    });
+    const filterInput = screen.getByRole('textbox');
+    await user.click(filterInput);
+    await user.type(filterInput, '*.yml');
+    expect(screen.getByText('/foo.yml')).toBeVisible();
+    expect(screen.queryByText('/bar.ts')).not.toBeInTheDocument();
+  });
+
+  it('shows No matching files when the filter matches nothing', async () => {
+    const { user } = renderFilePicker({
+      files: [{ name: 'foo.yml' }],
+    });
+    const filterInput = screen.getByRole('textbox');
+    await user.click(filterInput);
+    await user.type(filterInput, '*.nope');
+    expect(screen.getByText(/no matching files/i)).toBeVisible();
+  });
+
+  it('shows the file count in the browse header', () => {
+    renderFilePicker({
+      files: [{ name: 'foo.yml' }, { name: 'bar.ts' }],
+    });
+    expect(screen.getByText(/Contains 2 files/i)).toBeVisible();
+  });
+
+
+  it('accepts controlled values without a leading slash', () => {
+    renderFilePicker({
+      files: [{ name: 'foo.yml' }],
+      initialValue: ['foo.yml'],
+    });
+    expect(screen.getByText('1 selected')).toBeVisible();
+    expect(screen.getByRole('checkbox')).toBeChecked();
+  });
+
 });

@@ -1,5 +1,6 @@
-import { render } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { HttpResponse, http } from 'msw';
+import { vi } from 'vitest';
 
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
@@ -8,67 +9,81 @@ import { server } from '@/setup-tests/server';
 
 import { SettingsView } from './SettingsView';
 
-describe('SettingsView', () => {
+const updateLogo = vi.fn();
+const updateSnapshotInterval = vi.fn();
+const invoke = vi.fn((fn: (stateManager: { updateLogo: typeof updateLogo; updateSnapshotInterval: typeof updateSnapshotInterval }) => void) => {
+  fn({ updateLogo, updateSnapshotInterval });
+});
+
+vi.mock('angular', () => ({
+  default: {
+    element: () => ({
+      injector: () => ({ invoke }),
+    }),
+  },
+}));
+
+vi.mock('./ApplicationSettingsPanel', () => ({
+  ApplicationSettingsPanel: ({
+    onSuccess,
+    settings,
+  }: {
+    onSuccess: (s: { LogoURL: string; SnapshotInterval: string }) => void;
+    settings: { LogoURL: string; SnapshotInterval: string };
+  }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onSuccess({
+          LogoURL: settings.LogoURL || 'https://logo',
+          SnapshotInterval: '10m',
+        })
+      }
+    >
+      sync-settings
+    </button>
+  ),
+}));
+
+vi.mock('./KubeSettingsPanel', () => ({
+  KubeSettingsPanel: () => null,
+}));
+
+vi.mock('./BackupSettingsView', () => ({
+  BackupSettingsPanel: () => null,
+}));
+
+vi.mock('./HiddenContainersPanel/HiddenContainersPanel', () => ({
+  HiddenContainersPanel: () => <div>hidden-containers</div>,
+}));
+
+vi.mock('./SSLSettingsPanel/SSLSettingsPanel', () => ({
+  SSLSettingsPanelWrapper: () => <div>ssl-settings</div>,
+}));
+
+vi.mock('./HelmCertPanel', () => ({
+  HelmCertPanel: () => <div>helm-cert</div>,
+}));
+
+vi.mock('./ExperimentalFeatures', () => ({
+  ExperimentalFeatures: () => <div>Experimental features</div>,
+}));
+
+vi.mock('@@/PageHeader', () => ({
+  PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
+}));
+
+describe('REQ-SET-01 SettingsView parent chrome', () => {
   function setupMocks() {
-    // Mock the settings API endpoints
     server.use(
       http.get('/api/settings', () =>
         HttpResponse.json({
-          LogoURL: '',
+          LogoURL: 'https://logo.example/logo.png',
           SnapshotInterval: '5m',
         })
-      )
-    );
-
-    server.use(
-      http.get('/api/settings/experimental', () =>
-        HttpResponse.json({
-          experimentalFeatures: {},
-        })
-      )
-    );
-
-    // Mock public settings for feature flags
-    server.use(
+      ),
       http.get('/api/settings/public', () =>
-        HttpResponse.json({
-          Features: {
-            'disable-roles-sync': false,
-          },
-        })
-      )
-    );
-
-    // Mock SSL settings
-    server.use(
-      http.get('/api/ssl', () =>
-        HttpResponse.json({
-          HTTPSOnly: false,
-          SelfSigned: false,
-        })
-      )
-    );
-
-    // Mock debug settings
-    server.use(
-      http.get('/api/support/debug_log', () =>
-        HttpResponse.json({
-          LogLevel: 'INFO',
-          EnableProfiling: false,
-        })
-      )
-    );
-
-    // Mock backup S3 settings
-    server.use(
-      http.get('/api/backup/s3/settings', () =>
-        HttpResponse.json({
-          Enabled: false,
-          AccessKey: '',
-          SecretKey: '',
-          Region: '',
-          Bucket: '',
-        })
+        HttpResponse.json({ Features: {} })
       )
     );
   }
@@ -80,14 +95,36 @@ describe('SettingsView', () => {
     return render(<Wrapped />);
   }
 
-  describe('Experimental Features', () => {
-    test('should NOT render ExperimentalFeatures component in CE edition', async () => {
-      setupMocks();
-      const { queryByText } = renderComponent();
+  it('should NOT render ExperimentalFeatures component in CE edition', async () => {
+    setupMocks();
+    renderComponent();
+    await waitFor(() => expect(screen.getByText('Settings')).toBeVisible());
+    expect(screen.queryByText('Experimental features')).not.toBeInTheDocument();
+  });
 
-      // Check that the ExperimentalFeatures component is NOT rendered
-      const experimentalFeaturesTitle = queryByText('Experimental features');
-      expect(experimentalFeaturesTitle).not.toBeInTheDocument();
-    });
+  it('renders local settings chrome and syncs StateManager on success', async () => {
+    setupMocks();
+    renderComponent();
+    await waitFor(() => expect(screen.getByText('sync-settings')).toBeVisible());
+    expect(screen.getByText('ssl-settings')).toBeVisible();
+    expect(screen.getByText('hidden-containers')).toBeVisible();
+
+    screen.getByText('sync-settings').click();
+    expect(invoke).toHaveBeenCalled();
+    expect(updateLogo).toHaveBeenCalledWith('https://logo.example/logo.png');
+    expect(updateSnapshotInterval).toHaveBeenCalledWith('10m');
+  });
+
+  it('scrolls to a hash target when settings load', async () => {
+    setupMocks();
+    const target = document.createElement('div');
+    target.id = 'ssl';
+    target.scrollIntoView = vi.fn();
+    document.body.appendChild(target);
+    window.location.hash = '#!/settings#ssl';
+
+    renderComponent();
+    await waitFor(() => expect(target.scrollIntoView).toHaveBeenCalled());
+    document.body.removeChild(target);
   });
 });

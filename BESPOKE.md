@@ -342,6 +342,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-259 | Close Priority work on `gitops/sources/CreateView/steps`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 52.1 % → 72.9 % (25 → 35 of 48; +10). Deferred-within-package: ConfigureHelm/Registry; ConfigureGit partial. Package left at 72.9 % (35 of 48; 13 missed). | Preferred gitops create steps covered; Helm/Registry deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-260 | Close Priority work on `custom-templates` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 96.0 % (0 → 24 of 25; +24). Deferred-within-package: BE edge-template settings arm. Package left at 96.0 % (24 of 25; 1 missed). | Preferred custom-templates parent covered; BE edge-template settings deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-261 | Close Priority work on `environment-groups/ListView`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1; parent isolation). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for parent isolation. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-262 | Close Priority work on `app/react/components/modals`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 80.4 % (0 → 45 of 56; +45). Leftovers: Dialog countdown timer thin leftover. Deferred-within-package: none. Package left at 80.4 % (45 of 56; 11 missed). | Preferred modals helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -687,6 +688,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-259: close Priority work on gitops create steps. Parallel isolated 52.1 % → 72.9 % (25 → 35 of 48; +10). Deferred ConfigureHelm/Registry. Do not grind further.
 - 2026-11-09. COV-260: close Priority work on custom-templates parent. Parallel isolated 0 % → 96.0 % (0 → 24 of 25; +24). Deferred BE edge-template settings. Do not grind further.
 - 2026-11-09. COV-261: close Priority work on environment-groups list. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
+- 2026-11-09. COV-262: close Priority work on modals helpers. Parallel isolated 0 % → 80.4 % (0 → 45 of 56; +45). Thin Dialog countdown leftover. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

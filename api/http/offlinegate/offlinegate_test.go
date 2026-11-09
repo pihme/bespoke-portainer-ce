@@ -188,3 +188,23 @@ func Test_waitingMiddleware_handlerPanics(t *testing.T) {
 	require.True(t, o.lock.TryLock())
 	o.lock.Unlock()
 }
+
+func TestWaitingMiddleware_SafeMethodsPassWhileLocked(t *testing.T) {
+	t.Parallel()
+
+	o := NewOfflineGate()
+	unlock := o.Lock()
+	t.Cleanup(unlock)
+
+	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	})
+	handler := o.WaitingMiddleware(time.Second, next)
+
+	for _, method := range []string{http.MethodGet, http.MethodHead, http.MethodOptions} {
+		rr := httptest.NewRecorder()
+		req := httptest.NewRequest(method, "/api/something", nil)
+		handler.ServeHTTP(rr, req)
+		require.Equal(t, http.StatusTeapot, rr.Code, "method %s should pass while locked", method)
+	}
+}

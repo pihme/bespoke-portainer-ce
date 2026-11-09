@@ -23,6 +23,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Count every hand-written app source, including files no test loads yet (COV-009).
+      include: ['app/**'],
       exclude: [
         'node_modules/',
         'app/setup-tests/global-setup.js',

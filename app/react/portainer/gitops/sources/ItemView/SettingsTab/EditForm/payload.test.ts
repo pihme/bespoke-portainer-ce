@@ -53,3 +53,67 @@ describe('buildUpdatePayload interval handling', () => {
     expect(payload.interval).toBe('10m');
   });
 });
+
+describe('buildUpdatePayload authentication handling', () => {
+  it('omits authentication when auth stays disabled', () => {
+    const payload = buildUpdatePayload(baseValues, baseValues);
+    expect(payload.authentication).toBeUndefined();
+  });
+
+  it('clears authentication when auth is disabled after being enabled', () => {
+    const initialValues: SettingsFormValues = {
+      ...baseValues,
+      authEnabled: true,
+      username: 'gituser',
+    };
+    const values: SettingsFormValues = {
+      ...initialValues,
+      authEnabled: false,
+    };
+    const payload = buildUpdatePayload(values, initialValues);
+    expect(payload.authentication).toEqual({});
+  });
+
+  it('sends username and password when auth credentials change', () => {
+    const initialValues: SettingsFormValues = {
+      ...baseValues,
+      authEnabled: true,
+      username: 'old',
+      password: '',
+    };
+    const values: SettingsFormValues = {
+      ...initialValues,
+      username: 'new-user',
+      password: 'secret',
+    };
+    const payload = buildUpdatePayload(values, initialValues);
+    expect(payload.authentication).toEqual({
+      username: 'new-user',
+      password: 'secret',
+    });
+  });
+
+  it('omits authentication payload when enabled auth fields are unchanged', () => {
+    const initialValues: SettingsFormValues = {
+      ...baseValues,
+      authEnabled: true,
+      username: 'gituser',
+      password: '',
+    };
+    const payload = buildUpdatePayload(initialValues, initialValues);
+    expect(payload.authentication).toBeUndefined();
+  });
+
+  it('includes name url and tls when they change', () => {
+    const values: SettingsFormValues = {
+      ...baseValues,
+      name: 'renamed',
+      url: 'https://example.com/r.git',
+      tlsSkipVerify: true,
+    };
+    const payload = buildUpdatePayload(values, baseValues);
+    expect(payload.name).toBe('renamed');
+    expect(payload.url).toBe('https://example.com/r.git');
+    expect(payload.tlsSkipVerify).toBe(true);
+  });
+});

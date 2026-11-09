@@ -408,6 +408,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-325 | Close Priority work on `volumesNFSForm`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7). HTML not instrumented. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-326 | Close Priority work on `logHelper/colors`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure remains 100 % (7 of 7; already covered; no new commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-327 | Close Priority work on `Alert`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 50.0 % (0 → 7 of 14; +7). KEEP Alert production 7/7; stories deferred 0/7. Package left at 50.0 % (7 of 14; 7 missed). | Preferred Alert helpers covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-328 | Close Priority work on `BadgeIcon`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 81.8 % (0 → 9 of 11; +9). KEEP 9/9; stories deferred 0/2. Package left at 81.8 % (9 of 11; 2 missed). | Preferred BadgeIcon covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -826,6 +827,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-325: close Priority work on volumesNFSForm. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Do not grind further.
 - 2026-11-09. COV-326: close Priority work on logHelper colors. Parallel isolated remains 100 % (7 of 7; +0). Do not grind further.
 - 2026-11-09. COV-327: close Priority work on Alert helpers. Parallel isolated 0 % → 50.0 % (0 → 7 of 14; +7). KEEP Alert 7/7. Deferred stories. Do not grind further.
+- 2026-11-09. COV-328: close Priority work on BadgeIcon helpers. Parallel isolated 0 % → 81.8 % (0 → 9 of 11; +9). KEEP 9/9. Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -504,3 +504,109 @@ func Test_listFilesPrivateRepository(t *testing.T) {
 		})
 	}
 }
+
+func TestREQ_STK_03_LatestCommitID_EmptyReferenceUsesHEAD(t *testing.T) {
+	t.Parallel()
+	service := Service{git: NewGitClient(true)}
+	repositoryURL := createBareRepoWithBranch(t, "main")
+
+	id, err := service.LatestCommitID(t.Context(), repositoryURL, "", "", "", false)
+	require.NoError(t, err)
+	require.NotEmpty(t, id)
+
+	byRef, err := service.LatestCommitID(t.Context(), repositoryURL, "refs/heads/main", "", "", false)
+	require.NoError(t, err)
+	require.Equal(t, byRef, id)
+}
+
+func createBareRepoWithBranch(t *testing.T, branch string) string {
+	t.Helper()
+
+	bareDir := filesystem.JoinPaths(t.TempDir(), "head-repo.git")
+	repo, err := git.PlainInit(bareDir, true)
+	require.NoError(t, err)
+
+	storer := repo.Storer
+	fileBlob := &plumbing.MemoryObject{}
+	fileBlob.SetType(plumbing.BlobObject)
+	_, err = fileBlob.Write([]byte("services:\n  web:\n    image: nginx\n"))
+	require.NoError(t, err)
+	fileHash, err := storer.SetEncodedObject(fileBlob)
+	require.NoError(t, err)
+
+	tree := &object.Tree{
+		Entries: []object.TreeEntry{
+			{Name: "docker-compose.yml", Mode: filemode.Regular, Hash: fileHash},
+		},
+	}
+	treeObj := &plumbing.MemoryObject{}
+	require.NoError(t, tree.Encode(treeObj))
+	treeHash, err := storer.SetEncodedObject(treeObj)
+	require.NoError(t, err)
+
+	sig := object.Signature{Name: "Test", Email: "test@test.com", When: time.Now()}
+	commit := &object.Commit{
+		Message:   "initial",
+		Author:    sig,
+		Committer: sig,
+		TreeHash:  treeHash,
+	}
+	commitObj := &plumbing.MemoryObject{}
+	require.NoError(t, commit.Encode(commitObj))
+	commitHash, err := storer.SetEncodedObject(commitObj)
+	require.NoError(t, err)
+
+	refName := plumbing.NewBranchReferenceName(branch)
+	require.NoError(t, storer.SetReference(plumbing.NewHashReference(refName, commitHash)))
+	require.NoError(t, storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, refName)))
+	return bareDir
+}
+
+func TestREQ_STK_03_LatestCommitID_UnknownRef(t *testing.T) {
+	t.Parallel()
+	service := Service{git: NewGitClient(true)}
+	repositoryURL := setup(t)
+
+	_, err := service.LatestCommitID(t.Context(), repositoryURL, "refs/heads/does-not-exist", "", "", false)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "could not find ref")
+}
+
+func TestREQ_STK_03_ListFiles_DirOnly(t *testing.T) {
+	t.Parallel()
+	service := Service{git: NewGitClient(true)}
+	repositoryURL := setup(t)
+
+	dirs, err := service.ListFiles(t.Context(), repositoryURL, "refs/heads/main", "", "", true, false, nil, false)
+	require.NoError(t, err)
+	// bare fixture has only files at root; directory listing may be empty or contain paths
+	for _, d := range dirs {
+		require.NotContains(t, d, ".")
+	}
+}
+
+func TestREQ_STK_03_CloneRepository_TLSSkipVerify_LocalRepo(t *testing.T) {
+	t.Parallel()
+	service := Service{git: NewGitClient(false)}
+	repositoryURL := setup(t)
+
+	dir := t.TempDir()
+	err := service.CloneRepository(t.Context(), dir, repositoryURL, "refs/heads/main", "", "", true)
+	require.NoError(t, err)
+	require.FileExists(t, filesystem.JoinPaths(dir, "docker-compose.yml"))
+	require.NoDirExists(t, filesystem.JoinPaths(dir, ".git"))
+}
+
+func TestREQ_STK_03_ListRefs_And_ListComposeFiles(t *testing.T) {
+	t.Parallel()
+	service := Service{git: NewGitClient(true)}
+	repositoryURL := setup(t)
+
+	refs, err := service.ListRefs(t.Context(), repositoryURL, "", "", false, true)
+	require.NoError(t, err)
+	require.Contains(t, refs, "refs/heads/main")
+
+	files, err := service.ListFiles(t.Context(), repositoryURL, "refs/heads/main", "", "", false, false, []string{".yml", ".yaml"}, true)
+	require.NoError(t, err)
+	require.Contains(t, files, "docker-compose.yml")
+}

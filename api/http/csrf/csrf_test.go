@@ -242,3 +242,17 @@ func TestWithProtect_enforcesCsrfForCookieAuth(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	require.Equal(t, http.StatusForbidden, rr.Code)
 }
+
+func TestWithProtect_DockerDesktopExtensionBypassesCSRF(t *testing.T) {
+	t.Setenv("DOCKER_EXTENSION", "1")
+
+	handler, err := WithProtect(okHandler, nil)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	req.AddCookie(&http.Cookie{Name: portainer.AuthCookieKey, Value: "some-token"})
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	require.Equal(t, http.StatusOK, rr.Code)
+}

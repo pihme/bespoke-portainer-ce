@@ -248,6 +248,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-165 | Close Priority work on `api/dataservices/tag`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): tag_test.go + tx_test.go (5 under REQ-ENV-14). Isolated remasure: 0 % → 93.8 % (0 → 15 of 16; +15). Leftovers: 1 thin. Deferred-within-package: none. Package left at 93.8 % (15 of 16; 1 missed). | Preferred tag datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-166 | Close Priority work on `pkg/networking`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): diagnostics_local_test.go (5). Isolated remasure: 73.1 % → 98.1 % (38 → 51 of 52; +13). Leftovers: 1 thin. Deferred-within-package: none. Package left at 98.1 % (51 of 52; 1 missed). | Preferred networking diagnostics covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-167 | Close Priority work on `api/gitops/scheduling`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): scheduler_local_test.go (12). Isolated remasure: 89.4 % → 99.2 % (110 → 122 of 123; +12). Deferred-within-package: EdgeStack deploy error. Package left at 99.2 % (122 of 123; 1 missed). | Preferred gitops scheduling covered; EdgeStack deploy error deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-168 | Close Priority work on `api/platform`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): service_local_test.go (4 under REQ-ENV-04). Isolated remasure: 78.2 % → 92.7 % (43 → 51 of 55; +8). KEEP local covered; in-container Docker env deferred. Package left at 92.7 % (51 of 55; 4 missed). | Preferred platform detection covered; in-container Docker env deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -495,6 +496,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-165: close Priority work on tag datastore. Parallel isolated 0 % → 93.8 % (0 → 15 of 16; +15). Thin leftover. Do not grind further.
 - 2026-11-09. COV-166: close Priority work on networking diagnostics. Parallel isolated 73.1 % → 98.1 % (38 → 51 of 52; +13). Thin leftover. Do not grind further.
 - 2026-11-09. COV-167: close Priority work on gitops scheduling. Parallel isolated 89.4 % → 99.2 % (110 → 122 of 123; +12). Deferred EdgeStack deploy error. Do not grind further.
+- 2026-11-09. COV-168: close Priority work on platform detection. Parallel isolated 78.2 % → 92.7 % (43 → 51 of 55; +8). Deferred in-container Docker env. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

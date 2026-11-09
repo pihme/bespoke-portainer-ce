@@ -132,7 +132,7 @@ export function TemplateSection({
                 <>
                   Custom template could not be loaded, please{' '}
                   <Link
-                    to="kubernetes.templates.custom.edit"
+                    to="docker.templates.custom.edit"
                     params={{ id: selectedTemplate.Id }}
                     data-cy="template-error-edit-link"
                   >

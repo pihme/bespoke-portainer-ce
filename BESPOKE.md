@@ -366,6 +366,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-283 | Close Priority work on `WizardDocker/SocketTab`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure remains 100 % (17 of 17; +0; existing tests; no new test commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (17 of 17; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-284 | Close Priority work on `SSLSettingsPanel`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 27 of 27; +27). Leftovers: none. Deferred-within-package: none. Package left at 100 % (27 of 27; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-285 | Close Priority work on `app/react/portainer/system`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 41 of 41; +41). BE Edition branch thin; upgrade covered. Package left at 100 % (41 of 41; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-286 | Close Priority work on `VolumesDatatable` (parent; columns/ out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 16 of 16; +16). Leftovers: none. Deferred-within-package: none. Package left at 100 % (16 of 16; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -740,6 +741,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-276` (`4dcfbc4c6`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-284: close Priority work on SSL settings panel. Parallel isolated 0 % → 100 % (0 → 27 of 27; +27). Do not grind further.
 - 2026-11-09. COV-285: close Priority work on system helpers. Parallel isolated 0 % → 100 % (0 → 41 of 41; +41). Do not grind further.
+- 2026-11-09. COV-286: close Priority work on VolumesDatatable parent. Parallel isolated 0 % → 100 % (0 → 16 of 16; +16). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -208,3 +208,105 @@ func setUpHandler(t *testing.T) (*Handler, dataservices.DataStore) {
 
 	return handler, store
 }
+
+func TestREQ_ENV_14_TagDelete(t *testing.T) {
+	t.Parallel()
+
+	t.Run("deletes unassociated local tag", func(t *testing.T) {
+		t.Parallel()
+		handler, store := setUpHandler(t)
+		tag := &portainer.Tag{
+			Name:           "orphan-local",
+			Endpoints:      map[portainer.EndpointID]bool{},
+			EndpointGroups: map[portainer.EndpointGroupID]bool{},
+		}
+		require.NoError(t, store.Tag().Create(tag))
+
+		req, err := http.NewRequest(http.MethodDelete, "/tags/"+strconv.Itoa(int(tag.ID)), nil)
+		require.NoError(t, err)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		require.Equal(t, http.StatusNoContent, rec.Code)
+		_, err = store.Tag().Read(tag.ID)
+		require.ErrorIs(t, err, portainerDsErrors.ErrObjectNotFound)
+	})
+
+	t.Run("removes tag from local docker endpoint and group only", func(t *testing.T) {
+		t.Parallel()
+		handler, store := setUpHandler(t)
+
+		tag := &portainer.Tag{
+			Name:           "local-label",
+			Endpoints:      map[portainer.EndpointID]bool{},
+			EndpointGroups: map[portainer.EndpointGroupID]bool{},
+		}
+		require.NoError(t, store.Tag().Create(tag))
+
+		group := &portainer.EndpointGroup{
+			ID:     3,
+			Name:   "local-group",
+			TagIDs: []portainer.TagID{tag.ID},
+		}
+		require.NoError(t, store.EndpointGroup().Create(group))
+
+		endpoint := &portainer.Endpoint{
+			ID:     5,
+			Name:   "local-docker",
+			Type:   portainer.DockerEnvironment,
+			URL:    "unix:///var/run/docker.sock",
+			TagIDs: []portainer.TagID{tag.ID},
+		}
+		require.NoError(t, store.Endpoint().Create(endpoint))
+
+		tag.Endpoints[endpoint.ID] = true
+		tag.EndpointGroups[group.ID] = true
+		require.NoError(t, store.Tag().Update(tag.ID, tag))
+
+		req, err := http.NewRequest(http.MethodDelete, "/tags/"+strconv.Itoa(int(tag.ID)), nil)
+		require.NoError(t, err)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		require.Equal(t, http.StatusNoContent, rec.Code)
+
+		_, err = store.Tag().Read(tag.ID)
+		require.ErrorIs(t, err, portainerDsErrors.ErrObjectNotFound)
+
+		updatedEndpoint, err := store.Endpoint().Endpoint(endpoint.ID)
+		require.NoError(t, err)
+		assert.Empty(t, updatedEndpoint.TagIDs)
+
+		updatedGroup, err := store.EndpointGroup().Read(group.ID)
+		require.NoError(t, err)
+		assert.Empty(t, updatedGroup.TagIDs)
+	})
+
+	t.Run("returns not found for missing tag", func(t *testing.T) {
+		t.Parallel()
+		handler, _ := setUpHandler(t)
+
+		req, err := http.NewRequest(http.MethodDelete, "/tags/999", nil)
+		require.NoError(t, err)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusNotFound, rec.Code)
+	})
+
+	t.Run("returns bad request for non-numeric tag id", func(t *testing.T) {
+		t.Parallel()
+		handler, _ := setUpHandler(t)
+
+		req, err := http.NewRequest(http.MethodDelete, "/tags/not-a-number", nil)
+		require.NoError(t, err)
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
+}

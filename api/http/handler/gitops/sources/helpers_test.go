@@ -2,6 +2,7 @@ package sources
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -150,4 +151,73 @@ func buildDeleteReqWithRawID(t *testing.T, userID portainer.UserID, id string) *
 	t.Helper()
 	req := httptest.NewRequest(http.MethodDelete, "/gitops/sources/"+id, nil)
 	return withSecurityContext(req, userID)
+}
+
+func buildUpdateAccessReq(t *testing.T, userID portainer.UserID, id int, body []byte) *http.Request {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/gitops/sources/%d/access", id), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	return withSecurityContext(req, userID)
+}
+
+func buildUpdateAccessReqWithRawID(t *testing.T, userID portainer.UserID, id string, body []byte) *http.Request {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPut, "/gitops/sources/"+id+"/access", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	return withSecurityContext(req, userID)
+}
+
+func buildSourceTestReq(t *testing.T, userID portainer.UserID, id int, body []byte) *http.Request {
+	t.Helper()
+	var reader *bytes.Reader
+	if body == nil {
+		reader = bytes.NewReader(nil)
+	} else {
+		reader = bytes.NewReader(body)
+	}
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/gitops/sources/%d/test", id), reader)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	return withSecurityContext(req, userID)
+}
+
+func buildGitSourceTestReq(t *testing.T, userID portainer.UserID, body []byte) *http.Request {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPost, "/gitops/sources/test", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	return withSecurityContext(req, userID)
+}
+
+func newTestHandlerWithGit(t *testing.T, store dataservices.DataStore, git portainer.GitService) *Handler {
+	t.Helper()
+	return NewHandler(testhelpers.NewTestRequestBouncer(), store, git, nil, nil)
+}
+
+// stubGitService is a minimal GitService for connection-test handlers.
+type stubGitService struct {
+	listRefsErr error
+	refs        []string
+}
+
+func (s *stubGitService) CloneRepository(context.Context, string, string, string, string, string, bool) error {
+	return nil
+}
+
+func (s *stubGitService) LatestCommitID(context.Context, string, string, string, string, bool) (string, error) {
+	return "abc123", nil
+}
+
+func (s *stubGitService) ListRefs(_ context.Context, _ string, _ string, _ string, _ bool, _ bool) ([]string, error) {
+	if s.listRefsErr != nil {
+		return nil, s.listRefsErr
+	}
+	if s.refs != nil {
+		return s.refs, nil
+	}
+	return []string{"refs/heads/main"}, nil
+}
+
+func (s *stubGitService) ListFiles(context.Context, string, string, string, string, bool, bool, []string, bool) ([]string, error) {
+	return nil, nil
 }

@@ -289,3 +289,48 @@ func TestGitSourceCreate_MalformedJSON(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
+
+func TestREQ_DED_01_GitSourceCreate_RejectsShortInterval(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceCreatePayload{
+		URL:      "https://github.com/org/compose.git",
+		Interval: "45s",
+	})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildCreateReq(t, 1, body))
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestREQ_DED_01_GitSourceCreate_AcceptsMinuteInterval(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	body, err := json.Marshal(GitSourceCreatePayload{
+		URL:      "https://github.com/org/compose-interval.git",
+		Name:     "compose-interval",
+		Interval: "1m",
+	})
+	require.NoError(t, err)
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildCreateReq(t, 1, body))
+	require.Equal(t, http.StatusCreated, rr.Code)
+
+	var src portainer.Source
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&src))
+	require.Equal(t, "1m", src.Interval)
+}

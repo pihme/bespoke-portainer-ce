@@ -116,3 +116,54 @@ func TestListSourceWorkflows_RedactsCredentials(t *testing.T) {
 	assert.Equal(t, "user", items[0].GitConfig.Authentication.Username)
 	assert.Empty(t, items[0].GitConfig.Authentication.Password)
 }
+
+func TestREQ_GIT_02_ListSourceWorkflows_EmptyWhenNoStacks(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{
+			Name: "orphan-compose-src",
+			Type: portainer.SourceTypeGit,
+			Git:  &gittypes.GitSource{URL: "https://github.com/org/orphan-compose"},
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+
+		// Workflow references the source but no stack backs it.
+		wf := &portainer.Workflow{Artifacts: []portainer.Artifact{{
+			StackID: 0,
+			Files:   []portainer.ArtifactFile{{SourceID: src.ID}},
+		}}}
+		require.NoError(t, tx.Workflow().Create(wf))
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildGetWorkflowsReq(t, 1, strconv.Itoa(int(srcID))))
+	items := decodeSourceWorkflows(t, rr)
+	assert.Empty(t, items)
+}
+
+func TestREQ_GIT_02_ListSourceWorkflows_CountsEndpointEnvironments(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	cfg := &gittypes.GitSource{URL: "https://github.com/org/endpoint-compose"}
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		stack := &portainer.Stack{ID: 10, Name: "compose-on-endpoint", EndpointID: 7}
+		srcID = createGitWorkflow(t, tx, stack, cfg)
+		require.NoError(t, tx.Stack().Create(stack))
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildGetWorkflowsReq(t, 1, strconv.Itoa(int(srcID))))
+	items := decodeSourceWorkflows(t, rr)
+	require.Len(t, items, 1)
+	assert.Equal(t, "compose-on-endpoint", items[0].Name)
+}

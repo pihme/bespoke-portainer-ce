@@ -222,3 +222,29 @@ func TestSourceDelete_InUseByCustomTemplate(t *testing.T) {
 
 	require.Equal(t, http.StatusConflict, rr.Code)
 }
+
+func TestREQ_GIT_02_SourceDelete_InUseByCustomTemplate(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var srcID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{Name: "tpl-src", Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://github.com/org/tpl-compose.git"}}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+
+		tpl := &portainer.CustomTemplate{
+			Title: "compose-template",
+			Artifact: &portainer.Artifact{
+				Files: []portainer.ArtifactFile{{SourceID: src.ID, Path: "docker-compose.yml"}},
+			},
+		}
+		require.NoError(t, tx.CustomTemplate().Create(tpl))
+		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
+	}))
+
+	h := newTestHandler(t, store)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, buildDeleteReq(t, 1, int(srcID)))
+	require.Equal(t, http.StatusConflict, rr.Code)
+}

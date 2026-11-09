@@ -1,6 +1,6 @@
 # Portainer test strategy
 
-Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), the labeled fuzz and performance tests left out of the reference test set (A2, COV-005), and a pointer to the test spec (B, COV-006 and COV-007, section 8). Coverage (C) and mutation and fuzz testing (D) come later.
+Test strategy for `bespoke-portainer-ce`. Stage `2-covered` keeps this file current. It holds the phase A0 inventory of the test suite (COV-001), the user's decisions on the isolation findings and the fixes made for them (COV-002), the pinned Nix environment the suites run in (COV-003), the generated sources left out of coverage (A1, COV-004), the labeled fuzz and performance tests left out of the reference test set (A2, COV-005), a pointer to the test spec (B, COV-006 and COV-007, section 8), and the phase C coverage baseline and plan (COV-008, section 9). Mutation and fuzz testing (D) come later.
 
 Inventory taken on 2026-11-09 at `2-covered@a931b322a`; nothing was changed for it. Sections 1 and 2 describe the suite as inventoried; where COV-002 changed something since, the line says so. Section 3 lists the decisions.
 
@@ -228,7 +228,189 @@ Inside `nix develop` (Go 1.26.10), output in `/workspace/a0-runs/a2/` outside th
 - Clarifications decided (COV-007, 2026-11-09): the user answered C-01 to C-13 and L-01 to L-14 as proposed. CE scope was widened for stack webhooks, template variables, Kubernetes scale/patch/rollback/pod restart, Edge async mode and built-in roles; the SSRF default off is pinned; REQ-API-01 is documentation only; external items are "not tested in this repo"; REQ-DED-01 is accepted and L-01 to L-13 are pinned as observed as REQ-DED-02 to REQ-DED-14, without new caps; L-14 stays an implementation detail. The test spec carries the decisions, the spec the amended requirements. Behaviour without an ID is listed under "Behaviour without a requirement ID" for the phase C backwards-compatibility tests.
 - Phase B is done: every requirement is mapped, every clarification is decided, and the spec and the test spec match the decisions.
 
-## 9. Open for later phases
+## 9. Coverage baseline and plan (C, COV-008)
 
-- C: cover the `api/crypto` paths that only the `performance` test reached (section 7, effect on coverage) with small inputs.
+### Measurement
+
+One run of the authoritative command on 2026-11-09, 15:00 to 15:03 (Europe/Berlin), inside `nix develop` (Go 1.26.10, Node 22.22.1). The run started on the tree of `2-covered@07261231a`; the next commit, `394275708` (COV-007), changed only Markdown, so the number holds for `394275708` too. Output in `/workspace/a0-runs/c-baseline/` on the agent box, outside the repo.
+
+```
+nix develop -c make test COVERPROFILE=/workspace/a0-runs/c-baseline/coverage.out \
+  "ARGS=--coverage.reportsDirectory=/workspace/a0-runs/c-baseline/coverage --coverage.reporter=json-summary --coverage.reporter=text-summary"
+```
+
+| Suite | Tests | Statements | Covered | Coverage |
+|-------|-------|-----------:|--------:|---------:|
+| Go (`make test-server`, `-covermode=atomic`, `./...`) | 3,454 with subtests, 69 skipped, 0 failed, 57.8 s | 32,392 | 13,228 | 40.8 % (`go tool cover -func` total) |
+| Client (`make test-client`, Vitest v8) | 311 files passed, 1 skipped; 2,282 tests passed, 5 skipped, 12 todo, 0 failed | 13,021 | 8,920 | 68.5 % (statements; branches 63.0 %, functions 66.2 %, lines 68.9 %) |
+| **Project (statement-weighted sum of both)** | | **45,413** | **22,148** | **48.8 %** |
+
+Exit code 0, 2 min 31 s wall time. The project number is the authoritative count for phase C: the sum of Go statements and Vitest statements from the one command. Per-suite and per-package numbers are a breakdown only.
+
+How the numbers were read: Go blocks from `coverage.out`, de-duplicated by block, a block counted as covered when its count is above 0; summed per directory (196 Go packages in the profile of the 207 that `go list ./...` returns; the rest have no statements). Client statements from `coverage-final.json`, summed per directory (1,399 files in 389 directories).
+
+Limits of this measurement:
+
+- The client number covers only files that some test loads (Vitest 4 without `coverage.include`, section 6). 1,399 of about 3,200 hand-written `app/**` source files are in the report. Files no test imports, among them the whole Docker volume UI (`app/docker/views/volumes/**`, `app/docker/services/volumeService.js`, `app/docker/models/volume.ts`, `app/react/docker/volumes/**`, `app/react/docker/containers/CreateView/VolumesTab/**`), are neither in the denominator nor in the plan below. Adding `coverage.include: ['app/**']` would make the client measurement project-wide but lower the number and change the plan; that is a question for the user (open point below), not changed here.
+- The `ARGS=--coverage.reportsDirectory=…` override documented in section 7 did not take effect: the recipe appends `--coverage` after `$(ARGS)`, and the client report went to `./coverage/` in the repo with the configured reporters (git-ignored since F-14). It was moved to `/workspace/a0-runs/c-baseline/coverage/` after the run. The Go `COVERPROFILE` override works.
+- Several Go packages came from the test cache (`(cached)` in the log); their coverage is part of the cached result and the profile.
+- `api/internal/testhelpers` (233 statements, 0 %) is hand-written test-support code outside `_test.go` files and counts in the Go total.
+
+### Overshoot
+
+Bar 85 %. Gap 85 − 48.8 = 36.2 points; one fifth is 7.2 points (more than the 1-point minimum), so the plan runs through **92.2 %**. That needs 19,744 more covered statements. Taking packages by missed statements, largest first, the line is crossed by package 127; together the 127 packages miss 19,753 statements (96 Go packages, 31 client directories).
+
+### Missed coverage by module
+
+| Module | Statements | Covered | Missed | Coverage | Packages |
+|--------|-----------:|--------:|-------:|---------:|---------:|
+| Go `github.com/portainer/portainer` `api/` | 28,594 | 11,366 | 17,228 | 39.7 % | 160 |
+| Go `github.com/portainer/portainer` `pkg/` | 3,798 | 1,862 | 1,936 | 49.0 % | 36 |
+| Client `@portainer/ce` `app/` (loaded files only) | 13,021 | 8,920 | 4,101 | 68.5 % | 389 |
+
+### Plan: packages by missed statements, largest first, through the overshoot
+
+A package is a Go package (directory) or a client source directory. Generated sources (section 6) are not in the measurement. Volume-related code: the Docker volume proxy rules sit in `api/http/proxy/factory/docker` (rank 7) and volume ownership in `api/uac` (rank 213, 84.7 %, outside the plan); no Go package is volume-only, so no tie was broken by the volume rule. The client volume UI is outside the measurement (see Limits).
+
+| # | Lang | Package | Statements | Covered | Missed | % |
+|--:|------|---------|-----:|-----:|-----:|-----:|
+| 1 | Go | `api/http/handler/kubernetes` | 2,317 | 607 | 1,710 | 26.2 |
+| 2 | Go | `api/kubernetes/cli` | 2,791 | 1,147 | 1,644 | 41.1 |
+| 3 | Go | `api/http/handler/stacks` | 1,731 | 572 | 1,159 | 33.0 |
+| 4 | Go | `api/http/handler/endpoints` | 1,646 | 633 | 1,013 | 38.5 |
+| 5 | Go | `api/datastore/migrator` | 1,168 | 298 | 870 | 25.5 |
+| 6 | Go | `pkg/libhelm/sdk` | 1,077 | 424 | 653 | 39.4 |
+| 7 | Go | `api/http/proxy/factory/docker` | 1,114 | 499 | 615 | 44.8 |
+| 8 | Go | `api/filesystem` | 636 | 147 | 489 | 23.1 |
+| 9 | Go | `api/datastore` | 630 | 252 | 378 | 40.0 |
+| 10 | Go | `api/stacks/deployments` | 500 | 147 | 353 | 29.4 |
+| 11 | Go | `api/http/handler/users` | 545 | 231 | 314 | 42.4 |
+| 12 | Go | `api/http/handler/edgejobs` | 394 | 122 | 272 | 31.0 |
+| 13 | Go | `api/http/handler/endpointgroups` | 357 | 95 | 262 | 26.6 |
+| 14 | Go | `api/cmd/portainer` | 296 | 41 | 255 | 13.9 |
+| 15 | Go | `pkg/libstack/swarm` | 392 | 150 | 242 | 38.3 |
+| 16 | Go | `api/internal/testhelpers` | 233 | 0 | 233 | 0.0 |
+| 17 | Go | `api/docker/images` | 328 | 97 | 231 | 29.6 |
+| 18 | Go | `api/http/handler/websocket` | 305 | 84 | 221 | 27.5 |
+| 19 | Go | `api/database/boltdb` | 336 | 130 | 206 | 38.7 |
+| 20 | Go | `api/git` | 467 | 264 | 203 | 56.5 |
+| 21 | Go | `pkg/libstack/compose` | 302 | 112 | 190 | 37.1 |
+| 22 | Go | `api/http/handler/edgestacks` | 468 | 280 | 188 | 59.8 |
+| 23 | Go | `api/http/security` | 370 | 190 | 180 | 51.4 |
+| 24 | Go | `api/http/proxy/factory/azure` | 177 | 0 | 177 | 0.0 |
+| 25 | Go | `api/internal/authorization` | 174 | 0 | 174 | 0.0 |
+| 26 | Go | `api/http/handler/registries` | 409 | 241 | 168 | 58.9 |
+| 27 | Go | `api/internal/endpointutils` | 187 | 20 | 167 | 10.7 |
+| 28 | Go | `api/http/handler/gitops/sources` | 458 | 292 | 166 | 63.8 |
+| 29 | Go | `api/http/handler/webhooks` | 163 | 0 | 163 | 0.0 |
+| 30 | Go | `api/http` | 163 | 3 | 160 | 1.8 |
+| 31 | Go | `pkg/libkubectl` | 379 | 219 | 160 | 57.8 |
+| 32 | Go | `api/stacks/stackbuilders` | 257 | 108 | 149 | 42.0 |
+| 33 | Go | `api/dataservices/source` | 233 | 87 | 146 | 37.3 |
+| 34 | Go | `api/exec` | 178 | 47 | 131 | 26.4 |
+| 35 | Go | `pkg/snapshot` | 244 | 115 | 129 | 47.1 |
+| 36 | Go | `api/chisel` | 216 | 89 | 127 | 41.2 |
+| 37 | Go | `api/http/proxy/factory` | 209 | 84 | 125 | 40.2 |
+| 38 | TS/JS | `app/docker/models` | 176 | 52 | 124 | 29.5 |
+| 39 | Go | `api/http/handler/auth` | 142 | 19 | 123 | 13.4 |
+| 40 | Go | `api/http/handler/settings` | 136 | 13 | 123 | 9.6 |
+| 41 | Go | `api/http/models/kubernetes` | 127 | 6 | 121 | 4.7 |
+| 42 | Go | `api/dataservices/endpoint` | 120 | 0 | 120 | 0.0 |
+| 43 | TS/JS | `app/react/kubernetes/services/ServicesView/ServicesDatatable/columns` | 180 | 62 | 118 | 34.4 |
+| 44 | TS/JS | `app/react/components/datatables` | 464 | 350 | 114 | 75.4 |
+| 45 | Go | `api/gitops/workflows` | 509 | 396 | 113 | 77.8 |
+| 46 | Go | `api/internal/upgrade` | 116 | 4 | 112 | 3.4 |
+| 47 | Go | `api/ldap` | 143 | 31 | 112 | 21.7 |
+| 48 | Go | `api/crypto` | 273 | 162 | 111 | 59.3 |
+| 49 | Go | `api/http/proxy/factory/kubernetes` | 295 | 184 | 111 | 62.4 |
+| 50 | Go | `pkg/liboras` | 193 | 82 | 111 | 42.5 |
+| 51 | TS/JS | `app/react/kubernetes/applications/queries` | 155 | 48 | 107 | 31.0 |
+| 52 | Go | `api/http/handler/customtemplates` | 531 | 425 | 106 | 80.0 |
+| 53 | Go | `api/internal/snapshot` | 134 | 34 | 100 | 25.4 |
+| 54 | Go | `api/http/handler/helm` | 233 | 137 | 96 | 58.8 |
+| 55 | Go | `api/http/handler/teams` | 210 | 117 | 93 | 55.7 |
+| 56 | Go | `api/docker` | 126 | 38 | 88 | 30.2 |
+| 57 | Go | `api/http/handler/endpointedge` | 228 | 140 | 88 | 61.4 |
+| 58 | TS/JS | `app/react/kubernetes/applications` | 116 | 28 | 88 | 24.1 |
+| 59 | Go | `api/http/handler/resourcecontrols` | 85 | 0 | 85 | 0.0 |
+| 60 | Go | `api/internal/edge` | 99 | 14 | 85 | 14.1 |
+| 61 | Go | `api/http/handler/endpointproxy` | 117 | 33 | 84 | 28.2 |
+| 62 | TS/JS | `app/portainer/views/auth` | 133 | 50 | 83 | 37.6 |
+| 63 | Go | `api/http/handler/edgegroups` | 267 | 192 | 75 | 71.9 |
+| 64 | Go | `api/http/handler/docker/containers` | 74 | 0 | 74 | 0.0 |
+| 65 | Go | `api/dataservices/teammembership` | 71 | 0 | 71 | 0.0 |
+| 66 | Go | `api/http/middlewares` | 103 | 32 | 71 | 31.1 |
+| 67 | Go | `api/dataservices/version` | 69 | 0 | 69 | 0.0 |
+| 68 | Go | `api/datastore/postinit` | 113 | 45 | 68 | 39.8 |
+| 69 | Go | `api/http/handler/tags` | 113 | 48 | 65 | 42.5 |
+| 70 | Go | `api/dataservices/edgestackstatus` | 63 | 0 | 63 | 0.0 |
+| 71 | Go | `api/internal/ssl` | 61 | 0 | 61 | 0.0 |
+| 72 | Go | `pkg/libhttp/request` | 96 | 35 | 61 | 36.5 |
+| 73 | Go | `api/http/handler/system` | 94 | 34 | 60 | 36.2 |
+| 74 | Go | `api/dataservices/endpointrelation` | 134 | 75 | 59 | 56.0 |
+| 75 | Go | `api/http/proxy/factory/utils` | 78 | 19 | 59 | 24.4 |
+| 76 | Go | `api/http/handler/templates` | 59 | 0 | 59 | 0.0 |
+| 77 | TS/JS | `app/react/edge/edge-stacks/CreateView` | 192 | 133 | 59 | 69.3 |
+| 78 | TS/JS | `app/react/portainer/environments/environment.service` | 104 | 45 | 59 | 43.3 |
+| 79 | Go | `api/dataservices/edgestack` | 106 | 48 | 58 | 45.3 |
+| 80 | Go | `api/http/handler/teammemberships` | 125 | 67 | 58 | 53.6 |
+| 81 | Go | `api/dataservices/stack` | 57 | 0 | 57 | 0.0 |
+| 82 | Go | `api/http/handler/docker` | 86 | 29 | 57 | 33.7 |
+| 83 | TS/JS | `app/react/components/form-components/FilePicker` | 137 | 80 | 57 | 58.4 |
+| 84 | Go | `api/http/handler/gitops` | 56 | 0 | 56 | 0.0 |
+| 85 | TS/JS | `app/react/portainer/users/teams/queries` | 82 | 28 | 54 | 34.1 |
+| 86 | Go | `pkg/libhelm/test` | 52 | 0 | 52 | 0.0 |
+| 87 | Go | `api/docker/client` | 72 | 21 | 51 | 29.2 |
+| 88 | TS/JS | `app/react/components/form-components` | 181 | 130 | 51 | 71.8 |
+| 89 | TS/JS | `app/react/kubernetes/applications/CreateView/application-services` | 73 | 22 | 51 | 30.1 |
+| 90 | Go | `pkg/libhelm/cache` | 50 | 0 | 50 | 0.0 |
+| 91 | TS/JS | `app/react/portainer/access-control/AccessControlPanel` | 107 | 57 | 50 | 53.3 |
+| 92 | TS/JS | `app/react/components/ImageConfigFieldset` | 132 | 83 | 49 | 62.9 |
+| 93 | Go | `api/dataservices/user` | 47 | 0 | 47 | 0.0 |
+| 94 | Go | `api/cli` | 100 | 54 | 46 | 54.0 |
+| 95 | Go | `pkg/libprometheus` | 220 | 174 | 46 | 79.1 |
+| 96 | Go | `api/dataservices` | 79 | 34 | 45 | 43.0 |
+| 97 | Go | `api/git/update` | 117 | 72 | 45 | 61.5 |
+| 98 | Go | `api/internal/edge/edgestacks` | 64 | 19 | 45 | 29.7 |
+| 99 | TS/JS | `app/react/docker/containers` | 77 | 35 | 42 | 45.5 |
+| 100 | Go | `api/archive` | 108 | 67 | 41 | 62.0 |
+| 101 | Go | `api/http/handler` | 41 | 0 | 41 | 0.0 |
+| 102 | TS/JS | `app/react/common/stacks/queries/useCreateStack` | 66 | 25 | 41 | 37.9 |
+| 103 | TS/JS | `app/react/kubernetes/cluster/NodeView/NodeDetails` | 177 | 136 | 41 | 76.8 |
+| 104 | TS/JS | `app/react/kubernetes/cluster/ingressClass/IngressClassDatatable` | 43 | 2 | 41 | 4.7 |
+| 105 | Go | `pkg/libcrypto` | 68 | 29 | 39 | 42.6 |
+| 106 | TS/JS | `app/react-tools` | 86 | 47 | 39 | 54.7 |
+| 107 | TS/JS | `app/react/kubernetes/ingresses` | 47 | 8 | 39 | 17.0 |
+| 108 | Go | `api/internal/registryutils/access` | 38 | 0 | 38 | 0.0 |
+| 109 | Go | `api/oauth/oauthtest` | 37 | 0 | 37 | 0.0 |
+| 110 | TS/JS | `app/react/components/form-components/EnvironmentVariablesFieldset` | 50 | 13 | 37 | 26.0 |
+| 111 | TS/JS | `app/react/components/PageHeader` | 80 | 44 | 36 | 55.0 |
+| 112 | TS/JS | `app/react/kubernetes/applications/components/ApplicationSummarySection` | 96 | 60 | 36 | 62.5 |
+| 113 | TS/JS | `app/react/portainer/settings/SettingsView/BackupSettingsView` | 50 | 14 | 36 | 28.0 |
+| 114 | Go | `api/http/handler/gitops/workflows` | 152 | 117 | 35 | 77.0 |
+| 115 | Go | `api/http/proxy/factory/gitlab` | 35 | 0 | 35 | 0.0 |
+| 116 | TS/JS | `app/react/docker/containers/ItemView/ContainerNetworksDatatable` | 38 | 3 | 35 | 7.9 |
+| 117 | TS/JS | `app/react/kubernetes/applications/ListView/ApplicationsDatatable` | 113 | 78 | 35 | 69.0 |
+| 118 | Go | `api/http/client` | 53 | 19 | 34 | 35.8 |
+| 119 | Go | `pkg/authorization` | 73 | 39 | 34 | 53.4 |
+| 120 | TS/JS | `app/react/portainer/settings/SettingsView/KubeSettingsPanel` | 35 | 1 | 34 | 2.9 |
+| 121 | TS/JS | `app/setup-tests/setup-handlers` | 65 | 31 | 34 | 47.7 |
+| 122 | Go | `api/dataservices/snapshot` | 33 | 0 | 33 | 0.0 |
+| 123 | Go | `api/internal/registryutils` | 74 | 41 | 33 | 55.4 |
+| 124 | TS/JS | `app/react/docker/containers/ItemView/ContainerActionsSection/queries` | 35 | 2 | 33 | 5.7 |
+| 125 | TS/JS | `app/react/docker/stacks/ItemView/StackInfoTab/StackDuplicationForm` | 127 | 94 | 33 | 74.0 |
+| 126 | Go | `api/aws/ecr` | 43 | 11 | 32 | 25.6 |
+| 127 | TS/JS | `app/react/docker/networks/queries` | 37 | 5 | 32 | 13.5 |
+
+The full ranking of all 585 packages is in `/workspace/a0-runs/c-baseline/plan.tsv` on the agent box (not committed).
+
+### Order and status
+
+Phase C works the plan from rank 1 down, one whole package at a time (skill step 4 to 6), test files only, new tests named `TestREQ_<AREA>_<NN>_…` where a requirement applies and listed under "Backwards compatibility tests" in the test spec otherwise. The first packages are Kubernetes, stack and migration code (ranks 1 to 6, 7,049 missed statements) that the vision removes in the tailored stage; the skill order is kept unless the user decides otherwise (open point below). No test was added in COV-008.
+
+## 10. Open for later phases
+
+- C: work the plan in section 9; `api/crypto` (rank 48) includes the paths that only the `performance` test reached (section 7, effect on coverage), to be covered with small inputs.
+- C, for the user: whether the client measurement should include files no test loads (`coverage.include: ['app/**']`), which would bring the Docker volume UI into the plan; and whether packages that the vision removes later (Kubernetes, Swarm, Edge) keep their place in the largest-first order.
+- C: the `ARGS` coverage-directory override in `make test-client` does not work (section 9, Limits); fixing it is a Makefile change.
 - C: write the backwards-compatibility tests listed in the test spec, and the boundary tests for accepted limits.

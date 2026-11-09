@@ -6,6 +6,7 @@ import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { createMockStack } from '@/react-tools/test-mocks';
+import { StackStatus } from '@/react/common/stacks/types';
 
 import { StackInfoTab } from './StackInfoTab';
 
@@ -308,6 +309,43 @@ describe('stack file content and environment id passing', () => {
     });
 
     expect(screen.getByTestId('stack-actions')).toBeVisible();
+  });
+});
+
+
+describe('REQ-STK-04 deployment status', () => {
+  it('shows deploying progress when stack status is Deploying', () => {
+    renderComponent({
+      stack: createMockStack({ Status: StackStatus.Deploying }),
+    });
+
+    expect(screen.getByText('Deployment in progress...')).toBeVisible();
+  });
+
+  it('shows the last deployment error message when status is Error', () => {
+    renderComponent({
+      stack: createMockStack({
+        Status: StackStatus.Error,
+        DeploymentStatus: [
+          { Status: StackStatus.Active, Message: 'ok', Time: 1 },
+          { Status: StackStatus.Error, Message: 'compose failed', Time: 2 },
+        ],
+      }),
+    });
+
+    expect(screen.getByText('compose failed')).toBeVisible();
+    expect(screen.getByText('Deployment error')).toBeVisible();
+  });
+
+  it('falls back to a generic error when no error message is present', () => {
+    renderComponent({
+      stack: createMockStack({
+        Status: StackStatus.Error,
+        DeploymentStatus: undefined,
+      }),
+    });
+
+    expect(screen.getByText('Deployment failed.')).toBeVisible();
   });
 });
 

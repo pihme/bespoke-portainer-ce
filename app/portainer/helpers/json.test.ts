@@ -1,4 +1,4 @@
-import { json2formData } from './json';
+import { arrayToJson, json2formData, jsonObjectsToArrayHandler } from './json';
 
 describe('json2formData', () => {
   it('should handle undefined and null values', () => {
@@ -42,5 +42,33 @@ describe('json2formData', () => {
     circularReference.self = circularReference;
     const json = { key: circularReference };
     expect(() => json2formData(json)).toThrow();
+  });
+});
+
+describe('arrayToJson', () => {
+  it('returns an empty string for undefined or missing arrays', () => {
+    expect(arrayToJson()).toBe('');
+    expect(arrayToJson(undefined)).toBe('');
+  });
+
+  it('stringifies a non-empty array', () => {
+    expect(arrayToJson([1, 'a'])).toBe('[1,"a"]');
+  });
+});
+
+describe('jsonObjectsToArrayHandler', () => {
+  it('returns an empty array for empty input', () => {
+    expect(jsonObjectsToArrayHandler('')).toEqual([]);
+  });
+
+  it('parses a single JSON object', () => {
+    expect(jsonObjectsToArrayHandler('{"Id":"a"}')).toEqual([{ Id: 'a' }]);
+  });
+
+  it('wraps a stream of JSON objects into an array', () => {
+    expect(jsonObjectsToArrayHandler('{"Id":"a"}\n{"Id":"b"}')).toEqual([
+      { Id: 'a' },
+      { Id: 'b' },
+    ]);
   });
 });

@@ -296,6 +296,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-213 | Close Priority work on `app/react/docker/stacks/view-models`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 36 of 36; +36). Leftovers: none. Deferred-within-package: none. Package left at 100 % (36 of 36; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-214 | Close Priority work on `gitops/sources/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 87.5 % (0 → 42 of 48; +42). Leftovers: 6 thin. Deferred-within-package: none. Package left at 87.5 % (42 of 48; 6 missed). | Preferred gitops source queries covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-215 | Close Priority work on `app/portainer/components/code-editor` (not React CodeEditor). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 35 of 35; +35). Leftovers: none. Deferred-within-package: none. Package left at 100 % (35 of 35; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-216 | Close Priority work on `FilesTable/columns`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 80.0 % (0 → 28 of 35; +28). Leftovers: 7 thin. Deferred-within-package: none. Package left at 80.0 % (28 of 35; 7 missed). | Preferred FilesTable columns covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -593,6 +594,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-213: close Priority work on stack view-models. Parallel isolated 0 % → 100 % (0 → 36 of 36; +36). Do not grind further.
 - 2026-11-09. COV-214: close Priority work on gitops source queries. Parallel isolated 0 % → 87.5 % (0 → 42 of 48; +42). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-215: close Priority work on Compose code editor. Parallel isolated 0 % → 100 % (0 → 35 of 35; +35). Do not grind further.
+- 2026-11-09. COV-216: close Priority work on FilesTable columns. Parallel isolated 0 % → 80.0 % (0 → 28 of 35; +28). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

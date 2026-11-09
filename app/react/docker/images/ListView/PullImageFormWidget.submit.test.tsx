@@ -1,0 +1,110 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+
+import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
+import { withTestRouter } from '@/react/test-utils/withRouter';
+import { useAuthorizations } from '@/react/hooks/useUser';
+import { notifySuccess } from '@/portainer/services/notifications';
+
+import { usePullImageMutation } from '../queries/usePullImageMutation';
+
+import { PullImageFormWidget } from './PullImageFormWidget';
+
+vi.mock('@/react/hooks/useUser', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/react/hooks/useUser')>();
+  return { ...actual, useAuthorizations: vi.fn() };
+});
+vi.mock('@/react/hooks/useEnvironmentId', () => ({
+  useEnvironmentId: () => 7,
+}));
+vi.mock('@/portainer/services/notifications', () => ({
+  notifySuccess: vi.fn(),
+}));
+vi.mock('../queries/usePullImageMutation');
+vi.mock('@@/ImageConfigFieldset/getImageConfig', () => ({
+  getDefaultImageConfig: () => ({
+    image: 'nginx:latest',
+    registryId: 3,
+    useRegistry: true,
+  }),
+}));
+vi.mock('./PullImageFormWidget.Form', () => ({
+  PullImageForm: ({
+    onRateLimit,
+  }: {
+    onRateLimit: (limited?: boolean) => void;
+  }) => (
+    <div>
+      <button type="button" onClick={() => onRateLimit()}>
+        clear-limit
+      </button>
+      <button type="submit" form="pull-form">
+        submit-via-formik
+      </button>
+    </div>
+  ),
+}));
+vi.mock('formik', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('formik')>();
+  return {
+    ...actual,
+    Formik: ({
+      children,
+      onSubmit,
+      initialValues,
+    }: {
+      children: React.ReactNode;
+      onSubmit: (v: unknown) => void;
+      initialValues: unknown;
+    }) => (
+      <form
+        id="pull-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(initialValues);
+        }}
+      >
+        {children}
+      </form>
+    ),
+  };
+});
+
+describe('PullImageFormWidget submit', () => {
+  it('pulls the image and notifies on success', async () => {
+    const user = userEvent.setup();
+    const mutate = vi.fn((_vars, opts?: { onSuccess?: () => void }) => {
+      opts?.onSuccess?.();
+    });
+    vi.mocked(useAuthorizations).mockReturnValue({
+      authorized: true,
+      isLoading: false,
+    } as ReturnType<typeof useAuthorizations>);
+    vi.mocked(usePullImageMutation).mockReturnValue({
+      mutate,
+      isLoading: false,
+    } as ReturnType<typeof usePullImageMutation>);
+
+    const Wrapped = withTestQueryProvider(withTestRouter(PullImageFormWidget));
+    render(<Wrapped isNodeVisible={false} />);
+
+    await user.click(screen.getByText('clear-limit'));
+    await user.click(screen.getByText('submit-via-formik'));
+
+    expect(mutate).toHaveBeenCalledWith(
+      {
+        environmentId: 7,
+        image: 'nginx:latest',
+        nodeName: '',
+        registryId: 3,
+        ignoreErrors: false,
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) })
+    );
+    expect(notifySuccess).toHaveBeenCalledWith(
+      'Image successfully pulled',
+      'nginx:latest'
+    );
+  });
+});

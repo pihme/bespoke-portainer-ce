@@ -354,6 +354,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-271 | Close Priority work on `form-components/InputGroup`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 94.7 % → 100 % (18 → 19 of 19; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-272 | Close Priority work on `ContainerStatusSection`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 79.8 % → 90.4 % (75 → 85 of 94; +10). Deferred-within-package: BE webhook create/delete. Package left at 90.4 % (85 of 94; 9 missed). | Preferred ContainerStatusSection covered; BE webhook create/delete deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-273 | Close Priority work on `app/react/portainer/webhooks`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 100 % (0 → 37 of 37; +37). Leftovers: none. Deferred-within-package: none. Package left at 100 % (37 of 37; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-274 | Close Priority work on `custom-template-selector`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 100 % (0 → 18 of 18; +18). Leftovers: none. Deferred-within-package: none. Package left at 100 % (18 of 18; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -712,6 +713,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-271: close Priority work on InputGroup helpers. Parallel isolated 94.7 % → 100 % (18 → 19 of 19; +1). Do not grind further.
 - 2026-11-09. COV-272: close Priority work on ContainerStatusSection. Parallel isolated 79.8 % → 90.4 % (75 → 85 of 94; +10). Deferred BE webhook create/delete. Do not grind further.
 - 2026-11-09. COV-273: close Priority work on webhooks helpers. Parallel isolated 0 % → 100 % (0 → 37 of 37; +37). Do not grind further.
+- 2026-11-09. COV-274: close Priority work on custom-template-selector. Parallel isolated 0 % → 100 % (0 → 18 of 18; +18). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

@@ -123,6 +123,38 @@ describe('useTemplateInitialization', () => {
     expect(mockOnVariablesChange).not.toHaveBeenCalled();
   });
 
+
+  it('skips re-initialization when the same template id is still selected', () => {
+    const template = createMockCustomTemplate();
+    const fileContent = 'version: "3"\nservices:\n  web:\n    image: nginx';
+
+    const { rerender } = renderHook(
+      ({ selectedTemplate, templateFile }) =>
+        useTemplateInitialization({
+          selectedTemplate,
+          templateFile,
+          onVariablesChange: mockOnVariablesChange,
+          onFileContentChange: mockOnFileContentChange,
+        }),
+      {
+        initialProps: { selectedTemplate: template, templateFile: fileContent },
+      }
+    );
+
+    expect(mockOnFileContentChange).toHaveBeenCalledTimes(1);
+    mockOnFileContentChange.mockClear();
+    mockOnVariablesChange.mockClear();
+
+    // Change file content so the effect re-runs with the same template id
+    rerender({
+      selectedTemplate: template,
+      templateFile: fileContent + '\n# touch',
+    });
+
+    expect(mockOnFileContentChange).not.toHaveBeenCalled();
+    expect(mockOnVariablesChange).not.toHaveBeenCalled();
+  });
+
   it('should reinitialize when template changes', () => {
     const template1 = createMockCustomTemplate({
       Id: 1,

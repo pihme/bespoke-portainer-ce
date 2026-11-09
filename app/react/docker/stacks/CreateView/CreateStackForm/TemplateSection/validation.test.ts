@@ -46,4 +46,13 @@ describe('Template validation', () => {
 
     await expect(schema.validate(invalidData)).rejects.toThrow();
   });
+
+  it('treats empty file content as valid inside the yaml test when present', async () => {
+    const schema = getTemplateValidationSchema({
+      containerNames,
+    });
+    // Exercise the defensive !value branch by validating with required stripped.
+    const soft = (schema.fields as { fileContent: { notRequired(): unknown } }).fileContent.notRequired();
+    await expect((soft as { validate(v: string): Promise<string> }).validate('')).resolves.toBe('');
+  });
 });

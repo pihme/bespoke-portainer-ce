@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"errors"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -1315,4 +1316,161 @@ func TestFindOrCreateGitSource_StripsEmbeddedCredentialsFromURL(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, "https://github.com/example/repo", src.Git.URL)
+}
+
+func TestREQ_GIT_01_SaveSourceStatus_PersistsHealthyAndError(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var sourceID portainer.SourceID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{
+			Type: portainer.SourceTypeGit,
+			Git:  &gittypes.GitSource{URL: "https://github.com/example/compose-repo"},
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		sourceID = src.ID
+		return nil
+	}))
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return SaveSourceStatus(tx, adminUserContext, sourceID, nil)
+	}))
+	src, err := store.Source().Read(adminUserContext, sourceID)
+	require.NoError(t, err)
+	require.Equal(t, portainer.SourceStatusHealthy, src.Status)
+	require.Empty(t, src.StatusError)
+	require.NotZero(t, src.LastSync)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return SaveSourceStatus(tx, adminUserContext, sourceID, errors.New("clone failed"))
+	}))
+	src, err = store.Source().Read(adminUserContext, sourceID)
+	require.NoError(t, err)
+	require.Equal(t, portainer.SourceStatusError, src.Status)
+	require.Equal(t, "clone failed", src.StatusError)
+}
+
+func TestREQ_GIT_01_SaveStackStatus_UpdatesComposeArtifactAndSource(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	var workflowID portainer.WorkflowID
+	var sourceID portainer.SourceID
+	const stackID portainer.StackID = 42
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{
+			Type:   portainer.SourceTypeGit,
+			Git:    &gittypes.GitSource{URL: "https://github.com/example/compose-repo"},
+			Status: portainer.SourceStatusUnknown,
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		sourceID = src.ID
+
+		wf := &portainer.Workflow{
+			Name: "compose-from-git",
+			Artifacts: []portainer.Artifact{{
+				StackID: stackID,
+				Files: []portainer.ArtifactFile{{
+					SourceID:   sourceID,
+					Path:       "docker-compose.yml",
+					Ref:        "refs/heads/main",
+					RefStatus:  portainer.SourceStatusUnknown,
+					PathStatus: portainer.SourceStatusUnknown,
+				}},
+			}},
+		}
+		require.NoError(t, tx.Workflow().Create(wf))
+		workflowID = wf.ID
+		return nil
+	}))
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return SaveStackStatus(tx, adminUserContext, workflowID, stackID, sourceID, nil)
+	}))
+
+	wf, err := store.Workflow().Read(workflowID)
+	require.NoError(t, err)
+	file := wf.Artifacts[0].Files[0]
+	require.Equal(t, portainer.SourceStatusHealthy, file.RefStatus)
+	require.Equal(t, portainer.SourceStatusHealthy, file.PathStatus)
+	require.Empty(t, file.RefError)
+	require.Empty(t, file.PathError)
+
+	src, err := store.Source().Read(adminUserContext, sourceID)
+	require.NoError(t, err)
+	require.Equal(t, portainer.SourceStatusHealthy, src.Status)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return SaveStackStatus(tx, adminUserContext, workflowID, stackID, sourceID, errors.New("compose file missing"))
+	}))
+
+	wf, err = store.Workflow().Read(workflowID)
+	require.NoError(t, err)
+	file = wf.Artifacts[0].Files[0]
+	require.Equal(t, portainer.SourceStatusError, file.RefStatus)
+	require.Equal(t, "compose file missing", file.RefError)
+	require.Equal(t, portainer.SourceStatusError, file.PathStatus)
+	require.Equal(t, "compose file missing", file.PathError)
+
+	src, err = store.Source().Read(adminUserContext, sourceID)
+	require.NoError(t, err)
+	require.Equal(t, portainer.SourceStatusError, src.Status)
+	require.Equal(t, "compose file missing", src.StatusError)
+}
+
+func TestREQ_GIT_01_SaveStackStatus_ZeroWorkflowIDIsNoop(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return SaveStackStatus(tx, adminUserContext, 0, 1, 1, errors.New("ignored"))
+	}))
+}
+
+func TestREQ_GIT_01_UpdateSourceSyncStatus_ZeroSourceIDIsNoop(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return UpdateSourceSyncStatus(tx, adminUserContext, 0, portainer.SourceStatusHealthy, "")
+	}))
+}
+
+func TestREQ_GIT_01_GitSourceAndArtifactForStack_SkipsInaccessibleSource(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	standardUserContext := source.NewUserContext(&portainer.User{ID: 2, Role: portainer.StandardUserRole}, []portainer.TeamMembership{})
+
+	var workflowID portainer.WorkflowID
+	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		adminOnly := &portainer.Source{
+			Type:               portainer.SourceTypeGit,
+			Git:                &gittypes.GitSource{URL: "https://github.com/example/admin-only"},
+			AdministratorsOnly: true,
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, adminOnly))
+
+		wf := &portainer.Workflow{
+			Artifacts: []portainer.Artifact{{
+				StackID: 7,
+				Files:   []portainer.ArtifactFile{{SourceID: adminOnly.ID, Path: "docker-compose.yml"}},
+			}},
+		}
+		require.NoError(t, tx.Workflow().Create(wf))
+		workflowID = wf.ID
+		return nil
+	}))
+
+	var src *portainer.Source
+	var file *portainer.ArtifactFile
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		var txErr error
+		src, file, txErr = GitSourceAndArtifactForStack(tx, standardUserContext, workflowID, 7)
+		return txErr
+	}))
+	require.Nil(t, src)
+	require.Nil(t, file)
 }

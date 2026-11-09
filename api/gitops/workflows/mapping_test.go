@@ -220,3 +220,62 @@ func TestIsEdgeStackHealthyStatus(t *testing.T) {
 		require.False(t, isEdgeStackHealthyStatus(typ))
 	}
 }
+
+func TestREQ_GIT_01_MapStackToArtifactDetail_ComposeGitWorkflow(t *testing.T) {
+	t.Parallel()
+
+	stack := portainer.Stack{
+		ID:           42,
+		Name:         "compose-from-git",
+		Type:         portainer.DockerComposeStack,
+		EndpointID:   7,
+		CreationDate: 1000,
+		AutoUpdate:   &portainer.AutoUpdateSettings{Interval: "5m"},
+		DeploymentStatus: []portainer.StackDeploymentStatus{
+			{Status: portainer.StackStatusActive, Time: 2000},
+		},
+	}
+	files := []portainer.ArtifactFile{{
+		SourceID: 1,
+		Path:     "docker-compose.yml",
+		Ref:      "refs/heads/main",
+		Hash:     "abc",
+	}}
+
+	detail := MapStackToArtifactDetail(
+		stack,
+		files,
+		WorkflowPhaseStatus{Status: StatusHealthy},
+		WorkflowPhaseStatus{Status: StatusHealthy},
+	)
+
+	require.Equal(t, 42, detail.ID)
+	require.Equal(t, TypeStack, detail.Type)
+	require.Equal(t, "compose-from-git", detail.Name)
+	require.Equal(t, DeploymentPlatformDockerStandalone, detail.Platform)
+	require.Equal(t, portainer.EndpointID(7), detail.Target.EndpointID)
+	require.Equal(t, int64(1000), detail.CreationDate)
+	require.Equal(t, int64(2000), detail.LastSyncDate)
+	require.NotNil(t, detail.AutoUpdate)
+	require.Equal(t, "5m", detail.AutoUpdate.Interval)
+	require.Equal(t, StatusHealthy, detail.Status.Target.Status)
+	require.Len(t, detail.Files, 1)
+	require.Equal(t, "docker-compose.yml", detail.Files[0].Path)
+}
+
+func TestREQ_GIT_01_SummaryDates_IgnoresZeroAndTracksExtremes(t *testing.T) {
+	t.Parallel()
+
+	creation, lastSync := SummaryDates([]ArtifactDetail{
+		{WorkflowMappingFields: WorkflowMappingFields{CreationDate: 0, LastSyncDate: 50}},
+		{WorkflowMappingFields: WorkflowMappingFields{CreationDate: 300, LastSyncDate: 10}},
+		{WorkflowMappingFields: WorkflowMappingFields{CreationDate: 100, LastSyncDate: 200}},
+	})
+
+	assert.Equal(t, int64(100), creation)
+	assert.Equal(t, int64(200), lastSync)
+
+	creation, lastSync = SummaryDates(nil)
+	assert.Equal(t, int64(0), creation)
+	assert.Equal(t, int64(0), lastSync)
+}

@@ -171,3 +171,75 @@ test('validates env vars fieldset', () => {
   expect(emptyResult).toBe(true);
   expect(undefinedResult).toBe(true);
 });
+
+test('renders a select env var and notifies on change', async () => {
+  const user = userEvent.setup();
+  const onChange = vi.fn();
+  const options = [
+    {
+      name: 'CHOICE',
+      label: 'Choice',
+      select: [
+        { text: 'One', value: '1', default: true },
+        { text: 'Two', value: '2', default: false },
+      ],
+    },
+  ];
+
+  render(
+    <EnvVarsFieldset
+      onChange={onChange}
+      options={options}
+      values={{ CHOICE: '1' }}
+      errors={{}}
+    />
+  );
+
+  const select = screen.getByLabelText('Choice', { exact: false });
+  await user.selectOptions(select, '2');
+  expect(onChange).toHaveBeenCalledWith({ CHOICE: '2' });
+});
+
+test('disables preset env vars and falls back to the name as label', () => {
+  render(
+    <EnvVarsFieldset
+      onChange={vi.fn()}
+      options={[{ name: 'SECRET', preset: true, default: 'x' }]}
+      values={{ SECRET: 'x' }}
+      errors={{}}
+    />
+  );
+
+  const input = screen.getByLabelText('SECRET', { exact: false });
+  expect(input).toBeDisabled();
+});
+
+test('getDefaultValues prefers the default select option', () => {
+  expect(
+    getDefaultValues([
+      {
+        name: 'CHOICE',
+        select: [
+          { text: 'One', value: '1', default: false },
+          { text: 'Two', value: '2', default: true },
+        ],
+      },
+      { name: 'TEXT', default: 'hi' },
+      {
+        name: 'EMPTY',
+        select: [{ text: 'None', value: 'n', default: false }],
+      },
+    ])
+  ).toEqual({ CHOICE: '2', TEXT: 'hi', EMPTY: '' });
+});
+
+test('envVarsFieldsetValidation ignores preset definitions', () => {
+  const schema = envVarsFieldsetValidation([
+    { name: 'VISIBLE' },
+    { name: 'HIDDEN', preset: true },
+  ]);
+
+  expect(schema.isValidSync({ VISIBLE: 'ok' })).toBe(true);
+  expect(schema.describe().fields).toHaveProperty('VISIBLE');
+  expect(schema.describe().fields).not.toHaveProperty('HIDDEN');
+});

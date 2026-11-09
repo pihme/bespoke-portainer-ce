@@ -16,3 +16,22 @@ test('should display a ButtonGroup component', async () => {
   const element = await findByRole('group');
   expect(element).toBeTruthy();
 });
+
+test('applies size classes for xsmall and large and omits size class by default', () => {
+  const { rerender, getByRole } = render(
+    <ButtonGroup size="xsmall" aria-label="sizes">
+      a
+    </ButtonGroup>
+  );
+  expect(getByRole('group')).toHaveClass('btn-group-xs');
+
+  rerender(
+    <ButtonGroup size="large" aria-label="sizes">
+      a
+    </ButtonGroup>
+  );
+  expect(getByRole('group')).toHaveClass('btn-group-lg');
+
+  rerender(<ButtonGroup aria-label="sizes">a</ButtonGroup>);
+  expect(getByRole('group').className).toBe('btn-group');
+});

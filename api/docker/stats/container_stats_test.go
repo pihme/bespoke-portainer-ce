@@ -253,3 +253,16 @@ func TestCalculateContainerStatsForSwarm(t *testing.T) {
 	assert.Equal(t, 1, stats.Unhealthy)
 	assert.Equal(t, 6, stats.Total)
 }
+
+func TestCalculateContainerStats_SwarmDispatch(t *testing.T) {
+	t.Parallel()
+
+	containers := []container.Summary{
+		{ID: "c1", Status: "running", State: container.StateRunning},
+		{ID: "c2", Status: "exited", State: container.StateExited},
+	}
+
+	stats, err := CalculateContainerStats(t.Context(), new(MockDockerClient), true, containers)
+	require.NoError(t, err)
+	require.Equal(t, CalculateContainerStatsForSwarm(containers), stats)
+}

@@ -351,6 +351,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-268 | Close Priority work on `app/react/test-utils`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 93.3 % (0 → 56 of 60; +56). Leftovers: thin react-select create/setup arms. Deferred-within-package: none. Package left at 93.3 % (56 of 60; 4 missed). | Preferred frontend test-utils covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-269 | Close Priority work on `forms/git-form`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 100 % (0 → 19 of 19; +19). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-270 | Close Priority work on `TagSelector`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 51.6 % → 87.1 % (16 → 27 of 31; +11). Leftovers: thin create/error arms. Deferred-within-package: none. Package left at 87.1 % (27 of 31; 4 missed). | Preferred TagSelector covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-271 | Close Priority work on `form-components/InputGroup`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 94.7 % → 100 % (18 → 19 of 19; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (19 of 19; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -706,6 +707,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-268: close Priority work on frontend test-utils. Parallel isolated 0 % → 93.3 % (0 → 56 of 60; +56). Thin react-select leftovers. Do not grind further.
 - 2026-11-09. COV-269: close Priority work on git-form helpers. Parallel isolated 0 % → 100 % (0 → 19 of 19; +19). Do not grind further.
 - 2026-11-09. COV-270: close Priority work on TagSelector. Parallel isolated 51.6 % → 87.1 % (16 → 27 of 31; +11). Thin create/error leftovers. Do not grind further.
+- 2026-11-09. COV-271: close Priority work on InputGroup helpers. Parallel isolated 94.7 % → 100 % (18 → 19 of 19; +1). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

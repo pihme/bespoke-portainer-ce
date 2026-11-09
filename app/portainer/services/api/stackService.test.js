@@ -50,10 +50,19 @@ function buildService(overrides = {}) {
     query: vi.fn(() => promiseResource([])),
     remove: vi.fn(() => promiseResource({})),
     associate: vi.fn(() => promiseResource({ Id: 1 })),
+    update: vi.fn(() => promiseResource({ Id: 1 })),
+    create: vi.fn(() => promiseResource({ Id: 11 })),
+    start: vi.fn(() => promiseResource({})),
+    stop: vi.fn(() => promiseResource({})),
+    updateGit: vi.fn(() => promiseResource({})),
+    updateGitStackSettings: vi.fn(() => promiseResource({})),
     ...overrides.Stack,
   };
   const StackByName = { remove: vi.fn(() => promiseResource({})), ...(overrides.StackByName || {}) };
-  const FileUploadService = overrides.FileUploadService || {};
+  const FileUploadService = {
+    createComposeStack: vi.fn(() => Promise.resolve({ data: { Id: 12 } })),
+    ...(overrides.FileUploadService || {}),
+  };
   const StackHelper = {
     getExternalStacksFromServices: vi.fn(() => []),
     getExternalStacksFromContainers: vi.fn(() => [{ Name: 'ext' }]),
@@ -77,7 +86,7 @@ function buildService(overrides = {}) {
     ContainerService,
     SwarmService
   );
-  return { service, Stack, StackHelper, ContainerService, SwarmService };
+  return { service, Stack, StackHelper, ContainerService, SwarmService, FileUploadService };
 }
 
 describe('REQ-STK-01 StackService local compose client', () => {
@@ -141,5 +150,104 @@ describe('REQ-STK-01 StackService local compose client', () => {
     await service.associate({ Id: 2, Type: 2 }, 1, false);
     expect(SwarmService.swarm).not.toHaveBeenCalled();
     expect(Stack.associate).toHaveBeenCalledWith({ id: 2, endpointId: 1, orphanedRunning: false });
+  });
+});
+
+describe('REQ-STK-02 StackService compose create and lifecycle', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('createComposeStackFromFileContent posts standalone string stacks', async () => {
+    const { service, Stack } = buildService();
+    await service.createComposeStackFromFileContent('web', 'services: {}', [], 1);
+    expect(Stack.create).toHaveBeenCalledWith(
+      { endpointId: 1 },
+      expect.objectContaining({ method: 'string', type: 'standalone', Name: 'web' })
+    );
+  });
+
+  it('createComposeStackFromFileUpload uses FileUploadService', async () => {
+    const { service, FileUploadService } = buildService();
+    await service.createComposeStackFromFileUpload('web', new Blob(['x']), [], 1);
+    expect(FileUploadService.createComposeStack).toHaveBeenCalledWith('web', expect.anything(), [], 1);
+  });
+
+  it('createComposeStackFromGitRepository posts repository standalone stacks', async () => {
+    const { service, Stack } = buildService();
+    await service.createComposeStackFromGitRepository(
+      'web',
+      {
+        RepositoryURL: 'https://example.com/r.git',
+        RepositoryReferenceName: 'refs/heads/main',
+        ComposeFilePathInRepository: 'docker-compose.yml',
+        AutoUpdate: { Interval: '5m' },
+      },
+      [],
+      1
+    );
+    expect(Stack.create).toHaveBeenCalledWith(
+      { endpointId: 1 },
+      expect.objectContaining({
+        method: 'repository',
+        type: 'standalone',
+        RepositoryURL: 'https://example.com/r.git',
+        AutoUpdate: { Interval: '5m' },
+      })
+    );
+  });
+
+  it('updateStack, start and stop call Stack resource', async () => {
+    const { service, Stack } = buildService();
+    await service.updateStack({ Id: 3, EndpointId: 1 }, 'file', [], true, false);
+    await service.start(1, 3);
+    await service.stop(1, 3);
+    expect(Stack.update).toHaveBeenCalled();
+    expect(Stack.start).toHaveBeenCalledWith({ id: 3, endpointId: 1 });
+    expect(Stack.stop).toHaveBeenCalledWith({ endpointId: 1, id: 3 });
+  });
+
+  it('updateGit and updateGitStackSettings update compose git stacks', async () => {
+    const { service, Stack } = buildService();
+    await service.updateGit(3, 1, [], false, {
+      RefName: 'main',
+      RepositoryAuthentication: false,
+    }, true);
+    await service.updateGitStackSettings(
+      3,
+      1,
+      [],
+      {
+        AutoUpdate: { Interval: '5m' },
+        RefName: 'main',
+        RepositoryAuthentication: false,
+        Option: { Prune: true },
+        TLSSkipVerify: false,
+      },
+      'hook'
+    );
+    expect(Stack.updateGit).toHaveBeenCalled();
+    expect(Stack.updateGitStackSettings).toHaveBeenCalled();
+  });
+
+  it('composeStacks can include external compose stacks from containers', async () => {
+    const { service, ContainerService, StackHelper } = buildService({
+      Stack: {
+        query: vi.fn(() => promiseResource([{ Id: 1, Name: 'web', Type: 2, EndpointId: 1, Status: 1, Env: [] }])),
+      },
+    });
+    const stacks = await service.composeStacks(1, true, { EndpointID: 1 });
+    expect(ContainerService.containers).toHaveBeenCalledWith(1, 1);
+    expect(StackHelper.getExternalStacksFromContainers).toHaveBeenCalled();
+    expect(stacks.map((s) => s.Name).sort()).toEqual(['ext', 'web']);
+  });
+
+  it('stacks with compose only merges compose and external container stacks', async () => {
+    const { service } = buildService({
+      Stack: {
+        query: vi.fn(() => promiseResource([{ Id: 1, Name: 'web', Type: 2, EndpointId: 1, Status: 1, Env: [] }])),
+      },
+    });
+    // stacks() always asks composeStacks to include external compose stacks
+    const stacks = await service.stacks(true, false, 1, false);
+    expect(stacks.map((s) => s.Name).sort()).toEqual(['ext', 'web']);
   });
 });

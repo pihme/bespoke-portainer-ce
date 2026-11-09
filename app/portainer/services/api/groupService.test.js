@@ -49,4 +49,31 @@ describe('REQ-ENV-13 GroupService', () => {
     await service.deleteGroup(1);
     expect(EndpointGroups.remove).toHaveBeenCalledWith({ id: 1 });
   });
+
+  it('createGroup, updateGroup, access and endpoint membership helpers forward payloads', async () => {
+    const EndpointGroups = {
+      get: vi.fn(),
+      query: vi.fn(),
+      create: vi.fn(() => promiseResource({ Id: 2 })),
+      update: vi.fn(() => promiseResource({ Id: 1 })),
+      updateAccess: vi.fn(() => promiseResource({})),
+      addEndpoint: vi.fn(() => promiseResource({})),
+      removeEndpoint: vi.fn(() => promiseResource({})),
+      remove: vi.fn(),
+    };
+    const service = factoryState.factory(mockQ(), EndpointGroups);
+    await service.createGroup({ Name: 'g', Description: '', TagIds: [] }, [1]);
+    await service.updateGroup({ Id: 1, Name: 'g', Description: '', TagIds: [], UserAccessPolicies: {}, TeamAccessPolicies: {} }, [1]);
+    await service.updateAccess(1, { 2: { RoleId: 0 } }, {});
+    await service.addEndpoint(1, 9);
+    await service.removeEndpoint(1, 9);
+    expect(EndpointGroups.create).toHaveBeenCalled();
+    expect(EndpointGroups.update).toHaveBeenCalled();
+    expect(EndpointGroups.updateAccess).toHaveBeenCalledWith(
+      { id: 1 },
+      { UserAccessPolicies: { 2: { RoleId: 0 } }, TeamAccessPolicies: {} }
+    );
+    expect(EndpointGroups.addEndpoint).toHaveBeenCalledWith({ id: 1, action: 'endpoints/9' });
+    expect(EndpointGroups.removeEndpoint).toHaveBeenCalledWith({ id: 1, action: 'endpoints/9' });
+  });
 });

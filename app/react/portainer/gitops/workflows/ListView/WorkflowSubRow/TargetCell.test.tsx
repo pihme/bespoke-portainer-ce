@@ -1,12 +1,14 @@
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import { TargetCell } from './TargetCell';
 
+const useEnvironment = vi.fn((id?: number) =>
+  id ? { data: { Id: id, Name: `Env ${id}`, Type: 1 } } : { data: undefined }
+);
+
 vi.mock('@/react/portainer/environments/queries', () => ({
-  useEnvironment: (id?: number) =>
-    id
-      ? { data: { Id: id, Name: `Env ${id}`, Type: 1 } }
-      : { data: undefined },
+  useEnvironment: (id?: number) => useEnvironment(id),
 }));
 vi.mock('@/react/portainer/environments/utils', () => ({
   getDashboardRoute: () => ({ to: 'docker.dashboard', params: { endpointId: 5 } }),
@@ -23,6 +25,12 @@ vi.mock('@@/Link', () => ({
 }));
 
 describe('REQ-GIT-01 TargetCell for local stack targets', () => {
+  beforeEach(() => {
+    useEnvironment.mockImplementation((id?: number) =>
+      id ? { data: { Id: id, Name: `Env ${id}`, Type: 1 } } : { data: undefined }
+    );
+  });
+
   it('returns null without a target', () => {
     const { container } = render(
       <TargetCell target={undefined} type="stack" status="healthy" />
@@ -57,5 +65,17 @@ describe('REQ-GIT-01 TargetCell for local stack targets', () => {
       <TargetCell target={{}} type="stack" status="unknown" />
     );
     expect(screen.getByText('No target')).toBeVisible();
+  });
+
+  it('falls back when the environment query has not loaded', () => {
+    useEnvironment.mockReturnValue({ data: undefined });
+    render(
+      <TargetCell
+        target={{ endpointId: 9 }}
+        type="stack"
+        status="healthy"
+      />
+    );
+    expect(screen.getByText('Environment 9')).toBeVisible();
   });
 });

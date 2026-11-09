@@ -18,8 +18,8 @@ A single-user Portainer for a local Docker environment. It runs on the same mach
 
 ## Spec
 
-- Feature spec: <path, e.g. docs/<project>-spec.md>; testspec: <path>
-- Upstream spec: <none / path> – <usable as is / usable with changes / not usable, and why>
+- Feature spec: [docs/portainer-spec.md](docs/portainer-spec.md) (178 requirements `REQ-<AREA>-NN` in 24 areas, written from the upstream docs in RAW-013); testspec: none yet
+- Upstream spec: none in the repo. The tree at tag 2.45.3 has no `docs/` directory and no numbered requirements. The product documentation at https://docs.portainer.io/ (index https://docs.portainer.io/llms.txt) is the only feature description. Verdict: not usable as is – it is product documentation, not a requirements list: no IDs, written for Business Edition first with BE-only hints scattered across pages, describing the current 2.45 release rather than exactly this tag, and mixing install guides, FAQs and how-tos with features. It is usable as the source for a spec, so `docs/portainer-spec.md` was written from it, with entry points checked against the router, `api/docs/swagger.yaml` and `api/cli/cli.go`.
 
 ## 1 raw
 
@@ -54,6 +54,7 @@ A single-user Portainer for a local Docker environment. It runs on the same mach
 | RAW-010 | Record the vision and the do-not-touch constraint from the user's product-vision message. | The user stated them. Later stages check decisions against these sections. | user | Keep the wording in Vision / North Star and Constraints unless the user changes it. |
 | RAW-011 | Extend the vision: backup and restore are also removed. | The user asked to drop backup/restore as well. | user | Keep “no backup/restore” in Vision / North Star unless the user changes it. |
 | RAW-012 | Record the raw-stage inventory from the tree and the upstream 2.45.3 release. Tests were not run. | Taking stock is part of the raw stage. | agent | Re-run `make test` on a full checkout with Node ^22.22.1 and Go 1.26.10 before treating the test result as measured. |
+| RAW-013 | The feature spec is `docs/portainer-spec.md`. No testspec yet. | Upstream docs at docs.portainer.io are not a numbered-requirements list, so a new spec was written from them (178 requirements, BE-only features labeled, the planned maintenance screen kept out as not upstream). The location and the list are the agent's choice; the user has not yet seen or approved the list. | agent (location) | Keep later stages on this file. Mark removed or changed requirements by ID there instead of renumbering. |
 
 ### Interventions
 
@@ -64,7 +65,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 
 ### Last run
 
-- 2026-11-09. Inventory recorded (RAW-012). Tests not measured.
+- 2026-11-09. Inventory recorded (RAW-012). Tests not measured. Feature spec `docs/portainer-spec.md` added (RAW-013), not yet reviewed by the user.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 2 covered

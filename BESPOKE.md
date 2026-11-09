@@ -344,6 +344,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-261 | Close Priority work on `environment-groups/ListView`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1; parent isolation). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for parent isolation. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-262 | Close Priority work on `app/react/components/modals`. Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure: 0 % → 80.4 % (0 → 45 of 56; +45). Leftovers: Dialog countdown timer thin leftover. Deferred-within-package: none. Package left at 80.4 % (45 of 56; 11 missed). | Preferred modals helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-263 | Close Priority work on `WizardDocker` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-203` (`11a13fe00`). Isolated remasure remains 57.1 % (12 of 21; +0; no new test commit). Deferred-within-package: AgentTab / EdgeAgent. Package left at 57.1 % (12 of 21; 9 missed). | Preferred WizardDocker parent covered; AgentTab/EdgeAgent deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-264 | Close Priority work on `RelativePathFieldset`. Parallel batch merged from `2-covered-parallel-fe-batch-244` (`50a85b01c`). Isolated remasure: 0 % → 75.0 % (0 → 18 of 24; +18). Deferred-within-package: Edge per-device UI. Package left at 75.0 % (18 of 24; 6 missed). | Preferred RelativePathFieldset covered; Edge per-device UI deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -691,6 +692,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-261: close Priority work on environment-groups list. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
 - 2026-11-09. COV-262: close Priority work on modals helpers. Parallel isolated 0 % → 80.4 % (0 → 45 of 56; +45). Thin Dialog countdown leftover. Do not grind further.
 - 2026-11-09. COV-263: close Priority work on WizardDocker parent. Parallel isolated remains 57.1 % (12 of 21; +0). Deferred AgentTab/EdgeAgent. Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-244` (`50a85b01c`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-264: close Priority work on RelativePathFieldset. Parallel isolated 0 % → 75.0 % (0 → 18 of 24; +18). Deferred Edge per-device UI. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

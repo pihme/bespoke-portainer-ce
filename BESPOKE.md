@@ -412,6 +412,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-329 | Close Priority work on `Code`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure remains 22.2 % (2 of 9; existing tests extended without changing statement totals). KEEP 2/2; stories deferred 0/7. Package left at 22.2 % (2 of 9; 7 missed). | Preferred Code helpers covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-330 | Close Priority work on `DashboardItem`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 36.4 % → 45.5 % (4 → 5 of 11; +1). KEEP 5/5; stories deferred 0/6. Package left at 45.5 % (5 of 11; 6 missed). | Preferred DashboardItem covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-331 | Close Priority work on `TLSFieldset`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 12 of 12; +12). Leftovers: none. Deferred-within-package: none. Package left at 100 % (12 of 12; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-332 | Close Priority work on `host/SetupView`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 7 of 7; +7; GpusList only). Leftovers: none. Deferred-within-package: none. Package left at 100 % (7 of 7; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -834,6 +835,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-329: close Priority work on Code helpers. Parallel isolated remains 22.2 % (2 of 9). KEEP 2/2. Deferred stories. Do not grind further.
 - 2026-11-09. COV-330: close Priority work on DashboardItem helpers. Parallel isolated 36.4 % → 45.5 % (4 → 5 of 11; +1). KEEP 5/5. Deferred stories. Do not grind further.
 - 2026-11-09. COV-331: close Priority work on TLSFieldset. Parallel isolated 0 % → 100 % (0 → 12 of 12; +12). Do not grind further.
+- 2026-11-09. COV-332: close Priority work on host SetupView. Parallel isolated 0 % → 100 % (0 → 7 of 7; +7). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

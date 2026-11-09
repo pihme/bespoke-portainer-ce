@@ -340,11 +340,11 @@ The full ranking of all packages with missed statements (Priority then Deferred)
 
 ### Order and status
 
-Phase C works Priority from rank 1 down, one whole package at a time (skill step 4 to 6), then Deferred. Test files only; new tests named `TestREQ_<AREA>_<NN>_…` where a requirement applies and listed under "Backwards compatibility tests" in the test spec otherwise. First Priority package: `api/http/handler/stacks` (1,159 missed at COV-009). COV-010 added a first batch of compose-focused tests (stop, inspect, associate, response helpers): package coverage 33.0 % → 40.3 % (572 → 697 of 1,731; missed 1,159 → 1,034). The package is not finished.
+Phase C works Priority from rank 1 down, one whole package at a time (skill step 4 to 6). Deferred packages stay in the measurement but are not tested (COV-012). Test files only; new tests named `TestREQ_<AREA>_<NN>_…` where a requirement applies and listed under "Backwards compatibility tests" in the test spec otherwise. First Priority package: `api/http/handler/stacks` (1,159 missed at COV-009). COV-010 added a first batch of compose-focused tests (stop, inspect, associate, response helpers): package coverage 33.0 % → 40.3 % (572 → 697 of 1,731; missed 1,159 → 1,034). COV-011 added create/migrate/list/git-guard tests: 40.3 % → 52.0 % (697 → 900 of 1,731; missed 1,034 → 831). The package is not finished.
 
 ## 10. Open for later phases
 
 - C: work the Priority plan in section 9; `api/crypto` includes the paths that only the `performance` test reached (section 7, effect on coverage), to be covered with small inputs when that package comes up.
-- C, open (COV-009): Priority packages alone cannot reach the 95.5 % overshoot (max about 67.4 %). Do not lower the bar. Do not start Deferred-package tests in this slice. Needs a later user decision on how to close the gap after Priority is exhausted (accept uncoverable leftovers, change scope, or eventually test Deferred code before deletion).
+- C, closed by COV-012 (user, 2026-11-09): Priority packages alone cannot reach the 95.5 % overshoot (max about 67.4 %). After Priority is exhausted (tests or honestly uncoverable), end covered below the project-wide 85 % bar. Do not test Deferred packages to chase that bar. No new percentage target unless a later decision sets one. Covered exit still needs user confirmation when Priority is done.
 - C: the `ARGS` coverage-directory override in `make test-client` does not work (section 9, Limits); fixing it is a Makefile change.
 - C: write the backwards-compatibility tests listed in the test spec, and the boundary tests for accepted limits.

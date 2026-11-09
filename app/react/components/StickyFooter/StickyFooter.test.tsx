@@ -33,3 +33,13 @@ test('should render multiple children', () => {
   expect(screen.getByText('Cancel')).toBeInTheDocument();
   expect(screen.getByText('Save')).toBeInTheDocument();
 });
+
+test('StickyFooter.Container adds bottom padding so content clears the bar', () => {
+  const { container } = render(
+    <StickyFooter.Container>
+      <span>Page</span>
+    </StickyFooter.Container>
+  );
+  expect(container.firstChild).toHaveClass('pb-20');
+  expect(screen.getByText('Page')).toBeInTheDocument();
+});

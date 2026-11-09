@@ -1,6 +1,15 @@
 import { describe, it, expect } from 'vitest';
 
-import { fullURIIntoRepoAndTag } from './utils';
+import { RegistryTypes } from '@/react/portainer/registries/types/registry';
+
+import {
+  buildImageFullURI,
+  buildImageFullURIFromModel,
+  fullURIIntoRepoAndTag,
+  getUniqueTagListFromImages,
+  imageContainsURL,
+  parseViewModel,
+} from './utils';
 
 describe('fullURIIntoRepoAndTag', () => {
   it('splits registry/image-repo:tag correctly', () => {
@@ -65,5 +74,68 @@ describe('fullURIIntoRepoAndTag', () => {
       repo: 'myregistry.azurecr.io/image@sha256',
       tag: '123456',
     });
+  });
+});
+
+describe('parseViewModel and tag helpers', () => {
+  it('parses responses and falls back to digests', () => {
+    expect(
+      parseViewModel({
+        Id: 'sha256:1',
+        RepoTags: ['nginx:latest'],
+        RepoDigests: [],
+      } as never)
+    ).toMatchObject({ Used: false, RepoTags: ['nginx:latest'] });
+
+    expect(
+      parseViewModel({
+        Id: 'sha256:2',
+        RepoTags: undefined,
+        RepoDigests: ['repo@sha256:abc'],
+      } as never).RepoTags[0]
+    ).toContain(':<none>');
+  });
+
+  it('lists unique tags and detects URL-like image names', () => {
+    expect(
+      getUniqueTagListFromImages([
+        { RepoTags: ['nginx:latest', 'nginx:<none>'] },
+        { RepoTags: ['nginx:latest', 'redis:alpine'] },
+        {},
+      ])
+    ).toEqual(['nginx:latest', 'redis:alpine']);
+
+    expect(imageContainsURL('ghcr.io/org/app')).toBe(true);
+    expect(imageContainsURL('localhost:5000/app')).toBe(true);
+    expect(imageContainsURL('nginx')).toBe(false);
+  });
+
+  it('builds full URIs without registry and with custom/anonymous registries', () => {
+    expect(buildImageFullURI('nginx')).toBe('nginx:latest');
+    expect(buildImageFullURI('nginx:1.25')).toBe('nginx:1.25');
+    expect(() => buildImageFullURI('')).toThrow(/Missing image/);
+
+    expect(
+      buildImageFullURIFromModel({
+        UseRegistry: false,
+        Image: 'redis',
+      })
+    ).toBe('redis:latest');
+
+    expect(
+      buildImageFullURI('app', {
+        Type: RegistryTypes.CUSTOM,
+        URL: 'registry.local',
+        Username: 'u',
+      } as never)
+    ).toBe('registry.local/app:latest');
+
+    expect(
+      buildImageFullURI('busybox', {
+        Type: RegistryTypes.ANONYMOUS,
+        URL: '',
+        Username: '',
+      } as never)
+    ).toBe('busybox:latest');
   });
 });

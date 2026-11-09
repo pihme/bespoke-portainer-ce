@@ -246,6 +246,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-163 | Close Priority work on `pkg/libhttp/ssrf`. Parallel batch merged from `2-covered-parallel-go-batch-166` (`728c2677a`): builder_test.go (2 under REQ-SET-03). Isolated remasure: 85.5 % → 93.5 % (106 → 116 of 124; +10). Leftovers: 8 thin. Deferred-within-package: none. Package left at 93.5 % (116 of 124; 8 missed). | Preferred SSRF HTTP helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-164 | Close Priority work on `api/dataservices/extension`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): extension_test.go (3). Isolated remasure: 0 % → 93.8 % (0 → 15 of 16; +15). Leftovers: 1 thin. Deferred-within-package: none. Package left at 93.8 % (15 of 16; 1 missed). | Preferred extension datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-165 | Close Priority work on `api/dataservices/tag`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): tag_test.go + tx_test.go (5 under REQ-ENV-14). Isolated remasure: 0 % → 93.8 % (0 → 15 of 16; +15). Leftovers: 1 thin. Deferred-within-package: none. Package left at 93.8 % (15 of 16; 1 missed). | Preferred tag datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-166 | Close Priority work on `pkg/networking`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): diagnostics_local_test.go (5). Isolated remasure: 73.1 % → 98.1 % (38 → 51 of 52; +13). Leftovers: 1 thin. Deferred-within-package: none. Package left at 98.1 % (51 of 52; 1 missed). | Preferred networking diagnostics covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -491,6 +492,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. Merged `origin/2-covered-parallel-go-batch-279` (`458ed375f`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
 - 2026-11-09. COV-164: close Priority work on extension datastore. Parallel isolated 0 % → 93.8 % (0 → 15 of 16; +15). Thin leftover. Do not grind further.
 - 2026-11-09. COV-165: close Priority work on tag datastore. Parallel isolated 0 % → 93.8 % (0 → 15 of 16; +15). Thin leftover. Do not grind further.
+- 2026-11-09. COV-166: close Priority work on networking diagnostics. Parallel isolated 73.1 % → 98.1 % (38 → 51 of 52; +13). Thin leftover. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

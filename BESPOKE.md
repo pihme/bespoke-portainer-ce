@@ -253,6 +253,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-170 | Close Priority work on `pkg/libpolicy`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): fingerprint_test.go (2). Isolated remasure: 0 % → 90.9 % (0 → 10 of 11; +10). Leftovers: 1 thin. Deferred-within-package: none. Package left at 90.9 % (10 of 11; 1 missed). | Preferred policy fingerprints covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-171 | Close Priority work on `api/adminmonitor`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): admin_monitor_local_test.go (7 under REQ-USR-01). Isolated remasure: 75.0 % → 100 % (30 → 40 of 40; +10). Leftovers: none. Deferred-within-package: none. Package left at 100 % (40 of 40; 0 missed). | Statement coverage complete for preferred admin monitor. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-172 | Close Priority work on `api/dataservices/helmuserrepository`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): helmuserrepository_test.go (2). Isolated remasure: 0 % → 90.0 % (0 → 9 of 10; +9). Leftovers: 1 thin. Deferred-within-package: none. Package left at 90.0 % (9 of 10; 1 missed). | Preferred helm user repository datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
+| COV-173 | Close Priority work on `api/dataservices/workflow`. Parallel batch merged from `2-covered-parallel-go-batch-279` (`458ed375f`): workflow_test.go (4 under REQ-GIT-01). Isolated remasure: 0 % → 90.0 % (0 → 9 of 10; +9). Leftovers: 1 thin. Deferred-within-package: none. Package left at 90.0 % (9 of 10; 1 missed). | Preferred workflow datastore covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -505,6 +506,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-170: close Priority work on policy fingerprints. Parallel isolated 0 % → 90.9 % (0 → 10 of 11; +10). Thin leftover. Do not grind further.
 - 2026-11-09. COV-171: close Priority work on admin monitor. Parallel isolated 75.0 % → 100 % (30 → 40 of 40; +10). Do not grind further.
 - 2026-11-09. COV-172: close Priority work on helm user repository datastore. Parallel isolated 0 % → 90.0 % (0 → 9 of 10; +9). Thin leftover. Do not grind further.
+- 2026-11-09. COV-173: close Priority work on workflow datastore. Parallel isolated 0 % → 90.0 % (0 → 9 of 10; +9). Thin leftover. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

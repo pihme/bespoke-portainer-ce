@@ -304,6 +304,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-221 | Close Priority work on `endpointSecurity`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 34 of 34; +34). Leftovers: none. Deferred-within-package: none. Package left at 100 % (34 of 34; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-222 | Close Priority work on `setup-tests/setup-handlers`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 14.7 % → 100 % (10 → 68 of 68; +58). Leftovers: none. Deferred-within-package: none. Package left at 100 % (68 of 68; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-223 | Close Priority work on `images/import`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 33 of 33; +33). Leftovers: none. Deferred-within-package: none. Package left at 100 % (33 of 33; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-224 | Close Priority work on `ContainerActionsSection/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`): 8 files, 25 tests. Isolated remasure: 5.7 % → 100 % (2 → 35 of 35; +33). Leftovers: none. Deferred-within-package: none. Package left at 100 % (35 of 35; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -609,6 +610,8 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-221: close Priority work on endpoint TLS security form. Parallel isolated 0 % → 100 % (0 → 34 of 34; +34). Do not grind further.
 - 2026-11-09. COV-222: close Priority work on frontend MSW setup handlers. Parallel isolated 14.7 % → 100 % (10 → 68 of 68; +58). Do not grind further.
 - 2026-11-09. COV-223: close Priority work on Docker image import. Parallel isolated 0 % → 100 % (0 → 33 of 33; +33). Do not grind further.
+- 2026-11-09. Merged `origin/2-covered-parallel-fe-batch-168` (`2515149e6`) into `2-covered` (bookkeeping merge; no COV id on the merge commit).
+- 2026-11-09. COV-224: close Priority work on container actions queries. Parallel isolated 5.7 % → 100 % (2 → 35 of 35; +33). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

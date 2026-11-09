@@ -443,11 +443,22 @@ Questions raised while mapping. The user decides; an empty Decision means open. 
 
 ## Coverage plan (phase C)
 
-Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `0769c07f2`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 %; COV-012 closes that open point by ending covered after Priority without testing Deferred (no new percentage bar). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added. COV-010 started Priority package `api/http/handler/stacks` (first batch: stop/inspect/associate/response; 33.0 % → 40.3 %, missed 1,159 → 1,034). COV-011 continued it (create/migrate/list/git guards; 40.3 % → 52.0 %, missed 1,034 → 831). COV-013 continued it (compose git create/upload, git update/redeploy success, compose update HTTP, authz; 52.0 % → 64.5 %, missed 831 → 615). COV-014 continued compose edges/async deploy/swarm migrate-update HTTP (64.5 % → 68.1 %, missed 615 → 553). COV-012: exit covered after Priority without testing Deferred.
+Baseline remeasured on 2026-11-09 at `2-covered@7476f68ef` (docs `0769c07f2`) with `nix develop -c make test` after COV-009 (`coverage.include: ['app/**']`, vision-aware Priority/Deferred order): **32.7 %** of statements project-wide (Go 40.8 %, 13,228 of 32,392; client 25.2 %, 8,890 of 35,322). Overshoot target 95.5 % (needs 42,549 more covered). Priority packages alone reach at most about 67.4 %; COV-012 closes that open point by ending covered after Priority without testing Deferred (no new percentage bar). The two-tier package plan is in [portainer-test-strategy.md](portainer-test-strategy.md) section 9. Prior COV-008 figure (48.8 %, loaded client files only) is superseded for planning. New tests are mapped here as they are added. COV-010 started Priority package `api/http/handler/stacks` (first batch: stop/inspect/associate/response; 33.0 % → 40.3 %, missed 1,159 → 1,034). COV-011 continued it (create/migrate/list/git guards; 40.3 % → 52.0 %, missed 1,034 → 831). COV-013 continued it (compose git create/upload, git update/redeploy success, compose update HTTP, authz; 52.0 % → 64.5 %, missed 831 → 615). COV-014 continued compose edges/async deploy/swarm migrate-update HTTP (64.5 % → 68.1 %, missed 615 → 553). COV-015 moved the non-admin helper into a `*_test.go` file. COV-016 closed Priority stacks with swarm/k8s create/update as deferred-within-package. COV-012: exit covered after Priority without testing Deferred.
 
 ### Uncoverable methods and functions
 
 None recorded yet. Each entry will name the source, the function and the call that makes it uncoverable (for example process exit).
+
+### Deferred-within-package (vision-aware skip, not uncoverable)
+
+These sources are testable but skipped under COV-012 / COV-016 while finishing Priority packages: the tailored stage is expected to remove the Deferred feature. They remain in the coverage denominator.
+
+| Package | Source | Reason |
+|---------|--------|--------|
+| `api/http/handler/stacks` | `create_swarm_stack.go` | Swarm create; Deferred-feature code |
+| `api/http/handler/stacks` | `create_kubernetes_stack.go` | Kubernetes create; Deferred-feature code |
+| `api/http/handler/stacks` | `update_kubernetes_stack.go` | Kubernetes update; Deferred-feature code |
+
 
 ## Behaviour without a requirement ID (backwards compatibility)
 

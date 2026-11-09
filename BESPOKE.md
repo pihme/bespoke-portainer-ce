@@ -418,6 +418,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-335 | Close Priority work on Angular `BEFeatureIndicator`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). BE upsell URL asserted only; no upsell UI. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-336 | Close Priority work on Angular `widget`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). Leftovers: none. Deferred-within-package: none. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-337 | Close Priority work on `NavTabs`. Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 50.0 % → 64.3 % (7 → 9 of 14; +2). KEEP 9/9; stories deferred 0/5. Package left at 64.3 % (9 of 14; 5 missed). | Preferred NavTabs covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-338 | Close Priority work on `containers/ListView` (parent; ContainersDatatable out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-381` (`aacd2fe02`). Isolated remasure: 0 % → 100 % (0 → 6 of 6; +6). Leftovers: none. Deferred-within-package: none. Package left at 100 % (6 of 6; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -846,6 +847,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-335: close Priority work on Angular BEFeatureIndicator. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
 - 2026-11-09. COV-336: close Priority work on Angular widget helpers. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
 - 2026-11-09. COV-337: close Priority work on NavTabs helpers. Parallel isolated 50.0 % → 64.3 % (7 → 9 of 14; +2). KEEP 9/9. Deferred stories. Do not grind further.
+- 2026-11-09. COV-338: close Priority work on containers ListView parent. Parallel isolated 0 % → 100 % (0 → 6 of 6; +6). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

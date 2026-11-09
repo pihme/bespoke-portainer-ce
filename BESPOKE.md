@@ -373,6 +373,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-290 | Close Priority work on `app/portainer/models/endpoint`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure remains 100 % (15 of 15; existing tests). Azure/K8s/Edge constants covered as data. Package left at 100 % (15 of 15; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-291 | Close Priority work on `primitives/Tabs`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 14 of 14; +14). Deferred-within-package: stories. Package left at 100 % (14 of 14; 0 missed). | Statement coverage complete excluding stories. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-292 | Close Priority work on `FilesTable` (parent; columns/ out of scope). Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 15 of 15; +15). Leftovers: none. Deferred-within-package: none. Package left at 100 % (15 of 15; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-293 | Close Priority work on `app/docker/react/views`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 100 % (0 → 14 of 14; +14). Leftovers: none. Deferred-within-package: none. Package left at 100 % (14 of 14; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -754,6 +755,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-290: close Priority work on endpoint model. Parallel isolated remains 100 % (15 of 15). Do not grind further.
 - 2026-11-09. COV-291: close Priority work on Tabs helpers. Parallel isolated 0 % → 100 % (0 → 14 of 14; +14). Deferred stories. Do not grind further.
 - 2026-11-09. COV-292: close Priority work on FilesTable parent. Parallel isolated 0 % → 100 % (0 → 15 of 15; +15). Do not grind further.
+- 2026-11-09. COV-293: close Priority work on docker react views. Parallel isolated 0 % → 100 % (0 → 14 of 14; +14). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

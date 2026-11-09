@@ -202,4 +202,19 @@ func TestIsHTTPSRequest(t *testing.T) {
 
 	// untrusted peer, spoofed header is ignored
 	f([]string{"10.0.0.1/32"}, "203.0.113.99:12345", "https", "", false)
+
+	// trusted proxy, but proto is http
+	f([]string{"127.0.0.1/32"}, "127.0.0.1:54321", "http", "", false)
+
+	// no headers at all
+	f(nil, "203.0.113.99:12345", "", "", false)
+
+	// X-Forwarded-Proto is case-insensitive
+	f(nil, "203.0.113.99:12345", "HTTPS", "", true)
+
+	// untrusted peer, spoofed Forwarded header is ignored
+	f([]string{"10.0.0.1/32"}, "203.0.113.99:12345", "", "proto=https", false)
+
+	// trusted peer with empty RemoteAddr peer parse fails closed
+	f([]string{"127.0.0.1/32"}, "not-an-ip", "https", "", false)
 }

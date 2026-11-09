@@ -64,3 +64,21 @@ func TestWithPanicLoggerRePanicsErrAbortHandler(t *testing.T) {
 	require.Equal(t, http.ErrAbortHandler, recovered)
 	require.Empty(t, buf.String())
 }
+
+func TestWithPanicLoggerPassesThroughWithoutPanic(t *testing.T) {
+	buf := setupLogOutput(t)
+
+	handler := WithPanicLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte("ok"))
+	}))
+
+	req := httptest.NewRequest(http.MethodPost, "/api/ok", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusCreated, rec.Code)
+	require.Equal(t, "ok", rec.Body.String())
+	require.Empty(t, buf.String())
+}

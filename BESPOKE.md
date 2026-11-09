@@ -299,6 +299,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-216 | Close Priority work on `FilesTable/columns`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 80.0 % (0 → 28 of 35; +28). Leftovers: 7 thin. Deferred-within-package: none. Package left at 80.0 % (28 of 35; 7 missed). | Preferred FilesTable columns covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-217 | Close Priority work on `ContainerNetworksDatatable`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 84.2 % (0 → 32 of 38; +32). Leftovers: 6 thin. Deferred-within-package: none. Package left at 84.2 % (32 of 38; 6 missed). | Preferred container networks table covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-218 | Close Priority work on `HomeView` (parent; not EnvironmentList/EnvironmentItem). Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 28.6 % → 85.7 % (16 → 48 of 56; +32). Deferred-within-package: Edge-redirect. Package left at 85.7 % (48 of 56; 8 missed). | Preferred home view shell covered; Edge-redirect deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-219 | Close Priority work on `log-viewer`. Parallel batch merged from `2-covered-parallel-fe-batch-135` (`80f42818f`). Isolated remasure: 0 % → 100 % (0 → 34 of 34; +34). Leftovers: none. Deferred-within-package: none. Package left at 100 % (34 of 34; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -599,6 +600,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-216: close Priority work on FilesTable columns. Parallel isolated 0 % → 80.0 % (0 → 28 of 35; +28). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-217: close Priority work on container networks table. Parallel isolated 0 % → 84.2 % (0 → 32 of 38; +32). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-218: close Priority work on home view shell. Parallel isolated 28.6 % → 85.7 % (16 → 48 of 56; +32). Deferred Edge-redirect. Do not grind further.
+- 2026-11-09. COV-219: close Priority work on container log viewer. Parallel isolated 0 % → 100 % (0 → 34 of 34; +34). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

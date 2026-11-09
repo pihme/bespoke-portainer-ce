@@ -379,6 +379,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-296 | Close Priority work on `images/ItemView`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: 0 % → 92.9 % (0 → 13 of 14; +13). Deferred-within-package: registries prompt thin leftover. Package left at 92.9 % (13 of 14; 1 missed). | Preferred images ItemView covered; registries prompt deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-297 | Close Priority work on `app/portainer/models/resourceControl`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure remains 100 % (13 of 13; existing tests; no new test commit). Leftovers: none. Deferred-within-package: none. Package left at 100 % (13 of 13; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-298 | Close Priority work on `app/react/components/CodeEditor`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: ~57.8 % → 100 % (~26 → 45 of 45; +19). Leftovers: none. Deferred-within-package: none. Package left at 100 % (45 of 45; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-299 | Close Priority work on `CustomTemplatesVariablesField`. Parallel batch merged from `2-covered-parallel-fe-batch-276` (`4dcfbc4c6`). Isolated remasure: ~53.8 % → 100 % (~14 → 26 of 26; +12). Deferred-within-package: stories. Package left at 100 % (26 of 26; 0 missed). | Statement coverage complete excluding stories. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -766,6 +767,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-296: close Priority work on images ItemView. Parallel isolated 0 % → 92.9 % (0 → 13 of 14; +13). Deferred registries prompt. Do not grind further.
 - 2026-11-09. COV-297: close Priority work on resourceControl model. Parallel isolated remains 100 % (13 of 13; +0). Do not grind further.
 - 2026-11-09. COV-298: close Priority work on CodeEditor helpers. Parallel isolated ~57.8 % → 100 % (~26 → 45 of 45). Do not grind further.
+- 2026-11-09. COV-299: close Priority work on custom template variables field. Parallel isolated ~53.8 % → 100 % (~14 → 26 of 26). Deferred stories. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

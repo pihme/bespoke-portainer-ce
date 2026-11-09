@@ -1,9 +1,11 @@
 package websocket
 
 import (
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -61,4 +63,31 @@ func TestInitDial(t *testing.T) {
 
 	f(srv.URL)
 	f(tlsSrv.URL)
+}
+
+func TestInitDial_UnixSocketAndInvalidURL(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	sock := filepath.Join(dir, "docker.sock")
+	ln, err := net.Listen("unix", sock)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ln.Close() })
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		_ = conn.Close()
+	}()
+
+	conn, err := initDial(&portainer.Endpoint{URL: "unix://" + sock})
+	require.NoError(t, err)
+	require.NotNil(t, conn)
+	require.NoError(t, conn.Close())
+
+	conn, err = initDial(&portainer.Endpoint{URL: "://bad"})
+	require.Error(t, err)
+	require.Nil(t, conn)
 }

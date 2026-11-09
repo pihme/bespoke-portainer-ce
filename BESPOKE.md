@@ -478,6 +478,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-395 | Close Priority work on `product-list/product-item`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). BE upsell deferred. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for preferred product-item; BE upsell deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-396 | Close Priority work on `license-management`. Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). BE license flows deferred. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for preferred license-management; BE license flows deferred. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-397 | Close Priority work on `portainer/react` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 1 of 1; +1). Leftovers: none. Deferred-within-package: none. Package left at 100 % (1 of 1; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
+| COV-398 | Close Priority work on `app/react` (parent). Parallel batch merged from `2-covered-parallel-fe-batch-481` (`883deb971`). Isolated remasure: 0 % → 100 % (0 → 8 of 8; +8). Leftovers: none. Deferred-within-package: none. Package left at 100 % (8 of 8; 0 missed). | Statement coverage complete for parent. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 
 ### Interventions
 
@@ -969,6 +970,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-395: close Priority work on product-item. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). BE upsell deferred. Do not grind further.
 - 2026-11-09. COV-396: close Priority work on license-management. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). BE license flows deferred. Do not grind further.
 - 2026-11-09. COV-397: close Priority work on portainer react parent. Parallel isolated 0 % → 100 % (0 → 1 of 1; +1). Do not grind further.
+- 2026-11-09. COV-398: close Priority work on react parent. Parallel isolated 0 % → 100 % (0 → 8 of 8; +8). Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

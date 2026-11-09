@@ -341,3 +341,91 @@ func TestFilterFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestREQ_STK_03_CloneRepository_TLSSkipVerifyPassed(t *testing.T) {
+	t.Parallel()
+	gitMgr := &mockRepoManager{}
+	s := newTestService(t.Context(), 0, gitMgr, &mockRepoManager{})
+
+	err := s.CloneRepository(t.Context(), "/tmp/dst", "https://github.com/example/repo.git", "refs/heads/main", "user", "token", true)
+	require.NoError(t, err)
+	require.NotNil(t, gitMgr.lastCloneOptions)
+	require.True(t, gitMgr.lastCloneOptions.InsecureSkipTLS)
+	require.NotNil(t, gitMgr.lastCloneOptions.Auth)
+}
+
+func TestREQ_STK_03_GetBasicAuth(t *testing.T) {
+	t.Parallel()
+
+	require.Nil(t, GetBasicAuth("user", ""))
+	require.Nil(t, GetBasicAuth("", ""))
+
+	auth := GetBasicAuth("", "pat-token")
+	require.NotNil(t, auth)
+	require.Equal(t, "token", auth.Username)
+	require.Equal(t, "pat-token", auth.Password)
+
+	auth = GetBasicAuth("alice", "secret")
+	require.NotNil(t, auth)
+	require.Equal(t, "alice", auth.Username)
+	require.Equal(t, "secret", auth.Password)
+}
+
+func TestNewService_And_purgeCache(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	s := NewService(ctx)
+	require.NotNil(t, s)
+	require.NotNil(t, s.git)
+	require.NotNil(t, s.azure)
+	require.True(t, s.cacheEnabled)
+	require.NotNil(t, s.repoRefCache)
+	require.NotNil(t, s.repoFileCache)
+
+	s.repoRefCache.Add("k", []string{"refs/heads/main"})
+	s.repoFileCache.Add("k-files", []string{"docker-compose.yml"})
+	s.purgeCache()
+	require.Equal(t, 0, s.repoRefCache.Len())
+	require.Equal(t, 0, s.repoFileCache.Len())
+
+	// cache disabled: purge is a no-op on nil caches
+	disabled := newService(ctx, 0, 0)
+	disabled.purgeCache()
+}
+
+func TestREQ_STK_03_ListRefs_HardRefreshClearsMatchingFileCache(t *testing.T) {
+	t.Parallel()
+	gitMgr := &mockRepoManager{refs: []string{"refs/heads/main"}, files: []string{"docker-compose.yml"}}
+	s := newTestService(t.Context(), 4, gitMgr, &mockRepoManager{})
+
+	repoURL := "https://github.com/example/compose-repo.git"
+	_, err := s.ListFiles(t.Context(), repoURL, "refs/heads/main", "", "", false, false, nil, false)
+	require.NoError(t, err)
+	require.Equal(t, 1, gitMgr.listFilesCalled)
+
+	// unrelated cache key should survive hard refresh
+	s.repoFileCache.Add("https://other.example/repo.git-main", []string{"other.yml"})
+
+	_, err = s.ListRefs(t.Context(), repoURL, "", "", true, false)
+	require.NoError(t, err)
+
+	// file cache for same repository prefix was removed; next ListFiles hits manager again
+	_, err = s.ListFiles(t.Context(), repoURL, "refs/heads/main", "", "", false, false, nil, false)
+	require.NoError(t, err)
+	require.Equal(t, 2, gitMgr.listFilesCalled)
+
+	cached, ok := s.repoFileCache.Get("https://other.example/repo.git-main")
+	require.True(t, ok)
+	require.Equal(t, []string{"other.yml"}, cached)
+}
+
+func TestMatchExtensions_NoExtensionsMatchesAll(t *testing.T) {
+	t.Parallel()
+	require.True(t, matchExtensions("anything.yml", nil))
+	require.True(t, matchExtensions("anything.yml", []string{}))
+	require.False(t, matchExtensions("readme.md", []string{".yml", ".yaml"}))
+	require.True(t, matchExtensions("stack.yaml", []string{".yml", ".yaml"}))
+}

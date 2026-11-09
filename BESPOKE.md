@@ -75,7 +75,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 1-raw@<sha>
 - Skill: increase-test-coverage
-- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/2-covered.md)
 
 ### Decisions
@@ -94,14 +94,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
+- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 2-covered@<sha>
 - Skill: remove-features
-- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/3-tailored.md)
 
 ### Decisions
@@ -120,14 +120,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
+- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 4 customized
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 3-tailored@<sha>
 - Skill: customize-features
-- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/4-customized.md)
 
 ### Decisions
@@ -146,14 +146,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
+- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 5 trimmed
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 4-customized@<sha>
 - Skill: trim
-- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/5-trimmed.md)
 
 ### Decisions
@@ -172,14 +172,14 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
+- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 6 bespoke
 
 - Upstream commit: <sha of 1-raw this run started from>
 - Built from: 5-trimmed@<sha>
 - Skill: shrink-wrap
-- Gate: none at this pin (the tree has no `.github/workflows`; tests were not measured)
+- Gate: <command(s) that must pass at the end of this stage>
 - Details: none (or bespoke/6-bespoke.md)
 
 ### Decisions
@@ -198,4 +198,4 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 ### Last run
 
 - Date, result (passed / failed at decision ID), notes
-- 2026-11-09, exit: raw-stage goal met (public fork `pihme/bespoke-portainer-ce` at tag 2.45.3, commit `0fa764dc81c76bb7914d65d8e62b026d7c746899`, plus `BESPOKE.md`, `BESPOKE-summary.md`, `docs/portainer-spec.md` with 178 requirements, and the agent-instruction and upstream-process drops the user accepted through RAW-015). No CI gate to run: this pin has no workflows. Tests not measured. User confirmed the exit.
+- Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed

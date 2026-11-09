@@ -297,24 +297,37 @@ describe('Terminal', () => {
       );
     });
 
-    // mockResizeObserver doesn't trigger resize
-    it.todo(
-      'calls onResize with terminal dimensions when container resizes',
-      async () => {
-        const onResize = vi.fn();
+    it('calls onResize again when terminal dimensions change on resize', async () => {
+      const onResize = vi.fn();
 
-        render(<Terminal url={TEST_URL} connect onResize={onResize} />);
+      render(<Terminal url={TEST_URL} connect onResize={onResize} />);
 
-        await waitFor(() =>
-          expect(mockTerminalInstance.open).toHaveBeenCalled()
-        );
-        onResize.mockClear();
+      await waitFor(() =>
+        expect(onResize).toHaveBeenCalledWith({ rows: 24, cols: 80 })
+      );
+      onResize.mockClear();
 
-        mockResizeObserverCallback([], {} as ResizeObserver);
+      const termInstance = vi.mocked(XTerm).mock.instances[0] as XTerm;
+      Object.assign(termInstance, { rows: 30, cols: 100 });
+      mockResizeObserverCallback([], {} as ResizeObserver);
 
-        expect(onResize).toHaveBeenCalledWith({ rows: 24, cols: 80 });
-      }
-    );
+      expect(onResize).toHaveBeenCalledWith({ rows: 30, cols: 100 });
+    });
+
+    it('skips onResize when dimensions are unchanged after resize', async () => {
+      const onResize = vi.fn();
+
+      render(<Terminal url={TEST_URL} connect onResize={onResize} />);
+
+      await waitFor(() =>
+        expect(onResize).toHaveBeenCalledWith({ rows: 24, cols: 80 })
+      );
+      onResize.mockClear();
+
+      mockResizeObserverCallback([], {} as ResizeObserver);
+
+      expect(onResize).not.toHaveBeenCalled();
+    });
 
     it('does not call onResize when connect=false', () => {
       const onResize = vi.fn();
@@ -340,6 +353,113 @@ describe('Terminal', () => {
         expect(onStateChange).toHaveBeenCalledWith('disconnected');
       });
       expect(vi.mocked(notifyError)).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('REQ-CTR-12 initial commands and socket resize', () => {
+    it('sends initialCommands over the WebSocket after connect', async () => {
+      const received: string[] = [];
+
+      server.use(
+        wssLink.addEventListener('connection', ({ client }) => {
+          client.addEventListener('message', (event) => {
+            received.push(event.data as string);
+          });
+        })
+      );
+
+      render(
+        <Terminal
+          url={TEST_URL}
+          connect
+          initialCommands={['export LANG=C.UTF-8\n', 'clear\n']}
+        />
+      );
+
+      await waitFor(() => expect(mockTerminalInstance.open).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(received).toEqual(
+          expect.arrayContaining(['export LANG=C.UTF-8\n', 'clear\n'])
+        )
+      );
+    });
+
+    it('sends resize frames over the WebSocket when onResize is socket', async () => {
+      const received: string[] = [];
+
+      server.use(
+        wssLink.addEventListener('connection', ({ client }) => {
+          client.addEventListener('message', (event) => {
+            received.push(event.data as string);
+          });
+        })
+      );
+
+      render(<Terminal url={TEST_URL} connect onResize="socket" />);
+
+      await waitFor(() => expect(mockTerminalInstance.open).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(received).toContain(
+          JSON.stringify({
+            type: 'resize',
+            data: { width: 80, height: 24 },
+          })
+        )
+      );
+    });
+  });
+
+  describe('REQ-CTR-12 ctrl-d and websocket error', () => {
+    it('disconnects when the user presses ctrl-d in the terminal', async () => {
+      const onStateChange = vi.fn();
+
+      render(<Terminal url={TEST_URL} connect onStateChange={onStateChange} />);
+
+      await waitFor(() =>
+        expect(mockTerminalInstance.onKey).toHaveBeenCalled()
+      );
+
+      const onKeyCallback = vi.mocked(mockTerminalInstance.onKey!).mock
+        .calls[0]![0] as (event: {
+        domEvent: { ctrlKey: boolean; key: string };
+      }) => void;
+
+      onKeyCallback({ domEvent: { ctrlKey: true, key: 'd' } });
+
+      await waitFor(() => {
+        expect(onStateChange).toHaveBeenCalledWith('disconnected');
+      });
+      expect(mockTerminalInstance.dispose).toHaveBeenCalled();
+      expect(mockResizeObserverDisconnect).toHaveBeenCalled();
+    });
+
+    it('notifies on websocket error while the socket is still open', async () => {
+      let clientConnection: ClientConnection | undefined;
+
+      server.use(
+        wssLink.addEventListener('connection', ({ client }) => {
+          clientConnection = client;
+        })
+      );
+
+      const onStateChange = vi.fn();
+      render(<Terminal url={TEST_URL} connect onStateChange={onStateChange} />);
+
+      await waitFor(() => expect(clientConnection).toBeDefined());
+      await waitFor(() => expect(mockTerminalInstance.open).toHaveBeenCalled());
+
+      clientConnection!.socket.dispatchEvent(new Event('error'));
+
+      await waitFor(() => {
+        expect(vi.mocked(notifyError)).toHaveBeenCalledWith(
+          'Failure',
+          expect.any(Event),
+          'Websocket connection error'
+        );
+      });
+      await waitFor(() => {
+        expect(onStateChange).toHaveBeenCalledWith('disconnected');
+      });
     });
   });
 });

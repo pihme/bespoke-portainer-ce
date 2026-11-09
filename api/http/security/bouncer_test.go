@@ -640,3 +640,186 @@ func TestTokenScope_EnvironmentBinding(t *testing.T) {
 		require.NoError(t, authorize(t, legacy, other))
 	})
 }
+
+func TestREQ_AUTH_03_AddAuthCookie(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+	expires := time.Now().UTC().Add(time.Hour).Truncate(time.Second)
+
+	AddAuthCookie(rr, "session-token", expires, true)
+
+	cookies := rr.Result().Cookies()
+	require.Len(t, cookies, 1)
+	cookie := cookies[0]
+	require.Equal(t, portainer.AuthCookieKey, cookie.Name)
+	require.Equal(t, "session-token", cookie.Value)
+	require.Equal(t, "/", cookie.Path)
+	require.True(t, cookie.HttpOnly)
+	require.True(t, cookie.Secure)
+	require.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+	require.Equal(t, expires, cookie.Expires.UTC())
+}
+
+func TestREQ_AUTH_03_RemoveAuthCookie(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+
+	RemoveAuthCookie(rr, false)
+
+	cookies := rr.Result().Cookies()
+	require.Len(t, cookies, 1)
+	cookie := cookies[0]
+	require.Equal(t, portainer.AuthCookieKey, cookie.Name)
+	require.Empty(t, cookie.Value)
+	require.Equal(t, -1, cookie.MaxAge)
+	require.True(t, cookie.HttpOnly)
+	require.False(t, cookie.Secure)
+	require.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+}
+
+func TestMWSecureHeaders_SetsHSTSWhenEnabled(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	called := false
+	handler := MWSecureHeaders(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+	}), true, false)
+
+	handler.ServeHTTP(rr, req)
+
+	require.True(t, called)
+	require.Equal(t, "max-age=31536000", rr.Header().Get("Strict-Transport-Security"))
+	require.Empty(t, rr.Header().Get("Content-Security-Policy"))
+	require.Equal(t, "nosniff", rr.Header().Get("X-Content-Type-Options"))
+}
+
+func TestAuthorizedEndpointOperation_MissingToken(t *testing.T) {
+	t.Parallel()
+
+	bouncer := NewRequestBouncer(t.Context(), nil, nil, nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	err := bouncer.AuthorizedEndpointOperation(req, &portainer.Endpoint{ID: 1})
+	require.Error(t, err)
+}
+
+func TestREQ_USR_07_AuthorizedEndpointOperation_AdminAllowed(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	admin := &portainer.User{Username: "local-admin", Role: portainer.AdministratorRole}
+	require.NoError(t, store.User().Create(admin))
+
+	bouncer := NewRequestBouncer(t.Context(), store, nil, nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req = req.WithContext(StoreTokenData(req, &portainer.TokenData{ID: admin.ID, Role: portainer.AdministratorRole}))
+
+	err := bouncer.AuthorizedEndpointOperation(req, &portainer.Endpoint{ID: 1, GroupID: 1})
+	require.NoError(t, err)
+}
+
+func TestREQ_USR_07_AuthorizedEndpointOperation_StandardUserWithAccess(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	user := &portainer.User{Username: "local-user", Role: portainer.StandardUserRole}
+	require.NoError(t, store.User().Create(user))
+	require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{ID: 1}))
+
+	endpoint := &portainer.Endpoint{
+		ID:                 1,
+		GroupID:            1,
+		UserAccessPolicies: portainer.UserAccessPolicies{user.ID: {}},
+	}
+
+	bouncer := NewRequestBouncer(t.Context(), store, nil, nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req = req.WithContext(StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
+
+	err := bouncer.AuthorizedEndpointOperation(req, endpoint)
+	require.NoError(t, err)
+}
+
+func TestREQ_USR_07_AuthorizedEndpointOperation_StandardUserDenied(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	user := &portainer.User{Username: "denied-user", Role: portainer.StandardUserRole}
+	require.NoError(t, store.User().Create(user))
+	require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{ID: 1}))
+
+	endpoint := &portainer.Endpoint{ID: 1, GroupID: 1}
+
+	bouncer := NewRequestBouncer(t.Context(), store, nil, nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req = req.WithContext(StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
+
+	err := bouncer.AuthorizedEndpointOperation(req, endpoint)
+	require.ErrorIs(t, err, httperrors.ErrEndpointAccessDenied)
+}
+
+func TestREQ_USR_07_AuthorizedEndpointOperation_MissingGroup(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	user := &portainer.User{Username: "nogroup-user", Role: portainer.StandardUserRole}
+	require.NoError(t, store.User().Create(user))
+
+	bouncer := NewRequestBouncer(t.Context(), store, nil, nil)
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req = req.WithContext(StoreTokenData(req, &portainer.TokenData{ID: user.ID, Role: portainer.StandardUserRole}))
+
+	err := bouncer.AuthorizedEndpointOperation(req, &portainer.Endpoint{ID: 1, GroupID: 99})
+	require.Error(t, err)
+}
+
+func TestNewRestrictedContextRequest_Admin(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	admin := &portainer.User{Username: "admin", Role: portainer.AdministratorRole}
+	require.NoError(t, store.User().Create(admin))
+
+	ctx, err := newRestrictedContextRequest(store, admin.ID, portainer.AdministratorRole)
+	require.NoError(t, err)
+	require.True(t, ctx.IsAdmin)
+	require.Equal(t, admin.ID, ctx.UserID)
+	require.Equal(t, "admin", ctx.User.Username)
+	require.Empty(t, ctx.UserMemberships)
+}
+
+func TestNewRestrictedContextRequest_StandardUserWithMemberships(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+	user := &portainer.User{Username: "user", Role: portainer.StandardUserRole}
+	require.NoError(t, store.User().Create(user))
+	require.NoError(t, store.TeamMembership().Create(&portainer.TeamMembership{
+		UserID: user.ID,
+		TeamID: 2,
+		Role:   portainer.TeamLeader,
+	}))
+
+	ctx, err := newRestrictedContextRequest(store, user.ID, portainer.StandardUserRole)
+	require.NoError(t, err)
+	require.False(t, ctx.IsAdmin)
+	require.True(t, ctx.IsTeamLeader)
+	require.Equal(t, user.ID, ctx.UserID)
+	require.Len(t, ctx.UserMemberships, 1)
+	require.Equal(t, portainer.TeamID(2), ctx.UserMemberships[0].TeamID)
+}
+
+func TestNewRestrictedContextRequest_UnknownUser(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, true, true)
+
+	ctx, err := newRestrictedContextRequest(store, 404, portainer.AdministratorRole)
+	require.Error(t, err)
+	require.Nil(t, ctx)
+}

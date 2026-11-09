@@ -307,6 +307,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-224 | Close Priority work on `ContainerActionsSection/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`): 8 files, 25 tests. Isolated remasure: 5.7 % → 100 % (2 → 35 of 35; +33). Leftovers: none. Deferred-within-package: none. Package left at 100 % (35 of 35; 0 missed). | Statement coverage complete. Same close pattern as prior Priority packages. | agent | Apply complete-coverage close; do not grind further. |
 | COV-225 | Close Priority work on `StacksDatatable` (parent; not columns/). Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 90.9 % (0 → 30 of 33; +30). Deferred-within-package: BE. Package left at 90.9 % (30 of 33; 3 missed). | Preferred stacks datatable covered; BE deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 | COV-226 | Close Priority work on `EnvironmentList` (parent; not EnvironmentItem/). Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 66.0 % → 81.4 % (64 → 79 of 97; +15). Deferred-within-package: Edge, Kubernetes, Azure. Package left at 81.4 % (79 of 97; 18 missed). | Preferred environment list covered; Edge/K8s/Azure deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-227 | Close Priority work on `setup-tests` (parent; not setup-handlers/). Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 10.4 % → 95.5 % (7 → 64 of 67; +57). Leftovers: 3 thin. Deferred-within-package: none (setup-handlers/ out of scope). Package left at 95.5 % (64 of 67; 3 missed). | Preferred frontend setup-tests helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 
 ### Interventions
 
@@ -616,6 +617,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-224: close Priority work on container actions queries. Parallel isolated 5.7 % → 100 % (2 → 35 of 35; +33). Do not grind further.
 - 2026-11-09. COV-225: close Priority work on stacks datatable. Parallel isolated 0 % → 90.9 % (0 → 30 of 33; +30). Deferred BE. Do not grind further.
 - 2026-11-09. COV-226: close Priority work on environment list. Parallel isolated 66.0 % → 81.4 % (64 → 79 of 97; +15). Deferred Edge/K8s/Azure. Do not grind further.
+- 2026-11-09. COV-227: close Priority work on frontend setup-tests helpers. Parallel isolated 10.4 % → 95.5 % (7 → 64 of 67; +57). Thin leftovers. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

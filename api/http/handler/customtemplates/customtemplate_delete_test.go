@@ -294,3 +294,94 @@ func TestCustomTemplateDelete_CreatorDeniedWithoutAccess(t *testing.T) {
 	require.NotNil(t, herr)
 	require.Equal(t, http.StatusForbidden, herr.StatusCode)
 }
+
+func TestREQ_TPL_03_CustomTemplateDelete_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	r := httptest.NewRequest(http.MethodDelete, "/custom_templates/xyz", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "xyz"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateDelete(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateDelete_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "compose", Type: portainer.DockerComposeStack, CreatedByUserID: 1,
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodDelete, "/custom_templates/1", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateDelete(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateDelete_AdminWithoutResourceControl(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "orphan-compose", Type: portainer.DockerComposeStack,
+			CreatedByUserID: 1, ProjectPath: t.TempDir() + "/missing-path",
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodDelete, "/custom_templates/1", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateDelete(rr, r)
+	require.Nil(t, herr)
+	require.Equal(t, http.StatusNoContent, rr.Code)
+
+	require.NoError(t, ds.ViewTx(func(tx dataservices.DataStoreTx) error {
+		_, err := tx.CustomTemplate().Read(1)
+		require.True(t, tx.IsErrObjectNotFound(err))
+		return nil
+	}))
+}
+
+func TestREQ_TPL_03_CustomTemplateDelete_CreatorWithTeamMembership(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "team-compose", Type: portainer.DockerComposeStack, CreatedByUserID: 3,
+		}))
+		require.NoError(t, tx.ResourceControl().Create(&portainer.ResourceControl{
+			ID: 1, ResourceID: "1", Type: portainer.CustomTemplateResourceControl,
+			UserAccesses: []portainer.UserResourceAccess{{UserID: 3}},
+		}))
+		return nil
+	}))
+
+	r := httptest.NewRequest(http.MethodDelete, "/custom_templates/1", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{
+		UserID: 3, UserMemberships: []portainer.TeamMembership{{ID: 1, UserID: 3, TeamID: 1}},
+	}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateDelete(rr, r)
+	require.Nil(t, herr)
+	require.Equal(t, http.StatusNoContent, rr.Code)
+}

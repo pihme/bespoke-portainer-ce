@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
+	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -24,6 +26,7 @@ import (
 	"github.com/portainer/portainer/pkg/fips"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
+	"github.com/gorilla/mux"
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -336,4 +339,116 @@ func TestCustomTemplateGitFetch_EmptySourceIDsReturnsBadRequest(t *testing.T) {
 	h.ServeHTTP(rr, req)
 
 	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestREQ_TPL_03_CustomTemplateGitFetch_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	r := httptest.NewRequest(http.MethodPut, "/custom_templates/bad/git_fetch", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "bad"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateGitFetch(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateGitFetch_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "git-compose", Type: portainer.DockerComposeStack,
+			Artifact: &portainer.Artifact{Files: []portainer.ArtifactFile{{SourceID: 1, Path: "docker-compose.yml"}}},
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodPut, "/custom_templates/1/git_fetch", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateGitFetch(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateGitFetch_MissingSource(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "git-compose", Type: portainer.DockerComposeStack,
+			Artifact: &portainer.Artifact{Files: []portainer.ArtifactFile{{SourceID: 99, Path: "docker-compose.yml"}}},
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodPut, "/custom_templates/1/git_fetch", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{
+		UserID: 1, IsAdmin: true, User: &portainer.User{ID: 1, Role: portainer.AdministratorRole},
+	}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateGitFetch(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateGitFetch_BackupFailsWhenProjectMissing(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	var srcID portainer.SourceID
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		src := &portainer.Source{
+			Type: portainer.SourceTypeGit, Public: true,
+			Git: &gittypes.GitSource{URL: "https://github.com/example/repo"},
+		}
+		require.NoError(t, tx.Source().Create(adminUserContext, src))
+		srcID = src.ID
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "git-compose", Type: portainer.DockerComposeStack,
+			ProjectPath: t.TempDir() + "/does-not-exist",
+			Artifact: &portainer.Artifact{Files: []portainer.ArtifactFile{{SourceID: srcID, Path: "docker-compose.yml"}}},
+		})
+	}))
+
+	r := httptest.NewRequest(http.MethodPut, "/custom_templates/1/git_fetch", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{
+		UserID: 1, IsAdmin: true, User: &portainer.User{ID: 1, Role: portainer.AdministratorRole},
+	}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateGitFetch(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_BackupAndRollbackCustomTemplate(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	project := filepath.Join(dir, "project")
+	require.NoError(t, os.MkdirAll(project, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(project, "docker-compose.yml"), []byte("old\n"), 0o600))
+
+	backup, err := backupCustomTemplate(project)
+	require.NoError(t, err)
+	require.DirExists(t, backup)
+	require.DirExists(t, project)
+	require.NoFileExists(t, filepath.Join(project, "docker-compose.yml"))
+	require.FileExists(t, filepath.Join(backup, "docker-compose.yml"))
+
+	require.NoError(t, os.WriteFile(filepath.Join(project, "tmp.txt"), []byte("x"), 0o600))
+	require.NoError(t, rollbackCustomTemplate(backup, project))
+	require.FileExists(t, filepath.Join(project, "docker-compose.yml"))
+	require.NoDirExists(t, backup)
 }

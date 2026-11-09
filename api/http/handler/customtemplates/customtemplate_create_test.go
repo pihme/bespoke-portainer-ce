@@ -1169,3 +1169,188 @@ func TestCustomTemplateCreate_FromRepository_WithSourceID_NonExistentSource(t *t
 	require.NotNil(t, herr)
 	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
 }
+
+func TestREQ_TPL_03_CustomTemplateCreate_WindowsComposePlatform(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	payload := customTemplateFromFileContentPayload{
+		Title:       "Windows Compose",
+		Description: "Windows local compose template",
+		FileContent: "version: '3'\nservices:\n  web:\n    image: nginx",
+		Type:        portainer.DockerComposeStack,
+		Platform:    portainer.CustomTemplatePlatformWindows,
+		Logo:        "https://example.com/logo.svg",
+	}
+
+	r := createTemplateRequest(t, "string", payload, 1, portainer.AdministratorRole)
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.Nil(t, herr)
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var tmpl portainer.CustomTemplate
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
+	require.Equal(t, portainer.CustomTemplatePlatformWindows, tmpl.Platform)
+	require.Equal(t, portainer.DockerComposeStack, tmpl.Type)
+	require.Equal(t, "https://example.com/logo.svg", tmpl.Logo)
+
+	require.NoError(t, ds.ViewTx(func(tx dataservices.DataStoreTx) error {
+		stored, err := tx.CustomTemplate().Read(tmpl.ID)
+		require.NoError(t, err)
+		require.Equal(t, portainer.CustomTemplatePlatformWindows, stored.Platform)
+		return nil
+	}))
+}
+
+func TestREQ_TPL_03_CustomTemplateCreate_MissingMethodRouteVar(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	payload := customTemplateFromFileContentPayload{
+		Title: "x", Description: "y", FileContent: "z",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+	}
+	body, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodPost, "/custom_templates/create/string", bytes.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	r = r.WithContext(security.StoreRestrictedRequestContext(r, &security.RestrictedRequestContext{
+		UserID: 1, IsAdmin: true, User: &portainer.User{ID: 1, Role: portainer.AdministratorRole},
+	}))
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateCreate_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	payload := customTemplateFromFileContentPayload{
+		Title: "x", Description: "y", FileContent: "z",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+	}
+	body, err := json.Marshal(payload)
+	require.NoError(t, err)
+
+	r := httptest.NewRequest(http.MethodPost, "/custom_templates/create/string", bytes.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	r = mux.SetURLVars(r, map[string]string{"method": "string"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+type gitServiceEmptyRepo struct {
+	portainer.GitService
+}
+
+func (g *gitServiceEmptyRepo) CloneRepository(_ context.Context, destination, _, _, _, _ string, _ bool) error {
+	return os.MkdirAll(destination, 0700)
+}
+
+func (g *gitServiceEmptyRepo) LatestCommitID(_ context.Context, _, _, _, _ string, _ bool) (string, error) {
+	return "deadbeef123", nil
+}
+
+func TestREQ_TPL_03_CustomTemplateCreate_FromRepository_MissingComposeFile(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+	handler.GitService = &gitServiceEmptyRepo{}
+
+	payload := customTemplateFromGitRepositoryPayload{
+		Title:         "Missing File",
+		Description:   "compose path wrong",
+		RepositoryURL: "https://github.com/example/repo",
+		Type:          portainer.DockerComposeStack,
+		Platform:      portainer.CustomTemplatePlatformLinux,
+	}
+
+	r := createTemplateRequest(t, "repository", payload, 1, portainer.AdministratorRole)
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	require.Contains(t, herr.Err.Error(), "Invalid Compose file")
+}
+
+func TestREQ_TPL_03_CustomTemplateCreate_FromRepository_NoteWithImage(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+	handler.GitService = &gitServiceCreatingFile{}
+
+	payload := customTemplateFromGitRepositoryPayload{
+		Title:         "Bad Note",
+		Description:   "note rejected",
+		Note:          `see <img src="x">`,
+		RepositoryURL: "https://github.com/example/repo",
+		Type:          portainer.DockerComposeStack,
+		Platform:      portainer.CustomTemplatePlatformLinux,
+	}
+
+	r := createTemplateRequest(t, "repository", payload, 1, portainer.AdministratorRole)
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+type gitServiceSymlinkCompose struct {
+	portainer.GitService
+}
+
+func (g *gitServiceSymlinkCompose) CloneRepository(_ context.Context, destination, _, _, _, _ string, _ bool) error {
+	if err := os.MkdirAll(destination, 0700); err != nil {
+		return err
+	}
+	target := filesystem.JoinPaths(destination, "real.yml")
+	f, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Symlink(target, filesystem.JoinPaths(destination, filesystem.ComposeFileDefaultName))
+}
+
+func (g *gitServiceSymlinkCompose) LatestCommitID(_ context.Context, _, _, _, _ string, _ bool) (string, error) {
+	return "deadbeef123", nil
+}
+
+func TestREQ_TPL_03_CustomTemplateCreate_FromRepository_RejectsSymlinkCompose(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+	handler.GitService = &gitServiceSymlinkCompose{}
+
+	payload := customTemplateFromGitRepositoryPayload{
+		Title:         "Symlink Compose",
+		Description:   "must reject symlink entry",
+		RepositoryURL: "https://github.com/example/repo",
+		Type:          portainer.DockerComposeStack,
+		Platform:      portainer.CustomTemplatePlatformLinux,
+	}
+
+	r := createTemplateRequest(t, "repository", payload, 1, portainer.AdministratorRole)
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateCreate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+	require.Contains(t, herr.Err.Error(), "symbolic link")
+}

@@ -647,3 +647,130 @@ func TestCustomTemplateUpdate_GitRepository_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestREQ_TPL_03_CustomTemplateUpdate_InvalidID(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	payload := customTemplateUpdatePayload{
+		Title: "t", Description: "d", FileContent: "services: {}\n",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+	}
+	r := updateTemplateRequest(t, "bad", payload, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateUpdate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateUpdate_MissingSecurityContext(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "compose", Type: portainer.DockerComposeStack,
+			Platform: portainer.CustomTemplatePlatformLinux, CreatedByUserID: 1,
+			EntryPoint: filesystem.ComposeFileDefaultName,
+		})
+	}))
+
+	payload := customTemplateUpdatePayload{
+		Title: "compose", Description: "updated", FileContent: "services: {}\n",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+	}
+	body, err := json.Marshal(payload)
+	require.NoError(t, err)
+	r := httptest.NewRequest(http.MethodPut, "/custom_templates/1", bytes.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	r = mux.SetURLVars(r, map[string]string{"id": "1"})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateUpdate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusInternalServerError, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateUpdate_InvalidRepositoryURL(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, _ := newTestHandler(t)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		return tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "t", Type: portainer.DockerComposeStack,
+			Platform: portainer.CustomTemplatePlatformLinux, CreatedByUserID: 1,
+			EntryPoint: filesystem.ComposeFileDefaultName,
+		})
+	}))
+
+	payload := customTemplateUpdatePayload{
+		Title: "t", Description: "d", RepositoryURL: "not a url",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+	}
+	r := updateTemplateRequest(t, "1", payload, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateUpdate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateUpdate_VariableMissingLabel(t *testing.T) {
+	t.Parallel()
+
+	handler, _, _ := newTestHandler(t)
+
+	payload := customTemplateUpdatePayload{
+		Title: "t", Description: "d", FileContent: "services: {}\n",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformLinux,
+		Variables: []portainer.CustomTemplateVariableDefinition{{Name: "IMAGE", Label: ""}},
+	}
+	r := updateTemplateRequest(t, "1", payload, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateUpdate(rr, r)
+	require.NotNil(t, herr)
+	require.Equal(t, http.StatusBadRequest, herr.StatusCode)
+}
+
+func TestREQ_TPL_03_CustomTemplateUpdate_WindowsComposeFileContent(t *testing.T) {
+	t.Parallel()
+
+	handler, ds, fs := newTestHandler(t)
+
+	path, err := fs.StoreCustomTemplateFileFromBytes("1", filesystem.ComposeFileDefaultName, []byte("old\n"))
+	require.NoError(t, err)
+
+	require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
+		require.NoError(t, tx.CustomTemplate().Create(&portainer.CustomTemplate{
+			ID: 1, Title: "win-compose", Type: portainer.DockerComposeStack,
+			Platform: portainer.CustomTemplatePlatformLinux, CreatedByUserID: 1,
+			EntryPoint: filesystem.ComposeFileDefaultName, ProjectPath: path,
+		}))
+		require.NoError(t, tx.ResourceControl().Create(&portainer.ResourceControl{
+			ID: 1, ResourceID: "1", Type: portainer.CustomTemplateResourceControl,
+			UserAccesses: []portainer.UserResourceAccess{{UserID: 1}},
+		}))
+		return nil
+	}))
+
+	payload := customTemplateUpdatePayload{
+		Title: "win-compose", Description: "now windows", FileContent: "services:\n  web:\n    image: nginx\n",
+		Type: portainer.DockerComposeStack, Platform: portainer.CustomTemplatePlatformWindows,
+	}
+	r := updateTemplateRequest(t, "1", payload, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})
+	rr := httptest.NewRecorder()
+
+	herr := handler.customTemplateUpdate(rr, r)
+	require.Nil(t, herr)
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var tmpl portainer.CustomTemplate
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&tmpl))
+	require.Equal(t, portainer.CustomTemplatePlatformWindows, tmpl.Platform)
+	require.Nil(t, tmpl.Artifact)
+}

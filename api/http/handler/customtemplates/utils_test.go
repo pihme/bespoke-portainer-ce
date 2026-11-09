@@ -140,3 +140,51 @@ func TestPopulateGitConfig_StripsPassword(t *testing.T) {
 	require.Equal(t, "user", template.GitConfig.Authentication.Username)
 	require.Empty(t, template.GitConfig.Authentication.Password)
 }
+
+func TestREQ_TPL_03_PopulateGitConfig_MissingSourceIsNoOp(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, false, true)
+
+	template := &portainer.CustomTemplate{
+		ID: 1,
+		Artifact: &portainer.Artifact{
+			Files: []portainer.ArtifactFile{{SourceID: 99, Path: "docker-compose.yml"}},
+		},
+	}
+
+	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
+		populateGitConfig(tx, adminUserContext, template)
+		return nil
+	}))
+	require.Nil(t, template.GitConfig)
+}
+
+func TestREQ_TPL_04_ValidateVariablesDefinitions_MissingLabel(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateVariablesDefinitions([]portainer.CustomTemplateVariableDefinition{
+		{Name: "IMAGE", Label: ""},
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "label")
+}
+
+func TestREQ_TPL_04_ValidateVariablesDefinitions_MissingName(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateVariablesDefinitions([]portainer.CustomTemplateVariableDefinition{
+		{Name: "", Label: "Image"},
+	})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "name")
+}
+
+func TestREQ_TPL_04_ValidateVariablesDefinitions_OK(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateVariablesDefinitions([]portainer.CustomTemplateVariableDefinition{
+		{Name: "IMAGE", Label: "Image"},
+	})
+	require.NoError(t, err)
+}

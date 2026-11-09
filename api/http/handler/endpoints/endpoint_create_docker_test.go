@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -253,4 +254,65 @@ func TestREQ_ENV_11_CreateUnsecuredEndpoint_Direct_SnapshotFailure(t *testing.T)
 	require.NotNil(t, httpErr)
 	assert.Nil(t, ep)
 	assert.Equal(t, http.StatusInternalServerError, httpErr.StatusCode)
+}
+
+func TestREQ_ENV_11_CreateUnsecuredDockerEndpoint_WithTagsAndGpus(t *testing.T) {
+	t.Parallel()
+	h, store := newCreateDockerHandler(t)
+	tag := &portainer.Tag{Name: "create-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
+	require.NoError(t, store.Tag().Create(tag))
+
+	req := multipartCreateRequest(t, map[string]string{
+		"Name":                 "tagged-docker",
+		"EndpointCreationType": "1",
+		"URL":                  "unix:///var/run/docker.sock",
+		"ContainerEngine":      "docker",
+		"TagIds":               "[" + strconv.Itoa(int(tag.ID)) + "]",
+		"Gpus":                 `[{"name":"gpu0","value":"nvidia.com/gpu=0"}]`,
+		"PublicURL":            "docker.example.com",
+	}, nil)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	var ep portainer.Endpoint
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &ep))
+	assert.Equal(t, []portainer.TagID{tag.ID}, ep.TagIDs)
+	assert.Equal(t, "docker.example.com", ep.PublicURL)
+	assert.Equal(t, []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}}, ep.Gpus)
+
+	updated, err := store.Tag().Read(tag.ID)
+	require.NoError(t, err)
+	assert.True(t, updated.Endpoints[ep.ID])
+}
+
+func TestREQ_ENV_11_CreateTLSSecuredDockerEndpoint_WithCAAndClientFiles(t *testing.T) {
+	t.Parallel()
+	h, _ := newCreateDockerHandler(t)
+
+	req := multipartCreateRequest(t, map[string]string{
+		"Name":                 "tls-files",
+		"EndpointCreationType": "1",
+		"URL":                  "tcp://docker.example:2376",
+		"TLS":                  "true",
+		"TLSSkipVerify":        "false",
+		"TLSSkipClientVerify":  "false",
+		"ContainerEngine":      "docker",
+	}, map[string][]byte{
+		"TLSCACertFile": []byte("ca"),
+		"TLSCertFile":   []byte("cert"),
+		"TLSKeyFile":    []byte("key"),
+	})
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, req)
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	var ep portainer.Endpoint
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &ep))
+	assert.True(t, ep.TLSConfig.TLS)
+	assert.NotEmpty(t, ep.TLSConfig.TLSCACertPath)
+	assert.NotEmpty(t, ep.TLSConfig.TLSCertPath)
+	assert.NotEmpty(t, ep.TLSConfig.TLSKeyPath)
 }

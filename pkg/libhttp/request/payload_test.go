@@ -10,6 +10,7 @@ import (
 
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type requestPayload struct {
@@ -41,4 +42,35 @@ func Test_GetPayload(t *testing.T) {
 	}
 
 	assert.Equal(t, payload, *newPayload)
+}
+
+type failingPayload struct {
+	Name string `json:"name"`
+}
+
+func (p *failingPayload) Validate(r *http.Request) error {
+	return assert.AnError
+}
+
+func TestDecodeAndValidateJSONPayload_InvalidJSON(t *testing.T) {
+	t.Parallel()
+	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte("{")))
+	err := request.DecodeAndValidateJSONPayload(r, &requestPayload{})
+	require.Error(t, err)
+}
+
+func TestDecodeAndValidateJSONPayload_ValidationFailure(t *testing.T) {
+	t.Parallel()
+	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte(`{"name":"x"}`)))
+	err := request.DecodeAndValidateJSONPayload(r, &failingPayload{})
+	require.Error(t, err)
+	assert.ErrorIs(t, err, assert.AnError)
+}
+
+func TestGetPayload_InvalidRequestPayload(t *testing.T) {
+	t.Parallel()
+	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader([]byte("{")))
+	_, err := request.GetPayload[requestPayload](r)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid request payload")
 }

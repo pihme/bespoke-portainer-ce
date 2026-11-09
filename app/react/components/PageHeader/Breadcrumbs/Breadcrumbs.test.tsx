@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 import { withTestRouter } from '@/react/test-utils/withRouter';
 
@@ -52,5 +53,12 @@ describe('Breadcrumbs', () => {
     ]);
 
     expect(screen.getByTestId('breadcrumb-Settings')).toBeInTheDocument();
+  });
+
+  it('should skip empty crumb entries', () => {
+    renderBreadcrumbs(['Settings', '', 'Tags'] as never);
+
+    expect(screen.getByText('Settings')).toBeVisible();
+    expect(screen.getByText('Tags')).toBeVisible();
   });
 });

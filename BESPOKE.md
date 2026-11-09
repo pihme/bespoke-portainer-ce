@@ -310,6 +310,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 | COV-227 | Close Priority work on `setup-tests` (parent; not setup-handlers/). Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 10.4 % → 95.5 % (7 → 64 of 67; +57). Leftovers: 3 thin. Deferred-within-package: none (setup-handlers/ out of scope). Package left at 95.5 % (64 of 67; 3 missed). | Preferred frontend setup-tests helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-228 | Close Priority work on `containers/logs`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure: 0 % → 96.9 % (0 → 31 of 32; +31). Leftovers: 1 thin. Deferred-within-package: none. Package left at 96.9 % (31 of 32; 1 missed). | Preferred container logs helpers covered. Same close pattern as prior Priority packages. | agent | Apply thin-local close; do not grind further. |
 | COV-229 | Close Priority work on `Widget`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). KEEP without stories 42/46 (91.3 %). Deferred-within-package: stories. Package left at 91.3 % KEEP-only (42 of 46; 4 missed). | Preferred Widget helpers covered; stories deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
+| COV-230 | Close Priority work on `environments/queries`. Parallel batch merged from `2-covered-parallel-fe-batch-168` (`2515149e6`). Isolated remasure 90/122 (73.8 %). KEEP local; deferred-within-package Edge, Kubernetes, Azure, registry, relations. Package left at 73.8 % (90 of 122; 32 missed). | Preferred local environment queries covered; Edge/K8s/Azure/registry/relations deferred. Same close pattern as prior Priority packages. | agent | Apply deferred-within-package close; do not grind further. |
 
 ### Interventions
 
@@ -622,6 +623,7 @@ Work the user asked for that is not this stage's goal. Same ID series; does not 
 - 2026-11-09. COV-227: close Priority work on frontend setup-tests helpers. Parallel isolated 10.4 % → 95.5 % (7 → 64 of 67; +57). Thin leftovers. Do not grind further.
 - 2026-11-09. COV-228: close Priority work on container logs helpers. Parallel isolated 0 % → 96.9 % (0 → 31 of 32; +31). Thin leftover. Do not grind further.
 - 2026-11-09. COV-229: close Priority work on Widget helpers. Parallel KEEP without stories 42/46 (91.3 %). Deferred stories. Do not grind further.
+- 2026-11-09. COV-230: close Priority work on environment queries. Parallel isolated 73.8 % (90 of 122). Deferred Edge/K8s/Azure/registry/relations. Do not grind further.
 - Date, exit: <how the stage goal was verified>; gate passed in CI; user confirmed
 
 ## 3 tailored

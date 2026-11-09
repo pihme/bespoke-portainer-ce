@@ -42,6 +42,6 @@ func TestGenerateCertsForHost_BadCertPath(t *testing.T) {
 
 func TestDecrypt_MalformedCiphertext(t *testing.T) {
 	t.Parallel()
-	_, err := decrypt([]byte{1, []byte("key"), false)
+	_, err := decrypt([]byte{1}, []byte("key"), false)
 	require.EqualError(t, err, "malformed ciphertext")
 }

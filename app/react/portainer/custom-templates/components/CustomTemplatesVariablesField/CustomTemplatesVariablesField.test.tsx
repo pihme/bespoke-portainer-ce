@@ -95,3 +95,78 @@ test('renders error message when errors prop is provided', () => {
   const errorElement = screen.getByText('Error message');
   expect(errorElement).toBeInTheDocument();
 });
+
+test('returns null without definitions and shows string errors', () => {
+  const { container, rerender } = render(
+    <CustomTemplatesVariablesField
+      onChange={vi.fn()}
+      definitions={[]}
+      value={[]}
+    />
+  );
+  expect(container).toBeEmptyDOMElement();
+
+  rerender(
+    <CustomTemplatesVariablesField
+      onChange={vi.fn()}
+      definitions={[
+        {
+          name: 'Variable1',
+          label: 'Variable 1',
+          description: '',
+          defaultValue: '',
+        },
+      ]}
+      value={[{ key: 'Variable1', value: '' }]}
+      errors="bad variables"
+    />
+  );
+  expect(screen.getByText('bad variables')).toBeVisible();
+});
+
+test('passes object field errors through to VariableFieldItem', () => {
+  render(
+    <CustomTemplatesVariablesField
+      onChange={vi.fn()}
+      definitions={[
+        {
+          name: 'Variable1',
+          label: 'Variable 1',
+          description: '',
+          defaultValue: '',
+        },
+      ]}
+      value={[{ key: 'Variable1', value: '' }]}
+      errors={[{ value: 'required-field' }] as never}
+    />
+  );
+  expect(screen.getByText('required-field')).toBeVisible();
+});
+
+test('tolerates sparse field errors without crashing', () => {
+  render(
+    <CustomTemplatesVariablesField
+      onChange={vi.fn()}
+      definitions={[
+        {
+          name: 'Variable1',
+          label: 'Variable 1',
+          description: '',
+          defaultValue: '',
+        },
+        {
+          name: 'Variable2',
+          label: 'Variable 2',
+          description: '',
+          defaultValue: '',
+        },
+      ]}
+      value={[
+        { key: 'Variable1', value: '' },
+        { key: 'Variable2', value: '' },
+      ]}
+      errors={[undefined, 'second-error'] as never}
+    />
+  );
+  expect(screen.getByText('second-error')).toBeVisible();
+});

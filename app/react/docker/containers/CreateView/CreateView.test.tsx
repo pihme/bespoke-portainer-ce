@@ -25,7 +25,6 @@ const mockNotifySuccess = vi.fn();
 
 const initialValues: Values = {
   name: 'web',
-  enableWebhook: false,
   publishAllPorts: false,
   image: { image: 'nginx' },
   alwaysPull: true,
@@ -219,6 +218,8 @@ describe('REQ-CTR-03 CreateView local Docker create page', () => {
     expect(payload.config.Image).toBe('nginx:latest');
     expect(payload).not.toHaveProperty('registry');
     expect(payload.values.name).toBe('web');
+    // REQ-TAI-014: no container webhook is requested on create
+    expect(payload.values).not.toHaveProperty('enableWebhook');
 
     options.onSuccess();
     expect(mockNotifySuccess).toHaveBeenCalledWith(

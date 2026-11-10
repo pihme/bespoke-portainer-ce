@@ -1,19 +1,12 @@
 import uuid from 'uuid';
 
-import {
-  API_ENDPOINT_EDGE_STACKS,
-  API_ENDPOINT_STACKS,
-  API_ENDPOINT_WEBHOOKS,
-} from '@/constants';
+import { API_ENDPOINT_EDGE_STACKS, API_ENDPOINT_STACKS } from '@/constants';
 
 import { baseHref } from './pathHelper';
 
 const baseUrl = getBaseUrl();
 
-export function dockerWebhookUrl(token: string) {
-  return `${baseUrl}${API_ENDPOINT_WEBHOOKS}/${token}`;
-}
-
+// Container webhooks are removed (TAI-014); only stack webhook URLs remain.
 export function baseStackWebhookUrl() {
   return `${baseUrl}${API_ENDPOINT_STACKS}/webhooks`;
 }
@@ -33,7 +26,6 @@ export function baseEdgeStackWebhookUrl() {
 /* @ngInject */
 export function WebhookHelperFactory() {
   return {
-    returnWebhookUrl: dockerWebhookUrl,
     getBaseStackWebhookUrl: baseStackWebhookUrl,
     returnStackWebhookUrl: stackWebhookUrl,
   };

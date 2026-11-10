@@ -28,12 +28,13 @@ describe('REQ-CTR-06 BaseForm toViewModel when duplicating a container', () => {
       useRegistry: true,
     };
 
-    const result = toViewModel(config, 'node-a', image, true);
+    const result = toViewModel(config, 'node-a', image);
 
     expect(result.name).toBe('web');
     expect(result.autoRemove).toBe(true);
     expect(result.publishAllPorts).toBe(true);
-    expect(result.enableWebhook).toBe(true);
+    // REQ-TAI-014: no container webhook flag is carried over
+    expect(result).not.toHaveProperty('enableWebhook');
     expect(result.nodeName).toBe('node-a');
     expect(result.image).toEqual(image);
     expect(result.alwaysPull).toBe(true);
@@ -49,7 +50,7 @@ describe('REQ-CTR-06 BaseForm toViewModel when duplicating a container', () => {
 
     expect(result.name).toBe('');
     expect(result.ports).toEqual([]);
-    expect(result.enableWebhook).toBe(false);
+    expect(result).not.toHaveProperty('enableWebhook');
     expect(result.autoRemove).toBe(false);
     expect(result.publishAllPorts).toBe(false);
     expect(result.alwaysPull).toBe(true);

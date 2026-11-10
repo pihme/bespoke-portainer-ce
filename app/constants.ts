@@ -14,7 +14,6 @@ export const API_ENDPOINT_USERS = 'api/users';
 export const API_ENDPOINT_TEAMS = 'api/teams';
 export const API_ENDPOINT_TEAM_MEMBERSHIPS = 'api/team_memberships';
 export const API_ENDPOINT_TEMPLATES = 'api/templates';
-export const API_ENDPOINT_WEBHOOKS = 'api/webhooks';
 export const PAGINATION_MAX_ITEMS = 10;
 export const APPLICATION_CACHE_VALIDITY = 3600;
 export const CONSOLE_COMMANDS_LABEL_PREFIX = 'io.portainer.commands.';

@@ -31,4 +31,8 @@ describe('app constants', () => {
     expect(constants).not.toHaveProperty('API_ENDPOINT_ENDPOINT_GROUPS');
     expect(constants).not.toHaveProperty('API_ENDPOINT_TAGS');
   });
+
+  it('REQ-TAI-014 exposes no container webhook API prefix', () => {
+    expect(constants).not.toHaveProperty('API_ENDPOINT_WEBHOOKS');
+  });
 });

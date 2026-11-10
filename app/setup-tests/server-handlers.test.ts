@@ -9,6 +9,11 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
     expect(handlers.length).toBeGreaterThan(10);
   });
 
+  it('REQ-TAI-014 serves no container webhook stub', () => {
+    const paths = handlers.map((h) => String(h.info.path));
+    expect(paths).not.toContain('/api/webhooks');
+  });
+
   it('REQ-TAI-013 serves no tag or environment group stubs', () => {
     const paths = handlers.map((h) => String(h.info.path));
     expect(paths.filter((p) => /\/api\/(tags|endpoint_groups)/.test(p))).toEqual(
@@ -76,7 +81,6 @@ describe('setup-tests server handlers extra arms', () => {
       '/api/system/info',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',
-      '/api/webhooks',
       '/api/policies',
     ]) {
       expect((await fetch(path)).ok).toBe(true);

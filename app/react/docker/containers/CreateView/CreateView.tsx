@@ -145,7 +145,6 @@ function CreateForm() {
           imageName: values.image.image,
           name: values.name,
           alwaysPull: values.alwaysPull,
-          enableWebhook: values.enableWebhook,
           nodeName: values.nodeName,
         },
         oldContainer,

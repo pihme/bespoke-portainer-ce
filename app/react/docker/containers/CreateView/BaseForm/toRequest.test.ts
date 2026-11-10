@@ -13,7 +13,6 @@ describe('REQ-CTR-03 BaseForm toRequest for ports and publish flags', () => {
 
   const baseValues: Values = {
     name: 'web',
-    enableWebhook: false,
     publishAllPorts: true,
     image: { image: 'nginx' },
     alwaysPull: true,

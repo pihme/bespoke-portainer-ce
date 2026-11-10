@@ -159,6 +159,28 @@ describe('ContainerStatusSection', () => {
     expect(screen.getByText('test-container')).toBeVisible();
     expect(screen.getByText('172.17.0.5')).toBeVisible();
   });
+
+  test('REQ-TAI-014 shows no container webhook row and never requests /api/webhooks', async () => {
+    const requested: string[] = [];
+    server.use(
+      http.get('/api/webhooks', ({ request }) => {
+        requested.push(request.url);
+        return new HttpResponse(null, { status: 404 });
+      })
+    );
+
+    renderComponent(createMockContainer());
+
+    expect(await screen.findByText('Container status')).toBeVisible();
+    expect(screen.queryByText('Container webhook')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('container-webhook-switch')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('container-webhook-copy-button')
+    ).not.toBeInTheDocument();
+    expect(requested).toEqual([]);
+  });
 });
 
 function renderComponent(container: ContainerDetailsViewModel) {

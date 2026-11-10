@@ -1,9 +1,6 @@
 import { useFormikContext } from 'formik';
 
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
-import { Authorized } from '@/react/hooks/useUser';
-import { EnvironmentType } from '@/react/portainer/environments/types';
-import { FeatureId } from '@/react/portainer/feature-flags/enums';
 
 import { FormSection } from '@@/form-components/FormSection';
 import { SwitchField } from '@@/form-components/SwitchField';
@@ -19,7 +16,6 @@ import { NameField } from './NameField';
 
 export interface Values {
   name: string;
-  enableWebhook: boolean;
   publishAllPorts: boolean;
   image: ImageConfigValues;
   alwaysPull: boolean;
@@ -42,10 +38,6 @@ export function BaseForm({
   if (!environmentQuery.data) {
     return null;
   }
-
-  const environment = environmentQuery.data;
-
-  const canUseWebhook = environment.Type !== EnvironmentType.EdgeAgentOnDocker;
 
   return (
     <Widget>
@@ -84,28 +76,6 @@ export function BaseForm({
             </div>
           </ImageConfigFieldset>
         </FormSection>
-
-        {canUseWebhook && (
-          <Authorized authorizations="PortainerWebhookCreate" adminOnlyCE>
-            <FormSection title="Webhook">
-              <div className="form-group">
-                <div className="col-sm-12">
-                  <SwitchField
-                    label="Create a container webhook"
-                    data-cy="container-webhook-switch"
-                    tooltip="Create a webhook (or callback URI) to automate the recreate this container. Sending a POST request to this callback URI (without requiring any authentication) will pull the most up-to-date version of the associated image and recreate this container."
-                    checked={values.enableWebhook}
-                    onChange={(enableWebhook) =>
-                      setFieldValue('enableWebhook', enableWebhook)
-                    }
-                    featureId={FeatureId.CONTAINER_WEBHOOK}
-                    labelClass="col-sm-3 col-lg-2"
-                  />
-                </div>
-              </div>
-            </FormSection>
-          </Authorized>
-        )}
 
         <FormSection title="Network ports configuration">
           <div className="form-group">

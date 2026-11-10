@@ -1,17 +1,12 @@
-import {
-  EnvironmentId,
-  EnvironmentType,
-} from '@/react/portainer/environments/types';
+import { EnvironmentId } from '@/react/portainer/environments/types';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { isoDate } from '@/portainer/filters/filters';
-import { isPartOfSwarmService } from '@/docker/helpers/containers';
 
 import { Widget, WidgetBody } from '@@/Widget';
 import { DetailsTable } from '@@/DetailsTable';
 
 import { NameRow } from './NameRow';
-import { WebhookRow } from './WebhookRow';
 import { ActionLinksRow } from './ActionLinksRow';
 import { StatusRow } from './StatusRow';
 
@@ -70,15 +65,6 @@ export function ContainerStatusSection({
             <DetailsTable.Row label="Finished">
               {isoDate(container.State?.FinishedAt)}
             </DetailsTable.Row>
-          )}
-          {environmentQuery.data.Type !== EnvironmentType.EdgeAgentOnDocker && (
-            <WebhookRow
-              containerId={container.Id || ''}
-              environmentId={environmentId}
-              autoRemove={container.HostConfig?.AutoRemove || false}
-              onSuccess={onSuccessUpdate}
-              partOfSwarmService={isPartOfSwarmService(container)}
-            />
           )}
           <ActionLinksRow containerId={container.Id || ''} />
         </DetailsTable>

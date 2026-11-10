@@ -35,7 +35,6 @@ import {
 } from '@/react/docker/containers/CreateView/VolumesTab';
 import { envVarsTabUtils } from '@/react/docker/containers/CreateView/EnvVarsTab';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useWebhooks } from '@/react/portainer/webhooks/useWebhooks';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 
 import { getImageConfig } from '@@/ImageConfigFieldset/getImageConfig';
@@ -77,10 +76,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
   const runningContainersQuery = useContainers(environmentId, {
     enabled: !!from,
   });
-  const webhookQuery = useWebhooks(
-    { endpointId: environmentId, resourceId: from },
-    { enabled: !!from }
-  );
   const isPodman = useIsPodman(environmentId);
 
   if (!networksQuery.data) {
@@ -94,11 +89,7 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
   }
 
   const fromContainer = fromContainerQuery.data;
-  if (
-    !fromContainer ||
-    !runningContainersQuery.data ||
-    !webhookQuery.data
-  ) {
+  if (!fromContainer || !runningContainersQuery.data) {
     return null;
   }
 
@@ -139,12 +130,7 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
     resources: resourcesTabUtils.toViewModel(fromContainer),
     capabilities: capabilitiesTabUtils.toViewModel(fromContainer),
     env: envVarsTabUtils.toViewModel(fromContainer),
-    ...baseFormUtils.toViewModel(
-      fromContainer,
-      nodeName,
-      imageConfig,
-      (webhookQuery.data?.length || 0) > 0
-    ),
+    ...baseFormUtils.toViewModel(fromContainer, nodeName, imageConfig),
   };
 
   return { initialValues, isDuplicating: true, extraNetworks };

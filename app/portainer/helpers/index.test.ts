@@ -21,7 +21,7 @@ vi.mock('angular', () => ({
 }));
 
 vi.mock('./webhookHelper', () => ({
-  WebhookHelperFactory: vi.fn(() => ({ returnWebhookUrl: vi.fn() })),
+  WebhookHelperFactory: vi.fn(() => ({ returnStackWebhookUrl: vi.fn() })),
 }));
 
 describe('helpersModule angular registration', () => {

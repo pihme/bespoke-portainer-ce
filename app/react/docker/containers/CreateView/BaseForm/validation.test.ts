@@ -6,7 +6,6 @@ const validBase = {
   name: 'web',
   alwaysPull: true,
   autoRemove: false,
-  enableWebhook: false,
   nodeName: '',
   ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' as const }],
   publishAllPorts: false,

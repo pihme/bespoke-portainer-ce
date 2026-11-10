@@ -4,10 +4,7 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import {
   Environment,
   EnvironmentId,
-  EnvironmentType,
 } from '@/react/portainer/environments/types';
-import { createWebhook } from '@/react/portainer/webhooks/useCreateWebhook';
-import { WebhookType } from '@/react/portainer/webhooks/types';
 import {
   mutationOptions,
   withError,
@@ -56,7 +53,6 @@ interface CreateOptions {
     imageName: string;
     nodeName?: Values['nodeName'];
     alwaysPull?: Values['alwaysPull'];
-    enableWebhook?: Values['enableWebhook'];
   };
   environment: Environment;
 }
@@ -76,11 +72,7 @@ export function createOrReplace(options: ReplaceOptions | CreateOptions) {
   return isReplace(options) ? replace(options) : create(options);
 }
 
-async function create({
-  config,
-  values,
-  environment,
-}: CreateOptions) {
+async function create({ config, values, environment }: CreateOptions) {
   await pullImageIfNeeded(
     environment.Id,
     values.alwaysPull || false,
@@ -88,18 +80,7 @@ async function create({
     values.nodeName
   );
 
-  const containerResponse = await createAndStart(
-    environment.Id,
-    config,
-    values.name,
-    values.nodeName
-  );
-
-  await applyContainerSettings(
-    containerResponse.Id,
-    environment,
-    values.enableWebhook
-  );
+  await createAndStart(environment.Id, config, values.name, values.nodeName);
 }
 
 async function replace({
@@ -122,12 +103,6 @@ async function replace({
     oldContainer,
     config,
     values.nodeName
-  );
-
-  await applyContainerSettings(
-    containerResponse.Id,
-    environment,
-    values.enableWebhook
   );
 
   await connectToExtraNetworks(
@@ -177,19 +152,6 @@ async function renameAndCreate(
       });
     }
     throw e;
-  }
-}
-
-/**
- * creates a webhook if necessary
- */
-async function applyContainerSettings(
-  containerId: string,
-  environment: Environment,
-  enableWebhook?: boolean
-) {
-  if (enableWebhook) {
-    await createContainerWebhook(containerId, environment);
   }
 }
 
@@ -264,23 +226,6 @@ async function createContainer(
   } catch (err) {
     throw parseAxiosError(err, 'Unable to create container');
   }
-}
-
-async function createContainerWebhook(
-  containerId: string,
-  environment: Environment
-) {
-  const isNotEdgeAgentOnDockerEnvironment =
-    environment.Type !== EnvironmentType.EdgeAgentOnDocker;
-  if (!isNotEdgeAgentOnDockerEnvironment) {
-    return;
-  }
-
-  await createWebhook({
-    resourceId: containerId,
-    environmentId: environment.Id,
-    webhookType: WebhookType.DockerContainer,
-  });
 }
 
 function connectToExtraNetworks(

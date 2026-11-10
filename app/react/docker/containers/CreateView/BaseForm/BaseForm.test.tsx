@@ -87,7 +87,6 @@ vi.mock('./PortsMappingField', () => ({
 
 const values: Values = {
   name: '',
-  enableWebhook: false,
   publishAllPorts: false,
   image: { image: 'nginx' },
   alwaysPull: true,
@@ -144,6 +143,21 @@ describe('REQ-CTR-03 BaseForm local Docker create fields', () => {
     expect(
       screen.getByRole('button', { name: 'Deploy the container' })
     ).toBeVisible();
+  });
+
+  it('REQ-TAI-014 shows no container webhook switch', async () => {
+    renderBaseForm();
+
+    expect(
+      await screen.findByPlaceholderText('e.g. myContainer')
+    ).toBeVisible();
+    expect(screen.queryByText('Webhook')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Create a container webhook')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('container-webhook-switch')
+    ).not.toBeInTheDocument();
   });
 
   it('forwards image change callbacks', async () => {

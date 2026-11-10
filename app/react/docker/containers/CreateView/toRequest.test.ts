@@ -7,7 +7,6 @@ import { Values } from './useInitialValues';
 function buildValues(overrides: Partial<Values> = {}): Values {
   return {
     name: 'web',
-    enableWebhook: false,
     publishAllPorts: false,
     image: { image: 'nginx' },
     alwaysPull: true,

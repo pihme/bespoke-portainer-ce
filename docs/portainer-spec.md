@@ -121,7 +121,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-CTR-03 Create a container.** Form for image (with registry), name, port mappings, publish-all, always pull, access control, auto-remove, and advanced settings: command/entrypoint/working dir/user/console, logging driver, volumes and bind mounts, network/hostname/DNS/MAC/IP, environment variables (incl. file upload), labels, restart policy, runtime and resources (privileged, init, devices, GPU, sysctls, shm, memory/CPU limits), capabilities. Entry: UI `#!/{envId}/docker/containers/new`. docs: user/docker/containers/add, user/docker/containers/advanced *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-CTR-04 Container details.** Status, ports, health, image, command, environment, labels, volumes, networks (join/leave a network, inferred from code: `ContainerNetworksDatatable/ConnectNetworkForm.tsx`), and action buttons. Entry: UI `#!/{envId}/docker/containers/{id}`. docs: user/docker/containers/view
 - **REQ-CTR-05 Inspect a container.** Raw inspect JSON. Entry: UI `#!/{envId}/docker/containers/{id}/inspect`. docs: user/docker/containers/inspect
-- **REQ-CTR-06 Edit, recreate or duplicate a container.** Duplicate/edit opens the create form prefilled; recreate optionally pulls the latest image. Entry: UI `#!/{envId}/docker/containers/new?from={id}`. docs: user/docker/containers/edit
+- **REQ-CTR-06 Edit, recreate or duplicate a container.** Duplicate/edit opens the create form prefilled; recreate optionally pulls the latest image. Entry: UI `#!/{envId}/docker/containers/new?from={id}`. docs: user/docker/containers/edit *TAI-014: duplicate/edit no longer asks for the container's webhooks; it used to wait for `GET /webhooks`, which has answered 404 since TAI-003, so the prefilled form never opened.*
 - **REQ-CTR-07 Rename a container.** Entry: UI container page, name field. (inferred from code: `app/react/docker/containers/ItemView/ContainerStatusSection/EditNameForm.tsx`)
 - **REQ-CTR-08 Create an image from a container (commit).** Entry: UI container page, Create image section. (inferred from code: `app/react/docker/containers/ItemView/CreateImageSection`)
 - **REQ-CTR-09 Attach a volume to a container.** Entry: UI create/edit form, Volumes tab. docs: user/docker/containers/attach-volume
@@ -130,7 +130,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-CTR-12 Console.** Exec a shell (chosen command and user) or attach to the container in the browser. Entry: UI `#!/{envId}/docker/containers/{id}/exec`, `…/attach`; API `GET /websocket/exec`, `GET /websocket/attach`. docs: user/docker/containers/console
 - ~~**REQ-CTR-13 Change container ownership.** Entry: UI container page, Access control. docs: user/docker/containers/ownership~~ REMOVED (TAI-001)
 - **REQ-CTR-14 Remove a container.** Optionally remove its anonymous volumes (option inferred from code: `ContainersDatatableActions.tsx`). docs: user/docker/containers/remove
-- **REQ-CTR-15 Container webhooks.** Redeploy a container with the latest image via a webhook. **BE-only** (CE flag `CONTAINER_WEBHOOK` shows an upsell, inferred from code). docs: user/docker/containers/webhooks
+- ~~**REQ-CTR-15 Container webhooks.** Redeploy a container with the latest image via a webhook. **BE-only** (CE flag `CONTAINER_WEBHOOK` shows an upsell, inferred from code). docs: user/docker/containers/webhooks~~ REMOVED (TAI-014)
 - **REQ-CTR-16 GPU assignment.** Assign GPUs to containers when GPU display is enabled for the environment. Entry: create form; API `GET /docker/{environmentId}/containers/{containerId}/gpus`. docs: user/docker/host/setup, user/docker/containers/advanced
 
 ## IMG – Docker images
@@ -284,7 +284,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-LIC-01 Licenses.** Add, renew and remove BE license keys. **BE-only.** Entry (BE): CLI `--license-key`. docs: admin/licenses
 - ~~**REQ-LIC-02 Upgrade to Business Edition from within CE.** An "Upgrade to Business Edition" banner in the sidebar lets an admin paste a license or request a trial and start the in-place upgrade. Entry: UI sidebar banner (`app/react/sidebar/UpgradeBEBanner`); API `POST /system/upgrade`. docs: start/upgrade/tobe/inapp, start/upgrade/tobe~~ REMOVED (TAI-012)
-- **REQ-LIC-03 Business Edition feature indicators in CE.** BE-only options are shown in CE as disabled controls or upsell pages that link to the Business Edition offer (for example webhooks, RBAC roles, activity logs, registry browsing, S3 backup). (inferred from code: `app/react/portainer/feature-flags/enums.ts`, BE feature indicators in `app/`) *TAI-012: the BE indicators, upsell pages and disabled BE-only controls are removed (activity logs, custom login banner, change window, image up-to-date indicator, Git auto-update re-pull and force redeployment, editor stack webhook); the container webhook teaser goes with TAI-014.*
+- ~~**REQ-LIC-03 Business Edition feature indicators in CE.** BE-only options are shown in CE as disabled controls or upsell pages that link to the Business Edition offer (for example webhooks, RBAC roles, activity logs, registry browsing, S3 backup). (inferred from code: `app/react/portainer/feature-flags/enums.ts`, BE feature indicators in `app/`) *TAI-012: the BE indicators, upsell pages and disabled BE-only controls are removed (activity logs, custom login banner, change window, image up-to-date indicator, Git auto-update re-pull and force redeployment, editor stack webhook); the container webhook teaser goes with TAI-014.*~~ REMOVED (TAI-012, TAI-014)
 
 ## API – REST API and automation
 
@@ -401,6 +401,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) `POST /endpoints` ignores `GroupID` and `TagIds`: a new environment joins the built-in Unassigned group (ID 1) with no tags, and no tag record changes. `PUT /endpoints/{id}` ignores `GroupID` and `TagIDs` and keeps the stored values.
   - (c) The database is unchanged: the environment group and tag collections, their migrations and the `GroupID`/`TagIDs` fields of an environment stay, so legacy records keep their group and tags. Access to an environment and resource control still work for the local Docker and Podman sockets; deleting an environment still removes it from leftover tag records.
   - (d) The UI has no `#!/groups` or `#!/tags` pages; the Administration sidebar shows a single Environments item instead of the "Environment-related" menu. The environment wizard and the environment details page have no group or tag fields; the environment list has no group column; the home screen has no Group sort and no group name on the cards; the dashboard has no Tags row; the stack duplication environment picker is a flat list sorted by name.
+- **REQ-TAI-014 No container webhooks.** Added by TAI-014 (2026-11-10).
+  - (a) The container create form has no "Create a container webhook" switch and creating or replacing a container never calls the webhooks API; the container details have no Container webhook row.
+  - (b) Duplicate/edit of a container (`#!/{envId}/docker/containers/new?from={id}`) opens the prefilled form without asking for webhooks.
+  - (c) The client has no container webhook queries, no `Webhooks` REST factory or `WebhookService`, no `API_ENDPOINT_WEBHOOKS` and no container webhook URL helper; `/webhooks` keeps answering 404 (REQ-TAI-003).
+  - (d) Stack webhooks (`POST /stacks/webhooks/{webhookID}`, REQ-STK-09), the stack webhook URL helper and the database webhooks collection are unchanged.
 
 ## Not covered as requirements
 

@@ -50,6 +50,5 @@ export const handlers = [
   http.get('/observability/alerting/rules', () => HttpResponse.json([])),
 
   http.get('/api/system/info', () => HttpResponse.json({})),
-  http.get('/api/webhooks', () => HttpResponse.json([])),
   http.get('/api/policies', () => HttpResponse.json([])),
 ];

@@ -113,7 +113,6 @@ vi.mock('./ResourcesTab/EditResourceForm', () => ({
 
 const values: Values = {
   name: 'web',
-  enableWebhook: false,
   publishAllPorts: false,
   image: { image: 'nginx' },
   alwaysPull: true,

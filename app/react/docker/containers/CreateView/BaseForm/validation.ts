@@ -24,7 +24,6 @@ export function validation(
     ),
     alwaysPull: boolean().default(true),
     autoRemove: boolean().default(false),
-    enableWebhook: boolean().default(false),
     nodeName: string().default(''),
     ports: portsSchema(),
     publishAllPorts: boolean().default(false),

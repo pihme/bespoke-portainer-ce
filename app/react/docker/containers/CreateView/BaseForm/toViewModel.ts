@@ -8,8 +8,7 @@ import { Values } from './BaseForm';
 export function toViewModel(
   config: ContainerDetailsResponse,
   nodeName: string,
-  image: Values['image'],
-  enableWebhook: boolean
+  image: Values['image']
 ): Values {
   return {
     name: config.Name ? config.Name.replace('/', '') : '',
@@ -19,14 +18,12 @@ export function toViewModel(
     publishAllPorts: config.HostConfig?.PublishAllPorts || false,
     nodeName,
     image,
-    enableWebhook,
   };
 }
 
 export function getDefaultViewModel(nodeName: string): Values {
   return {
     nodeName,
-    enableWebhook: false,
     image: getDefaultImageConfig(),
     name: '',
     alwaysPull: true,

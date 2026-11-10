@@ -99,7 +99,7 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     });
   });
 
-  it('Settings, SSL, Templates, Support and Webhooks wire local actions', async () => {
+  it('Settings, SSL, Templates and Support wire local actions', async () => {
     const { factories } = installAngularCapture();
     vi.doMock('angular', () => ({
       default: globalThis.angular,
@@ -110,7 +110,6 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     await import('./ssl.js');
     await import('./template.js');
     await import('./support.js');
-    await import('./webhooks.js');
 
     const { $resource, calls } = mockResource();
 
@@ -118,14 +117,12 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     factories.SSL($resource);
     factories.Templates($resource, '/api/templates');
     factories.Support($resource, '/api/support');
-    factories.Webhooks($resource, '/api/webhooks');
 
     expect(calls.map((c) => c.url)).toEqual([
       '/api/settings/:subResource/:action',
       'api/ssl',
       '/api/templates/:action',
       '/api/support',
-      '/api/webhooks/:id',
     ]);
     expect(calls[0].actions.publicSettings.params).toMatchObject({
       subResource: 'public',
@@ -133,11 +130,12 @@ describe('REQ-ENV / REQ-STK / REQ-TPL local Docker REST factories', () => {
     expect(calls[1].actions.upload.method).toBe('PUT');
     expect(calls[2].actions.file.params).toMatchObject({ action: 'file' });
     expect(calls[3].actions.get.isArray).toBe(true);
-    expect(calls[4].actions.query.isArray).toBe(true);
     // REQ-TAI-001: no ResourceControl factory
     expect(factories.ResourceControl).toBeUndefined();
     // REQ-TAI-013: no Tags or EndpointGroups factories
     expect(factories.Tags).toBeUndefined();
     expect(factories.EndpointGroups).toBeUndefined();
+    // REQ-TAI-014: no container/service Webhooks factory
+    expect(factories.Webhooks).toBeUndefined();
   });
 });

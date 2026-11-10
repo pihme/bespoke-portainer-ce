@@ -1074,13 +1074,6 @@ type (
 	// SoftwareEdition represents an edition of Portainer
 	SoftwareEdition int
 
-	// AllowList holds the list of permitted outbound proxy destinations.
-	AllowList struct {
-		ID      AllowListKey `json:"Id"`
-		Mode    SSRFMode     `json:"Mode"`
-		Entries []string     `json:"Entries"`
-	}
-
 	// ParsedAllowList holds the three parsed forms of allow list entries.
 	ParsedAllowList struct {
 		Mode  SSRFMode

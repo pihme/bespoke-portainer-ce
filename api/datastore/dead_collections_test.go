@@ -80,3 +80,24 @@ func TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections(t *testing.T) {
 		require.Truef(t, os.IsNotExist(err), "api/dataservices/%s should be removed", dir)
 	}
 }
+
+// TestREQ_TAI_021_FreshStoreHasNoAllowList proves that the always-empty
+// allowlist collection and its data service are gone. The outbound
+// protection now runs on the fixed ssrf.DisabledPolicy.
+func TestREQ_TAI_021_FreshStoreHasNoAllowList(t *testing.T) {
+	_, store := MustNewTestStore(t, true, false)
+	require.NoError(t, store.connection.Close())
+
+	con, ok := store.connection.(*boltdb.DbConnection)
+	require.True(t, ok)
+
+	raw, err := con.ExportJSON(con.GetDatabaseFilePath(), false)
+	require.NoError(t, err)
+
+	buckets := map[string]json.RawMessage{}
+	require.NoError(t, json.Unmarshal(raw, &buckets))
+	require.NotContains(t, buckets, "allowlist")
+
+	_, err = os.Stat(filepath.Join("..", "dataservices", "allowlist"))
+	require.True(t, os.IsNotExist(err), "api/dataservices/allowlist should be removed")
+}

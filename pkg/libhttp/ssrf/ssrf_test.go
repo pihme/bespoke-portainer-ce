@@ -442,3 +442,30 @@ func TestDialContext_AllowedByExactHostname(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, resp.Body.Close())
 }
+
+// TestREQ_TAI_021_DisabledPolicyKeepsProtectionOff proves that the fixed
+// policy that replaces the removed allowlist collection behaves like the empty
+// collection did: protection off, every URL and dial allowed, including
+// loopback and link-local destinations.
+func TestREQ_TAI_021_DisabledPolicyKeepsProtectionOff(t *testing.T) {
+	parsed, err := DisabledPolicy{}.ReadParsed(portainer.AllowListSSRF)
+	require.NoError(t, err)
+	require.Equal(t, portainer.SSRFModeOff, parsed.Mode)
+	require.Empty(t, parsed.Hosts)
+	require.Empty(t, parsed.Nets)
+	require.Empty(t, parsed.Wilds)
+
+	require.NoError(t, Configure(DisabledPolicy{}))
+	t.Cleanup(func() { globalDialer.Store(nil) })
+	require.False(t, IsEnabled())
+	require.NoError(t, CheckURL(t.Context(), "http://169.254.169.254/latest/meta-data"))
+	require.NoError(t, CheckURL(t.Context(), "http://127.0.0.1:9000"))
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer ln.Close()
+
+	conn, err := globalDialer.Load().DialContext(t.Context(), "tcp", ln.Addr().String())
+	require.NoError(t, err)
+	require.NoError(t, conn.Close())
+}

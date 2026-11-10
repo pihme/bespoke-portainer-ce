@@ -10,7 +10,6 @@ import (
 type (
 	DataStoreTx interface {
 		IsErrObjectNotFound(err error) bool
-		AllowList() AllowListService
 		CustomTemplate() CustomTemplateService
 		EdgeStack() EdgeStackService
 		Endpoint() EndpointService
@@ -47,15 +46,6 @@ type (
 		Export(filename string) (err error)
 
 		DataStoreTx
-	}
-
-	// AllowListService represents a service for managing the URL allow list
-	AllowListService interface {
-		Read(id portainer.AllowListKey) (*portainer.AllowList, error)
-		ReadAll() ([]portainer.AllowList, error)
-		ReadParsed(id portainer.AllowListKey) (*portainer.ParsedAllowList, error)
-		Update(id portainer.AllowListKey, allowList *portainer.AllowList) error
-		BucketName() string
 	}
 
 	// CustomTemplateService represents a service to manage custom templates

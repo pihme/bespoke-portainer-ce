@@ -346,7 +346,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		log.Fatal().Msg("The database schema version does not align with the server version. Please consider reverting to the previous server version or addressing the database migration issue.")
 	}
 
-	if err := ssrf.Configure(dataStore.AllowList()); err != nil {
+	if err := ssrf.Configure(ssrf.DisabledPolicy{}); err != nil {
 		log.Fatal().Err(err).Msg("failed initializing ssrf service")
 	}
 

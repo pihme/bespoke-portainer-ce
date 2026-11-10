@@ -57,6 +57,19 @@ type AllowListService interface {
 	ReadParsed(id portainer.AllowListKey) (*portainer.ParsedAllowList, error)
 }
 
+// DisabledPolicy is the fixed allow list policy of a bespoke instance: SSRF
+// protection off, no entries. It matches what the removed, always-empty
+// allowlist collection returned (TAI-021).
+type DisabledPolicy struct{}
+
+// ReadParsed returns the disabled policy for every key.
+func (DisabledPolicy) ReadParsed(portainer.AllowListKey) (*portainer.ParsedAllowList, error) {
+	parsed := ParseAllowedHosts([]string{})
+	parsed.Mode = portainer.SSRFModeOff
+
+	return &parsed, nil
+}
+
 type dialFunc func(ctx context.Context, network, addr string) (net.Conn, error)
 
 type safeDialer struct {

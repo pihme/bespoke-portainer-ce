@@ -21,7 +21,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	t.Parallel()
 	_, store := MustNewTestStore(t, true, false)
 
-	require.NotNil(t, store.AllowList())
 	require.NotNil(t, store.CustomTemplate())
 	require.NotNil(t, store.Endpoint())
 	require.NotNil(t, store.EndpointGroup())
@@ -100,7 +99,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.True(t, tx.IsErrObjectNotFound(portainerErrors.ErrObjectNotFound))
 		require.False(t, tx.IsErrObjectNotFound(errors.New("other")))
 
-		require.NotNil(t, tx.AllowList())
 		require.NotNil(t, tx.CustomTemplate())
 		require.NotNil(t, tx.PendingActions())
 		require.NotNil(t, tx.Endpoint())
@@ -454,27 +452,4 @@ func TestStore_InitRespectsDockerExtensionEnv(t *testing.T) {
 	settings, err := store.Settings().Settings()
 	require.NoError(t, err)
 	require.True(t, settings.IsDockerDesktopExtension)
-}
-
-func TestStore_AllowListUpdateAndRead(t *testing.T) {
-	t.Parallel()
-	_, store := MustNewTestStore(t, true, false)
-
-	list := &portainer.AllowList{
-		ID:      portainer.AllowListSSRF,
-		Mode:    portainer.SSRFModeEnforce,
-		Entries: []string{"example.com", "10.0.0.0/8"},
-	}
-	require.NoError(t, store.AllowList().Update(portainer.AllowListSSRF, list))
-
-	got, err := store.AllowList().Read(portainer.AllowListSSRF)
-	require.NoError(t, err)
-	require.Equal(t, portainer.SSRFModeEnforce, got.Mode)
-	require.Equal(t, []string{"example.com", "10.0.0.0/8"}, got.Entries)
-
-	err = store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		_, err := tx.AllowList().ReadAll()
-		return err
-	})
-	require.NoError(t, err)
 }

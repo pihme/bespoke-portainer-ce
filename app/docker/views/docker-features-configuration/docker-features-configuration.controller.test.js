@@ -116,9 +116,7 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.$onInit();
 
     expect(StateManager.getState).toHaveBeenCalled();
-    expect(ctrl.isAgent).toBe(false);
     expect(ctrl.isDockerStandaloneEnv).toBe(true);
-    expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(false);
     expect(ctrl.formValues.disableBindMountsForRegularUsers).toBe(true);
     expect(ctrl.formValues.disablePrivilegedModeForRegularUsers).toBe(true);
     expect(ctrl.endpoint.Gpus).toEqual([]);
@@ -127,7 +125,7 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     expect(ctrl.initialEnableGPUManagement).toBe(false);
   });
 
-  it('enables agent-only host toggles and GPU management when GPUs exist', () => {
+  it('REQ-TAI-009 REQ-TAI-010 offers no host or volume browser toggles and enables GPU management when GPUs exist', () => {
     const { ctrl } = buildController({
       endpoint: {
         Id: 5,
@@ -144,10 +142,11 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
 
     ctrl.$onInit();
 
-    expect(ctrl.isAgent).toBe(true);
+    expect(ctrl).not.toHaveProperty('isAgent');
     // REQ-TAI-009: no host management features toggle
     expect(ctrl.formValues).not.toHaveProperty('enableHostManagementFeatures');
-    expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(true);
+    // REQ-TAI-010: no volume browser toggle for non-administrators
+    expect(ctrl.formValues).not.toHaveProperty('allowVolumeBrowserForRegularUsers');
     expect(ctrl.state.enableGPUManagement).toBe(true);
     expect(ctrl.initialGPUs).toEqual([{ name: 'nvidia0', value: 'gpu=0' }]);
   });
@@ -181,9 +180,7 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.onChangeDisableBindMountsForRegularUsers(true);
     expect(ctrl.formValues.disableBindMountsForRegularUsers).toBe(true);
 
-    ctrl.onChangeAllowVolumeBrowserForRegularUsers(true);
-    expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(true);
-
+    expect(ctrl).not.toHaveProperty('onChangeAllowVolumeBrowserForRegularUsers');
     expect(ctrl).not.toHaveProperty('onChangeEnableHostManagementFeatures');
 
     ctrl.onChangeDisablePrivilegedModeForRegularUsers(true);
@@ -240,7 +237,6 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.formValues.disableContainerCapabilitiesForRegularUsers = true;
     ctrl.formValues.disableSysctlSettingForRegularUsers = true;
     ctrl.formValues.disableSecurityOptForRegularUsers = true;
-    ctrl.formValues.allowVolumeBrowserForRegularUsers = true;
 
     const savePromise = ctrl.save();
     await Promise.resolve();
@@ -251,7 +247,6 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     expect(EndpointService.updateSecuritySettings).toHaveBeenCalledWith(5, {
       allowBindMountsForRegularUsers: false,
       allowPrivilegedModeForRegularUsers: false,
-      allowVolumeBrowserForRegularUsers: true,
       allowHostNamespaceForRegularUsers: false,
       allowDeviceMappingForRegularUsers: false,
       allowStackManagementForRegularUsers: false,

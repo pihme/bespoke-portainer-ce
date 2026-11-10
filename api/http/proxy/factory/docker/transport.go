@@ -180,22 +180,9 @@ func (transport *Transport) proxyAgentRequest(r *http.Request, unversionedPath s
 
 	switch {
 	case strings.HasPrefix(requestPath, "/browse"):
-		// The host filesystem browser is removed (TAI-009): a browse request
-		// without a volume never reaches the daemon.
-		volumeIDParameter, found := r.URL.Query()["volumeID"]
-		if !found || len(volumeIDParameter) < 1 {
-			return utils.WriteNotFoundResponse("Host filesystem browser is not supported")
-		}
-
-		volumeName := volumeIDParameter[0]
-
-		resourceID, err := transport.getVolumeResourceID(volumeName)
-		if err != nil {
-			return nil, err
-		}
-
-		// Volume browser request
-		return transport.restrictedResourceOperation(r, resourceID, volumeName, portainer.VolumeResourceControl, true)
+		// The host filesystem browser (TAI-009) and the volume file browser
+		// (TAI-010) are removed: browse requests never reach the daemon.
+		return utils.WriteNotFoundResponse("File browsing is not supported")
 	case strings.HasPrefix(requestPath, "/dockerhub"):
 		requestPath, registryIdString := path.Split(r.URL.Path)
 
@@ -263,7 +250,7 @@ func (transport *Transport) proxyContainerRequest(request *http.Request, unversi
 				return transport.decorateContainerUpdateOperation(request, containerID)
 			}
 
-			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
+			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 		} else if match, _ := path.Match("/containers/*", requestPath); match {
 			// Handle /containers/{id} requests
 			containerID := path.Base(requestPath)
@@ -272,11 +259,11 @@ func (transport *Transport) proxyContainerRequest(request *http.Request, unversi
 				return transport.executeGenericResourceDeletionOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 			}
 
-			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
+			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 		} else if match, _ := path.Match("/containers/*/attach/ws", requestPath); match {
 			containerID := path.Base(path.Dir(path.Dir(requestPath)))
 
-			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
+			return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 		}
 
 		return transport.executeDockerRequest(request)
@@ -297,7 +284,7 @@ func (transport *Transport) proxyExecRequest(request *http.Request, unversionedP
 		return nil, err
 	}
 
-	return transport.restrictedResourceOperation(request, execInspect.ContainerID, execInspect.ContainerID, portainer.ContainerResourceControl, false)
+	return transport.restrictedResourceOperation(request, execInspect.ContainerID, execInspect.ContainerID, portainer.ContainerResourceControl)
 }
 
 func (transport *Transport) proxyVolumeRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
@@ -338,7 +325,7 @@ func (transport *Transport) proxyNetworkRequest(request *http.Request, unversion
 		request.Method == http.MethodPost && match(requestPath, "/networks/*/disconnect"):
 
 		networkID := path.Base(path.Dir(requestPath))
-		return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl, false)
+		return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl)
 
 	case request.Method == http.MethodGet && match(requestPath, "/networks/*"):
 		return transport.rewriteOperation(request, transport.networkInspectOperation)
@@ -350,7 +337,7 @@ func (transport *Transport) proxyNetworkRequest(request *http.Request, unversion
 
 	// Assume /networks/{id}
 	networkID := path.Base(requestPath)
-	return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl, false)
+	return transport.restrictedResourceOperation(request, networkID, networkID, portainer.NetworkResourceControl)
 }
 
 func (transport *Transport) proxyBuildRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
@@ -474,7 +461,7 @@ func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.R
 	return nil
 }
 
-func (transport *Transport) restrictedResourceOperation(request *http.Request, resourceID string, dockerResourceID string, resourceType portainer.ResourceControlType, volumeBrowseRestrictionCheck bool) (*http.Response, error) {
+func (transport *Transport) restrictedResourceOperation(request *http.Request, resourceID string, dockerResourceID string, resourceType portainer.ResourceControlType) (*http.Response, error) {
 	tokenData, err := security.RetrieveTokenData(request)
 	if err != nil {
 		return nil, err
@@ -482,17 +469,6 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 
 	if tokenData.Role == portainer.AdministratorRole {
 		return transport.executeDockerRequest(request)
-	}
-
-	if volumeBrowseRestrictionCheck {
-		securitySettings, err := transport.fetchEndpointSecuritySettings()
-		if err != nil {
-			return nil, err
-		}
-
-		if !securitySettings.AllowVolumeBrowserForRegularUsers {
-			return utils.WriteAccessDeniedResponse()
-		}
 	}
 
 	teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
@@ -701,7 +677,7 @@ func (transport *Transport) decorateGenericResourceCreationOperation(request *ht
 }
 
 func (transport *Transport) executeGenericResourceDeletionOperation(request *http.Request, resourceIdentifierAttribute string, volumeName string, resourceType portainer.ResourceControlType) (*http.Response, error) {
-	response, err := transport.restrictedResourceOperation(request, resourceIdentifierAttribute, volumeName, resourceType, false)
+	response, err := transport.restrictedResourceOperation(request, resourceIdentifierAttribute, volumeName, resourceType)
 	if err != nil {
 		return response, err
 	}

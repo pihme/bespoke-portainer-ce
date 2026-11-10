@@ -7,7 +7,6 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { DockerfileDetails } from '@/react/docker/images/ItemView/DockerfileDetails';
 import { GpusList } from '@/react/docker/host/SetupView/GpusList';
-import { AgentVolumeBrowser } from '@/react/docker/volumes/BrowseView/AgentVolumeBrowser';
 import { ProcessesDatatable } from '@/react/docker/containers/StatsView/ProcessesDatatable';
 import { StacksDatatable } from '@/react/docker/stacks/ListView/StacksDatatable';
 import { HostDetailsPanel } from '@/react/docker/host/HostDetailsPanel/HostDetailsPanel';
@@ -26,21 +25,6 @@ const ngModule = angular
   .component(
     'gpusList',
     r2a(withControlledInput(GpusList), ['value', 'onChange'])
-  )
-  .component(
-    'agentVolumeBrowserReact',
-    r2a(withUIRouter(withCurrentUser(AgentVolumeBrowser)), [
-      'dataset',
-      'isRoot',
-      'isUploadAllowed',
-      'onBrowse',
-      'onDelete',
-      'onDownload',
-      'onFileSelectedForUpload',
-      'onGoToParent',
-      'onRename',
-      'relativePath',
-    ])
   )
   .component(
     'dockerContainerProcessesDatatable',

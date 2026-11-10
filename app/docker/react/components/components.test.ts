@@ -46,9 +46,6 @@ vi.mock('@/react/docker/images/ItemView/DockerfileDetails', () => ({
 vi.mock('@/react/docker/host/SetupView/GpusList', () => ({
   GpusList: () => null,
 }));
-vi.mock('@/react/docker/volumes/BrowseView/AgentVolumeBrowser', () => ({
-  AgentVolumeBrowser: () => null,
-}));
 vi.mock('@/react/docker/containers/StatsView/ProcessesDatatable', () => ({
   ProcessesDatatable: () => null,
 }));
@@ -104,6 +101,13 @@ describe('docker react component wrappers', () => {
 
     const components = modules.flatMap((m) => m.components);
     expect(components).not.toContain('agentHostBrowserReact');
+  });
+
+  it('REQ-TAI-010 registers no volume file browser component', async () => {
+    await import('./index');
+
+    const components = modules.flatMap((m) => m.components);
+    expect(components).not.toContain('agentVolumeBrowserReact');
   });
 
   it('REQ-TAI-003 registers no Docker Swarm wrapper modules or components', async () => {

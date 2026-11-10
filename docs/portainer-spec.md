@@ -111,7 +111,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-HOST-01 Docker dashboard.** Environment info and summary tiles (stacks, containers, images, volumes, networks, GPUs, Swarm services) with links into the lists. Entry: UI `#!/{envId}/docker/dashboard`; API `GET /docker/{environmentId}/dashboard`. docs: user/docker/dashboard *TAI-003: no Swarm services tile and no Swarm cluster info panels; the GPU tile shows on standalone engines.*
 - **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details *TAI-007: no PCI devices, physical disks or Agent disk usage.* *TAI-009: no Browse button.*
 - ~~**REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem) *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-009.*~~ REMOVED (TAI-009)
-- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.* *TAI-009: no host management features toggle (it only enabled the host filesystem browser and the Agent host details).*
+- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.* *TAI-009: no host management features toggle (it only enabled the host filesystem browser and the Agent host details).* *TAI-010: no "volume management for non-administrators" (volume browser) toggle; the "Host and filesystem" section is gone.*
 - **REQ-HOST-05 Docker events.** List engine events for the environment. Entry: UI `#!/{envId}/docker/events`. docs: user/docker/events
 
 ## CTR – Docker containers
@@ -156,7 +156,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-VOL-01 List volumes.** With used/unused state, driver and mount point. Entry: UI `#!/{envId}/docker/volumes`. docs: user/docker/volumes
 - **REQ-VOL-02 Create a volume.** Local, NFS, CIFS and tmpfs volumes, driver options, access control. Entry: UI `#!/{envId}/docker/volumes/new`. docs: user/docker/volumes/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-VOL-03 Volume details.** Driver, mount point, options and containers using the volume. Entry: UI `#!/{envId}/docker/volumes/{id}`. docs: user/docker/volumes
-- **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse *TAI-003: browsing no longer comes from Swarm.* *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-010.*
+- ~~**REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse *TAI-003: browsing no longer comes from Swarm.* *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-010.*~~ REMOVED (TAI-010)
 - **REQ-VOL-05 Remove a volume.** docs: user/docker/volumes/remove
 
 ## STK – Docker stacks
@@ -381,6 +381,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) A Docker proxy browse request without a volume (`/endpoints/{id}/docker/v2/browse/…` with no `volumeID`) answers 404 and never reaches the engine.
   - (c) The Docker features configuration page has no host management features toggle; `PUT /endpoints/{id}/settings` still accepts `enableHostManagementFeatures` and stores it, without effect.
   - (d) Host and engine details (REQ-HOST-02), the dashboard, events and the other feature toggles are unchanged.
+- **REQ-TAI-010 No volume file browser.** Added by TAI-010 (2026-11-10).
+  - (a) The UI route `#!/{envId}/docker/volumes/{id}/browse` is gone; the volume list and the volume details page have no Browse button.
+  - (b) Every Docker proxy browse request (`/endpoints/{id}/docker/v2/browse/…`, with or without `volumeID`, including `POST …/browse/put`) answers 404 and never reaches the engine.
+  - (c) The Docker features configuration page has no "Host and filesystem" section and no volume browser toggle; `PUT /endpoints/{id}/settings` still accepts `allowVolumeBrowserForRegularUsers` and stores it, without effect.
+  - (d) Listing, creating, inspecting and removing volumes (REQ-VOL-01, 02, 03, 05) and attaching volumes to containers (REQ-CTR-09) are unchanged.
 
 ## Not covered as requirements
 

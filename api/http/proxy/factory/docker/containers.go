@@ -369,7 +369,7 @@ func (transport *Transport) decorateContainerUpdateOperation(request *http.Reque
 	}
 
 	if isAdminOrEndpointAdmin {
-		return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
+		return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 	}
 
 	securitySettings, err := transport.fetchEndpointSecuritySettings()
@@ -393,5 +393,5 @@ func (transport *Transport) decorateContainerUpdateOperation(request *http.Reque
 
 	request.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl, false)
+	return transport.restrictedResourceOperation(request, containerID, containerID, portainer.ContainerResourceControl)
 }

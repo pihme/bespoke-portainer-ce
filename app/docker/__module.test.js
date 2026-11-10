@@ -192,15 +192,13 @@ describe('Docker Angular module wiring', () => {
       url: '/new',
       data: { docs: '/user/docker/volumes/add' },
     });
-    expect(stateByName('docker.volumes.volume.browse')).toMatchObject({
-      url: '/browse',
-      views: {
-        'content@': {
-          templateUrl: './views/volumes/browse/browsevolume.html',
-          controller: 'BrowseVolumeController',
-        },
-      },
-    });
+    // REQ-TAI-009, REQ-TAI-010: the host and volume file browser states are gone
+    expect(
+      registeredStates.find((s) => s.name === 'docker.host.browser')
+    ).toBeUndefined();
+    expect(
+      registeredStates.find((s) => s.name === 'docker.volumes.volume.browse')
+    ).toBeUndefined();
     expect(stateByName('docker.stacks')).toMatchObject({
       url: '/stacks',
       data: { docs: '/user/docker/stacks' },

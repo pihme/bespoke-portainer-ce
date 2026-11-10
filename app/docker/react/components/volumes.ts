@@ -13,6 +13,5 @@ export const volumesModule = angular
       'dataset',
       'onRemove',
       'onRefresh',
-      'isBrowseVisible',
     ])
   ).name;

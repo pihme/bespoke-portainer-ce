@@ -250,7 +250,7 @@ func (transport *Transport) restrictedVolumeOperation(requestPath string, reques
 		return transport.executeGenericResourceDeletionOperation(request, resourceID, volumeName, portainer.VolumeResourceControl)
 	}
 
-	return transport.restrictedResourceOperation(request, resourceID, volumeName, portainer.VolumeResourceControl, false)
+	return transport.restrictedResourceOperation(request, resourceID, volumeName, portainer.VolumeResourceControl)
 }
 
 func (transport *Transport) getVolumeResourceID(volumeName string) (string, error) {

@@ -12,7 +12,6 @@ angular.module('portainer.docker').controller('VolumeController', [
   'endpoint',
   function ($scope, $state, $transition$, VolumeService, ContainerService, Notifications, HttpRequestHelper, Authentication, endpoint) {
     $scope.endpoint = endpoint;
-    $scope.showBrowseAction = false;
 
     $scope.removeVolume = function removeVolume() {
       confirmDelete('Do you want to remove this volume?').then((confirmed) => {
@@ -36,8 +35,7 @@ angular.module('portainer.docker').controller('VolumeController', [
     }
 
     function initView() {
-      $scope.showBrowseAction = $scope.applicationState.endpoint.mode.agentProxy && (Authentication.isAdmin() || endpoint.SecuritySettings.allowVolumeBrowserForRegularUsers);
-
+      // The volume file browser is removed (TAI-010): no Browse button.
       VolumeService.volume($transition$.params().id)
         .then(function success(data) {
           var volume = data;

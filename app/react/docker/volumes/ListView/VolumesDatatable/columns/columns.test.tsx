@@ -148,27 +148,21 @@ describe('REQ-VOL-01 volume table columns', () => {
         row: {
           original: { Name: 'vol-long-name', dangling: true, NodeName: '' },
         },
-        table: {
-          options: { meta: { table: 'volumes', isBrowseVisible: false } },
-        },
       } as never)
     );
     expect(screen.getByTestId('volume-link-vol-long-name')).toBeVisible();
     expect(screen.getByText(/Unused/i)).toBeVisible();
   });
 
-  it('renders browse action when browse is visible', () => {
+  it('REQ-TAI-010 renders no browse action', () => {
     const Cell = name.cell as (props: never) => JSX.Element;
     render(
       Cell({
         getValue: () => 'vol',
         row: { original: { Name: 'vol', dangling: false, NodeName: 'n1' } },
-        table: {
-          options: { meta: { table: 'volumes', isBrowseVisible: true } },
-        },
       } as never)
     );
-    expect(screen.getByTestId('volume-browse-button-vol')).toBeVisible();
+    expect(screen.queryByTestId('volume-browse-button-vol')).toBeNull();
   });
 
   it('renders usage filter control from column meta', () => {

@@ -308,17 +308,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
       },
     };
 
-    var volumeBrowse = {
-      name: 'docker.volumes.volume.browse',
-      url: '/browse',
-      views: {
-        'content@': {
-          templateUrl: './views/volumes/browse/browsevolume.html',
-          controller: 'BrowseVolumeController',
-        },
-      },
-    };
-
     var volumeCreation = {
       name: 'docker.volumes.new',
       url: '/new',
@@ -368,7 +357,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
     $stateRegistryProvider.register(templates);
     $stateRegistryProvider.register(volumes);
     $stateRegistryProvider.register(volume);
-    $stateRegistryProvider.register(volumeBrowse);
     $stateRegistryProvider.register(volumeCreation);
     $stateRegistryProvider.register(dockerFeaturesConfiguration);
   },

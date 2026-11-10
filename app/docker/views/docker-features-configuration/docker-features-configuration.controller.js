@@ -15,7 +15,6 @@ export default class DockerFeaturesConfigurationController {
     this.limitedFeatureUpToDateImage = FeatureId.IMAGE_UP_TO_DATE_INDICATOR;
 
     this.formValues = {
-      allowVolumeBrowserForRegularUsers: false,
       disableBindMountsForRegularUsers: false,
       disablePrivilegedModeForRegularUsers: false,
       disableHostNamespaceForRegularUsers: false,
@@ -25,8 +24,6 @@ export default class DockerFeaturesConfigurationController {
       disableSysctlSettingForRegularUsers: false,
       disableSecurityOptForRegularUsers: false,
     };
-
-    this.isAgent = false;
 
     this.state = {
       actionInProgress: false,
@@ -39,7 +36,6 @@ export default class DockerFeaturesConfigurationController {
     this.onToggleAutoUpdate = this.onToggleAutoUpdate.bind(this);
     this.onToggleGPUManagement = this.onToggleGPUManagement.bind(this);
     this.onGpusChange = this.onGpusChange.bind(this);
-    this.onChangeAllowVolumeBrowserForRegularUsers = this.onChangeField('allowVolumeBrowserForRegularUsers');
     this.onChangeDisableBindMountsForRegularUsers = this.onChangeField('disableBindMountsForRegularUsers');
     this.onChangeDisablePrivilegedModeForRegularUsers = this.onChangeField('disablePrivilegedModeForRegularUsers');
     this.onChangeDisableHostNamespaceForRegularUsers = this.onChangeField('disableHostNamespaceForRegularUsers');
@@ -117,7 +113,6 @@ export default class DockerFeaturesConfigurationController {
         const settings = {
           allowBindMountsForRegularUsers: !this.formValues.disableBindMountsForRegularUsers,
           allowPrivilegedModeForRegularUsers: !this.formValues.disablePrivilegedModeForRegularUsers,
-          allowVolumeBrowserForRegularUsers: this.formValues.allowVolumeBrowserForRegularUsers,
           allowHostNamespaceForRegularUsers: !this.formValues.disableHostNamespaceForRegularUsers,
           allowDeviceMappingForRegularUsers: !this.formValues.disableDeviceMappingForRegularUsers,
           allowStackManagementForRegularUsers: !this.formValues.disableStackManagementForRegularUsers,
@@ -147,12 +142,9 @@ export default class DockerFeaturesConfigurationController {
     const securitySettings = this.endpoint.SecuritySettings;
 
     const applicationState = this.StateManager.getState();
-    this.isAgent = applicationState.endpoint.mode.agentProxy;
-
     this.isDockerStandaloneEnv = applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
 
     this.formValues = {
-      allowVolumeBrowserForRegularUsers: this.isAgent && securitySettings.allowVolumeBrowserForRegularUsers,
       disableBindMountsForRegularUsers: !securitySettings.allowBindMountsForRegularUsers,
       disablePrivilegedModeForRegularUsers: !securitySettings.allowPrivilegedModeForRegularUsers,
       disableHostNamespaceForRegularUsers: !securitySettings.allowHostNamespaceForRegularUsers,

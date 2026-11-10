@@ -132,7 +132,7 @@ describe('REQ-VOL-01 VolumesController local Docker volumes list', () => {
       expect.objectContaining({ Name: 'vol1', dangling: false }),
       expect.objectContaining({ Name: 'vol2', dangling: true }),
     ]);
-    expect($scope.showBrowseAction).toBe(false);
+    expect($scope).not.toHaveProperty('showBrowseAction');
   });
 
   it('REQ-TAI-003 lists volumes without asking for Swarm services on a Swarm manager', async () => {
@@ -152,7 +152,7 @@ describe('REQ-VOL-01 VolumesController local Docker volumes list', () => {
     ]);
   });
 
-  it('shows browse for admins on an agent proxy endpoint', async () => {
+  it('REQ-TAI-010 shows no browse action even for admins on an agent proxy endpoint', async () => {
     const { $scope } = buildController({
       agentProxy: true,
       isAdmin: true,
@@ -160,7 +160,7 @@ describe('REQ-VOL-01 VolumesController local Docker volumes list', () => {
     await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
-    expect($scope.showBrowseAction).toBe(true);
+    expect($scope).not.toHaveProperty('showBrowseAction');
   });
 
   it('notifies when listing volumes fails', async () => {

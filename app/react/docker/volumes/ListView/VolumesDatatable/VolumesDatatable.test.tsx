@@ -24,7 +24,6 @@ vi.mock('@@/Link', () => ({
 import { DecoratedVolume } from '../types';
 
 import { TableActions } from './TableActions';
-import { getTableMeta } from './tableMeta';
 import { VolumesDatatable } from './VolumesDatatable';
 
 vi.mock('@@/datatables', async (importOriginal) => {
@@ -82,7 +81,6 @@ describe('REQ-VOL-01 VolumesDatatable', () => {
           <VolumesDatatable
             onRemove={vi.fn()}
             onRefresh={async () => {}}
-            isBrowseVisible={false}
           />
         )),
         createMockUser({ Role: Role.Admin })
@@ -92,7 +90,7 @@ describe('REQ-VOL-01 VolumesDatatable', () => {
     expect(screen.getByRole('region', { name: 'Volumes' })).toBeVisible();
   });
 
-  it('renders volumes and wires browse meta', async () => {
+  it('renders volumes', async () => {
     const Wrapped = withTestQueryProvider(
       withUserProvider(
         withTestRouter(() => (
@@ -100,7 +98,6 @@ describe('REQ-VOL-01 VolumesDatatable', () => {
             dataset={[volume]}
             onRemove={vi.fn()}
             onRefresh={async () => {}}
-            isBrowseVisible
           />
         )),
         createMockUser({ Role: Role.Admin })
@@ -119,7 +116,6 @@ describe('REQ-VOL-01 VolumesDatatable', () => {
             dataset={[volume]}
             onRemove={vi.fn()}
             onRefresh={async () => {}}
-            isBrowseVisible={false}
           />
         )),
         createMockUser({ Role: Role.Admin })
@@ -141,7 +137,6 @@ describe('REQ-VOL-01 VolumesDatatable', () => {
             dataset={[volume]}
             onRemove={vi.fn()}
             onRefresh={async () => {}}
-            isBrowseVisible={false}
           />
         )),
         createMockUser({ Role: Role.Admin })
@@ -191,24 +186,22 @@ describe('REQ-VOL-01 TableActions', () => {
   });
 });
 
-describe('getTableMeta', () => {
-  it('returns defaults for invalid meta', () => {
-    expect(getTableMeta(undefined)).toEqual({
-      isBrowseVisible: false,
-      table: 'volumes',
-    });
-    expect(getTableMeta({ table: 'other' })).toEqual({
-      isBrowseVisible: false,
-      table: 'volumes',
-    });
-  });
-
-  it('returns browse visibility from valid meta', () => {
-    expect(
-      getTableMeta({ table: 'volumes', isBrowseVisible: true })
-    ).toEqual({
-      isBrowseVisible: true,
-      table: 'volumes',
-    });
+describe('REQ-TAI-010 no volume file browser', () => {
+  it('renders no Browse button for a volume', async () => {
+    const Wrapped = withTestQueryProvider(
+      withUserProvider(
+        withTestRouter(() => (
+          <VolumesDatatable
+            dataset={[volume]}
+            onRemove={vi.fn()}
+            onRefresh={async () => {}}
+          />
+        )),
+        createMockUser({ Role: Role.Admin })
+      )
+    );
+    render(<Wrapped />);
+    expect(await screen.findByText('vol-1')).toBeVisible();
+    expect(screen.queryByText('Browse')).not.toBeInTheDocument();
   });
 });

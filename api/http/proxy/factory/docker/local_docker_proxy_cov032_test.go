@@ -327,7 +327,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		t.Parallel()
 		resp, err := transport.restrictedResourceOperation(
 			tokenReq(http.MethodPost, "/containers/ctr-owned/start", admin),
-			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl, false,
+			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl,
 		)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -338,7 +338,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		t.Parallel()
 		resp, err := transport.restrictedResourceOperation(
 			tokenReq(http.MethodPost, "/containers/ctr-owned/start", owner),
-			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl, false,
+			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl,
 		)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -349,7 +349,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		t.Parallel()
 		resp, err := transport.restrictedResourceOperation(
 			tokenReq(http.MethodPost, "/containers/ctr-owned/start", other),
-			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl, false,
+			"ctr-owned", "ctr-owned", portainer.ContainerResourceControl,
 		)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -360,7 +360,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		t.Parallel()
 		resp, err := transport.restrictedResourceOperation(
 			tokenReq(http.MethodPost, "/containers/ctr-inherited/start", owner),
-			"ctr-inherited", "ctr-inherited", portainer.ContainerResourceControl, false,
+			"ctr-inherited", "ctr-inherited", portainer.ContainerResourceControl,
 		)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -371,63 +371,12 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 		t.Parallel()
 		resp, err := transport.restrictedResourceOperation(
 			tokenReq(http.MethodPost, "/networks/custom/connect", owner),
-			"custom", "custom", portainer.NetworkResourceControl, false,
+			"custom", "custom", portainer.NetworkResourceControl,
 		)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NoError(t, resp.Body.Close())
 	})
-
-	t.Run("volume browse denied for regular users", func(t *testing.T) {
-		t.Parallel()
-		resp, err := transport.restrictedResourceOperation(
-			tokenReq(http.MethodGet, "/unused", owner),
-			"vol_engine", "vol", portainer.VolumeResourceControl, true,
-		)
-		require.NoError(t, err)
-		require.Equal(t, http.StatusForbidden, resp.StatusCode)
-		require.NoError(t, resp.Body.Close())
-	})
-}
-
-func TestREQ_VOL_04_RestrictedResourceOperationVolumeBrowseAllowed(t *testing.T) {
-	t.Parallel()
-
-	owner := portainer.User{ID: 2, Username: "owner", Role: portainer.StandardUserRole}
-	_, store := datastore.MustNewTestStore(t, true, false)
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.User().Create(&owner))
-		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
-			ID: 1, Name: "env",
-			SecuritySettings: portainer.EndpointSecuritySettings{
-				AllowVolumeBrowserForRegularUsers: true,
-			},
-		}))
-		require.NoError(t, tx.ResourceControl().Create(
-			authorization.NewPrivateResourceControl("data_engine", portainer.VolumeResourceControl, owner.ID),
-		))
-		return nil
-	}))
-
-	srv, version := mockDockerAPIServer(t, RoutesDefinition{
-		{http.MethodGet, "/browse"}: map[string]any{"files": []any{}},
-	})
-	t.Cleanup(srv.Close)
-
-	transport := &Transport{
-		endpoint:      &portainer.Endpoint{ID: 1, URL: srv.URL},
-		dataStore:     store,
-		HTTPTransport: &http.Transport{},
-	}
-
-	req := httptest.NewRequest(http.MethodGet, srv.URL+"/v"+version+"/browse", nil)
-	req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
-		ID: owner.ID, Username: owner.Username, Role: owner.Role,
-	}))
-	resp, err := transport.restrictedResourceOperation(req, "data_engine", "data", portainer.VolumeResourceControl, true)
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.NoError(t, resp.Body.Close())
 }
 
 func TestREQ_IMG_03_BuildOperationLocalDockerfileBodies(t *testing.T) {
@@ -767,7 +716,7 @@ func TestREQ_USR_08_RestrictedResourceInheritedDeniedAndEmptyDockerID(t *testing
 	req = req.WithContext(security.StoreTokenData(req, &portainer.TokenData{
 		ID: other.ID, Username: other.Username, Role: other.Role,
 	}))
-	resp, err := transport.restrictedResourceOperation(req, "c-inh", "", portainer.ContainerResourceControl, false)
+	resp, err := transport.restrictedResourceOperation(req, "c-inh", "", portainer.ContainerResourceControl)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	require.NoError(t, resp.Body.Close())

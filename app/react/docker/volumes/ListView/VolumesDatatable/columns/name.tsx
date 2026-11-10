@@ -1,17 +1,13 @@
 import { CellContext, Column } from '@tanstack/react-table';
-import { Search } from 'lucide-react';
 
 import { truncate } from '@/portainer/filters/filters';
 import { getValueAsArrayOfStrings } from '@/portainer/helpers/array';
-import { Authorized } from '@/react/hooks/useUser';
 
-import { Button } from '@@/buttons';
 import { Link } from '@@/Link';
 import { MultipleSelectionFilter } from '@@/datatables/Filter';
 import { UnusedBadge } from '@@/Badge/UnusedBadge';
 
 import { DecoratedVolume } from '../../types';
-import { getTableMeta } from '../tableMeta';
 
 import { columnHelper } from './helper';
 
@@ -69,11 +65,8 @@ function FilterByUsage<TData extends { Used: boolean }>({
 function Cell({
   getValue,
   row: { original: item },
-  table: {
-    options: { meta },
-  },
 }: CellContext<DecoratedVolume, string>) {
-  const { isBrowseVisible } = getTableMeta(meta);
+  // The volume file browser (Browse button) is removed (TAI-010).
   const name = getValue();
 
   return (
@@ -89,27 +82,6 @@ function Cell({
       >
         {truncate(name, 40)}
       </Link>
-      {isBrowseVisible && (
-        <Authorized authorizations="DockerAgentBrowseList">
-          <Button
-            className="ml-2"
-            icon={Search}
-            color="primary"
-            size="xsmall"
-            as={Link}
-            props={{
-              to: 'docker.volumes.volume.browse',
-              params: {
-                id: item.Name,
-                nodeName: item.NodeName,
-              },
-            }}
-            data-cy={`volume-browse-button-${name}`}
-          >
-            Browse
-          </Button>
-        </Authorized>
-      )}
       {item.dangling && <UnusedBadge />}
     </div>
   );

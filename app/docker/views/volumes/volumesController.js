@@ -51,9 +51,8 @@ angular.module('portainer.docker').controller('VolumesController', [
     }
 
     function initView() {
+      // The volume file browser is removed (TAI-010).
       getVolumes();
-
-      $scope.showBrowseAction = $scope.applicationState.endpoint.mode.agentProxy && (Authentication.isAdmin() || endpoint.SecuritySettings.allowVolumeBrowserForRegularUsers);
     }
 
     initView();

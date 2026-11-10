@@ -80,13 +80,13 @@ describe('REQ-VOL-03 VolumeController local volume details', () => {
     expect(ctx.$scope.volume.Id).toBe('vol-1');
     expect(ctx.$scope.containersUsingVolume).toHaveLength(1);
     expect(ctx.$scope.containersUsingVolume[0].volumeData.Destination).toBe('/data');
-    expect(ctx.$scope.showBrowseAction).toBe(false);
+    expect(ctx.$scope).not.toHaveProperty('showBrowseAction');
   });
 
-  it('enables browse action for admin on agent proxy', async () => {
+  it('REQ-TAI-010 shows no browse action even for admin on agent proxy', async () => {
     const ctx = buildController({ agentProxy: true, isAdmin: true });
     await ctx.settle();
-    expect(ctx.$scope.showBrowseAction).toBe(true);
+    expect(ctx.$scope).not.toHaveProperty('showBrowseAction');
   });
 
   it('notifies when volume details fail', async () => {

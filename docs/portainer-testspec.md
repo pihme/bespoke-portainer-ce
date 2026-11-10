@@ -769,7 +769,7 @@ Phase C additions:
 
 - `api/scheduler/scheduler_test.go` extended (COV-188) — backwards-compat local scheduler shutdown/invalid job id.
 
-- `api/exec/exectest/kubernetes_mocks_test.go` (COV-187) — backwards-compat kubernetes deployer mock helpers.
+- `api/exec/exectest/kubernetes_mocks_test.go` (COV-187) — backwards-compat kubernetes deployer mock helpers. Removed with the Kubernetes proxy, the JWT service and the deployer mock in TAI-016.
 
 - `api/logs/log_test.go` extended (COV-185) — backwards-compat logger configuration bootstrap.
 
@@ -914,7 +914,7 @@ Candidates found while mapping:
 - Agent request signing and the FIPS mode switch (`*_SignsOnlyOutsideFIPSMode`, `*_FIPSModeNeverCreatesSignature` in `api/docker/client`, `api/http/proxy/factory/**`, `api/http/handler/websocket`, `api/kubernetes/cli`; `pkg/fips`).
 - Rejecting encoded path separators in the Docker proxy (`TestTransport_ProxyDockerRequest_rejectsEncodedSeparator`, `pkg/libhttp/request/docker_version_test.go`).
 - Archive path traversal and symlink rejection (`api/archive/targz_test.go`: `TestExtractTarGzPathTraversal`; `api/git/git_test.go`: `Test_noSymlinkFS_*`, `Test_Download_RejectsSymlink`).
-- Kubeconfig token scope confined to the Kubernetes proxy (`api/http/security/bouncer_test.go`: `TestTokenScope_*`; `api/jwt/jwt_scope_test.go`).
+- Kubeconfig token scope confined to the Kubernetes proxy (`api/http/security/bouncer_test.go`: `TestTokenScope_*`; `api/jwt/jwt_scope_test.go`). Removed with the Kubernetes proxy, the JWT service and the deployer mock in TAI-016.
 - Local-request check (`pkg/libhttp/localcheck_test.go`).
 - Pending actions run after restart (`api/pendingactions/**`).
 - Panic recovery and HTTP logging (`api/http/middlewares/panic_logger_test.go`, `api/http/logger_test.go`).

@@ -3,7 +3,6 @@
 import dataflow from '@/assets/ico/dataflow-1.svg?c';
 import git from '@/assets/ico/git.svg?c';
 import kube from '@/assets/ico/kube.svg?c';
-import ldap from '@/assets/ico/ldap.svg?c';
 import linux from '@/assets/ico/linux.svg?c';
 import memory from '@/assets/ico/memory.svg?c';
 import restorewindow from '@/assets/ico/restore-window.svg?c';
@@ -25,11 +24,9 @@ import gitlab from '@/assets/ico/vendor/gitlab.svg?c';
 import google from '@/assets/ico/vendor/google.svg?c';
 import googlecloud from '@/assets/ico/vendor/googlecloud.svg?c';
 import kubernetes from '@/assets/ico/vendor/kubernetes.svg?c';
-import helm from '@/assets/ico/vendor/helm.svg?c';
 import akamai from '@/assets/ico/vendor/akamai.svg?c';
 import microsoft from '@/assets/ico/vendor/microsoft.svg?c';
 import microsofticon from '@/assets/ico/vendor/microsoft-icon.svg?c';
-import openldap from '@/assets/ico/vendor/openldap.svg?c';
 import proget from '@/assets/ico/vendor/proget.svg?c';
 import quay from '@/assets/ico/vendor/quay.svg?c';
 
@@ -39,7 +36,6 @@ export const SvgIcons = {
   dataflow,
   dockericon,
   git,
-  ldap,
   linux,
   memory,
   placeholder,
@@ -59,11 +55,9 @@ export const SvgIcons = {
   google,
   googlecloud,
   kubernetes,
-  helm,
   akamai,
   microsoft,
   microsofticon,
-  openldap,
   proget,
   quay,
   kube,

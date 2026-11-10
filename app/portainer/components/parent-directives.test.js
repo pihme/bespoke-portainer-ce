@@ -22,7 +22,6 @@ vi.mock('angular', () => ({ default: angularMock, module: angularMock.module }))
 vi.mock('./form-components', () => ({ default: 'form' }));
 vi.mock('./widget', () => ({ default: 'widget' }));
 vi.mock('./BoxSelector', () => ({ boxSelectorModule: 'box' }));
-vi.mock('./BEFeatureIndicator', () => ({ beFeatureIndicator: {} }));
 vi.mock('./InformationPanel', () => ({ InformationPanelAngular: {} }));
 vi.mock('./forms/git-form', () => ({ gitFormModule: 'git' }));
 vi.mock('./tls-fieldset', () => ({ tlsFieldsetModule: 'tls' }));
@@ -38,26 +37,13 @@ describe('portainer components parent directives (backwards compatibility)', () 
   it('registers the components module wiring', () => {
     expect(angularMock.module).toHaveBeenCalled();
     // REQ-TAI-001: no access-management component module
-    const call = angularMock.module.mock.calls.find(
-      ([name]) => name === 'portainer.app.components'
-    );
+    const call = angularMock.module.mock.calls.find(([name]) => name === 'portainer.app.components');
     expect(call?.[1] ?? []).not.toContain('access');
-    expect(moduleApi.component).toHaveBeenCalledWith(
-      'informationPanel',
-      expect.anything()
-    );
+    expect(moduleApi.component).toHaveBeenCalledWith('informationPanel', expect.anything());
   });
 
   it('defines parent-level directives', () => {
-    expect(Object.keys(directiveDefs)).toEqual(
-      expect.arrayContaining([
-        'autoFocus',
-        'focusIf',
-        'buttonSpinner',
-        'onEnterKey',
-        'rdTemplateWidget',
-      ])
-    );
+    expect(Object.keys(directiveDefs)).toEqual(expect.arrayContaining(['autoFocus', 'focusIf', 'buttonSpinner', 'onEnterKey', 'rdTemplateWidget']));
   });
 
   it('buttonSpinner exposes spinning binding and spinner template', () => {
@@ -98,11 +84,7 @@ describe('portainer components parent directives (backwards compatibility)', () 
     const watch = vi.fn();
     const evalFn = vi.fn(() => 0);
     const focus = vi.fn();
-    def.link(
-      { $watch: watch, $eval: evalFn },
-      [{ focus }],
-      { focusIf: 'shouldFocus', focusDelay: '0' }
-    );
+    def.link({ $watch: watch, $eval: evalFn }, [{ focus }], { focusIf: 'shouldFocus', focusDelay: '0' });
     expect(watch).toHaveBeenCalledWith('shouldFocus', expect.any(Function));
     const focusCb = watch.mock.calls[0][1];
     focusCb(true);

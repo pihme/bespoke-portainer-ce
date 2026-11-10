@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { PortainerEndpointCreationTypes } from '@/portainer/models/endpoint/models';
-
-import { mockQ, promiseResource, rejectResource } from './angularFactoryHelpers.test.js';
-
+import { mockQ, promiseResource } from './angularFactoryHelpers.test.js';
 
 const { factoryState, angularMock } = vi.hoisted(() => {
   const factoryState = { factory: null };
@@ -46,7 +43,6 @@ function buildService({ endpoints = {}, uploads = {} } = {}) {
   };
   const FileUploadService = {
     uploadTLSFilesForEndpoint: vi.fn(() => Promise.resolve()),
-    createEndpoint: vi.fn(() => Promise.resolve({ data: { Id: 7, Name: 'local' } })),
     ...uploads,
   };
   const service = factoryState.factory($q, Endpoints, FileUploadService);
@@ -84,58 +80,10 @@ describe('REQ-ENV-01 EndpointService local Docker client', () => {
     expect(Endpoints.remove).toHaveBeenCalledWith({ id: 9 });
   });
 
-  it('createLocalEndpoint prefixes unix socket paths', async () => {
-    const { service, FileUploadService } = buildService();
-    const created = await service.createLocalEndpoint('local', '/var/run/docker.sock', '', 1, [2]);
-    expect(created).toEqual({ Id: 7, Name: 'local' });
-    expect(FileUploadService.createEndpoint).toHaveBeenCalledWith(
-      'local',
-      PortainerEndpointCreationTypes.LocalDockerEnvironment,
-      'unix:///var/run/docker.sock',
-      '',
-      1,
-      [2],
-      false
-    );
-  });
-
-  it('createLocalEndpoint prefixes Windows named pipes', async () => {
-    const { service, FileUploadService } = buildService();
-    await service.createLocalEndpoint('local', '//./pipe/docker_engine');
-    expect(FileUploadService.createEndpoint).toHaveBeenCalledWith(
-      'local',
-      PortainerEndpointCreationTypes.LocalDockerEnvironment,
-      'npipe:////./pipe/docker_engine',
-      '',
-      1,
-      [],
-      false
-    );
-  });
-
-  it('createLocalEndpoint rejects with a clear message on failure', async () => {
-    const { service } = buildService({
-      uploads: { createEndpoint: vi.fn(() => Promise.reject(new Error('boom'))) },
-    });
-    await expect(service.createLocalEndpoint('local')).rejects.toMatchObject({
-      msg: 'Unable to create environment',
-    });
-  });
-
-  it('createRemoteEndpoint always prefixes tcp (REQ-TAI-004: no Edge creation type)', async () => {
-    const { service, FileUploadService } = buildService();
-    await service.createRemoteEndpoint(
-      'remote',
-      PortainerEndpointCreationTypes.LocalDockerEnvironment,
-      'host:2375',
-      'pub',
-      1,
-      [],
-      false,
-      false,
-      false
-    );
-    expect(FileUploadService.createEndpoint.mock.calls[0][2]).toBe('tcp://host:2375');
+  it('REQ-TAI-018 has no create helpers that send a group or tags', () => {
+    const { service } = buildService();
+    expect(service.createLocalEndpoint).toBeUndefined();
+    expect(service.createRemoteEndpoint).toBeUndefined();
   });
 
   it('updateEndpoint uploads TLS files then updates', async () => {
@@ -161,10 +109,7 @@ describe('REQ-ENV-01 EndpointService local Docker client', () => {
     await service.updateSecuritySettings(1, { AllowBindMountsForRegularUsers: false });
     await service.updateAccess(1, { 2: { RoleId: 0 } }, {});
     expect(Endpoints.updateSecuritySettings).toHaveBeenCalled();
-    expect(Endpoints.updateAccess).toHaveBeenCalledWith(
-      { id: 1 },
-      { UserAccessPolicies: { 2: { RoleId: 0 } }, TeamAccessPolicies: {} }
-    );
+    expect(Endpoints.updateAccess).toHaveBeenCalledWith({ id: 1 }, { UserAccessPolicies: { 2: { RoleId: 0 } }, TeamAccessPolicies: {} });
   });
 
   it('disassociateEndpoint calls Endpoints.disassociate', async () => {

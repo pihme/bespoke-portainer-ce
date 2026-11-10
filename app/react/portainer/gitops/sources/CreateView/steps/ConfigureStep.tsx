@@ -9,16 +9,12 @@ import { FormValues } from '../type';
 import { validationSchema } from '../validation';
 
 import { ConfigureGit } from './ConfigureGit';
-import { ConfigureHelm } from './ConfigureHelm';
-import { ConfigureRegistry } from './ConfigureRegistry';
 
 const panels: Record<
   FormValues['type'],
   { title: string; component: ComponentType }
 > = {
   git: { title: 'Git Repository', component: ConfigureGit },
-  helm: { title: 'Helm Repository', component: ConfigureHelm },
-  registry: { title: 'OCI Registry', component: ConfigureRegistry },
 };
 
 export function ConfigureStep() {

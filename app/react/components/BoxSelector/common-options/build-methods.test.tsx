@@ -1,23 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  customTemplate,
-  edgeStackTemplate,
-  editor,
-  git,
-  helm,
-  upload,
-  url,
-} from './build-methods';
+import { customTemplate, editor, git, upload, url } from './build-methods';
+import * as buildMethods from './build-methods';
 
 describe('BoxSelector build-methods options', () => {
-  it('exposes editor upload git url helm and template options', () => {
+  it('exposes editor upload git url and template options', () => {
     expect(editor.value).toBe('editor');
     expect(upload.value).toBe('upload');
     expect(git.value).toBe('repository');
     expect(url.value).toBe('url');
-    expect(helm.value).toBe('helm');
-    expect(edgeStackTemplate.value).toBe('template');
     expect(customTemplate.value).toBe('template');
+  });
+
+  it('REQ-TAI-018 offers no Helm chart method', () => {
+    const mod: Record<string, unknown> = buildMethods;
+    expect(mod).not.toHaveProperty('helm');
+    expect(mod).not.toHaveProperty('edgeStackTemplate');
   });
 });

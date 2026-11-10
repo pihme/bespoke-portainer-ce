@@ -21,7 +21,6 @@ import { TableColumnHeaderAngular } from '@@/datatables/TableHeaderCell';
 import { TerminalTooltip } from '@@/TerminalTooltip';
 import { Terminal } from '@@/Terminal/Terminal';
 import { PortainerSelect } from '@@/form-components/PortainerSelect';
-import { BETeaserButton } from '@@/BETeaserButton';
 import { CodeEditor } from '@@/CodeEditor';
 import { TextTip } from '@@/Tip/TextTip';
 
@@ -39,18 +38,6 @@ export const ngModule = angular
     accountModule,
     stacksModule,
   ])
-  .component(
-    'beTeaserButton',
-    r2a(BETeaserButton, [
-      'featureId',
-      'heading',
-      'message',
-      'buttonText',
-      'className',
-      'buttonClassName',
-      'data-cy',
-    ])
-  )
   .component(
     'portainerTooltip',
     r2a(Tooltip, ['message', 'position', 'className', 'setHtmlMessage', 'size'])

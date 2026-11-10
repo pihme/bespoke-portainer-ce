@@ -6,16 +6,14 @@ import { createElement, Fragment } from 'react';
 import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 
-import {
-  useApiVersion,
-  useVersion,
-} from './useVersion';
+import { useApiVersion, useVersion } from './useVersion';
 import {
   useInfo,
   useIsStandalone,
   useIsWindows,
   useSystemLimits,
 } from './useInfo';
+import * as useInfoModule from './useInfo';
 import {
   useLoggingPlugins,
   useNetworkPlugins,
@@ -70,8 +68,8 @@ describe('useInfo helpers (backwards compatibility)', () => {
     await waitFor(() => expect(result.current).toBe(true));
   });
 
-  it('REQ-TAI-017 has no Swarm hooks', async () => {
-    const mod = await import('./useInfo');
+  it('REQ-TAI-017 has no Swarm hooks', () => {
+    const mod: Record<string, unknown> = useInfoModule;
     expect(mod).not.toHaveProperty('useIsSwarm');
     expect(mod).not.toHaveProperty('useIsSwarmManager');
   });
@@ -116,10 +114,12 @@ describe('useVersion helpers (backwards compatibility)', () => {
 describe('useEvents and useImages hooks (backwards compatibility)', () => {
   it('useEvents loads events for the environment', async () => {
     server.use(
-      http.get('/api/endpoints/:id/docker/events', () =>
-        new HttpResponse('{"Type":"container","Action":"create"}', {
-          headers: { 'Content-Type': 'application/json' },
-        })
+      http.get(
+        '/api/endpoints/:id/docker/events',
+        () =>
+          new HttpResponse('{"Type":"container","Action":"create"}', {
+            headers: { 'Content-Type': 'application/json' },
+          })
       )
     );
     const { result } = wrapHook(() => useEvents(4));
@@ -159,7 +159,9 @@ describe('plugin hooks (backwards compatibility)', () => {
       loggingPodman: useLoggingPlugins(7, false, true),
       both: useServicePlugins(7, false, 'Log'),
     }));
-    await waitFor(() => expect(result.current.network.data).toEqual(['bridge']));
+    await waitFor(() =>
+      expect(result.current.network.data).toEqual(['bridge'])
+    );
     expect(result.current.logging.data).toEqual(['json-file']);
     expect(result.current.loggingPodman.data).toEqual(['json-file']);
   });
@@ -206,5 +208,4 @@ describe('useCommitContainerMutation (backwards compatibility)', () => {
     expect(params.get('repo')).toBe('registry.local:5000/myimg');
     expect(params.get('tag')).toBe('2');
   });
-
 });

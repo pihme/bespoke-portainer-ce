@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PortainerEndpointCreationTypes } from '@/portainer/models/endpoint/models';
 
 const { factoryState, angularMock } = vi.hoisted(() => {
   const factoryState = { factory: null };
@@ -50,45 +49,19 @@ describe('REQ-STK-02 FileUploadService compose and TLS', () => {
     await service.uploadTLSFilesForEndpoint(5, 'ca', 'cert', 'key');
     expect($q.all).toHaveBeenCalled();
     expect(Upload.upload).toHaveBeenCalledTimes(3);
-    expect(Upload.upload).toHaveBeenCalledWith(
-      expect.objectContaining({ url: 'api/upload/tls/ca?folder=5' })
-    );
+    expect(Upload.upload).toHaveBeenCalledWith(expect.objectContaining({ url: 'api/upload/tls/ca?folder=5' }));
   });
 
-  it('createEndpoint uploads a local Docker endpoint payload', async () => {
-    const Upload = { upload: vi.fn(() => Promise.resolve({})), json: (v) => v };
-    const service = buildService(Upload);
-    await service.createEndpoint(
-      'local',
-      PortainerEndpointCreationTypes.LocalDockerEnvironment,
-      'unix:///var/run/docker.sock',
-      '',
-      1,
-      [1],
-      false,
-      false,
-      false,
-      null,
-      null,
-      null
-    );
-    expect(Upload.upload).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: 'api/endpoints',
-        data: expect.objectContaining({
-          Name: 'local',
-          EndpointCreationType: PortainerEndpointCreationTypes.LocalDockerEnvironment,
-        }),
-      })
-    );
+  it('REQ-TAI-018 has no environment create or LDAP TLS upload helpers', () => {
+    const service = buildService();
+    expect(service.createEndpoint).toBeUndefined();
+    expect(service.uploadLDAPTLSFiles).toBeUndefined();
   });
 
   it('createCustomTemplate uploads a template file', async () => {
     const Upload = { upload: vi.fn(() => Promise.resolve({})), json: (v) => v };
     const service = buildService(Upload);
     await service.createCustomTemplate({ file: 'f', Title: 't' });
-    expect(Upload.upload).toHaveBeenCalledWith(
-      expect.objectContaining({ url: 'api/custom_templates/create/file' })
-    );
+    expect(Upload.upload).toHaveBeenCalledWith(expect.objectContaining({ url: 'api/custom_templates/create/file' }));
   });
 });

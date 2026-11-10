@@ -1,5 +1,3 @@
-import { PortainerEndpointCreationTypes } from '@/portainer/models/endpoint/models';
-
 angular.module('portainer.app').factory('FileUploadService', FileUploadFactory);
 
 /* @ngInject */
@@ -8,8 +6,6 @@ function FileUploadFactory($q, Upload) {
     // createComposeStack, // stack service
     // createCustomTemplate, // custom template service
     // configureRegistry, // registry service
-    // createEndpoint, // endpoint service
-    // uploadLDAPTLSFiles, // auth settings controller
     // uploadTLSFilesForEndpoint, // endpoint service
     // uploadOwnershipVoucher, // import device controller
   };
@@ -37,58 +33,6 @@ function FileUploadFactory($q, Upload) {
       data,
       ignoreLoadingBar: true,
     });
-  };
-
-  service.createEndpoint = function (
-    name,
-    creationType,
-    URL,
-    PublicURL,
-    groupID,
-    tagIds,
-    TLS,
-    TLSSkipVerify,
-    TLSSkipClientVerify,
-    TLSCAFile,
-    TLSCertFile,
-    TLSKeyFile,
-    checkinInterval
-  ) {
-    return Upload.upload({
-      url: 'api/endpoints',
-      data: {
-        Name: name,
-        EndpointCreationType: creationType,
-        URL: URL,
-        PublicURL: PublicURL,
-        GroupID: groupID,
-        TagIds: Upload.json(tagIds),
-        TLS: TLS,
-        TLSSkipVerify: TLSSkipVerify,
-        TLSSkipClientVerify: TLSSkipClientVerify,
-        TLSCACertFile: TLSCAFile,
-        TLSCertFile: TLSCertFile,
-        TLSKeyFile: TLSKeyFile,
-        CheckinInterval: checkinInterval,
-      },
-      ignoreLoadingBar: true,
-    });
-  };
-
-  service.uploadLDAPTLSFiles = function (TLSCAFile, TLSCertFile, TLSKeyFile) {
-    var queue = [];
-
-    if (TLSCAFile) {
-      queue.push(uploadFile('api/upload/tls/ca?folder=ldap', TLSCAFile));
-    }
-    if (TLSCertFile) {
-      queue.push(uploadFile('api/upload/tls/cert?folder=ldap', TLSCertFile));
-    }
-    if (TLSKeyFile) {
-      queue.push(uploadFile('api/upload/tls/key?folder=ldap', TLSKeyFile));
-    }
-
-    return $q.all(queue);
   };
 
   service.uploadTLSFilesForEndpoint = function (endpointID, TLSCAFile, TLSCertFile, TLSKeyFile) {

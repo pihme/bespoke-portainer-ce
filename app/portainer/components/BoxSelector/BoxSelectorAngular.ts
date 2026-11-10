@@ -21,9 +21,8 @@ class BoxSelectorController implements IComponentController {
     this.$scope = $scope;
   }
 
-  handleChange(value: string | number, limitedToBE: boolean) {
+  handleChange(value: string | number) {
     this.$scope.$evalAsync(() => {
-      this.formCtrl.$setValidity(this.radioName, !limitedToBE, this.formCtrl);
       this.onChange(value);
     });
   }

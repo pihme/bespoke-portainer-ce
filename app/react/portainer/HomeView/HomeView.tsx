@@ -13,7 +13,6 @@ import { buildConfirmButton } from '@@/modals/utils';
 
 import { EnvironmentList } from './EnvironmentList';
 import { EdgeLoadingSpinner } from './EdgeLoadingSpinner';
-import { LicenseNodePanel } from './LicenseNodePanel';
 import { EnvironmentHeader } from './EnvironmentHeader/EnvironmentHeader';
 
 export function HomeView() {
@@ -62,9 +61,6 @@ export function HomeView() {
         title="Home"
         breadcrumbs={[{ label: 'Environments' }]}
       />
-
-      {process.env.PORTAINER_EDITION !== 'CE' && <LicenseNodePanel />}
-
 
       {connectingToEdgeEndpoint ? (
         <div className="mb-5 flex flex-1 flex-col items-center justify-center">

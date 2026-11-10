@@ -21,7 +21,7 @@ type GitFormValues = {
   connectionOk: boolean;
 };
 
-export const FormValueTypes = ['git', 'registry', 'helm'] as const;
+export const FormValueTypes = ['git'] as const;
 
 export type FormValues = {
   name: string;

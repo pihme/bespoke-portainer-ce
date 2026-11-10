@@ -65,7 +65,6 @@ vi.mock('@@/Terminal/Terminal', () => ({ Terminal: () => null }));
 vi.mock('@@/form-components/PortainerSelect', () => ({
   PortainerSelect: () => null,
 }));
-vi.mock('@@/BETeaserButton', () => ({ BETeaserButton: () => null }));
 vi.mock('@@/CodeEditor', () => ({ CodeEditor: () => null }));
 vi.mock('@@/Tip/TextTip', () => ({ TextTip: () => null }));
 vi.mock('@/react/portainer/gitops/GitForm', () => ({ GitForm: () => null }));
@@ -74,7 +73,9 @@ vi.mock('./custom-templates', () => ({
   customTemplatesModule: 'custom-templates',
 }));
 
-vi.mock('@@/form-components/FileUpload', () => ({ FileUploadField: () => null }));
+vi.mock('@@/form-components/FileUpload', () => ({
+  FileUploadField: () => null,
+}));
 vi.mock('./account', () => ({ accountModule: 'account' }));
 
 describe('portainer react components wrappers', () => {
@@ -103,7 +104,9 @@ describe('portainer react components wrappers', () => {
   it('aggregates KEEP parent components module', async () => {
     const { ngModule } = await import('./index');
     expect(
-      typeof ngModule === 'string' ? ngModule : (ngModule as { name: string }).name
+      typeof ngModule === 'string'
+        ? ngModule
+        : (ngModule as { name: string }).name
     ).toBe('portainer.app.react.components');
     expect(angularMock.module).toHaveBeenCalledWith(
       'portainer.app.react.components',

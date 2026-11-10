@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest';
 import { BoxSelectorAngular } from './BoxSelectorAngular';
 
 describe('BoxSelectorAngular controller', () => {
-  it('sets form validity and forwards onChange via $evalAsync', () => {
-    const Controller = BoxSelectorAngular.controller as new (
-      $scope: { $evalAsync: (fn: () => void) => void }
-    ) => {
+  it('REQ-TAI-018 forwards onChange via $evalAsync without Business Edition validity', () => {
+    const Controller = BoxSelectorAngular.controller as new ($scope: {
+      $evalAsync: (fn: () => void) => void;
+    }) => {
       formCtrl: { $setValidity: ReturnType<typeof vi.fn> };
       onChange: ReturnType<typeof vi.fn>;
       radioName: string;
-      handleChange: (value: string | number, limitedToBE: boolean) => void;
+      handleChange: (value: string | number) => void;
     };
     const $scope = { $evalAsync: (fn: () => void) => fn() };
     const ctrl = new Controller($scope);
@@ -18,20 +18,9 @@ describe('BoxSelectorAngular controller', () => {
     ctrl.onChange = vi.fn();
     ctrl.radioName = 'method';
 
-    ctrl.handleChange('compose', false);
-    expect(ctrl.formCtrl.$setValidity).toHaveBeenCalledWith(
-      'method',
-      true,
-      ctrl.formCtrl
-    );
+    ctrl.handleChange('compose');
     expect(ctrl.onChange).toHaveBeenCalledWith('compose');
-
-    ctrl.handleChange('swarm', true);
-    expect(ctrl.formCtrl.$setValidity).toHaveBeenCalledWith(
-      'method',
-      false,
-      ctrl.formCtrl
-    );
+    expect(ctrl.formCtrl.$setValidity).not.toHaveBeenCalled();
   });
 
   it('exposes react bridge template and form require', () => {

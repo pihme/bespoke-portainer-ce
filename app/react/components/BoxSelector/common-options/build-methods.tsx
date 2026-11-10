@@ -1,7 +1,6 @@
 import { Edit, FileText, Globe, UploadCloud } from 'lucide-react';
 
 import GitIcon from '@/assets/ico/git.svg?c';
-import Helm from '@/assets/ico/helm.svg?c';
 
 import { BoxSelectorOption } from '../types';
 
@@ -29,29 +28,12 @@ export const git: BoxSelectorOption<'repository'> = {
   value: 'repository',
 };
 
-export const edgeStackTemplate: BoxSelectorOption<'template'> = {
-  id: 'method_template',
-  icon: FileText,
-  iconType: 'badge',
-  label: 'Template',
-  description: 'Use an Edge stack app or custom template',
-  value: 'template',
-};
-
 export const customTemplate: BoxSelectorOption<'template'> = {
   id: 'method_template',
   icon: FileText,
   iconType: 'badge',
   label: 'Custom template',
   value: 'template',
-};
-
-export const helm: BoxSelectorOption<'helm'> = {
-  id: 'method_helm',
-  icon: Helm,
-  label: 'Helm chart',
-  value: 'helm',
-  iconClass: '!text-[#0f1689] th-dark:!text-white th-highcontrast:!text-white',
 };
 
 export const url: BoxSelectorOption<'url'> = {

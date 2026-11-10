@@ -2,15 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FeatureId } from '@/react/portainer/feature-flags/enums';
-
 import { Option } from './Option';
-
-vi.mock('@/react/portainer/feature-flags/feature-flags.service', () => ({
-  isLimitedToBE: vi.fn(() => false),
-}));
-
-import { isLimitedToBE } from '@/react/portainer/feature-flags/feature-flags.service';
 
 function Icon({
   selected,
@@ -20,7 +12,11 @@ function Icon({
   className?: string;
 }) {
   return (
-    <span data-cy="option-icon" data-selected={String(!!selected)} className={className}>
+    <span
+      data-cy="option-icon"
+      data-selected={String(!!selected)}
+      className={className}
+    >
       icon
     </span>
   );
@@ -39,7 +35,9 @@ describe('Option', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { level: 3, name: 'Docker' })).toBeVisible();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Docker' })
+    ).toBeVisible();
     expect(
       screen.getByRole('heading', {
         level: 5,
@@ -56,14 +54,7 @@ describe('Option', () => {
   });
 
   it('marks the icon selected when active', () => {
-    render(
-      <Option
-        icon={Icon}
-        title="Docker"
-        description="desc"
-        active
-      />
-    );
+    render(<Option icon={Icon} title="Docker" description="desc" active />);
     expect(screen.getByTestId('option-icon')).toHaveAttribute(
       'data-selected',
       'true'
@@ -77,18 +68,9 @@ describe('Option', () => {
     expect(screen.getByRole('button')).toBeEnabled();
   });
 
-  it('disables and shows BE indicator when limited to BE', () => {
-    vi.mocked(isLimitedToBE).mockReturnValue(true);
-    render(
-      <Option
-        icon={Icon}
-        title="K8s"
-        description="desc"
-        featureId={FeatureId.RBAC_ROLES}
-      />
-    );
-    expect(screen.getByRole('button')).toBeDisabled();
-    // BEFeatureIndicator text varies; button disabled is the KEEP signal
-    vi.mocked(isLimitedToBE).mockReturnValue(false);
+  it('REQ-TAI-018 is never shown as a disabled Business Edition teaser', () => {
+    render(<Option icon={Icon} title="K8s" description="desc" />);
+    expect(screen.getByRole('button')).toBeEnabled();
+    expect(screen.queryByText(/business/i)).not.toBeInTheDocument();
   });
 });

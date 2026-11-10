@@ -80,7 +80,7 @@ describe('BoxSelector', () => {
     expect(item2.checked).toBeFalsy();
 
     fireEvent.click(item2);
-    expect(onChange).toHaveBeenCalledWith(options[1].value, false);
+    expect(onChange).toHaveBeenCalledWith(options[1].value);
   });
 
   it('does not call onChange when clicking the already selected value', () => {
@@ -120,7 +120,7 @@ describe('BoxSelector', () => {
         exact: false,
       }) as HTMLInputElement
     );
-    expect(onChange).toHaveBeenCalledWith([3, 4], false);
+    expect(onChange).toHaveBeenCalledWith([3, 4]);
 
     onChange.mockClear();
     fireEvent.click(
@@ -128,7 +128,7 @@ describe('BoxSelector', () => {
         exact: false,
       }) as HTMLInputElement
     );
-    expect(onChange).toHaveBeenCalledWith([], false);
+    expect(onChange).toHaveBeenCalledWith([]);
   });
 
   it('supports a disabled option factory and tooltip', () => {

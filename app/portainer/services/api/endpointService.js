@@ -1,5 +1,3 @@
-import { PortainerEndpointCreationTypes } from '@/portainer/models/endpoint/models';
-
 angular.module('portainer.app').factory('EndpointService', [
   '$q',
   'Endpoints',
@@ -49,74 +47,6 @@ angular.module('portainer.app').factory('EndpointService', [
 
     service.deleteEndpoint = function (endpointID) {
       return Endpoints.remove({ id: endpointID }).$promise;
-    };
-
-    service.createLocalEndpoint = function (name = 'local', URL = '', PublicURL = '', groupID = 1, tagIds = []) {
-      var deferred = $q.defer();
-
-      var endpointURL = URL;
-      if (endpointURL !== '') {
-        if (endpointURL.indexOf('//./pipe/') == 0) {
-          // Windows named pipe
-          endpointURL = 'npipe://' + URL;
-        } else {
-          endpointURL = 'unix://' + URL;
-        }
-      }
-
-      FileUploadService.createEndpoint(name, PortainerEndpointCreationTypes.LocalDockerEnvironment, endpointURL, PublicURL, groupID, tagIds, false)
-        .then(function success(response) {
-          deferred.resolve(response.data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to create environment', err: err });
-        });
-
-      return deferred.promise;
-    };
-
-    service.createRemoteEndpoint = function (
-      name,
-      creationType,
-      URL,
-      PublicURL,
-      groupID,
-      tagIds,
-      TLS,
-      TLSSkipVerify,
-      TLSSkipClientVerify,
-      TLSCAFile,
-      TLSCertFile,
-      TLSKeyFile,
-      checkinInterval
-    ) {
-      var deferred = $q.defer();
-
-      var endpointURL = 'tcp://' + URL;
-
-      FileUploadService.createEndpoint(
-        name,
-        creationType,
-        endpointURL,
-        PublicURL,
-        groupID,
-        tagIds,
-        TLS,
-        TLSSkipVerify,
-        TLSSkipClientVerify,
-        TLSCAFile,
-        TLSCertFile,
-        TLSKeyFile,
-        checkinInterval
-      )
-        .then(function success(response) {
-          deferred.resolve(response.data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to create environment', err: err });
-        });
-
-      return deferred.promise;
     };
 
     service.trust = function (id) {

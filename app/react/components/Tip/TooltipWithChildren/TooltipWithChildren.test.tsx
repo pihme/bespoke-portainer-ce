@@ -1,19 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FeatureId } from '@/react/portainer/feature-flags/enums';
-
 import { TooltipWithChildren } from './TooltipWithChildren';
-
-vi.mock('@@/BEFeatureIndicator/utils', () => ({
-  getFeatureDetails: vi.fn(() => ({
-    url: 'https://example.com/be',
-    limitedToBE: false,
-  })),
-}));
-
-import { getFeatureDetails } from '@@/BEFeatureIndicator/utils';
 
 describe('TooltipWithChildren', () => {
   it('wraps children and shows the message on hover', async () => {
@@ -56,25 +45,15 @@ describe('TooltipWithChildren', () => {
     expect(parentClick).not.toHaveBeenCalled();
   });
 
-  it('shows Business Feature teaser when limited to BE', async () => {
-    vi.mocked(getFeatureDetails).mockReturnValue({
-      url: 'https://example.com/be',
-      limitedToBE: true,
-    });
+  it('REQ-TAI-018 shows no Business Feature teaser', async () => {
     const user = userEvent.setup();
     render(
-      <TooltipWithChildren
-        message="be tip"
-        BEFeatureID={FeatureId.RBAC_ROLES}
-      >
-        <span>be</span>
+      <TooltipWithChildren message="tip">
+        <span>plain</span>
       </TooltipWithChildren>
     );
-    await user.hover(screen.getByText('be'));
-    expect(await screen.findByText('Business Feature')).toBeVisible();
-    vi.mocked(getFeatureDetails).mockReturnValue({
-      url: 'https://example.com/be',
-      limitedToBE: false,
-    });
+    await user.hover(screen.getByText('plain'));
+    expect(await screen.findByText('tip')).toBeVisible();
+    expect(screen.queryByText('Business Feature')).not.toBeInTheDocument();
   });
 });

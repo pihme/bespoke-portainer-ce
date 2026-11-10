@@ -8,7 +8,7 @@ import { withError, withInvalidate } from '@/react-tools/react-query';
 import { sourceQueryKeys } from '../queries/query-keys';
 
 export type CreateSourcePayload = {
-  type: 'git' | 'registry' | 'helm';
+  type: 'git';
   git: SourcesGitSourceCreatePayload;
 };
 

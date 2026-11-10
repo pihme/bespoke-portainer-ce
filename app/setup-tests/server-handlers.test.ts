@@ -16,9 +16,9 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
 
   it('REQ-TAI-013 serves no tag or environment group stubs', () => {
     const paths = handlers.map((h) => String(h.info.path));
-    expect(paths.filter((p) => /\/api\/(tags|endpoint_groups)/.test(p))).toEqual(
-      []
-    );
+    expect(
+      paths.filter((p) => /\/api\/(tags|endpoint_groups)/.test(p))
+    ).toEqual([]);
   });
 
   it('serves status and version', async () => {
@@ -29,10 +29,14 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
     expect((await version.json()).ServerVersion).toBe('v2.10.0');
   });
 
-  it('serves license info, nodes and stacks', async () => {
-    expect((await (await fetch('/api/licenses/info')).json()).valid).toBe(true);
-    expect((await (await fetch('/api/status/nodes')).json()).nodes).toBe(3);
+  it('serves stacks', async () => {
     expect(await (await fetch('/api/stacks')).json()).toEqual([]);
+  });
+
+  it('REQ-TAI-018 serves no license or node count stubs', () => {
+    const paths = handlers.map((h) => String(h.info.path));
+    expect(paths).not.toContain('/api/licenses/info');
+    expect(paths).not.toContain('/api/status/nodes');
   });
 
   it('REQ-TAI-005 serves no registry stubs', () => {

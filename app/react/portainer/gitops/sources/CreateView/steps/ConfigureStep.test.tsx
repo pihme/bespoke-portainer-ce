@@ -2,22 +2,19 @@ import { render, screen } from '@testing-library/react';
 import { Formik } from 'formik';
 import { vi } from 'vitest';
 
+import { FormValueTypes } from '../type';
 
 import { ConfigureStep, validateConfigureStep } from './ConfigureStep';
 
 vi.mock('./ConfigureGit', () => ({
   ConfigureGit: () => <div data-cy="git-panel">git</div>,
 }));
-vi.mock('./ConfigureHelm', () => ({
-  ConfigureHelm: () => <div data-cy="helm-panel">helm</div>,
-}));
-vi.mock('./ConfigureRegistry', () => ({
-  ConfigureRegistry: () => <div data-cy="registry-panel">registry</div>,
-}));
 vi.mock('@@/Widget', () => ({
   Widget: {
     Title: ({ title }: { title: string }) => <h3>{title}</h3>,
-    Body: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Body: ({ children }: { children: React.ReactNode }) => (
+      <div>{children}</div>
+    ),
   },
 }));
 
@@ -41,6 +38,10 @@ describe('REQ-GIT-02 ConfigureStep', () => {
     );
     expect(screen.getByText('Configure Git Repository')).toBeVisible();
     expect(screen.getByTestId('git-panel')).toBeVisible();
+  });
+
+  it('REQ-TAI-018 offers only the Git panel', () => {
+    expect(FormValueTypes).toEqual(['git']);
   });
 
   it('exports a validation schema for name and git', () => {

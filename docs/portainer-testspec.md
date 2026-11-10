@@ -364,7 +364,7 @@ Tailored stage (TAI-014, 2026-11-10): 2 more requirements are struck as removed 
 
 | ID | Status | Tests | Notes |
 |----|--------|-------|-------|
-| REQ-ALR-01 | BE-absent | `pkg/libprometheus/*_test.go` (config, rules, scrape) | CE ships a Prometheus/Alertmanager library with tests; see C-12. |
+| REQ-ALR-01 | BE-absent | none (the unused `pkg/libprometheus` and its tests were removed with TAI-015) | CE shipped a Prometheus/Alertmanager library with tests that nothing imported; see C-12. |
 | REQ-ALR-02 | BE-absent | none | |
 
 ### LIC – Licensing and Business Edition
@@ -789,7 +789,7 @@ Phase C additions:
 
 - `api/dataservices/helmuserrepository/helmuserrepository_test.go` (COV-172) — backwards-compat helm user repo datastore.
 
-- `pkg/libpolicy/fingerprint_test.go` (COV-170) — backwards-compat config/helm policy fingerprints.
+- `pkg/libpolicy/fingerprint_test.go` (COV-170) — backwards-compat config/helm policy fingerprints. Removed with the package in TAI-015.
 
 - `pkg/networking/diagnostics_local_test.go` (COV-166) — backwards-compat DNS/telnet/proxy diagnostics helpers.
 
@@ -809,7 +809,7 @@ Phase C additions:
 
 - `api/pendingactions/pendingactions_create_test.go` (COV-150) — backwards-compat local Docker pending-action create/execute (k8s execute deferred-within-package).
 
-- `api/http/proxy/factory/github/client_test.go` (COV-146) — backwards-compat GitHub container packages client (no dedicated REQ mapping).
+- `api/http/proxy/factory/github/client_test.go` (COV-146) — backwards-compat GitHub container packages client (no dedicated REQ mapping). Removed with the package in TAI-015.
 
 - `app/react/components/BoxSelector/{BoxSelector,LogoIcon,common-options/*}.test.*` (COV-142) — backwards-compat box selector (stories/BE indicator deferred-within-package).
 
@@ -823,7 +823,7 @@ Phase C additions:
 
 - `app/react/components/{DateTimeField,EnvironmentStatusBadge,EnvironmentStatusBadgeItem,ExternalLink,FallbackImage,Icon,InformationPanel,JsonTree,Link,LinkButton,ReactQueryDevtoolsWrapper,Redirect,Sheet,SnapshotBadge,StatusBadge,Svg,VerticalSeparator,WebEditorForm}.test.*` (COV-130) — backwards-compat top-level React widgets (BETeaser/Hubspot/PasswordCheckHint/EdgeIndicator deferred-within-package; child packages closed separately).
 
-- `pkg/libprometheus/helpers_cov_test.go` (COV-129) — backwards-compat Prometheus metric/alert helpers (no dedicated REQ mapping).
+- `pkg/libprometheus/helpers_cov_test.go` (COV-129) — backwards-compat Prometheus metric/alert helpers (no dedicated REQ mapping). Removed with the package in TAI-015.
 
 - `api/http/proxy/factory/utils/{json,response}_test.go` (COV-123) — backwards-compat Docker proxy JSON/response helpers (one uncoverable Header==nil leftover).
 

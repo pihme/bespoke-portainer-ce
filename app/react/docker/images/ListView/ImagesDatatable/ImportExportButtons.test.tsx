@@ -226,54 +226,7 @@ describe('ImportExportButtons', () => {
       expect(mockConfirmImageExport).not.toHaveBeenCalled();
     });
 
-    it('should prevent export of images from different nodes', async () => {
-      const selectedImages = [
-        createMockImage({
-          id: 'sha256:abc123',
-          tags: ['nginx:latest'],
-          nodeName: 'node-1',
-        }),
-        createMockImage({
-          id: 'sha256:def456',
-          tags: ['redis:alpine'],
-          nodeName: 'node-2',
-        }),
-      ];
-
-      let apiCalled = false;
-      server.use(
-        http.get('/api/endpoints/:envId/docker/images/get', () => {
-          apiCalled = true;
-          return new Response(new Blob(['image data']), {
-            headers: {
-              'content-disposition': 'attachment; filename=test.tar',
-            },
-          });
-        })
-      );
-
-      const user = userEvent.setup();
-      renderComponent(
-        selectedImages,
-        createMockUser({
-          EndpointAuthorizations: { 1: { DockerImageGet: true } },
-        })
-      );
-
-      const exportButton = await waitFor(() =>
-        screen.getByRole('button', { name: /export/i })
-      );
-      await user.click(exportButton);
-
-      expect(mockNotifyWarning).toHaveBeenCalledWith(
-        '',
-        'Cannot download images from different nodes at the same time'
-      );
-      expect(apiCalled).toBe(false);
-      expect(mockConfirmImageExport).not.toHaveBeenCalled();
-    });
-
-    it('should allow export of images from the same node', async () => {
+    it('should allow export of several images', async () => {
       mockConfirmImageExport.mockResolvedValue(true);
 
       const selectedImages = [
@@ -442,7 +395,7 @@ describe('ImportExportButtons', () => {
       expect(requestUrl).toContain('names');
     });
 
-    it('should include nodeName in request when exporting from swarm node', async () => {
+    it('REQ-TAI-007 sends no agent target header, even for an image with a node name', async () => {
       mockConfirmImageExport.mockResolvedValue(true);
 
       const selectedImages = [
@@ -483,7 +436,7 @@ describe('ImportExportButtons', () => {
         expect(mockSaveAs).toHaveBeenCalled();
       });
 
-      expect(requestHeaders['x-portaineragent-target']).toBe('worker-node-1');
+      expect(requestHeaders['x-portaineragent-target']).toBeUndefined();
     });
   });
 

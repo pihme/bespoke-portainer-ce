@@ -20,7 +20,7 @@ function renderStatusHook(
 }
 
 describe('useImageNotification for local Docker containers', () => {
-  it('fetches container image status and forwards agent target header', async () => {
+  it('fetches container image status without an agent target header (REQ-TAI-007)', async () => {
     let agent: string | null = null;
     server.use(
       http.get('/api/docker/:id/containers/:cid/image_status', ({ request }) => {
@@ -32,7 +32,7 @@ describe('useImageNotification for local Docker containers', () => {
     const { result } = renderStatusHook(1, 'c1', ResourceType.CONTAINER, 'node-a', true);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ Status: 'updated', Message: 'ok' });
-    expect(agent).toBe('node-a');
+    expect(agent).toBeNull();
   });
 
   it('returns unknown status when the container status request fails', async () => {

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Zap, Plug2 } from 'lucide-react';
+import { Plug2 } from 'lucide-react';
 
 import { Environment } from '@/react/portainer/environments/types';
 
@@ -11,24 +10,17 @@ import { useDocsUrl } from '@@/PageHeader/ContextHelp';
 
 import { AnalyticsStateKey } from '../types';
 
-import { AgentTab } from './AgentTab';
 import { SocketTab } from './SocketTab';
 
 interface Props {
   onCreate(environment: Environment, analytics: AnalyticsStateKey): void;
 }
 
-type CreationType = 'agent' | 'socket';
+// Portainer Agent environments are removed (TAI-007): a Podman environment is
+// only connected through the local socket.
+type CreationType = 'socket';
 
 const options: BoxSelectorOption<CreationType>[] = [
-  {
-    id: 'agent',
-    icon: <BadgeIcon icon={Zap} size="3xl" />,
-    label: 'Agent',
-    description:
-      'The Portainer Server will initiate connections to the remote environment. The agent on the remote environment must be accessible from the Portainer server environment.',
-    value: 'agent',
-  },
   {
     id: 'socket',
     icon: <BadgeIcon icon={Plug2} size="3xl" />,
@@ -42,16 +34,12 @@ export function WizardPodman({ onCreate }: Props) {
   const podmanSupportDocsUrl = useDocsUrl(
     '/faqs/installing/does-portainer-support-podman'
   );
-  const [creationType, setCreationType] = useState<CreationType>('socket');
-
-  const tab = getTab(creationType);
-
   return (
     <div className="form-horizontal">
       <BoxSelector
-        onChange={(v) => setCreationType(v)}
+        onChange={() => {}}
         options={options}
-        value={creationType}
+        value="socket"
         radioName="creation-type"
         className="mb-8"
       />
@@ -69,28 +57,11 @@ export function WizardPodman({ onCreate }: Props) {
           Supported Podman configurations
         </ExternalLink>
       </TextTip>
-      {tab}
+      <SocketTab
+        onCreate={(environment) =>
+          onCreate(environment, 'podmanLocalEnvironment')
+        }
+      />
     </div>
   );
-
-  function getTab(creationType: CreationType) {
-    switch (creationType) {
-      case 'agent':
-        return (
-          <AgentTab
-            onCreate={(environment) => onCreate(environment, 'podmanAgent')}
-          />
-        );
-      case 'socket':
-        return (
-          <SocketTab
-            onCreate={(environment) =>
-              onCreate(environment, 'podmanLocalEnvironment')
-            }
-          />
-        );
-      default:
-        return null;
-    }
-  }
 }

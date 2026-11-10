@@ -278,14 +278,14 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
       { key: 'env', value: 'dev' },
       { key: '', value: 'ignored' },
     ];
-    ctx.$scope.formValues.NodeName = 'node-a';
 
     ctx.$scope.create();
     expect(ctx.$scope.state.actionInProgress).toBe(true);
 
     expect(ctx.NetworkService.create).toHaveBeenCalledTimes(1);
     const [config, opts] = ctx.NetworkService.create.mock.calls[0];
-    expect(opts).toEqual({ nodeName: 'node-a', agentManagerOperation: false });
+    // REQ-TAI-007: no per-node target or agent manager operation is passed.
+    expect(opts).toBeUndefined();
     expect(config.Name).toBe('app-net');
     expect(config.Driver).toBe('bridge');
     expect(config.Internal).toBe(true);
@@ -365,7 +365,7 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     ctx.$scope.create();
 
     const [config, opts] = ctx.NetworkService.create.mock.calls[0];
-    expect(opts.agentManagerOperation).toBe(false);
+    expect(opts).toBeUndefined();
     expect(config.ConfigOnly).toBe(true);
     expect(config.Internal).toBeNull();
     expect(config.Attachable).toBeNull();
@@ -391,7 +391,8 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     ctx.$scope.create();
 
     const [config, opts] = ctx.NetworkService.create.mock.calls[0];
-    expect(opts.nodeName).toBe('worker-1');
+    // REQ-TAI-007: the config's node is not targeted any more.
+    expect(opts).toBeUndefined();
     expect(config.ConfigFrom).toEqual({ Network: 'cfg-net' });
     expect(config.Scope).toBe('local');
 
@@ -410,7 +411,7 @@ describe('REQ-NET-02 CreateNetworkController local Docker create form', () => {
     ctx.$scope.config.Name = 'overlay-net';
     ctx.$scope.config.Driver = 'overlay';
     ctx.$scope.create();
-    expect(ctx.NetworkService.create.mock.calls[0][1].agentManagerOperation).toBe(false);
+    expect(ctx.NetworkService.create.mock.calls[0]).toHaveLength(1);
 
     ctx.$scope.config.Name = 'macvlan-from';
     ctx.$scope.config.Driver = 'macvlan';

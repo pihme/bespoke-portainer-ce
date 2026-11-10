@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/security"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -14,7 +13,6 @@ import (
 type Handler struct {
 	*mux.Router
 	DataStore          dataservices.DataStore
-	SignatureService   portainer.DigitalSignatureService
 	requestBouncer     security.BouncerService
 	connectionUpgrader websocket.Upgrader
 }

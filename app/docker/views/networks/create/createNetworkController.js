@@ -29,7 +29,6 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
         AuxiliaryAddresses: [],
       },
       Labels: [],
-      NodeName: null,
       Macvlan: new MacvlanFormData(),
     };
 
@@ -210,7 +209,7 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
 
     function createNetwork(context) {
       $scope.state.actionInProgress = true;
-      NetworkService.create(context.networkConfiguration, { nodeName: context.nodeName, agentManagerOperation: context.managerOperation })
+      NetworkService.create(context.networkConfiguration)
         .then(function success() {
           Notifications.success('Success', 'Network successfully created');
           if (context.reload) {
@@ -234,8 +233,6 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
     $scope.create = function () {
       var networkConfiguration = prepareConfiguration();
       var creationContext = {
-        nodeName: $scope.formValues.NodeName,
-        managerOperation: false,
         networkConfiguration: networkConfiguration,
         reload: true,
       };
@@ -246,7 +243,6 @@ angular.module('portainer.docker').controller('CreateNetworkController', [
         } else if ($scope.formValues.Macvlan.Scope === 'swarm') {
           var selectedNetworkConfig = $scope.formValues.Macvlan.SelectedNetworkConfig;
           modifyNetworkConfigurationForMacvlanConfigFrom(networkConfiguration, selectedNetworkConfig);
-          creationContext.nodeName = selectedNetworkConfig.NodeName;
         }
       }
 

@@ -72,8 +72,8 @@ func TestREQ_ENV_03_UpdateDockerEndpoint_EnableTLS_SkipVerify(t *testing.T) {
 	tlsTrue := true
 	skip := true
 	body, err := json.Marshal(endpointUpdatePayload{
-		TLS:           &tlsTrue,
-		TLSSkipVerify: &skip,
+		TLS:                 &tlsTrue,
+		TLSSkipVerify:       &skip,
 		TLSSkipClientVerify: &skip,
 	})
 	require.NoError(t, err)
@@ -91,8 +91,8 @@ func TestREQ_ENV_03_UpdateDockerEndpoint_EnableTLS_SkipVerify(t *testing.T) {
 func TestREQ_ENV_03_ShouldReloadTLSConfiguration(t *testing.T) {
 	t.Parallel()
 	ep := &portainer.Endpoint{
-		Type: portainer.DockerEnvironment,
-		URL:  "tcp://docker.example:2376",
+		Type:      portainer.DockerEnvironment,
+		URL:       "tcp://docker.example:2376",
 		TLSConfig: portainer.TLSConfiguration{TLS: false},
 	}
 	tlsTrue := true

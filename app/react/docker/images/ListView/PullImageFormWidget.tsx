@@ -14,22 +14,17 @@ import { FormValues } from './PullImageFormWidget.types';
 import { PullImageForm } from './PullImageFormWidget.Form';
 import { useValidation } from './PullImageFormWidget.validation';
 
-export function PullImageFormWidget({
-  isNodeVisible,
-}: {
-  isNodeVisible: boolean;
-}) {
+export function PullImageFormWidget() {
   const envId = useEnvironmentId();
   const mutation = usePullImageMutation(envId);
   const authorizedQuery = useAuthorizations('DockerImageCreate');
-  const validation = useValidation(isNodeVisible);
+  const validation = useValidation();
 
   if (!authorizedQuery.authorized) {
     return null;
   }
 
   const initialValues: FormValues = {
-    node: '',
     config: getDefaultImageConfig(),
   };
 
@@ -43,21 +38,17 @@ export function PullImageFormWidget({
           validationSchema={validation}
           validateOnMount
         >
-          <PullImageForm
-            isLoading={mutation.isLoading}
-            isNodeVisible={isNodeVisible}
-          />
+          <PullImageForm isLoading={mutation.isLoading} />
         </Formik>
       </Widget.Body>
     </Widget>
   );
 
-  function handleSubmit({ config, node }: FormValues) {
+  function handleSubmit({ config }: FormValues) {
     mutation.mutate(
       {
         environmentId: envId,
         image: config.image,
-        nodeName: node,
         ignoreErrors: false,
       },
       {

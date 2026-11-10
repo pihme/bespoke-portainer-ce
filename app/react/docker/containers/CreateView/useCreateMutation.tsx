@@ -26,7 +26,6 @@ import { PortainerResponse } from '../../types';
 import { connectContainer } from '../../networks/queries/useConnectContainerMutation';
 import { ContainerListViewModel } from '../types';
 import { queryKeys } from '../queries/query-keys';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 
 import { CreateContainerRequest } from './types';
@@ -258,7 +257,6 @@ async function createContainer(
     const { data } = await axios.post<
       PortainerResponse<{ Id: string; Warnings: Array<string> }>
     >(buildDockerProxyUrl(environmentId, 'containers', 'create'), config, {
-      headers: { ...withAgentTargetHeader(nodeName) },
       params: { name },
     });
 

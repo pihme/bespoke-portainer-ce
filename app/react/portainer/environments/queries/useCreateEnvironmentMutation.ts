@@ -5,10 +5,8 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  createRemoteEnvironment,
   createLocalDockerEnvironment,
   createAzureEnvironment,
-  createAgentEnvironment,
 } from '../environment.service/create';
 
 export function useCreateAzureEnvironmentMutation() {
@@ -17,23 +15,6 @@ export function useCreateAzureEnvironmentMutation() {
 
 export function useCreateLocalDockerEnvironmentMutation() {
   return useGenericCreationMutation(createLocalDockerEnvironment);
-}
-
-export function useCreateRemoteEnvironmentMutation(
-  creationType: Parameters<typeof createRemoteEnvironment>[0]['creationType']
-) {
-  return useGenericCreationMutation(
-    (
-      params: Omit<
-        Parameters<typeof createRemoteEnvironment>[0],
-        'creationType'
-      >
-    ) => createRemoteEnvironment({ creationType, ...params })
-  );
-}
-
-export function useCreateAgentEnvironmentMutation() {
-  return useGenericCreationMutation(createAgentEnvironment);
 }
 
 function useGenericCreationMutation<TData = unknown, TVariables = void>(

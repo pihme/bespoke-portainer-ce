@@ -18,11 +18,8 @@ import (
 	"github.com/portainer/portainer/api/logs"
 	"github.com/portainer/portainer/pkg/librand"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/system"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/pkg/errors"
@@ -275,45 +272,14 @@ func (d *stackDeployer) remoteStack(ctx context.Context, userID portainer.UserID
 }
 
 // Creates a docker client with 1 hour timeout
-func (d *stackDeployer) createDockerClient(ctx context.Context, endpoint *portainer.Endpoint) (*dockerclient.Client, error) {
+func (d *stackDeployer) createDockerClient(_ context.Context, endpoint *portainer.Endpoint) (*dockerclient.Client, error) {
 	timeout := 3600 * time.Second
-	cli, err := d.ClientFactory.CreateClient(endpoint, "", &timeout)
+	cli, err := d.ClientFactory.CreateClient(endpoint, &timeout)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to create Docker client")
 	}
 
-	info, err := cli.Info(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get agent info")
-	}
-
-	if isNotInASwarm(&info) {
-		return cli, nil
-	}
-	defer logs.CloseAndLogErr(cli)
-
-	nodes, err := cli.NodeList(ctx, types.NodeListOptions{})
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to list nodes")
-	}
-
-	if len(nodes) == 0 {
-		return nil, errors.New("no nodes available")
-	}
-
-	var managerNode swarm.Node
-	for _, node := range nodes {
-		if node.ManagerStatus != nil && node.ManagerStatus.Leader {
-			managerNode = node
-			break
-		}
-	}
-
-	if managerNode.ID == "" {
-		return nil, errors.New("no leader node available")
-	}
-
-	return d.ClientFactory.CreateClient(endpoint, managerNode.Description.Hostname, &timeout)
+	return cli, nil
 }
 
 func (d *stackDeployer) unpackerImageRegistryAuth(unpackerImg string) (string, error) {
@@ -368,10 +334,4 @@ func getTargetSocketBindContainer(osType string) string {
 	}
 
 	return targetSocketBind
-}
-
-// Per https://stackoverflow.com/a/50590287 and Docker's LocalNodeState possible values
-// `LocalNodeStateInactive` means the node is not in a swarm cluster
-func isNotInASwarm(info *system.Info) bool {
-	return info.Swarm.LocalNodeState == swarm.LocalNodeStateInactive
 }

@@ -2,7 +2,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { ContainerId } from '../types';
 
 /**
@@ -42,7 +41,6 @@ export async function containerStats(
       buildDockerProxyUrl(environmentId, 'containers', id, 'stats'),
       {
         params: { stream: false },
-        headers: { ...withAgentTargetHeader(nodeName) },
       }
     );
     return data;

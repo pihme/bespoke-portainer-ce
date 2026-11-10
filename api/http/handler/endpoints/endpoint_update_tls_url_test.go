@@ -173,3 +173,29 @@ func TestREQ_ENV_03_UpdateDockerEndpoint_TLSDisable_AfterEnabled(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, updated.TLSConfig.TLS)
 }
+
+// REQ-TAI-007: remote Docker hosts are removed. An environment cannot be
+// re-pointed at a Docker API over TCP or HTTP; the stored URL is unchanged.
+func TestREQ_TAI_007_UpdateRefusesRemoteDockerURL(t *testing.T) {
+	t.Parallel()
+	fips.InitFIPS(false)
+	h, store := newDockerEndpointHandler(t)
+	createDockerEndpoint(t, store, 1, "local")
+
+	before, err := store.Endpoint().Endpoint(1)
+	require.NoError(t, err)
+
+	for _, remote := range []string{"tcp://docker.example:2375", "http://docker.example:2375", "docker.example:2375"} {
+		body, err := json.Marshal(endpointUpdatePayload{URL: strPtr(remote)})
+		require.NoError(t, err)
+
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, endpointAdminRequest(http.MethodPut, "/endpoints/1", body))
+		require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		require.Contains(t, w.Body.String(), portainer.ErrRemoteEnvironmentNotSupported.Error())
+	}
+
+	after, err := store.Endpoint().Endpoint(1)
+	require.NoError(t, err)
+	assert.Equal(t, before.URL, after.URL)
+}

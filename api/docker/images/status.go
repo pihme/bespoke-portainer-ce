@@ -8,7 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	portainer "github.com/portainer/portainer/api"
-	consts "github.com/portainer/portainer/api/docker/consts"
+	"github.com/portainer/portainer/api/logs"
 
 	"github.com/opencontainers/go-digest"
 	"github.com/patrickmn/go-cache"
@@ -35,19 +35,19 @@ const (
 var (
 	statusCache       = cache.New(24*time.Hour, 24*time.Hour)
 	remoteDigestCache = cache.New(5*time.Second, 5*time.Second)
-	swarmID2NameCache = cache.New(5*time.Second, 5*time.Second)
 )
 
 // Status holds Docker image  analysis
 type Status string
 
 func (c *DigestClient) ContainersImageStatus(ctx context.Context, containers []types.Container, endpoint *portainer.Endpoint) Status {
-	cli, err := c.clientFactory.CreateClient(endpoint, "", nil)
+	cli, err := c.clientFactory.CreateClient(endpoint, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("cannot create docker client")
 
 		return Error
 	}
+	logs.CloseAndLogErr(cli)
 
 	statuses := make([]Status, len(containers))
 
@@ -55,22 +55,7 @@ func (c *DigestClient) ContainersImageStatus(ctx context.Context, containers []t
 	g.SetLimit(maxConcurrentStatusChecks)
 
 	containerStatus := func(ct types.Container) Status {
-		var nodeName string
-		if swarmNodeId := ct.Labels[consts.SwarmNodeIDLabel]; swarmNodeId != "" {
-			if swarmNodeName, ok := swarmID2NameCache.Get(swarmNodeId); ok {
-				nodeName, _ = swarmNodeName.(string)
-			} else {
-				node, _, err := cli.NodeInspectWithRaw(ctx, swarmNodeId)
-				if err != nil {
-					return Error
-				}
-
-				nodeName = node.Description.Hostname
-				swarmID2NameCache.Set(swarmNodeId, nodeName, 0)
-			}
-		}
-
-		s, err := c.ContainerImageStatus(ctx, ct.ID, endpoint, nodeName)
+		s, err := c.ContainerImageStatus(ctx, ct.ID, endpoint)
 		if err != nil {
 			log.Warn().Str("containerId", ct.ID).Err(err).Msg("error when fetching image status for container")
 			return Error
@@ -111,10 +96,12 @@ func AggregateImageStatus(statuses []Status) Status {
 	return Updated
 }
 
-func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID string, endpoint *portainer.Endpoint, nodeName string) (Status, error) {
-	cli, err := c.clientFactory.CreateClient(endpoint, nodeName, nil)
+func (c *DigestClient) ContainerImageStatus(ctx context.Context, containerID string, endpoint *portainer.Endpoint) (Status, error) {
+	cli, err := c.clientFactory.CreateClient(endpoint, nil)
 	if err != nil {
-		log.Warn().Str("swarmNodeId", nodeName).Msg("Cannot create new docker client.")
+		log.Warn().Err(err).Msg("Cannot create new docker client.")
+
+		return Error, err
 	}
 
 	container, err := cli.ContainerInspect(ctx, containerID)

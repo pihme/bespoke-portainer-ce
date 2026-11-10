@@ -33,7 +33,6 @@ type EnvironmentsQuery struct {
 	tagsPartialMatch bool
 	endpointIds      []portainer.EndpointID
 	excludeIds       []portainer.EndpointID
-	agentVersions    []string
 	// if edgeAsync not nil, will filter edge endpoints based on this value
 	edgeAsync                *bool
 	edgeDeviceUntrusted      bool
@@ -104,8 +103,6 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		return EnvironmentsQuery{}, err
 	}
 
-	agentVersions := request.RetrieveArrayQueryParameter(r, "agentVersions")
-
 	outdated, _ := request.RetrieveBooleanQueryParameter(r, "outdated", true)
 
 	name, _ := request.RetrieveQueryParameter(r, "name", true)
@@ -144,7 +141,6 @@ func parseQuery(r *http.Request) (EnvironmentsQuery, error) {
 		edgeDeviceUntrusted:      edgeDeviceUntrusted,
 		excludeSnapshots:         excludeSnapshots,
 		name:                     name,
-		agentVersions:            agentVersions,
 		outdated:                 outdated,
 		edgeCheckInPassedSeconds: edgeCheckInPassedSeconds,
 		edgeStackId:              portainer.EdgeStackID(edgeStackId),
@@ -267,12 +263,6 @@ func (handler *Handler) filterEndpointsByQuery(
 
 	if len(query.tagIds) > 0 {
 		filteredEndpoints = filteredEndpointsByTags(filteredEndpoints, query.tagIds, groups, query.tagsPartialMatch)
-	}
-
-	if len(query.agentVersions) > 0 {
-		filteredEndpoints = filter(filteredEndpoints, func(endpoint portainer.Endpoint) bool {
-			return !endpointutils.IsAgentEndpoint(&endpoint) || slices.Contains(query.agentVersions, endpoint.Agent.Version)
-		})
 	}
 
 	if query.outdated {

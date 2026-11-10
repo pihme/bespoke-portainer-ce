@@ -1,4 +1,3 @@
-import { RawAxiosRequestHeaders } from 'axios';
 import { useMutation } from '@tanstack/react-query';
 import { saveAs } from 'file-saver';
 
@@ -28,17 +27,10 @@ export async function exportImage({
 }) {
   const { names } = getImagesNamesForDownload(images);
 
-  const headers: RawAxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
   try {
     const { headers: responseHeaders, data } = await axios.get(
       buildDockerProxyUrl(environmentId, 'images', 'get'),
       {
-        headers,
         responseType: 'blob',
         params: {
           names,

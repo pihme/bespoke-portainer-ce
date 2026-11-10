@@ -34,7 +34,6 @@ func TestProxyRoutes_AreSessionGuarded(t *testing.T) {
 	for _, path := range []string{
 		"/1/docker/containers/json",
 		"/1/azure/subscriptions",
-		"/1/agent/docker/containers/json",
 	} {
 		t.Run(path, func(t *testing.T) {
 			rw := httptest.NewRecorder()
@@ -56,6 +55,27 @@ func TestREQ_TAI_002_KubernetesProxyRoutesAreGone(t *testing.T) {
 	for _, path := range []string{
 		"/1/kubernetes/api/v1/namespaces",
 		"/1/agent/kubernetes/v2/browse",
+	} {
+		t.Run(path, func(t *testing.T) {
+			rw := httptest.NewRecorder()
+
+			h.ServeHTTP(rw, httptest.NewRequest(http.MethodGet, path, nil))
+
+			assert.Equal(t, http.StatusNotFound, rw.Code)
+		})
+	}
+}
+
+// REQ-TAI-007: the Portainer Agent proxy routes (Docker through the Agent and
+// the Agent host API) are removed with Agent environments.
+func TestREQ_TAI_007_AgentProxyRoutesAreGone(t *testing.T) {
+	t.Parallel()
+
+	h := NewHandler(routeTaggingBouncer{})
+
+	for _, path := range []string{
+		"/1/agent/docker/containers/json",
+		"/1/agent/host/docker-storage",
 	} {
 		t.Run(path, func(t *testing.T) {
 			rw := httptest.NewRecorder()

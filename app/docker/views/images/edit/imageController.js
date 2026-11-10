@@ -127,7 +127,6 @@ angular.module('portainer.docker').controller('ImageController', [
     };
 
     function exportImage(image) {
-      HttpRequestHelper.setPortainerAgentTargetHeader(image.NodeName);
       $scope.state.exportInProgress = true;
       ImageService.downloadImages([{ tags: image.RepoTags, id: image.Id }])
         .then(function success(data) {
@@ -158,7 +157,6 @@ angular.module('portainer.docker').controller('ImageController', [
     };
 
     async function initView() {
-      HttpRequestHelper.setPortainerAgentTargetHeader($transition$.params().nodeName);
 
       $q.all({
         image: ImageService.image($transition$.params().id),

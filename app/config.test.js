@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const agentInterceptor = vi.fn((c) => c);
 const dispatchCacheRefreshEventIfNeeded = vi.fn();
-
-vi.mock('@/react/portainer/services/axios/axios', () => ({
-  agentInterceptor: (...args) => agentInterceptor(...args),
-}));
 
 vi.mock('./portainer/services/http-request.helper', () => ({
   dispatchCacheRefreshEventIfNeeded: (...args) =>
@@ -53,15 +48,12 @@ describe('configApp', () => {
     );
     expect(cfpLoadingBarProvider.latencyThreshold).toBe(600);
     expect($urlRouterProvider.otherwise).toHaveBeenCalledWith('/auth');
-    expect(interceptors).toHaveLength(2);
+    // REQ-TAI-007: only the cache interceptor; the agent target interceptor is removed.
+    expect(interceptors).toHaveLength(1);
 
     const cacheInterceptor = interceptors[0]();
     const req = { method: 'GET', url: '/api/x' };
     expect(cacheInterceptor.request(req)).toBe(req);
     expect(dispatchCacheRefreshEventIfNeeded).toHaveBeenCalledWith(req);
-
-    const agent = interceptors[1]();
-    agent.request(req);
-    expect(agentInterceptor).toHaveBeenCalledWith(req);
   });
 });

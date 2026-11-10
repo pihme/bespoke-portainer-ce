@@ -102,10 +102,8 @@ function createContainer(
 }
 
 function renderDatatable({
-  isHostColumnVisible = false,
   enableGpu = false,
 }: {
-  isHostColumnVisible?: boolean;
   enableGpu?: boolean;
 } = {}) {
   showGpus = enableGpu;
@@ -123,10 +121,7 @@ function renderDatatable({
   );
 
   return render(
-    <Wrapped
-      isHostColumnVisible={isHostColumnVisible}
-      environment={environment}
-    />
+    <Wrapped environment={environment} />
   );
 }
 
@@ -188,14 +183,15 @@ describe('REQ-CTR-01 ContainersDatatable', () => {
     expect(screen.getAllByText('-').length).toBeGreaterThan(0);
   });
 
-  it('shows host column when isHostColumnVisible', async () => {
+  it('REQ-TAI-007 shows no host column, even for a container with a node name', async () => {
     containersState.data = [createContainer({ NodeName: 'worker-1' })];
-    renderDatatable({ isHostColumnVisible: true });
+    renderDatatable();
 
     await waitFor(() => {
-      expect(screen.getByText('worker-1')).toBeVisible();
+      expect(screen.getByText('webstack')).toBeVisible();
     });
-    expect(screen.getAllByText('Host').length).toBeGreaterThan(0);
+    expect(screen.queryByText('worker-1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Host')).not.toBeInTheDocument();
   });
 
   it('shows GPUs column when GPU management is enabled', async () => {

@@ -80,7 +80,6 @@ angular.module('portainer.docker').controller('ContainerLogsController', [
     }
 
     function initView() {
-      HttpRequestHelper.setPortainerAgentTargetHeader($transition$.params().nodeName);
       ContainerService.container(endpoint.Id, $transition$.params().id)
         .then(function success(data) {
           var container = data;

@@ -44,24 +44,15 @@ vi.mock('@@/ImageConfigFieldset/getImageConfig', () => ({
 
 // Mock child components to simplify tests
 vi.mock('./PullImageFormWidget.Form', () => ({
-  PullImageForm: ({
-    isNodeVisible,
-    isLoading,
-  }: {
-    isNodeVisible: boolean;
-    isLoading: boolean;
-  }) => (
-    <form data-cy="pull-image-form">
+  PullImageForm: (props: { isLoading: boolean }) => (
+    <form data-cy="pull-image-form" data-props={Object.keys(props).join(',')}>
       <input aria-label="Image name" name="image" data-cy="image-input" />
-      {isNodeVisible && (
-        <select aria-label="Node" name="node" data-cy="node-selector">
-          <option value="">Select a node</option>
-          <option value="node1">Node 1</option>
-          <option value="node2">Node 2</option>
-        </select>
-      )}
-      <button type="submit" disabled={isLoading} data-cy="pull-image-button">
-        {isLoading ? 'Download in progress...' : 'Pull the image'}
+      <button
+        type="submit"
+        disabled={props.isLoading}
+        data-cy="pull-image-button"
+      >
+        {props.isLoading ? 'Download in progress...' : 'Pull the image'}
       </button>
     </form>
   ),
@@ -79,7 +70,7 @@ describe('PullImageFormWidget', () => {
         isLoading: false,
       });
 
-      renderComponent({ isNodeVisible: false });
+      renderComponent();
 
       expect(
         screen.getByRole('heading', { name: /pull image/i })
@@ -93,7 +84,7 @@ describe('PullImageFormWidget', () => {
         isLoading: false,
       });
 
-      renderComponent({ isNodeVisible: false });
+      renderComponent();
 
       expect(
         screen.queryByRole('heading', { name: /pull image/i })
@@ -111,25 +102,21 @@ describe('PullImageFormWidget', () => {
     });
 
     it('should render widget with title "Pull image"', () => {
-      renderComponent({ isNodeVisible: false });
+      renderComponent();
 
       expect(
         screen.getByRole('heading', { name: /pull image/i })
       ).toBeVisible();
     });
 
-    it('should not render NodeSelector when isNodeVisible=false', () => {
-      renderComponent({ isNodeVisible: false });
+    it('REQ-TAI-007 renders no node selector and passes no node visibility', () => {
+      renderComponent();
 
       expect(screen.queryByLabelText(/node/i)).not.toBeInTheDocument();
-      expect(screen.queryByTestId('node-selector')).not.toBeInTheDocument();
-    });
-
-    it('should render NodeSelector when isNodeVisible=true', () => {
-      renderComponent({ isNodeVisible: true });
-
-      expect(screen.getByLabelText(/node/i)).toBeVisible();
-      expect(screen.getByTestId('node-selector')).toBeVisible();
+      expect(screen.getByTestId('pull-image-form')).toHaveAttribute(
+        'data-props',
+        'isLoading'
+      );
     });
   });
 
@@ -144,7 +131,7 @@ describe('PullImageFormWidget', () => {
     it('should initialize usePullImageMutation with correct environment ID', async () => {
       const mockUsePullImageMutation = vi.mocked(usePullImageMutation);
 
-      renderComponent({ isNodeVisible: false });
+      renderComponent();
 
       // Verify mutation hook was called with environment ID 1
       expect(mockUsePullImageMutation).toHaveBeenCalledWith(1);
@@ -156,7 +143,7 @@ describe('PullImageFormWidget', () => {
         isLoading: true,
       } as unknown as ReturnType<typeof usePullImageMutation>);
 
-      renderComponent({ isNodeVisible: false });
+      renderComponent();
 
       const submitButton = screen.getByRole('button', {
         name: /download in progress/i,
@@ -167,7 +154,7 @@ describe('PullImageFormWidget', () => {
   });
 });
 
-function renderComponent({ isNodeVisible }: { isNodeVisible: boolean }) {
+function renderComponent() {
   const Wrapped = withTestQueryProvider(withTestRouter(PullImageFormWidget));
-  return render(<Wrapped isNodeVisible={isNodeVisible} />);
+  return render(<Wrapped />);
 }

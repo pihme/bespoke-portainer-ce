@@ -38,16 +38,12 @@ const actions = [
 ];
 
 export interface Props {
-  isHostColumnVisible: boolean;
   environment: Environment;
 }
 
-export function ContainersDatatable({
-  isHostColumnVisible,
-  environment,
-}: Props) {
+export function ContainersDatatable({ environment }: Props) {
   const isGPUsColumnVisible = useShowGPUsColumn(environment);
-  const columns = useColumns(isHostColumnVisible, isGPUsColumnVisible);
+  const columns = useColumns(isGPUsColumnVisible);
   const tableState = useTableState(settingsStore, storageKey);
 
   const containersQuery = useContainers(environment.Id, {

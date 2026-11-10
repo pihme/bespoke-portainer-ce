@@ -38,7 +38,6 @@ function buildController({
   };
   const versionPromise = deferred();
   const infoPromise = deferred();
-  const hostInfoPromise = deferred();
   const $q = {
     all: (obj) => Promise.all([obj.version, obj.info]).then(([version, info]) => ({ version, info })),
   };
@@ -52,10 +51,9 @@ function buildController({
       endpoint: { mode: { agentProxy }, agentApiVersion },
     }),
   };
-  const AgentService = { hostInfo: vi.fn(() => hostInfoPromise) };
   const Authentication = { isAdmin: vi.fn(() => isAdmin) };
 
-  controllerState.ctor.call(ctrl, $q, SystemService, Notifications, StateManager, AgentService, Authentication);
+  controllerState.ctor.call(ctrl, $q, SystemService, Notifications, StateManager, Authentication);
 
   async function settle({
     version = { Version: '24.0', ApiVersion: '1.43' },
@@ -72,7 +70,6 @@ function buildController({
       NCPU: 4,
       MemTotal: 8,
     },
-    agentHostInfo = { PCIDevices: [], PhysicalDisks: [] },
   } = {}) {
     const init = ctrl.$onInit();
     if (versionError) {
@@ -84,16 +81,11 @@ function buildController({
     }
     await Promise.allSettled([versionPromise, infoPromise]);
     await flush();
-    if (!versionError && agentProxy && agentApiVersion > 1 && enableHostManagementFeatures) {
-      hostInfoPromise.resolve(agentHostInfo);
-      await hostInfoPromise.catch(() => undefined);
-      await flush();
-    }
     await init;
     await flush();
   }
 
-  return { ctrl, SystemService, Notifications, AgentService, settle };
+  return { ctrl, SystemService, Notifications, settle };
 }
 
 describe('REQ-HOST local host view controller', () => {
@@ -106,7 +98,14 @@ describe('REQ-HOST local host view controller', () => {
     expect(ctx.ctrl.hostDetails.name).toBe('docker-host');
     expect(ctx.ctrl.hostDetails.totalCPU).toBe(4);
     expect(ctx.ctrl.state.isAgent).toBe(false);
-    expect(ctx.AgentService.hostInfo).not.toHaveBeenCalled();
+  });
+
+  it('REQ-TAI-007 loads no agent host info (devices, disks) even with host management features on', async () => {
+    const ctx = buildController({ agentProxy: true, agentApiVersion: 2, enableHostManagementFeatures: true });
+    await ctx.settle();
+    expect(ctx.ctrl.hostDetails.name).toBe('docker-host');
+    expect(ctx.ctrl).not.toHaveProperty('devices');
+    expect(ctx.ctrl).not.toHaveProperty('disks');
   });
 
   it('notifies when system details fail', async () => {

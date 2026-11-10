@@ -17,15 +17,13 @@ import (
 )
 
 // @summary Attach a websocket
-// @description If the nodeName query parameter is present, the request will be proxied to the underlying agent environment(endpoint).
-// @description If the nodeName query parameter is not specified, the request will be upgraded to the websocket protocol and
+// @description The request will be upgraded to the websocket protocol and
 // @description an AttachStart operation HTTP request will be created and hijacked.
 // @description **Access policy**: authenticated
 // @tags websocket
 // @accept json
 // @produce json
 // @param endpointId query int true "environment(endpoint) ID of the environment(endpoint) where the resource is located"
-// @param nodeName query string false "node name"
 // @success 200
 // @failure 400
 // @failure 403
@@ -61,7 +59,6 @@ func (handler *Handler) websocketAttach(w http.ResponseWriter, r *http.Request) 
 	params := &webSocketRequestParams{
 		endpoint: endpoint,
 		ID:       attachID,
-		nodeName: r.FormValue("nodeName"),
 	}
 
 	err = handler.handleAttachRequest(w, r, params)
@@ -75,8 +72,8 @@ func (handler *Handler) websocketAttach(w http.ResponseWriter, r *http.Request) 
 func (handler *Handler) handleAttachRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
 	r.Header.Del("Origin")
 
-	if params.endpoint.Type == portainer.AgentOnDockerEnvironment {
-		return handler.proxyAgentWebsocketRequest(w, r, params)
+	if portainer.IsAgentEnvironmentType(params.endpoint.Type) {
+		return portainer.ErrAgentEnvironmentNotSupported
 	} else if params.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
 		return portainer.ErrEdgeEnvironmentNotSupported
 	}

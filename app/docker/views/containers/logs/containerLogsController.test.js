@@ -150,9 +150,9 @@ describe('REQ-CTR-10 ContainerLogsController local logs', () => {
     vi.clearAllMocks();
   });
 
-  it('sets agent target and starts polling when logs are enabled', async () => {
+  it('starts polling when logs are enabled and sets no agent target (REQ-TAI-007)', async () => {
     const ctx = buildController();
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('node-a');
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.ContainerService.container).toHaveBeenCalledWith(3, 'ctr-1');
 
     await ctx.settleContainer();

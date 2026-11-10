@@ -44,41 +44,20 @@ vi.mock('@@/form-components/FormActions', () => ({
   ),
 }));
 
-vi.mock('../../agent/NodeSelector', () => ({
-  NodeSelector: ({
-    value,
-    onChange,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-  }) => (
-    <button type="button" data-cy="node" onClick={() => onChange('node-a')}>
-      node:{value || 'none'}
-    </button>
-  ),
-}));
-
 const initial: FormValues = {
-  node: '',
   config: { image: '' },
 };
 
-function renderForm(props: {
-  isNodeVisible?: boolean;
-  isLoading?: boolean;
-}) {
+function renderForm(props: { isLoading?: boolean }) {
   return render(
     <Formik initialValues={initial} onSubmit={vi.fn()}>
-      <PullImageForm
-        isLoading={props.isLoading ?? false}
-        isNodeVisible={props.isNodeVisible ?? false}
-      />
+      <PullImageForm isLoading={props.isLoading ?? false} />
     </Formik>
   );
 }
 
 describe('PullImageForm', () => {
-  it('hides node selector when not visible', async () => {
+  it('REQ-TAI-007 shows no node selector', async () => {
     const user = userEvent.setup();
     renderForm({});
     expect(screen.queryByTestId('deployment')).not.toBeInTheDocument();
@@ -93,11 +72,4 @@ describe('PullImageForm', () => {
     );
   });
 
-  it('shows node selector and updates node when visible', async () => {
-    const user = userEvent.setup();
-    renderForm({ isNodeVisible: true });
-    expect(screen.getByTestId('deployment')).toBeVisible();
-    await user.click(screen.getByTestId('node'));
-    expect(screen.getByTestId('node')).toHaveTextContent('node:node-a');
-  });
 });

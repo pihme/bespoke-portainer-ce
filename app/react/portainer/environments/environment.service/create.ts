@@ -82,74 +82,16 @@ export async function createAzureEnvironment({
   });
 }
 
-interface TLSSettings {
-  skipVerify?: boolean;
-  skipClientVerify?: boolean;
-  caCertFile?: File;
-  certFile?: File;
-  keyFile?: File;
-}
-
 export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
   meta?: EnvironmentMetadata;
   azure?: AzureSettings;
-  tls?: TLSSettings;
   containerEngine?: ContainerEngine;
 }
 
-interface CreateRemoteEnvironment {
-  name: string;
-  creationType: Exclude<
-    EnvironmentCreationTypes,
-    EnvironmentCreationTypes.EdgeAgentEnvironment
-  >;
-  url: string;
-  options?: Omit<EnvironmentOptions, 'url'>;
-  containerEngine?: ContainerEngine;
-}
-
-export async function createRemoteEnvironment({
-  creationType,
-  name,
-  url,
-  options = {},
-}: CreateRemoteEnvironment) {
-  return createEnvironment(name, creationType, {
-    ...options,
-    url: `tcp://${url}`,
-  });
-}
-
-export interface CreateAgentEnvironmentValues {
-  name: string;
-  environmentUrl: string;
-  meta: EnvironmentMetadata;
-  containerEngine?: ContainerEngine;
-}
-
-export function createAgentEnvironment({
-  name,
-  environmentUrl,
-  containerEngine = ContainerEngine.Docker,
-  meta = { tagIds: [] },
-}: CreateAgentEnvironmentValues) {
-  return createRemoteEnvironment({
-    name,
-    url: environmentUrl,
-    creationType: EnvironmentCreationTypes.AgentEnvironment,
-    options: {
-      meta,
-      tls: {
-        skipVerify: true,
-        skipClientVerify: true,
-      },
-      containerEngine,
-    },
-  });
-}
-
+// Portainer Agent and remote Docker API environments are removed (TAI-007):
+// only local sockets (and Azure until TAI-008) can be created.
 async function createEnvironment(
   name: string,
   creationType: EnvironmentCreationTypes,
@@ -165,7 +107,7 @@ async function createEnvironment(
   };
 
   if (options) {
-    const { tls, azure, meta, containerEngine } = options;
+    const { azure, meta, containerEngine } = options;
     const { groupId, tagIds = [] } = meta || {};
 
     payload = {
@@ -176,18 +118,6 @@ async function createEnvironment(
       TagIds: arrayToJson(tagIds),
       ContainerEngine: containerEngine,
     };
-
-    if (tls) {
-      payload = {
-        ...payload,
-        TLS: true,
-        TLSSkipVerify: tls.skipVerify,
-        TLSSkipClientVerify: tls.skipClientVerify,
-        TLSCACertFile: tls.caCertFile,
-        TLSCertFile: tls.certFile,
-        TLSKeyFile: tls.keyFile,
-      };
-    }
 
     if (azure) {
       payload = {

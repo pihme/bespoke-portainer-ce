@@ -12,15 +12,15 @@ import (
 type StackRemoteOperation string
 
 const (
-	OperationDeploy        StackRemoteOperation = "compose-deploy"
-	OperationUndeploy      StackRemoteOperation = "compose-undeploy"
-	OperationComposeStart  StackRemoteOperation = "compose-start"
-	OperationComposeStop   StackRemoteOperation = "compose-stop"
+	OperationDeploy       StackRemoteOperation = "compose-deploy"
+	OperationUndeploy     StackRemoteOperation = "compose-undeploy"
+	OperationComposeStart StackRemoteOperation = "compose-start"
+	OperationComposeStop  StackRemoteOperation = "compose-stop"
 )
 
 const (
-	UnpackerCmdDeploy        = "deploy"
-	UnpackerCmdUndeploy      = "undeploy"
+	UnpackerCmdDeploy   = "deploy"
+	UnpackerCmdUndeploy = "undeploy"
 )
 
 type unpackerCmdBuilderOptions struct {
@@ -35,10 +35,10 @@ type unpackerCmdBuilderOptions struct {
 type buildCmdFunc func(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string
 
 var funcmap = map[StackRemoteOperation]buildCmdFunc{
-	OperationDeploy:        buildDeployCmd,
-	OperationUndeploy:      buildUndeployCmd,
-	OperationComposeStart:  buildComposeStartCmd,
-	OperationComposeStop:   buildComposeStopCmd,
+	OperationDeploy:       buildDeployCmd,
+	OperationUndeploy:     buildUndeployCmd,
+	OperationComposeStart: buildComposeStartCmd,
+	OperationComposeStop:  buildComposeStopCmd,
 }
 
 // build the unpacker cmd for stack based on stackOperation

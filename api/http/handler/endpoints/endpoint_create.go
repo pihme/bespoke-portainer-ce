@@ -4,12 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"runtime"
-	"strconv"
-	"strings"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/agent"
-	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/internal/snapshot"
@@ -25,12 +21,6 @@ type endpointCreatePayload struct {
 	PublicURL              string
 	Gpus                   []portainer.Pair
 	GroupID                int
-	TLS                    bool
-	TLSSkipVerify          bool
-	TLSSkipClientVerify    bool
-	TLSCACertFile          []byte
-	TLSCertFile            []byte
-	TLSKeyFile             []byte
 	AzureApplicationID     string
 	AzureTenantID          string
 	AzureAuthenticationKey string
@@ -43,7 +33,7 @@ type endpointCreationEnum int
 const (
 	_ endpointCreationEnum = iota
 	localDockerEnvironment
-	agentEnvironment
+	_ // 2 was the Agent environment, removed with the Portainer Agent (TAI-007).
 	azureEnvironment
 	// 4 was the Edge Agent environment, removed with Edge (TAI-004).
 	// 5 was the local Kubernetes environment, removed with Kubernetes (TAI-002).
@@ -61,8 +51,12 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		return errors.New("Edge Agent environments are no longer supported")
 	}
 
+	if err == nil && endpointCreationType == 2 {
+		return portainer.ErrAgentEnvironmentNotSupported
+	}
+
 	if err != nil || endpointCreationType < int(localDockerEnvironment) || endpointCreationType > int(azureEnvironment) {
-		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment), 2 (Agent environment) or 3 (Azure environment)")
+		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment) or 3 (Azure environment)")
 	}
 	payload.EndpointCreationType = endpointCreationEnum(endpointCreationType)
 
@@ -86,38 +80,9 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		payload.TagIDs = make([]portainer.TagID, 0)
 	}
 
-	useTLS, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLS", true)
-	payload.TLS = useTLS
-
-	if payload.TLS {
-		skipTLSServerVerification, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLSSkipVerify", true)
-		payload.TLSSkipVerify = skipTLSServerVerification
-		skipTLSClientVerification, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLSSkipClientVerify", true)
-		payload.TLSSkipClientVerify = skipTLSClientVerification
-
-		if !payload.TLSSkipVerify {
-			caCert, _, err := request.RetrieveMultiPartFormFile(r, "TLSCACertFile")
-			if err != nil {
-				return errors.New("invalid CA certificate file. Ensure that the file is uploaded correctly")
-			}
-
-			payload.TLSCACertFile = caCert
-		}
-
-		if !payload.TLSSkipClientVerify {
-			cert, _, err := request.RetrieveMultiPartFormFile(r, "TLSCertFile")
-			if err != nil {
-				return errors.New("invalid certificate file. Ensure that the file is uploaded correctly")
-			}
-			payload.TLSCertFile = cert
-
-			key, _, err := request.RetrieveMultiPartFormFile(r, "TLSKeyFile")
-			if err != nil {
-				return errors.New("invalid key file. Ensure that the file is uploaded correctly")
-			}
-
-			payload.TLSKeyFile = key
-		}
+	// TLS only ever secured a remote Docker API; remote hosts are removed (TAI-007).
+	if useTLS, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLS", true); useTLS {
+		return portainer.ErrRemoteEnvironmentNotSupported
 	}
 
 	switch payload.EndpointCreationType {
@@ -146,6 +111,11 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		if err != nil {
 			return errors.New("invalid environment URL")
 		}
+
+		// Only the local Docker or Podman socket can be added (TAI-007).
+		if !portainer.IsLocalSocketURL(endpointURL) {
+			return portainer.ErrRemoteEnvironmentNotSupported
+		}
 		payload.URL = endpointURL
 
 		publicURL, _ := request.RetrieveMultiPartFormValue(r, "PublicURL", true)
@@ -170,17 +140,11 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name that will be used to identify this environment(endpoint) (example: my-environment)"
-// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 2 (Agent environment), 3 (Azure environment)" Enum(1,2,3)
+// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 3 (Azure environment)" Enum(1,3)
 // @param ContainerEngine formData string false "Container engine used by the environment(endpoint). Value must be one of: 'docker' or 'podman'"
-// @param URL formData string false "URL or IP address of a Docker host (example: docker.mydomain.tld:2375). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine)."
+// @param URL formData string false "Local Docker or Podman socket (unix:// or npipe://). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine)."
 // @param PublicURL formData string false "URL or IP address where exposed containers will be reachable. Defaults to URL if not specified (example: docker.mydomain.tld:2375)"
 // @param GroupID formData int false "Environment(Endpoint) group identifier. If not specified will default to 1 (unassigned)."
-// @param TLS formData bool false "Require TLS to connect against this environment(endpoint). Must be true if EndpointCreationType is set to 2 (Agent environment)"
-// @param TLSSkipVerify formData bool false "Skip server verification when using TLS. Must be true if EndpointCreationType is set to 2 (Agent environment)"
-// @param TLSSkipClientVerify formData bool false "Skip client verification when using TLS. Must be true if EndpointCreationType is set to 2 (Agent environment)"
-// @param TLSCACertFile formData file false "TLS CA certificate file"
-// @param TLSCertFile formData file false "TLS client certificate file"
-// @param TLSKeyFile formData file false "TLS client key file"
 // @param AzureApplicationID formData string false "Azure application ID. Required if environment(endpoint) type is set to 3"
 // @param AzureTenantID formData string false "Azure tenant ID. Required if environment(endpoint) type is set to 3"
 // @param AzureAuthenticationKey formData string false "Azure authentication key. Required if environment(endpoint) type is set to 3"
@@ -231,31 +195,6 @@ func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *end
 	switch payload.EndpointCreationType {
 	case azureEnvironment:
 		return handler.createAzureEndpoint(tx, payload)
-	}
-
-	endpointType := portainer.DockerEnvironment
-	var agentVersion string
-	if payload.EndpointCreationType == agentEnvironment {
-		tlsConfig, err := crypto.CreateTLSConfigurationFromBytes(payload.TLS, payload.TLSCACertFile, payload.TLSCertFile, payload.TLSKeyFile, payload.TLSSkipVerify, payload.TLSSkipClientVerify)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to create TLS configuration", err)
-		}
-
-		agentPlatform, version, err := agent.GetAgentVersionAndPlatform(payload.URL, tlsConfig)
-		if err != nil {
-			return nil, httperror.InternalServerError("Unable to get environment type", err)
-		}
-
-		agentVersion = version
-		if agentPlatform == portainer.AgentPlatformDocker {
-			endpointType = portainer.AgentOnDockerEnvironment
-		} else if agentPlatform == portainer.AgentPlatformKubernetes {
-			return nil, httperror.BadRequest("Kubernetes environments are not supported", errors.New("kubernetes environments are not supported"))
-		}
-	}
-
-	if payload.TLS {
-		return handler.createTLSSecuredEndpoint(tx, payload, endpointType, agentVersion)
 	}
 
 	return handler.createUnsecuredEndpoint(tx, payload)
@@ -336,42 +275,6 @@ func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, pay
 	return endpoint, nil
 }
 
-func (handler *Handler) createTLSSecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload, endpointType portainer.EndpointType, agentVersion string) (*portainer.Endpoint, *httperror.HandlerError) {
-	endpointID := tx.Endpoint().GetNextIdentifier()
-	endpoint := &portainer.Endpoint{
-		ID:              portainer.EndpointID(endpointID),
-		Name:            payload.Name,
-		URL:             payload.URL,
-		Type:            endpointType,
-		ContainerEngine: payload.ContainerEngine,
-		GroupID:         portainer.EndpointGroupID(payload.GroupID),
-		PublicURL:       payload.PublicURL,
-		Gpus:            payload.Gpus,
-		TLSConfig: portainer.TLSConfiguration{
-			TLS:           payload.TLS,
-			TLSSkipVerify: payload.TLSSkipVerify,
-		},
-		UserAccessPolicies: portainer.UserAccessPolicies{},
-		TeamAccessPolicies: portainer.TeamAccessPolicies{},
-		TagIDs:             payload.TagIDs,
-		Status:             portainer.EndpointStatusUp,
-		Snapshots:          []portainer.DockerSnapshot{},
-		Kubernetes:         portainer.KubernetesDefault(),
-	}
-
-	endpoint.Agent.Version = agentVersion
-
-	if err := handler.storeTLSFiles(endpoint, payload); err != nil {
-		return nil, err
-	}
-
-	if err := handler.snapshotAndPersistEndpoint(tx, endpoint); err != nil {
-		return nil, err
-	}
-
-	return endpoint, nil
-}
-
 func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) *httperror.HandlerError {
 	// HACK: this bypasses the interface to avoid a deadlock and an import cycle
 	snapshotService, ok := handler.SnapshotService.(*snapshot.Service)
@@ -380,10 +283,6 @@ func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, 
 	}
 
 	if err := snapshotService.SnapshotEndpointTx(tx, endpoint); err != nil {
-		if endpoint.Type == portainer.AgentOnDockerEnvironment && strings.Contains(err.Error(), "Invalid request signature") {
-			err = errors.New("agent already paired with another Portainer instance")
-		}
-
 		return httperror.InternalServerError("Unable to initiate communications with environment", err)
 	}
 
@@ -408,38 +307,6 @@ func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.Data
 			return err
 		}
 	}
-
-	return nil
-}
-
-func (handler *Handler) storeTLSFiles(endpoint *portainer.Endpoint, payload *endpointCreatePayload) *httperror.HandlerError {
-	folder := strconv.Itoa(int(endpoint.ID))
-
-	if !payload.TLSSkipVerify {
-		caCertPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileCA, payload.TLSCACertFile)
-		if err != nil {
-			return httperror.InternalServerError("Unable to persist TLS CA certificate file on disk", err)
-		}
-
-		endpoint.TLSConfig.TLSCACertPath = caCertPath
-	}
-
-	if payload.TLSSkipClientVerify {
-		return nil
-	}
-
-	certPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileCert, payload.TLSCertFile)
-	if err != nil {
-		return httperror.InternalServerError("Unable to persist TLS certificate file on disk", err)
-	}
-
-	endpoint.TLSConfig.TLSCertPath = certPath
-
-	keyPath, err := handler.FileService.StoreTLSFileFromBytes(folder, portainer.TLSFileKey, payload.TLSKeyFile)
-	if err != nil {
-		return httperror.InternalServerError("Unable to persist TLS key file on disk", err)
-	}
-	endpoint.TLSConfig.TLSKeyPath = keyPath
 
 	return nil
 }

@@ -86,7 +86,7 @@ func TestREQ_CTR_06_Recreate_ForcePullImage(t *testing.T) {
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, oldID, true, "", "")
+	}, oldID, true, "")
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	require.Equal(t, newID, got.ID)
@@ -130,7 +130,7 @@ func TestREQ_CTR_06_Recreate_ForcePullImageError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, "old-ctr", true, "", "")
+	}, "old-ctr", true, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "pull image error")
 }

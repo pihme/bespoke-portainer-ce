@@ -618,3 +618,50 @@ func TestREQ_TAI_006_Start_BackupRoutesAreGone(t *testing.T) {
 		t.Fatal("Start did not return after cancel")
 	}
 }
+
+// REQ-TAI-007: the Portainer Agent routes are removed. The agent versions list
+// is gone (the path now falls through to /endpoints/{id} and is refused as an
+// invalid identifier), and the Agent proxy routes answer 404.
+func TestREQ_TAI_007_Start_AgentRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct {
+		method, path string
+		status       int
+	}{
+		{http.MethodGet, "/api/endpoints/agent_versions", http.StatusBadRequest},
+		{http.MethodGet, "/api/endpoints/1/agent/docker/containers/json", http.StatusNotFound},
+		{http.MethodGet, "/api/endpoints/1/agent/host/docker-storage", http.StatusNotFound},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, route.status, resp.StatusCode, "%s %s", route.method, route.path)
+	}
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}

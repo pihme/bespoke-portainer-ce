@@ -313,7 +313,7 @@ describe('REQ-IMG-03 BuildImageController local Docker image build form', () => 
     const pending = ctx.$scope.buildImage();
     await Promise.resolve();
     expect(ctx.$scope.state.actionInProgress).toBe(true);
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('agent-1');
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.BuildService.buildImageFromUpload).toHaveBeenCalledWith(3, ['app:1', 'app:latest'], file, 'docker/Dockerfile');
 
     await ctx.settleBuild('upload');

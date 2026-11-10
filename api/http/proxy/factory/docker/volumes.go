@@ -182,8 +182,7 @@ func (transport *Transport) decorateVolumeResourceCreationOperation(request *htt
 	volumeID := request.Header.Get("X-Portainer-VolumeName")
 
 	if volumeID != "" {
-		agentTargetHeader := request.Header.Get(portainer.PortainerAgentTargetHeader)
-		cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, agentTargetHeader, nil)
+		cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +284,7 @@ func (transport *Transport) getDockerID() (string, error) {
 	}
 
 	// Remote value
-	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, "", nil)
+	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 	if err != nil {
 		return "", err
 	}

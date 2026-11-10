@@ -5,7 +5,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import { withError, withInvalidate } from '@/react-tools/react-query';
 
 import { buildImageFullURI } from '../utils';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 
 import { queryKeys } from './queryKeys';
@@ -42,9 +41,6 @@ export async function pullImage({
       {
         params: {
           fromImage: imageURI,
-        },
-        headers: {
-          ...withAgentTargetHeader(nodeName),
         },
       }
     );

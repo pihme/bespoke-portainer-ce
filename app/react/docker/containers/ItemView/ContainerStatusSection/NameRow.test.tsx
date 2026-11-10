@@ -220,7 +220,8 @@ describe('NameRow', () => {
       expect(capturedRequest).toEqual({
         endpointId: '5',
         containerId: 'container-abc',
-        nodeNameHeader: 'swarm-node-2',
+        // REQ-TAI-007: per-node targeting is removed, no agent header is sent
+        nodeNameHeader: null,
         name: 'updated-name',
       });
     });

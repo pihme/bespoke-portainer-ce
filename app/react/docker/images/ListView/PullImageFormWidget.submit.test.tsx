@@ -78,7 +78,7 @@ describe('PullImageFormWidget submit', () => {
     } as ReturnType<typeof usePullImageMutation>);
 
     const Wrapped = withTestQueryProvider(withTestRouter(PullImageFormWidget));
-    render(<Wrapped isNodeVisible={false} />);
+    render(<Wrapped />);
 
     await user.click(screen.getByText('submit-via-formik'));
 
@@ -86,7 +86,6 @@ describe('PullImageFormWidget submit', () => {
       {
         environmentId: 7,
         image: 'nginx:latest',
-        nodeName: '',
         ignoreErrors: false,
       },
       expect.objectContaining({ onSuccess: expect.any(Function) })

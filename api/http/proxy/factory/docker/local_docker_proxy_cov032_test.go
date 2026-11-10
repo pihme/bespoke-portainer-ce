@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	dockerclient "github.com/portainer/portainer/api/docker/client"
-	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
+	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/stacks/stackutils"
@@ -24,7 +24,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
 
 func dockerCreateServer(t *testing.T, createPath string, createBody any) *httptest.Server {
 	t.Helper()
@@ -290,7 +289,7 @@ func TestREQ_USR_08_RestrictedResourceOperationLocal(t *testing.T) {
 	}))
 
 	srv, version := mockDockerAPIServer(t, RoutesDefinition{
-		{http.MethodPost, "/containers/ctr-owned/start"}:    map[string]any{},
+		{http.MethodPost, "/containers/ctr-owned/start"}:     map[string]any{},
 		{http.MethodPost, "/containers/ctr-inherited/start"}: map[string]any{},
 		{http.MethodGet, "/containers/ctr-inherited/json"}: map[string]any{
 			"Id": "ctr-inherited",

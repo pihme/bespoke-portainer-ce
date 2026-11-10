@@ -149,20 +149,6 @@ func (transport *Transport) proxyDockerRequest(request *http.Request, fipsMode b
 
 	unversionedPath := httprequest.TrimDockerVersion(request.URL.Path)
 
-	// The agent verifies this signature unless it is running in FIPS mode, where it
-	// relies on mTLS instead. Skip sending it to match that behaviour.
-	if (transport.endpoint.Type == portainer.AgentOnDockerEnvironment ||
-		transport.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment) &&
-		!fipsMode {
-		signature, err := transport.signatureService.CreateSignature(portainer.PortainerAgentSignatureMessage)
-		if err != nil {
-			return nil, err
-		}
-
-		request.Header.Set(portainer.PortainerAgentPublicKeyHeader, transport.signatureService.EncodedPublicKey())
-		request.Header.Set(portainer.PortainerAgentSignatureHeader, signature)
-	}
-
 	// from    : /containers/{id}/json
 	// trim to : containers/{id}/json
 	// pick    : [ containers, {id}, json ][0]
@@ -299,7 +285,7 @@ func (transport *Transport) proxyContainerRequest(request *http.Request, unversi
 func (transport *Transport) proxyExecRequest(request *http.Request, unversionedPath string) (*http.Response, error) {
 	execID := path.Base(path.Dir(unversionedPath))
 
-	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, request.Header.Get(portainer.PortainerAgentTargetHeader), nil)
+	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +514,7 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 		return transport.executeDockerRequest(request)
 	}
 
-	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, request.Header.Get(portainer.PortainerAgentTargetHeader), nil)
+	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -48,7 +48,9 @@ func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (htt
 		return newAzureProxy(endpoint, factory.dataStore)
 	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
 		return nil, portainer.ErrEdgeEnvironmentNotSupported
-	case portainer.AgentOnKubernetesEnvironment, portainer.KubernetesLocalEnvironment:
+	case portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment:
+		return nil, portainer.ErrAgentEnvironmentNotSupported
+	case portainer.KubernetesLocalEnvironment:
 		return factory.newKubernetesProxy(endpoint)
 	}
 

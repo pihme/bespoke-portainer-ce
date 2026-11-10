@@ -47,7 +47,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-SRV-01 Run as a container on Docker Standalone.** Portainer Server runs as a container with the Docker socket and a `portainer_data` volume mounted; UI on HTTPS port 9443 with a self-signed certificate, optional HTTP 9000, optional tunnel port 8000 for Edge Agents. Entry: `docker run … portainer/portainer-ce`; CLI `--bind`, `--bind-https`, `--tunnel-addr`, `--tunnel-port`, `--data`, `--assets`. docs: start/install-ce/server/docker/linux *TAI-004: no tunnel port 8000; `--tunnel-addr` and `--tunnel-port` are gone.*
 - **REQ-SRV-02 Other install targets.** Install on Docker Swarm (as a stack with the Agent), Kubernetes (Helm chart or manifests), Podman, WSL/Docker Desktop and Windows Container Service. Not tested in this repo (C-08). docs: start/install-ce/server/*, advanced/helm-chart-configuration-options
-- **REQ-SRV-03 Portainer Agent.** A separate agent container that gives the server access to a remote Docker, Swarm, Podman or Kubernetes host (needed for host browsing and volume browsing). Not tested in this repo (C-08); the server side of talking to an Agent is tested. docs: start/agent, start/architecture
+- ~~**REQ-SRV-03 Portainer Agent.** A separate agent container that gives the server access to a remote Docker, Swarm, Podman or Kubernetes host (needed for host browsing and volume browsing). Not tested in this repo (C-08); the server side of talking to an Agent is tested. docs: start/agent, start/architecture~~ REMOVED (TAI-007)
 - **REQ-SRV-04 Command-line configuration.** Server behavior is set by CLI flags, among them `--host` (initial environment), `--admin-password`/`--admin-password-file`, `--hide-label`, `--logo`, `--templates`, `--snapshot-interval`, `--base-url`, `--log-level`, `--log-mode`, `--http-disabled`/`--http-enabled`, `--trusted-origins`, `--csp`, `--compact-db`, `--feat`, `--rollback`. docs: advanced/cli
 - **REQ-SRV-05 Own TLS certificate and HTTPS-only.** Serve the UI with a user-supplied certificate and key, optionally HTTPS only. Entry: CLI `--tlscert`, `--tlskey`, `--tlscacert`, `--tlsverify` (deprecated aliases `--ssl`, `--sslcert`, `--sslkey`), `--http-disabled`; UI `#!/settings` (SSL certificate); API `GET/PUT /ssl`. docs: advanced/ssl, admin/settings/general
 - ~~**REQ-SRV-06 mTLS for Edge Agent traffic.** **BE-only.** docs: advanced/mtls~~ REMOVED (TAI-004)
@@ -86,13 +86,13 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## ENV – Home and environments
 
-- **REQ-ENV-01 Home screen.** List all environments the user can reach, with status, type, resource counts and snapshot time; search, filter, sort and group; open an environment. Entry: UI `#!/home`; API `GET /endpoints`, `GET /endpoints/summary`. docs: user/home
+- **REQ-ENV-01 Home screen.** List all environments the user can reach, with status, type, resource counts and snapshot time; search, filter, sort and group; open an environment. Entry: UI `#!/home`; API `GET /endpoints`, `GET /endpoints/summary`. docs: user/home *TAI-007: no Agent version filter or Agent version badge.*
 - **REQ-ENV-02 Build information and help.** Show the Portainer version/build and links to help from the home screen. Entry: UI build-info modal in the sidebar; API `GET /system/version`, `GET /system/info`, `GET /status`. docs: user/home
-- **REQ-ENV-03 Manage environments.** List, edit (name, URL, public IP, group, tags, TLS) and remove environments. Entry: UI `#!/endpoints`, `#!/endpoints/{id}`; API `GET/POST /endpoints`, `GET/PUT/DELETE /endpoints/{id}`, `POST /endpoints/delete`. docs: admin/environments/environments
+- **REQ-ENV-03 Manage environments.** List, edit (name, URL, public IP, group, tags, TLS) and remove environments. Entry: UI `#!/endpoints`, `#!/endpoints/{id}`; API `GET/POST /endpoints`, `GET/PUT/DELETE /endpoints/{id}`, `POST /endpoints/delete`. docs: admin/environments/environments *TAI-007: the URL of a Docker environment can only be changed to a local socket.*
 - **REQ-ENV-04 Add the local Docker environment.** Connect the Docker daemon on the Portainer host through the mounted socket. Entry: UI `#!/wizard/endpoints/create`; CLI `--host`. docs: admin/environments/add/local, admin/environments/add/docker/socket
-- **REQ-ENV-05 Add a remote Docker Standalone environment.** Via Portainer Agent, Docker API (with optional TLS) or socket. docs: admin/environments/add/docker, …/docker/agent, …/docker/api
+- ~~**REQ-ENV-05 Add a remote Docker Standalone environment.** Via Portainer Agent, Docker API (with optional TLS) or socket. docs: admin/environments/add/docker, …/docker/agent, …/docker/api~~ REMOVED (TAI-007)
 - ~~**REQ-ENV-06 Add a Docker Swarm environment.** Via Agent, API or socket. docs: admin/environments/add/swarm and sub-pages~~ REMOVED (TAI-003)
-- **REQ-ENV-07 Add a Podman environment.** Via Agent or Podman socket. docs: admin/environments/add/podman and sub-pages
+- **REQ-ENV-07 Add a Podman environment.** Via Agent or Podman socket. docs: admin/environments/add/podman and sub-pages *TAI-007: Podman socket only; no Agent.*
 - ~~**REQ-ENV-08 Add a Kubernetes environment.** Via Agent. docs: admin/environments/add/kubernetes, …/kubernetes/agent~~ REMOVED (TAI-002)
 - ~~**REQ-ENV-09 Import a Kubernetes cluster from kubeconfig.** **BE-only.** docs: admin/environments/add/kubernetes/import~~ REMOVED (TAI-002)
 - ~~**REQ-ENV-10 Create a Kubernetes cluster (Talos via Omni) and KubeSolo Edge environments.** **BE-only.** docs: admin/environments/add/kube-create, …/kube-create/omni, admin/environments/add/add-a-kubesolo-edge-environment~~ REMOVED (TAI-002, TAI-004)
@@ -109,8 +109,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## HOST – Docker environment dashboard, host and events
 
 - **REQ-HOST-01 Docker dashboard.** Environment info and summary tiles (stacks, containers, images, volumes, networks, GPUs, Swarm services) with links into the lists. Entry: UI `#!/{envId}/docker/dashboard`; API `GET /docker/{environmentId}/dashboard`. docs: user/docker/dashboard *TAI-003: no Swarm services tile and no Swarm cluster info panels; the GPU tile shows on standalone engines.*
-- **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details
-- **REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem)
+- **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details *TAI-007: no PCI devices, physical disks or Agent disk usage.*
+- **REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem) *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-009.*
 - **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.*
 - **REQ-HOST-05 Docker events.** List engine events for the environment. Entry: UI `#!/{envId}/docker/events`. docs: user/docker/events
 
@@ -156,7 +156,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-VOL-01 List volumes.** With used/unused state, driver and mount point. Entry: UI `#!/{envId}/docker/volumes`. docs: user/docker/volumes
 - **REQ-VOL-02 Create a volume.** Local, NFS, CIFS and tmpfs volumes, driver options, access control. Entry: UI `#!/{envId}/docker/volumes/new`. docs: user/docker/volumes/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).*
 - **REQ-VOL-03 Volume details.** Driver, mount point, options and containers using the volume. Entry: UI `#!/{envId}/docker/volumes/{id}`. docs: user/docker/volumes
-- **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse *TAI-003: browsing no longer comes from Swarm.*
+- **REQ-VOL-04 Browse a volume.** Upload, download, rename and delete files (needs the Agent or Swarm). Entry: UI `#!/{envId}/docker/volumes/{id}/browse`; API `POST /endpoints/{id}/docker/v2/browse/put`. docs: user/docker/volumes/browse *TAI-003: browsing no longer comes from Swarm.* *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-010.*
 - **REQ-VOL-05 Remove a volume.** docs: user/docker/volumes/remove
 
 ## STK – Docker stacks
@@ -167,7 +167,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-STK-04 Inspect and edit a stack.** See containers/services of a stack, edit the compose file and environment variables, update (optionally re-pull images), redeploy from Git, change Git settings. Entry: UI `#!/{envId}/docker/stacks/{name}`; API `GET/PUT /stacks/{id}`, `GET /stacks/{id}/file`, `POST /stacks/{id}/git`, `PUT /stacks/{id}/git/redeploy`. docs: user/docker/stacks/edit *TAI-003: a stack shows containers only; a leftover Swarm stack record can be inspected and deleted, every other operation answers 400.*
 - **REQ-STK-05 Start and stop a stack.** Entry: UI stack page; API `POST /stacks/{id}/start`, `POST /stacks/{id}/stop`. docs: user/docker/stacks/edit
 - **REQ-STK-06 Create a template from a stack.** Entry: UI stack page. docs: user/docker/stacks/template
-- **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate *TAI-003: Swarm stacks cannot be migrated or duplicated.*
+- **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate *TAI-003: Swarm stacks cannot be migrated or duplicated.* *TAI-007: no migration to another environment; rename (same environment) and duplicate stay.*
 - **REQ-STK-08 Remove a stack.** Entry: API `DELETE /stacks/{id}`, `DELETE /stacks/name/{name}`. docs: user/docker/stacks/remove *TAI-003: removing an external (Swarm) stack via `external=true` answers 400.*
 - **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL (CE, C-01; the CE create and edit forms set webhook IDs for editor and Git stacks). Pull prevention and environment variables on the webhook call are **BE-only**. Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks
 - **REQ-STK-10 Associate orphaned stacks.** Re-attach a stack to an environment. Entry: API `PUT /stacks/{id}/associate` (inferred from code; no docs page). *TAI-003: no `swarmId`; Swarm stacks cannot be associated.*
@@ -362,6 +362,14 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) Requests are no longer held behind a restore lock (no offline gate); `PORTAINER_BACKUP_TIMEOUT` has no effect.
   - (c) The settings page has no "Back up Portainer" panel, and the home page has no "backup failed" panel.
   - (d) The BoltDB store and its own pre-migration backup and rollback (`--rollback`) are unchanged.
+- **REQ-TAI-007 No Portainer Agent and no remote Docker hosts.** Added by TAI-007 (2026-11-10).
+  - (a) The removed API routes: `GET /endpoints/agent_versions` is gone (the path falls through to `/endpoints/{id}` and answers 400), `/endpoints/{id}/agent/docker/…` and `/endpoints/{id}/agent/host/…` answer 404; `GET /endpoints` has no `agentVersions` filter.
+  - (b) `POST /endpoints` rejects `EndpointCreationType` 2 (Agent) with "Agent environments are no longer supported", and `TLS=true` or a non-socket URL with "Remote Docker environments are no longer supported"; the payload has no TLS fields. `PUT /endpoints/{id}` rejects a URL that is not a local socket (`unix://`, `npipe://`) with the same remote message.
+  - (c) A leftover Agent environment record stays in the database and can be listed and removed; the Docker proxy, websocket exec/attach, snapshots and the Docker client factory refuse it with "Agent environments are no longer supported" (400 on the proxy route) without opening a connection. Requests are never signed and carry no `X-PortainerAgent-Target` or manager-operation header.
+  - (d) `POST /stacks/{id}/migrate` to another environment answers 400; a rename in the same environment stays.
+  - (e) The environment wizard offers only the local socket for Docker and for Podman (no Agent or API tab).
+  - (f) The UI has no per-node targeting (node selector, host columns, agent target header), no Agent version filter or badge on the home page, no PCI devices, physical disks or disk usage on the host page, and the stack duplication form offers Rename and Duplicate only.
+  - (g) The local Docker socket, `--host` (including `tcp://`), Compose stacks and stack Git deploy are unchanged.
 
 ## Not covered as requirements
 

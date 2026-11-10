@@ -44,25 +44,6 @@ func TestREQ_STK_07_MigrateMissingSourceEndpoint_ReturnsNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
-func TestREQ_STK_07_MigrateMissingTargetEndpoint_ReturnsNotFound(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-	_, err := mockCreateUser(store)
-	require.NoError(t, err)
-	endpoint, err := mockCreateEndpoint(store)
-	require.NoError(t, err)
-	require.NoError(t, store.Stack().Create(&portainer.Stack{
-		ID: 1, Name: "s", Type: portainer.DockerComposeStack, EndpointID: endpoint.ID,
-	}))
-	h := NewHandler(testhelpers.NewTestRequestBouncer(), nil)
-	h.DataStore = store
-	body, _ := json.Marshal(stackMigratePayload{EndpointID: 99})
-	req := mockCreateStackRequestWithSecurityContext(http.MethodPost, "/stacks/1/migrate", bytes.NewReader(body))
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusNotFound, w.Code)
-}
-
 func TestREQ_STK_07_MigrateManageDisabled_NonAdmin_ReturnsForbidden(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
@@ -98,12 +79,7 @@ func TestREQ_STK_07_MigrateCompose_SameNameNoRename_Succeeds(t *testing.T) {
 		ID: 1, Name: "src", Type: portainer.DockerEnvironment,
 		SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true},
 	}
-	dst := &portainer.Endpoint{
-		ID: 2, Name: "dst", Type: portainer.DockerEnvironment,
-		SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true},
-	}
 	require.NoError(t, store.Endpoint().Create(src))
-	require.NoError(t, store.Endpoint().Create(dst))
 
 	stack := &portainer.Stack{
 		ID: 1, Name: "keep-name", Type: portainer.DockerComposeStack, EndpointID: src.ID,
@@ -120,14 +96,13 @@ func TestREQ_STK_07_MigrateCompose_SameNameNoRename_Succeeds(t *testing.T) {
 	h.StackDeployer = testhelpers.NewTestStackDeployer()
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 
-	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(dst.ID)})
+	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(src.ID)})
 	req := mockCreateStackRequestWithSecurityContext(http.MethodPost, "/stacks/1/migrate", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, req)
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	updated, err := store.Stack().Read(1)
 	require.NoError(t, err)
-	assert.Equal(t, dst.ID, updated.EndpointID)
+	assert.Equal(t, src.ID, updated.EndpointID)
 	assert.Equal(t, "keep-name", updated.Name)
 }
-

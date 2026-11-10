@@ -1,15 +1,11 @@
 import { useRouter } from '@uirouter/react';
 
 import { humanize } from '@/portainer/filters/filters';
-import { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { Widget } from '@@/Widget/Widget';
 import { WidgetBody } from '@@/Widget/WidgetBody';
 import { WidgetTitle } from '@@/Widget/WidgetTitle';
 import { DetailsTable } from '@@/DetailsTable/DetailsTable';
-import { Tooltip } from '@@/Tip/Tooltip';
-
-import { DockerStorageInfo } from '../DockerStorageInfo';
 
 type HostOs = {
   type: string;
@@ -29,14 +25,12 @@ type Props = {
   host: HostInfo;
   isBrowseEnabled: boolean;
   browseUrl: string;
-  endpointId?: EnvironmentId;
 };
 
 export function HostDetailsPanel({
   host,
   isBrowseEnabled,
   browseUrl,
-  endpointId,
 }: Props) {
   const router = useRouter();
 
@@ -73,19 +67,6 @@ export function HostDetailsPanel({
                 <td>Total memory</td>
                 <td>{humanize(host.totalMemory)}</td>
               </tr>
-              {endpointId && (
-                <tr>
-                  <td>
-                    <span className="flex items-center">
-                      Disk usage
-                      <Tooltip message="Disk usage on the partition backing Docker's data directory. Docker usage includes images, container layers, volumes, and build cache." />
-                    </span>
-                  </td>
-                  <td>
-                    <DockerStorageInfo endpointId={endpointId} />
-                  </td>
-                </tr>
-              )}
               {isBrowseEnabled && (
                 <tr>
                   <td colSpan={2}>

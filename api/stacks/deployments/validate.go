@@ -28,7 +28,7 @@ func ValidateStackForUser(stack *portainer.Stack, endpoint *portainer.Endpoint, 
 	if factory := deployer.GetDockerClientFactory(); factory != nil {
 		var err error
 
-		dockerClient, err = factory.CreateClient(endpoint, "", nil)
+		dockerClient, err = factory.CreateClient(endpoint, nil)
 		if err != nil {
 			return err
 		}

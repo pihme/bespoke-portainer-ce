@@ -73,3 +73,19 @@ func TestREQ_TAI_002_KubernetesWebsocketsAreGone(t *testing.T) {
 		assert.Equalf(t, http.StatusNotFound, rr.Code, "GET %s", path)
 	}
 }
+
+// REQ-TAI-007: the Portainer Agent and per-node targeting are removed. Exec and
+// attach on a legacy Agent environment are refused instead of being proxied.
+func TestREQ_TAI_007_WebsocketRefusesAgentEnvironments(t *testing.T) {
+	handler := &Handler{}
+
+	for _, envType := range []portainer.EndpointType{portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment} {
+		params := &webSocketRequestParams{ID: "abcdef", endpoint: &portainer.Endpoint{ID: 3, Type: envType, URL: "tcp://agent:9001"}}
+
+		req := httptest.NewRequest(http.MethodGet, "/websocket/exec?id=abcdef&endpointId=3&nodeName=node-1", nil)
+		require.ErrorIs(t, handler.handleExecRequest(httptest.NewRecorder(), req, params), portainer.ErrAgentEnvironmentNotSupported)
+
+		req = httptest.NewRequest(http.MethodGet, "/websocket/attach?id=abcdef&endpointId=3&nodeName=node-1", nil)
+		require.ErrorIs(t, handler.handleAttachRequest(httptest.NewRecorder(), req, params), portainer.ErrAgentEnvironmentNotSupported)
+	}
+}

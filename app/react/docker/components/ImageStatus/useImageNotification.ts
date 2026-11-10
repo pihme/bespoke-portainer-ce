@@ -36,13 +36,8 @@ async function getContainerImagesStatus(
   nodeName: string
 ) {
   try {
-    let headers = {};
-    if (nodeName !== '') {
-      headers = { 'X-PortainerAgent-Target': nodeName };
-    }
     const { data } = await axios.get<ImageStatus>(
-      `/docker/${environmentId}/containers/${containerID}/image_status`,
-      { headers }
+      `/docker/${environmentId}/containers/${containerID}/image_status`
     );
     return data;
   } catch (e) {

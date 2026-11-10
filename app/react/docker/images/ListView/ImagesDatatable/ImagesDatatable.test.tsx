@@ -75,7 +75,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByText(/nginx:latest/)).toBeVisible();
@@ -92,7 +92,7 @@ describe('ImagesDatatable', () => {
         })
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       expect(screen.getByText(/Loading/)).toBeVisible();
     });
@@ -102,7 +102,7 @@ describe('ImagesDatatable', () => {
         http.get('/api/docker/:envId/images', () => HttpResponse.json([]))
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByText(/No items available./i)).toBeInTheDocument();
@@ -111,35 +111,7 @@ describe('ImagesDatatable', () => {
   });
 
   describe('Column Visibility', () => {
-    it('should show host column when isHostColumnVisible=true', async () => {
-      const mockImages = [
-        createMockImage({
-          id: 'sha256:abc123',
-          tags: ['nginx:latest'],
-          nodeName: 'worker-node-1',
-        }),
-        createMockImage({
-          id: 'sha256:def456',
-          tags: ['redis:alpine'],
-          nodeName: 'worker-node-2',
-        }),
-      ];
-
-      server.use(
-        http.get('/api/docker/:envId/images', () =>
-          HttpResponse.json(mockImages)
-        )
-      );
-
-      renderComponent({ isHostColumnVisible: true });
-
-      await waitFor(() => {
-        expect(screen.getByText('worker-node-1')).toBeVisible();
-        expect(screen.getByText('worker-node-2')).toBeVisible();
-      });
-    });
-
-    it('should hide host column when isHostColumnVisible=false', async () => {
+    it('REQ-TAI-007 shows no host column, even for an image with a node name', async () => {
       const mockImages = [
         createMockImage({
           id: 'sha256:abc123',
@@ -154,7 +126,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByText('nginx:latest')).toBeVisible();
@@ -171,7 +143,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByTestId('remove-button-menu')).toBeVisible();
@@ -185,7 +157,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByTestId('import-export-buttons')).toBeVisible();
@@ -200,7 +172,6 @@ describe('ImagesDatatable', () => {
       );
 
       renderComponent(
-        { isHostColumnVisible: false },
         createMockUser({
           Role: Role.Standard,
           EndpointAuthorizations: {
@@ -228,7 +199,6 @@ describe('ImagesDatatable', () => {
       );
 
       renderComponent(
-        { isHostColumnVisible: false },
         createMockUser({
           Role: Role.Standard,
           EndpointAuthorizations: {
@@ -262,7 +232,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         // Image ID (shortened)
@@ -288,7 +258,7 @@ describe('ImagesDatatable', () => {
         )
       );
 
-      renderComponent({ isHostColumnVisible: false });
+      renderComponent();
 
       await waitFor(() => {
         expect(screen.getByText(/untagged123/)).toBeVisible();
@@ -311,17 +281,12 @@ function createMockImage(
   };
 }
 
-function renderComponent(
-  { isHostColumnVisible }: { isHostColumnVisible: boolean },
-  user: User = createMockUser()
-) {
+function renderComponent(user: User = createMockUser()) {
   const Wrapped = withTestQueryProvider(
     withUserProvider(withTestRouter(ImagesDatatable), user)
   );
 
-  const rendered = render(
-    <Wrapped isHostColumnVisible={isHostColumnVisible} />
-  );
+  const rendered = render(<Wrapped />);
 
   expect(screen.getByTestId('docker-images-datatable')).toBeVisible();
 

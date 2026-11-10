@@ -6,7 +6,6 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 
 import { DockerNetwork, NetworkId } from '../types';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 
 import { queryKeys } from './queryKeys';
 
@@ -38,12 +37,7 @@ export async function getNetwork(
 ) {
   try {
     const { data: network } = await axios.get<DockerNetwork>(
-      buildDockerProxyUrl(environmentId, 'networks', networkId),
-      {
-        headers: {
-          ...withAgentTargetHeader(nodeName),
-        },
-      }
+      buildDockerProxyUrl(environmentId, 'networks', networkId)
     );
     return network;
   } catch (e) {

@@ -2,7 +2,6 @@ import _ from 'lodash';
 import { useMemo } from 'react';
 
 import { created } from './created';
-import { host } from './host';
 import { image } from './image';
 import { ip } from './ip';
 import { name } from './name';
@@ -12,10 +11,7 @@ import { stack } from './stack';
 import { state } from './state';
 import { gpus } from './gpus';
 
-export function useColumns(
-  isHostColumnVisible: boolean,
-  isGPUsColumnVisible: boolean | undefined
-) {
+export function useColumns(isGPUsColumnVisible: boolean | undefined) {
   return useMemo(
     () =>
       _.compact([
@@ -26,10 +22,9 @@ export function useColumns(
         image,
         created,
         ip,
-        isHostColumnVisible && host,
         isGPUsColumnVisible && gpus,
         ports,
       ]),
-    [isHostColumnVisible, isGPUsColumnVisible]
+    [isGPUsColumnVisible]
   );
 }

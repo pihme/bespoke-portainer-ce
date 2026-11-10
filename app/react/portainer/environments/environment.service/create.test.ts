@@ -13,11 +13,9 @@ vi.mock('@api/sdk.gen', () => ({
   endpointCreate: (...args: unknown[]) => endpointCreate(...args),
 }));
 
-import {
-  createAgentEnvironment,
-  createLocalDockerEnvironment,
-  createRemoteEnvironment,
-} from './create';
+import * as createModule from './create';
+
+const { createAzureEnvironment, createLocalDockerEnvironment } = createModule;
 
 function createdEndpoint(overrides: Record<string, unknown> = {}) {
   return {
@@ -75,75 +73,31 @@ describe('create local Docker environments (backwards compatibility)', () => {
     );
   });
 
-  it('createRemoteEnvironment prefixes tcp and createAgentEnvironment skips TLS verify', async () => {
-    await createRemoteEnvironment({
-      name: 'remote',
-      url: '10.0.0.1:2375',
-      creationType: EnvironmentCreationTypes.LocalDockerEnvironment,
-      options: { meta: { tagIds: [1] } },
-    });
-    expect(endpointCreate.mock.calls[0][0].body.URL).toBe('tcp://10.0.0.1:2375');
-
-    endpointCreate.mockClear();
-    await createAgentEnvironment({
-      name: 'agent',
-      environmentUrl: '10.0.0.2:9001',
-      meta: { tagIds: [] },
-    });
-    const body = endpointCreate.mock.calls[0][0].body;
-    expect(body.EndpointCreationType).toBe(
-      EnvironmentCreationTypes.AgentEnvironment
-    );
-    expect(body.URL).toBe('tcp://10.0.0.2:9001');
-    expect(body.TLS).toBe(true);
-    expect(body.TLSSkipVerify).toBe(true);
-    expect(body.TLSSkipClientVerify).toBe(true);
-    expect(body.ContainerEngine).toBe(ContainerEngine.Docker);
+  it('REQ-TAI-007 offers no Agent or remote Docker API creation helpers', () => {
+    expect(createModule).not.toHaveProperty('createRemoteEnvironment');
+    expect(createModule).not.toHaveProperty('createAgentEnvironment');
   });
 
-  it('createEnvironment rejects kube-config creation and surfaces API errors', async () => {
-    await expect(
-      createRemoteEnvironment({
-        name: 'kube',
-        url: 'x',
-        creationType: EnvironmentCreationTypes.KubeConfigEnvironment as never,
-      })
-    ).rejects.toThrow(/Kube config creation is not supported on CE/);
-
+  it('createEnvironment surfaces API errors', async () => {
     endpointCreate.mockRejectedValueOnce(new Error('create failed'));
     await expect(
       createLocalDockerEnvironment({ name: 'bad' })
     ).rejects.toBeTruthy();
   });
 
-  it('includes TLS file and azure fields when provided through remote options', async () => {
-    const ca = new File(['ca'], 'ca.pem');
-    const cert = new File(['cert'], 'cert.pem');
-    const key = new File(['key'], 'key.pem');
-    await createRemoteEnvironment({
-      name: 'tls-docker',
-      url: 'host:2376',
-      creationType: EnvironmentCreationTypes.AgentEnvironment,
-      options: {
-        tls: {
-          skipVerify: false,
-          skipClientVerify: false,
-          caCertFile: ca,
-          certFile: cert,
-          keyFile: key,
-        },
-        azure: {
-          applicationId: 'app',
-          tenantId: 'tenant',
-          authenticationKey: 'key',
-        },
+  it('includes azure fields and never TLS fields', async () => {
+    await createAzureEnvironment({
+      name: 'aci',
+      azure: {
+        applicationId: 'app',
+        tenantId: 'tenant',
+        authenticationKey: 'key',
       },
     });
     const body = endpointCreate.mock.calls[0][0].body;
-    expect(body.TLSCACertFile).toBe(ca);
-    expect(body.TLSCertFile).toBe(cert);
-    expect(body.TLSKeyFile).toBe(key);
     expect(body.AzureApplicationID).toBe('app');
+    expect(body).not.toHaveProperty('TLS');
+    expect(body).not.toHaveProperty('TLSCACertFile');
     // REQ-TAI-004: no Edge check-in interval is sent
     expect(body).not.toHaveProperty('EdgeCheckinInterval');
   });

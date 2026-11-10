@@ -135,35 +135,6 @@ func TestProxyDockerAPI_LocalDockerForwardsStrippedPathAndQuery(t *testing.T) {
 	assert.Equal(t, "all=true&filters=%7B%7D", gotRawQuery)
 }
 
-func TestProxyDockerAPI_AgentDockerPrefixStripped(t *testing.T) {
-	t.Parallel()
-
-	// The same Docker proxy handler also serves /{id}/agent/docker and must
-	// strip that longer prefix so the Agent receives a native Docker API path.
-	h, store := setupProxyHandler(t, testhelpers.NewTestRequestBouncer())
-
-	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
-		ID:   11,
-		Name: "agent-docker",
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  "tcp://agent:9001",
-	}))
-
-	var gotPath string
-	registerStubEndpointProxy(t, h.ProxyManager, 11, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotPath = r.URL.Path
-		w.WriteHeader(http.StatusOK)
-	}))
-
-	rw := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/11/agent/docker/containers/json", nil)
-
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusOK, rw.Code)
-	assert.Equal(t, "/containers/json", gotPath)
-}
-
 // REQ-TAI-004: a legacy Edge environment record is refused with 400, even when
 // a proxy for it is cached.
 func TestREQ_TAI_004_ProxyDockerAPI_EdgeEnvironmentIsRejected(t *testing.T) {
@@ -192,5 +163,38 @@ func TestREQ_TAI_004_ProxyDockerAPI_EdgeEnvironmentIsRejected(t *testing.T) {
 	h.ServeHTTP(rw, req)
 
 	assert.Equal(t, http.StatusBadRequest, rw.Code)
+	assert.False(t, reached)
+}
+
+// REQ-TAI-007: a legacy Portainer Agent environment record is refused with 400,
+// even when a proxy for it is cached.
+func TestREQ_TAI_007_ProxyDockerAPI_AgentEnvironmentIsRejected(t *testing.T) {
+	t.Parallel()
+
+	_, store := datastore.MustNewTestStore(t, false, false)
+
+	h := NewHandler(testhelpers.NewTestRequestBouncer())
+	h.DataStore = store
+	h.ProxyManager = proxy.NewManager(nil)
+
+	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
+		ID:   15,
+		Name: "legacy-agent",
+		Type: portainer.AgentOnDockerEnvironment,
+		URL:  "tcp://agent:9001",
+	}))
+
+	reached := false
+	registerStubEndpointProxy(t, h.ProxyManager, 15, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reached = true
+	}))
+
+	rw := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/15/docker/version", nil)
+	req.Header.Set(portainer.PortainerAgentTargetHeader, "node-1")
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusBadRequest, rw.Code)
+	assert.Contains(t, rw.Body.String(), portainer.ErrAgentEnvironmentNotSupported.Error())
 	assert.False(t, reached)
 }

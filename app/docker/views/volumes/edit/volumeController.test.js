@@ -76,7 +76,7 @@ describe('REQ-VOL-03 VolumeController local volume details', () => {
   it('loads volume details and containers using the volume', async () => {
     const ctx = buildController();
     await ctx.settle();
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalled();
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.$scope.volume.Id).toBe('vol-1');
     expect(ctx.$scope.containersUsingVolume).toHaveLength(1);
     expect(ctx.$scope.containersUsingVolume[0].volumeData.Destination).toBe('/data');

@@ -4,10 +4,6 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import {
-  withAgentManagerOperationHeader,
-  withAgentTargetHeader,
-} from '../../proxy/queries/utils';
 
 type MacvlanConfigOnly = {
   ConfigOnly: true;
@@ -55,10 +51,6 @@ type NetworkConfig =
   | (NetworkConfigBase & MacvlanConfigOnly)
   | (NetworkConfigBase & MacvlanConfigFrom);
 
-type CreateOptions = {
-  nodeName?: string;
-  agentManagerOperation?: boolean;
-};
 
 type CreateNetworkResponse = {
   Id: string;
@@ -70,19 +62,12 @@ type CreateNetworkResponse = {
  */
 export async function createNetwork(
   environmentId: EnvironmentId,
-  networkConfig: NetworkConfig,
-  { nodeName, agentManagerOperation }: CreateOptions = {}
+  networkConfig: NetworkConfig
 ) {
   try {
     const { data } = await axios.post<CreateNetworkResponse>(
       buildDockerProxyUrl(environmentId, 'networks', 'create'),
-      networkConfig,
-      {
-        headers: {
-          ...withAgentTargetHeader(nodeName),
-          ...withAgentManagerOperationHeader(agentManagerOperation),
-        },
-      }
+      networkConfig
     );
     return data;
   } catch (err) {

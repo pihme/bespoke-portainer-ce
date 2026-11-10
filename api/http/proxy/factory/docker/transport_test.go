@@ -273,7 +273,7 @@ func TestTransport_getRealResourceID(t *testing.T) {
 		endpoint: &portainer.Endpoint{URL: srv.URL},
 	}
 
-	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, "", nil)
+	client, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 
@@ -951,88 +951,20 @@ func proxyForSignatureTest(t *testing.T, endpointType portainer.EndpointType, si
 	return capturedHeaders, err
 }
 
-func TestTransport_proxyDockerRequest_SignsOnlyOutsideFIPSMode(t *testing.T) {
+// REQ-TAI-007: the Portainer Agent is removed, so the Docker proxy never signs a
+// request with agent headers, whatever the environment type or FIPS mode, and
+// never even asks the signature service.
+func TestREQ_TAI_007_Transport_NeverSignsRequests(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name         string
-		endpointType portainer.EndpointType
-		fipsMode     bool
-		wantSigned   bool
-	}{
-		{
-			name:         "agent environment outside FIPS mode is signed",
-			endpointType: portainer.AgentOnDockerEnvironment,
-			fipsMode:     false,
-			wantSigned:   true,
-		},
-		{
-			name:         "edge agent environment outside FIPS mode is signed",
-			endpointType: portainer.EdgeAgentOnDockerEnvironment,
-			fipsMode:     false,
-			wantSigned:   true,
-		},
-		{
-			name:         "agent environment in FIPS mode is unsigned",
-			endpointType: portainer.AgentOnDockerEnvironment,
-			fipsMode:     true,
-			wantSigned:   false,
-		},
-		{
-			name:         "edge agent environment in FIPS mode is unsigned",
-			endpointType: portainer.EdgeAgentOnDockerEnvironment,
-			fipsMode:     true,
-			wantSigned:   false,
-		},
-		// The signature is only ever meant for agents, so a plain Docker
-		// environment stays unsigned in either mode.
-		{
-			name:         "plain docker environment outside FIPS mode is unsigned",
-			endpointType: portainer.DockerEnvironment,
-			fipsMode:     false,
-			wantSigned:   false,
-		},
-		{
-			name:         "plain docker environment in FIPS mode is unsigned",
-			endpointType: portainer.DockerEnvironment,
-			fipsMode:     true,
-			wantSigned:   false,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			headers, err := proxyForSignatureTest(t, test.endpointType, sigtest.NewSignatureService(t), test.fipsMode)
+	for _, envType := range []portainer.EndpointType{portainer.DockerEnvironment, portainer.AgentOnDockerEnvironment, portainer.EdgeAgentOnDockerEnvironment} {
+		for _, fipsMode := range []bool{false, true} {
+			headers, err := proxyForSignatureTest(t, envType, sigtest.NewFailingSignatureService(), fipsMode)
 			require.NoError(t, err)
-
-			if test.wantSigned {
-				require.NotEmpty(t, headers.Get(portainer.PortainerAgentPublicKeyHeader))
-				require.NotEmpty(t, headers.Get(portainer.PortainerAgentSignatureHeader))
-			} else {
-				require.Empty(t, headers.Get(portainer.PortainerAgentPublicKeyHeader))
-				require.Empty(t, headers.Get(portainer.PortainerAgentSignatureHeader))
-			}
-		})
+			require.Empty(t, headers.Get(portainer.PortainerAgentPublicKeyHeader))
+			require.Empty(t, headers.Get(portainer.PortainerAgentSignatureHeader))
+		}
 	}
-}
-
-// In FIPS mode the signature must never be computed, not merely dropped after the
-// fact, so a signature service that always fails must not break the request.
-func TestTransport_proxyDockerRequest_FIPSModeNeverCreatesSignature(t *testing.T) {
-	t.Parallel()
-
-	_, err := proxyForSignatureTest(t, portainer.AgentOnDockerEnvironment, sigtest.NewFailingSignatureService(), true)
-	require.NoError(t, err)
-}
-
-func TestTransport_proxyDockerRequest_SignatureFailurePropagatesOutsideFIPSMode(t *testing.T) {
-	t.Parallel()
-
-	_, err := proxyForSignatureTest(t, portainer.AgentOnDockerEnvironment, sigtest.NewFailingSignatureService(), false)
-	require.Error(t, err)
-	require.ErrorContains(t, err, "signature failure")
 }
 
 func TestTransport_ProxyDockerRequest_rejectsEncodedSeparator(t *testing.T) {

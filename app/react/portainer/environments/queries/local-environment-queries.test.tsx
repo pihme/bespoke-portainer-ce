@@ -32,7 +32,6 @@ import {
   useUpdateEnvironmentMutation,
 } from './useUpdateEnvironmentMutation';
 import { useIsPodman } from './useIsPodman';
-import { useAgentDetails } from './useAgentDetails';
 
 function wrapHook<T>(fn: () => T) {
   const Wrapper = withTestQueryProvider(({ children }) =>
@@ -246,24 +245,5 @@ describe('REQ-ENV-03 local environment mutations', () => {
       updateEnvironment({ id: 1, payload: { Name: 'x' } })
     ).rejects.toBeTruthy();
     restore();
-  });
-});
-
-describe('useAgentDetails (backwards compatibility)', () => {
-  it('returns agent version and secret when settings and status load', async () => {
-    server.use(
-      http.get('/api/settings', () =>
-        HttpResponse.json({ AgentSecret: 'sekrit' })
-      ),
-      http.get('/api/system/status', () =>
-        HttpResponse.json({ Version: '2.45.3' })
-      )
-    );
-    const { result } = wrapHook(() => useAgentDetails());
-    await waitFor(() => expect(result.current).not.toBeNull());
-    expect(result.current).toEqual({
-      agentVersion: '2.45.3',
-      agentSecret: 'sekrit',
-    });
   });
 });

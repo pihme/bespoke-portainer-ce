@@ -35,7 +35,7 @@ func TestREQ_CTR_06_Recreate_CreateClientError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.AzureEnvironment,
 		URL:  "https://example.invalid",
-	}, "ctr-1", false, "", "")
+	}, "ctr-1", false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "create client error")
 }
@@ -241,7 +241,7 @@ func TestREQ_CTR_06_Recreate_LocalContainerSuccess(t *testing.T) {
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	require.Equal(t, fx.newID, got.ID)
@@ -266,7 +266,7 @@ func TestREQ_CTR_06_Recreate_WithImageTagAndSecondNetwork(t *testing.T) {
 	got, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "1.26", "")
+	}, fx.oldID, false, "1.26")
 	require.NoError(t, err)
 	require.NotNil(t, got)
 	require.Equal(t, fx.newID, got.ID)
@@ -289,7 +289,7 @@ func TestREQ_CTR_06_Recreate_InspectError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "fetch container information error")
 }
@@ -305,7 +305,7 @@ func TestREQ_CTR_06_Recreate_StopError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "stop container error")
 }
@@ -321,7 +321,7 @@ func TestREQ_CTR_06_Recreate_CreateErrorRestoresOldContainer(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "create container error")
 
@@ -344,7 +344,7 @@ func TestREQ_CTR_06_Recreate_InvalidImageParse(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "parse image error")
 }
@@ -366,7 +366,7 @@ func TestREQ_CTR_06_Recreate_ConnectExtraNetworkError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	// Either disconnect restore-connect or post-create connect can fail with this message.
 	require.True(t,
@@ -387,7 +387,7 @@ func TestREQ_CTR_06_Recreate_RenameError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "rename container error")
 }
@@ -403,7 +403,7 @@ func TestREQ_CTR_06_Recreate_DisconnectError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "disconnect network from old container error")
 }
@@ -419,7 +419,7 @@ func TestREQ_CTR_06_Recreate_StartNewContainerError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "start container error")
 }
@@ -435,7 +435,7 @@ func TestREQ_CTR_06_Recreate_InspectNewContainerError(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "fetch container information error")
 }
@@ -451,7 +451,7 @@ func TestREQ_CTR_06_Recreate_InvalidImageTag(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "BAD TAG!!", "")
+	}, fx.oldID, false, "BAD TAG!!")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "set image tag error")
 }
@@ -471,7 +471,7 @@ func TestREQ_CTR_06_Recreate_RestoreWarnPaths(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "create container error")
 }
@@ -495,6 +495,6 @@ func TestREQ_CTR_06_Recreate_CleanupNewContainerWarnPaths(t *testing.T) {
 	_, err := svc.Recreate(t.Context(), &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  srv.URL,
-	}, fx.oldID, false, "", "")
+	}, fx.oldID, false, "")
 	require.Error(t, err)
 }

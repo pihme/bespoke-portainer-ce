@@ -94,14 +94,10 @@ func createTLSSecuredEndpoint(flags *portainer.CLIFlags, dataStore dataservices.
 		SecuritySettings:   portainer.DefaultEndpointSecuritySettings(),
 	}
 
+	// The Portainer Agent is removed (TAI-007): a --host TCP URL is a plain Docker API.
 	if strings.HasPrefix(endpoint.URL, "tcp://") {
-		agentOnDockerEnvironment, err := client.ExecutePingOperation(endpoint.URL, tlsConfiguration)
-		if err != nil {
+		if _, err := client.ExecutePingOperation(endpoint.URL, tlsConfiguration); err != nil {
 			return err
-		}
-
-		if agentOnDockerEnvironment {
-			endpoint.Type = portainer.AgentOnDockerEnvironment
 		}
 	}
 

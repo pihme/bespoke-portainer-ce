@@ -256,20 +256,6 @@ func TestSingleJoiningSlash(t *testing.T) {
 	require.Equal(t, "/a/b", singleJoiningSlash("/a/", "b"))
 }
 
-func TestREQ_ENV_05_NewEndpointProxy_AgentOnDockerFallsThroughToDocker(t *testing.T) {
-	enableSSRF(t)
-
-	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
-	endpoint := &portainer.Endpoint{
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  "tcp://192.168.1.60:9001",
-	}
-
-	handler, err := f.NewEndpointProxy(endpoint)
-	require.NoError(t, err)
-	require.IsType(t, &httputil.ReverseProxy{}, handler)
-}
-
 func TestREQ_ENV_05_NewDockerHTTPProxy_InvalidURL(t *testing.T) {
 	t.Parallel()
 

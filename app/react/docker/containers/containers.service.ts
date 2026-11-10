@@ -4,7 +4,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import PortainerError from '@/portainer/error';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 
-import { withAgentTargetHeader } from '../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../proxy/queries/buildDockerProxyUrl';
 import { buildDockerUrl } from '../queries/utils/buildDockerUrl';
 
@@ -18,10 +17,7 @@ export async function startContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(environmentId, 'containers', id, 'start'),
-      {},
-      {
-        headers: { ...withAgentTargetHeader(nodeName) },
-      }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed starting container');
@@ -36,8 +32,7 @@ export async function stopContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(endpointId, 'containers', id, 'stop'),
-      {},
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed stopping container');
@@ -55,8 +50,7 @@ export async function recreateContainer(
       buildDockerUrl(endpointId, 'containers', id, 'recreate'),
       {
         PullImage: pullImage,
-      },
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      }
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed recreating container');
@@ -71,8 +65,7 @@ export async function restartContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(endpointId, 'containers', id, 'restart'),
-      {},
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed restarting container');
@@ -87,8 +80,7 @@ export async function killContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(endpointId, 'containers', id, 'kill'),
-      {},
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed killing container');
@@ -103,8 +95,7 @@ export async function pauseContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(endpointId, 'containers', id, 'pause'),
-      {},
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed pausing container');
@@ -119,8 +110,7 @@ export async function resumeContainer(
   try {
     await axios.post<void>(
       buildDockerProxyUrl(endpointId, 'containers', id, 'unpause'),
-      {},
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      {}
     );
   } catch (e) {
     throw parseAxiosError(e, 'Failed resuming container');
@@ -139,7 +129,6 @@ export async function renameContainer(
       {},
       {
         params: { name },
-        headers: { ...withAgentTargetHeader(nodeName) },
       }
     );
   } catch (e) {
@@ -160,7 +149,6 @@ export async function removeContainer(
       buildDockerProxyUrl(endpointId, 'containers', containerId),
       {
         params: { v: removeVolumes ? 1 : 0, force: true },
-        headers: { ...withAgentTargetHeader(nodeName) },
       }
     );
 

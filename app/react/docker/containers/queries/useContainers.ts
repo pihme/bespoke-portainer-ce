@@ -10,7 +10,6 @@ import { ContainerListViewModel } from '../types';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 import {
   withFiltersQueryParam,
-  withAgentTargetHeader,
 } from '../../proxy/queries/utils';
 
 import { Filters } from './types';
@@ -66,7 +65,6 @@ export async function getContainers(
       buildDockerProxyUrl(environmentId, 'containers', 'json'),
       {
         params: { all, ...withFiltersQueryParam(filters) },
-        headers: { ...withAgentTargetHeader(nodeName) },
       }
     );
     return data.map((c) => toListViewModel(c));

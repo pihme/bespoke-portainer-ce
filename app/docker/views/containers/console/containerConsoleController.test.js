@@ -213,7 +213,7 @@ describe('REQ-CTR-12 ContainerConsoleController local exec and attach', () => {
     const ctx = buildController();
     await ctx.settleInit();
 
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith(undefined);
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.ContainerService.container).toHaveBeenCalledWith(3, 'ctr-1');
     expect(ctx.ImageService.image).toHaveBeenCalledWith('sha256:img');
     expect(ctx.$scope.container).toMatchObject({ Id: 'ctr-1' });
@@ -544,17 +544,19 @@ describe('REQ-CTR-12 ContainerConsoleController local exec and attach', () => {
     expect(ctx.$scope.state).toBe(ctx.$scope.states.disconnected);
   });
 
-  it('appends nodeName to the shell URL when present on the transition', async () => {
+  // REQ-TAI-007: per-node targeting is removed; a nodeName transition param
+  // is neither sent as a header nor appended to the shell URL.
+  it('REQ-TAI-007 ignores a nodeName on the transition', async () => {
     const ctx = buildController({ nodeName: 'worker-1' });
     await ctx.settleInit();
 
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('worker-1');
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
 
     ctx.$scope.formValues.command = 'bash';
     ctx.$scope.connectExec();
     await ctx.settleExec({ Id: 'exec-node' });
 
-    expect(ctx.$scope.shellUrl).toContain('nodeName=worker-1');
+    expect(ctx.$scope.shellUrl).not.toContain('nodeName');
   });
 
   it('disconnects on $destroy', async () => {

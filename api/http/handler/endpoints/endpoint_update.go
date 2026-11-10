@@ -105,6 +105,10 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 	}
 
 	if payload.URL != nil && *payload.URL != endpoint.URL {
+		if !portainer.IsLocalSocketURL(*payload.URL) {
+			return httperror.BadRequest(portainer.ErrRemoteEnvironmentNotSupported.Error(), portainer.ErrRemoteEnvironmentNotSupported)
+		}
+
 		endpoint.URL = *payload.URL
 		updateEndpointProxy = true
 	}

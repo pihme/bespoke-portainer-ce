@@ -1,6 +1,4 @@
-import { useInfo } from '@/react/docker/proxy/queries/useInfo';
 import { Environment } from '@/react/portainer/environments/types';
-import { isAgentEnvironment } from '@/react/portainer/environments/utils';
 
 import { PageHeader } from '@@/PageHeader';
 
@@ -10,15 +8,8 @@ interface Props {
   endpoint: Environment;
 }
 
+// The per-node host column is removed with the Portainer Agent (TAI-007).
 export function ListView({ endpoint: environment }: Props) {
-  const isAgent = isAgentEnvironment(environment.Type);
-
-  const envInfoQuery = useInfo(environment.Id, {
-    select: (info) => !!info.Swarm?.NodeID,
-  });
-
-  const isSwarmManager = !!envInfoQuery.data;
-  const isHostColumnVisible = isAgent && isSwarmManager;
   return (
     <>
       <PageHeader
@@ -27,10 +18,7 @@ export function ListView({ endpoint: environment }: Props) {
         reload
       />
 
-      <ContainersDatatable
-        isHostColumnVisible={isHostColumnVisible}
-        environment={environment}
-      />
+      <ContainersDatatable environment={environment} />
     </>
   );
 }

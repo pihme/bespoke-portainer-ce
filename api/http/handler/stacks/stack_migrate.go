@@ -18,8 +18,13 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/response"
 )
 
+// errStackMigrateToOtherEnvironment is returned when a stack is moved to another
+// environment: that is removed with the Agent and remote Docker hosts (TAI-007).
+// Renaming a stack inside its own environment is kept.
+var errStackMigrateToOtherEnvironment = errors.New("Migrating a stack to another environment is no longer supported; only renaming it in its own environment is")
+
 type stackMigratePayload struct {
-	// Environment(Endpoint) identifier of the target environment(endpoint) where the stack will be relocated
+	// Environment(Endpoint) identifier of the stack's own environment(endpoint); a different environment is refused
 	EndpointID int `example:"2" validate:"required"`
 	// Swarm cluster identifier, must match the identifier of the cluster where the stack will be relocated
 	SwarmID string `example:"jpofkc0i9uo9wtx1zesuk649w"`
@@ -35,8 +40,8 @@ func (payload *stackMigratePayload) Validate(r *http.Request) error {
 }
 
 // @id StackMigrate
-// @summary Migrate a stack to another environment(endpoint)
-// @description  Migrate a stack from an environment(endpoint) to another environment(endpoint). It will re-create the stack inside the target environment(endpoint) before removing the original stack.
+// @summary Rename a stack in its environment(endpoint)
+// @description  Re-create a stack under a new name in its own environment(endpoint) before removing the original stack. Migrating to another environment(endpoint) is no longer supported.
 // @description **Access policy**: authenticated
 // @tags stacks
 // @produce json
@@ -121,6 +126,15 @@ func (handler *Handler) stackMigrate(w http.ResponseWriter, r *http.Request) *ht
 	if err != nil {
 		return httperror.BadRequest("Invalid query parameter: endpointId", err)
 	}
+	sourceEndpointID := int(stack.EndpointID)
+	if endpointID != 0 {
+		sourceEndpointID = endpointID
+	}
+
+	if payload.EndpointID != sourceEndpointID {
+		return httperror.BadRequest(errStackMigrateToOtherEnvironment.Error(), errStackMigrateToOtherEnvironment)
+	}
+
 	if endpointID != int(stack.EndpointID) {
 		stack.EndpointID = portainer.EndpointID(endpointID)
 	}

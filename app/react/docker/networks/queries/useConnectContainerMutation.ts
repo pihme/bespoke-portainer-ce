@@ -10,7 +10,6 @@ import {
 } from '@/react-tools/react-query';
 
 import { queryKeys as containerQueryKeys } from '../../containers/queries/query-keys';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 
 interface ConnectContainerPayload {
@@ -61,8 +60,7 @@ export async function connectContainer({
   try {
     await axios.post(
       buildDockerProxyUrl(environmentId, 'networks', networkId, 'connect'),
-      payload,
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      payload
     );
   } catch (err) {
     throw parseAxiosError(err, 'Unable to connect container');

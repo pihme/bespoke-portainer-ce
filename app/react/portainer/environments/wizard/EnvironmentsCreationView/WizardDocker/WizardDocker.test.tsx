@@ -1,15 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { server } from '@/setup-tests/server';
-
-vi.mock('./AgentTab', () => ({
-  AgentTab: () => <div data-cy="agent-tab">agent</div>,
-}));
 
 import { WizardDocker } from './WizardDocker';
 
@@ -41,13 +37,14 @@ describe('WizardDocker', () => {
     ).toBeVisible();
   });
 
-  it('shows the API tab for a Docker API environment', async () => {
-    const user = userEvent.setup();
+  it('REQ-TAI-007 offers only the local socket, no Agent or API option', async () => {
     renderWizard();
-    await user.click(screen.getByText('API'));
     expect(
-      await screen.findByTestId('docker-aconnect-button')
+      await screen.findByTestId('docker-socket-connect-button')
     ).toBeVisible();
+    expect(screen.getByText('Socket')).toBeVisible();
+    expect(screen.queryByText('Agent')).not.toBeInTheDocument();
+    expect(screen.queryByText('API')).not.toBeInTheDocument();
   });
 
   it('REQ-TAI-004 offers no Edge Agent option and opens on the Socket tab', async () => {

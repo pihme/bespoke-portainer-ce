@@ -3,10 +3,6 @@ import { useFormikContext } from 'formik';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
 import { Authorized } from '@/react/hooks/useUser';
 import { EnvironmentType } from '@/react/portainer/environments/types';
-import { NodeSelector } from '@/react/docker/agent/NodeSelector';
-import { useIsSwarm } from '@/react/docker/proxy/queries/useInfo';
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { isAgentEnvironment } from '@/react/portainer/environments/utils';
 import { FeatureId } from '@/react/portainer/feature-flags/enums';
 
 import { FormSection } from '@@/form-components/FormSection';
@@ -32,19 +28,6 @@ export interface Values {
   autoRemove: boolean;
 }
 
-function useIsAgentOnSwarm() {
-  const environmentId = useEnvironmentId();
-  const environmentQuery = useCurrentEnvironment();
-
-  const isSwarm = useIsSwarm(environmentId);
-
-  return (
-    !!environmentQuery.data &&
-    isAgentEnvironment(environmentQuery.data?.Type) &&
-    isSwarm
-  );
-}
-
 export function BaseForm({
   isLoading,
   onChangeName,
@@ -56,7 +39,6 @@ export function BaseForm({
 }) {
   const { setFieldValue, values, errors, isValid } = useFormikContext<Values>();
   const environmentQuery = useCurrentEnvironment();
-  const isAgentOnSwarm = useIsAgentOnSwarm();
   if (!environmentQuery.data) {
     return null;
   }
@@ -147,15 +129,6 @@ export function BaseForm({
             errors={errors?.ports}
           />
         </FormSection>
-
-        {isAgentOnSwarm && (
-          <FormSection title="Deployment">
-            <NodeSelector
-              value={values.nodeName}
-              onChange={(nodeName) => setFieldValue('nodeName', nodeName)}
-            />
-          </FormSection>
-        )}
 
         <div className="form-group">
           <div className="col-sm-12">

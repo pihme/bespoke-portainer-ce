@@ -19,7 +19,6 @@ import {
   deleteEndpoint,
   disassociateEndpoint,
   endpointsByGroup,
-  getAgentVersions,
   getDeploymentOptions,
   getEndpoint,
   getEnvironmentSummaryCounts,
@@ -196,19 +195,15 @@ describe('environment.service local Docker reads (backwards compatibility)', () 
     expect(body).toEqual({ enableHostManagementFeatures: true });
   });
 
-  it('getEnvironmentSummaryCounts and getAgentVersions read list helpers', async () => {
+  it('getEnvironmentSummaryCounts reads the list summary', async () => {
     server.use(
       http.get('/api/endpoints/summary', () =>
         HttpResponse.json({ total: 2, up: 1, down: 1 })
-      ),
-      http.get('/api/endpoints/agent_versions', () =>
-        HttpResponse.json(['2.19.0', '2.20.0'])
       )
     );
     await expect(getEnvironmentSummaryCounts()).resolves.toMatchObject({
       total: 2,
     });
-    await expect(getAgentVersions()).resolves.toEqual(['2.19.0', '2.20.0']);
   });
 
   it('getDeploymentOptions returns global options because CE toEnvironment clears per-env overrides', async () => {
@@ -245,9 +240,6 @@ describe('environment.service local Docker reads (backwards compatibility)', () 
       http.get('/api/endpoints/summary', () =>
         HttpResponse.json({ message: 'no' }, { status: 500 })
       ),
-      http.get('/api/endpoints/agent_versions', () =>
-        HttpResponse.json({ message: 'no' }, { status: 500 })
-      ),
       http.post('/api/endpoints/snapshot', () =>
         HttpResponse.json({ message: 'no' }, { status: 500 })
       ),
@@ -265,7 +257,6 @@ describe('environment.service local Docker reads (backwards compatibility)', () 
       )
     );
     await expect(getEnvironmentSummaryCounts()).rejects.toBeTruthy();
-    await expect(getAgentVersions()).rejects.toBeTruthy();
     await expect(snapshotEndpoints()).rejects.toBeTruthy();
     await expect(snapshotEndpoint(1)).rejects.toBeTruthy();
     await expect(deleteEndpoint(1)).rejects.toBeTruthy();

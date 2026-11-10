@@ -1,12 +1,9 @@
 import {
   registryAuthenticationHeader,
   setRegistryAuthenticationHeader,
-  portainerAgentTargetHeader,
-  setPortainerAgentTargetHeader,
-  setPortainerAgentManagerOperation,
-  portainerAgentManagerOperation,
   resetAgentHeaders,
 } from './http-request.helper';
+import * as helper from './http-request.helper';
 
 afterEach(() => {
   resetAgentHeaders();
@@ -26,44 +23,19 @@ test('registryAuthenticationHeader', () => {
   expect(registryAuthenticationHeader()).toBeUndefined();
 });
 
-test('portainerAgentTargetHeader', () => {
-  const header = 'header';
+// REQ-TAI-007: the Portainer Agent and per-node targeting are removed, so the
+// helper no longer queues an X-PortainerAgent-Target or manager-operation header.
+test('REQ-TAI-007 exposes no agent target or manager operation header', () => {
+  const exported = Object.keys(helper);
+  expect(exported).not.toContain('portainerAgentTargetHeader');
+  expect(exported).not.toContain('setPortainerAgentTargetHeader');
+  expect(exported).not.toContain('setPortainerAgentManagerOperation');
+  expect(exported).not.toContain('portainerAgentManagerOperation');
 
-  expect(portainerAgentTargetHeader()).toBe('');
-
-  setPortainerAgentTargetHeader(header);
-
-  expect(portainerAgentTargetHeader()).toBe(header);
-
-  resetAgentHeaders();
-
-  expect(portainerAgentTargetHeader()).toBe('');
-});
-
-test('when setting portainerAgentTargetHeader more than once, should return headers in fifo, until the last one then it should be the last one', () => {
-  const headers = Array.from({ length: 5 }).map((_, i) => `header${i}`);
-
-  expect(portainerAgentTargetHeader()).toBe('');
-
-  headers.forEach((header) => setPortainerAgentTargetHeader(header));
-
-  headers.forEach((_, i) =>
-    expect(portainerAgentTargetHeader()).toBe(`header${i}`)
-  );
-
-  expect(portainerAgentTargetHeader()).toBe('header4');
-  expect(portainerAgentTargetHeader()).toBe('header4');
-  expect(portainerAgentTargetHeader()).toBe('header4');
-});
-
-test('portainerAgentManagerOperation', () => {
-  expect(portainerAgentManagerOperation()).toBe(false);
-
-  setPortainerAgentManagerOperation(true);
-
-  expect(portainerAgentManagerOperation()).toBe(true);
-
-  resetAgentHeaders();
-
-  expect(portainerAgentManagerOperation()).toBe(false);
+  const angularHelper = helper.HttpRequestHelperAngular();
+  expect(Object.keys(angularHelper).sort()).toEqual([
+    'registryAuthenticationHeader',
+    'resetAgentHeaders',
+    'setRegistryAuthenticationHeader',
+  ]);
 });

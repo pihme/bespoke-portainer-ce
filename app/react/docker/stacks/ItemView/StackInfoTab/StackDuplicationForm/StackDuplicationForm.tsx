@@ -49,7 +49,7 @@ export function StackDuplicationForm({
 
   return (
     <Widget>
-      <WidgetTitle title="Stack duplication / migration" icon={Copy} />
+      <WidgetTitle title="Stack duplication / rename" icon={Copy} />
       <WidgetBody>
         <Formik
           initialValues={initialValues}
@@ -119,18 +119,14 @@ export function StackDuplicationForm({
     environmentId: number,
     name: string | undefined
   ) {
-    const isRename = environmentId === currentEnvironmentId;
-
+    // Migrating a stack to another environment is removed with remote
+    // environments (TAI-007); only a rename in the current environment stays.
     const confirmed = await confirm({
       title: 'Are you sure?',
       modalType: ModalType.Warn,
-      message: isRename
-        ? 'This action will deploy a new instance of this stack with the new name that will replace the current stack. Please note that this does NOT migrate the content of any persistent volumes that may be attached to this stack.'
-        : 'This action will deploy a new instance of this stack on the target environment, please note that this does NOT relocate the content of any persistent volumes that may be attached to this stack.',
-      confirmButton: buildConfirmButton(
-        isRename ? 'Rename' : 'Migrate',
-        'danger'
-      ),
+      message:
+        'This action will deploy a new instance of this stack with the new name that will replace the current stack. Please note that this does NOT migrate the content of any persistent volumes that may be attached to this stack.',
+      confirmButton: buildConfirmButton('Rename', 'danger'),
     });
 
     if (!confirmed) {
@@ -162,11 +158,11 @@ export function StackDuplicationForm({
       },
       {
         onSuccess() {
-          notifySuccess('Stack successfully migrated', name || stack.Name);
+          notifySuccess('Stack successfully renamed', name || stack.Name);
           router.stateService.go('docker.stacks', {}, { reload: true });
         },
         onError(error) {
-          notifyError('Failure', error as Error, 'Unable to migrate stack');
+          notifyError('Failure', error as Error, 'Unable to rename stack');
         },
       }
     );

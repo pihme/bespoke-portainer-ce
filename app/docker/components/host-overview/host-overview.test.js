@@ -29,15 +29,12 @@ describe('hostOverview component registration', () => {
     expect(config.bindings).toEqual({
       hostDetails: '<',
       engineDetails: '<',
-      devices: '<',
-      disks: '<',
       isAgent: '<',
       agentApiVersion: '<',
       refreshUrl: '@',
       browseUrl: '@',
       hostFeaturesEnabled: '<',
       isAdmin: '<',
-      endpointId: '<',
     });
   });
 });

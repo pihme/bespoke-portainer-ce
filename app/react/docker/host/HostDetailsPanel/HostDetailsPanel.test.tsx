@@ -8,10 +8,6 @@ import { humanize } from '@/portainer/filters/filters';
 
 import { HostDetailsPanel } from './HostDetailsPanel';
 
-vi.mock('../DockerStorageInfo', () => ({
-  DockerStorageInfo: () => <span>storage-info</span>,
-}));
-
 const mockGo = vi.fn();
 const mockRouter = {
   stateService: { go: mockGo },
@@ -108,17 +104,9 @@ describe('HostDetailsPanel', () => {
     expect(screen.getByText(humanizedTotalMemory)).toBeVisible();
   });
 
-  describe('disk usage row', () => {
-    it('renders the disk usage row when endpointId is provided', () => {
-      renderPanel({ endpointId: 1 });
-      expect(screen.getByText('Disk usage')).toBeVisible();
-      expect(screen.getByText('storage-info')).toBeVisible();
-    });
-
-    it('hides the disk usage row when endpointId is absent', () => {
-      renderPanel({ endpointId: undefined });
-      expect(screen.queryByText('Disk usage')).not.toBeInTheDocument();
-    });
+  it('REQ-TAI-007 shows no Agent disk usage row', () => {
+    renderPanel();
+    expect(screen.queryByText('Disk usage')).not.toBeInTheDocument();
   });
 
   describe('Browse button', () => {

@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -22,88 +21,6 @@ import (
 type endpointListTest struct {
 	title    string
 	expected []portainer.EndpointID
-}
-
-func Test_EndpointList_AgentVersion(t *testing.T) {
-	t.Parallel()
-	version1Endpoint := portainer.Endpoint{
-		ID:      1,
-		GroupID: 1,
-		Type:    portainer.AgentOnDockerEnvironment,
-		Agent:   portainer.EnvironmentAgentData{Version: "1.0.0"},
-	}
-	version2Endpoint := portainer.Endpoint{
-		ID:      2,
-		GroupID: 1,
-		Type:    portainer.AgentOnDockerEnvironment,
-		Agent:   portainer.EnvironmentAgentData{Version: "2.0.0"},
-	}
-	noVersionEndpoint := portainer.Endpoint{ID: 3, Type: portainer.AgentOnDockerEnvironment, GroupID: 1}
-	notAgentEnvironments := portainer.Endpoint{ID: 4, Type: portainer.DockerEnvironment, GroupID: 1}
-
-	handler := setupEndpointListHandler(t, []portainer.Endpoint{
-		notAgentEnvironments,
-		version1Endpoint,
-		version2Endpoint,
-		noVersionEndpoint,
-	})
-
-	type endpointListAgentVersionTest struct {
-		endpointListTest
-		filter []string
-	}
-
-	tests := []endpointListAgentVersionTest{
-		{
-			endpointListTest{
-				"should show version 1 agent endpoints and non-agent endpoints",
-				[]portainer.EndpointID{version1Endpoint.ID, notAgentEnvironments.ID},
-			},
-			[]string{version1Endpoint.Agent.Version},
-		},
-		{
-			endpointListTest{
-				"should show version 2 endpoints and non-agent endpoints",
-				[]portainer.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID},
-			},
-			[]string{version2Endpoint.Agent.Version},
-		},
-		{
-			endpointListTest{
-				"should show version 1 and 2 endpoints and non-agent endpoints",
-				[]portainer.EndpointID{version2Endpoint.ID, notAgentEnvironments.ID, version1Endpoint.ID},
-			},
-			[]string{version2Endpoint.Agent.Version, version1Endpoint.Agent.Version},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.title, func(t *testing.T) {
-			is := assert.New(t)
-
-			var query strings.Builder
-			for _, filter := range test.filter {
-				_, _ = query.WriteString("agentVersions[]=")
-				_, _ = query.WriteString(filter)
-				_, _ = query.WriteRune('&')
-			}
-
-			req := buildEndpointListRequest(query.String())
-
-			resp, err := doEndpointListRequest(req, handler, is)
-			require.NoError(t, err)
-
-			is.Len(resp, len(test.expected))
-
-			respIds := []portainer.EndpointID{}
-
-			for _, endpoint := range resp {
-				respIds = append(respIds, endpoint.ID)
-			}
-
-			is.ElementsMatch(test.expected, respIds)
-		})
-	}
 }
 
 func Test_endpointList_edgeFilter(t *testing.T) {

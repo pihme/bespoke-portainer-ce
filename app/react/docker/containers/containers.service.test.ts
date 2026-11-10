@@ -49,7 +49,8 @@ describe('REQ-CTR-02 local container lifecycle helpers', () => {
       )
     );
     await startContainer(1, 'c1', { nodeName: 'node-a' });
-    expect(agentHeader).toBe('node-a');
+    // REQ-TAI-007: per-node targeting is removed
+    expect(agentHeader).toBeNull();
   });
 
   it('stopContainer, restartContainer, killContainer, pauseContainer and resumeContainer hit their proxy actions', async () => {

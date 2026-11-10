@@ -115,8 +115,6 @@ function BuildImageController($scope, $async, $window, BuildService, Notificatio
         return x.Name;
       });
 
-      var nodeName = $scope.formValues.NodeName;
-      HttpRequestHelper.setPortainerAgentTargetHeader(nodeName);
 
       try {
         const data = await buildImageBasedOnBuildType(buildType, imageNames);

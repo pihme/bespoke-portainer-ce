@@ -45,7 +45,7 @@ describe('REQ-CTR-06 useRecreateContainer', () => {
     expect(body?.PullImage).toBe(true);
   });
 
-  it('sends X-PortainerAgent-Target when nodeName is set', async () => {
+  it('REQ-TAI-007 sends no X-PortainerAgent-Target even if a nodeName is passed', async () => {
     let target: string | null = null;
     server.use(
       http.post('/api/docker/:envId/containers/:id/recreate', ({ request }) => {
@@ -63,7 +63,7 @@ describe('REQ-CTR-06 useRecreateContainer', () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(target).toBe('node-b');
+    expect(target).toBeNull();
   });
 
   it('surfaces an error when recreate fails', async () => {

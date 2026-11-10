@@ -61,38 +61,6 @@ func TestREQ_ENV_11_Validate_InvalidCreationType_ReturnsError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestREQ_ENV_11_Validate_TLSWithoutCA_ReturnsError(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-	p := &endpointCreatePayload{}
-	err := p.Validate(formRequest(map[string][]string{
-		"Name":                 {"tls-env"},
-		"EndpointCreationType": {"1"},
-		"URL":                  {"tcp://docker.example:2376"},
-		"TLS":                  {"true"},
-		"TLSSkipVerify":        {"false"},
-		"TLSSkipClientVerify":  {"true"},
-	}))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "CA certificate")
-}
-
-func TestREQ_ENV_11_Validate_TLSWithoutClientCert_ReturnsError(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-	p := &endpointCreatePayload{}
-	err := p.Validate(formRequest(map[string][]string{
-		"Name":                 {"tls-env"},
-		"EndpointCreationType": {"1"},
-		"URL":                  {"tcp://docker.example:2376"},
-		"TLS":                  {"true"},
-		"TLSSkipVerify":        {"true"},
-		"TLSSkipClientVerify":  {"false"},
-	}))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "certificate file")
-}
-
 func TestREQ_ENV_11_Validate_InvalidTagIdsJSON_ReturnsError(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)

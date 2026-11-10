@@ -114,7 +114,7 @@ describe('exportImage', () => {
     expect(saveAs).toHaveBeenCalledWith(mockBlob, 'nginx-latest.tar');
   });
 
-  it('should include X-PortainerAgent-Target header when nodeName is provided', async () => {
+  it('REQ-TAI-007 sends no X-PortainerAgent-Target header even if a nodeName is passed', async () => {
     let requestHeaders: Record<string, string | undefined> = {};
 
     server.use(
@@ -134,7 +134,7 @@ describe('exportImage', () => {
       images: [{ id: 'sha256:abc123', tags: ['nginx:latest'] }],
     });
 
-    expect(requestHeaders['x-portaineragent-target']).toBe('worker-node-1');
+    expect(requestHeaders['x-portaineragent-target']).toBeUndefined();
   });
 
   it('should not include X-PortainerAgent-Target header when nodeName is undefined', async () => {
@@ -356,6 +356,6 @@ describe('useExportMutation', () => {
     });
 
     expect(saveAs).toHaveBeenCalledWith(mockBlob, 'images.tar');
-    expect(requestHeaders['x-portaineragent-target']).toBe('worker-node-1');
+    expect(requestHeaders['x-portaineragent-target']).toBeUndefined();
   });
 });

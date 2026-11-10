@@ -21,18 +21,16 @@ describe('StackDuplicationFormInner', () => {
 
       expect(
         screen.getByText(
-          'This feature allows you to duplicate or migrate this stack.'
+          'This feature allows you to duplicate or rename this stack.'
         )
       ).toBeVisible();
 
       await waitFor(() => {
-        const input = screen.getByPlaceholderText(
-          'Stack name (optional for migration)'
-        );
+        const input = screen.getByPlaceholderText('Stack name');
         expect(input).toBeVisible();
       });
 
-      expect(screen.getByRole('button', { name: /migrate/i })).toBeVisible();
+      expect(screen.getByRole('button', { name: /rename/i })).toBeVisible();
       expect(screen.getByRole('button', { name: /duplicate/i })).toBeVisible();
 
       await waitFor(() => {
@@ -47,28 +45,12 @@ describe('StackDuplicationFormInner', () => {
     });
   });
 
-  describe('button states - migrate', () => {
-    it('should disable Migrate button when no environment is selected', async () => {
+  describe('button states - rename', () => {
+    it('should disable Rename button when no environment is selected', async () => {
       const { getByRole } = renderFormInner();
 
       await waitFor(() => {
-        const migrateButton = getByRole('button', { name: /migrate/i });
-        expect(migrateButton).toBeDisabled();
-      });
-    });
-
-    it('should enable Migrate button when valid environment is selected', async () => {
-      const { getByRole } = renderFormInner({
-        initialValues: {
-          environmentId: 2,
-          newName: '',
-          actionType: 'migrate',
-        },
-      });
-
-      await waitFor(() => {
-        const migrateButton = getByRole('button', { name: /migrate/i });
-        expect(migrateButton).toBeEnabled();
+        expect(getByRole('button', { name: /rename/i })).toBeDisabled();
       });
     });
 
@@ -88,19 +70,20 @@ describe('StackDuplicationFormInner', () => {
       });
     });
 
-    it('should show "Migrate" button text when environmentId differs from current environment', async () => {
-      const { getByRole } = renderFormInner({
+    it('REQ-TAI-007 offers no Migrate action and disables Rename for another environment', async () => {
+      const { getByRole, queryByRole } = renderFormInner({
         initialValues: {
           environmentId: 2,
-          newName: '',
+          newName: 'newname',
           actionType: 'migrate',
         },
         currentEnvironmentId: 1,
       });
 
       await waitFor(() => {
-        expect(getByRole('button', { name: 'Migrate' })).toBeVisible();
+        expect(getByRole('button', { name: 'Rename' })).toBeDisabled();
       });
+      expect(queryByRole('button', { name: /migrate/i })).not.toBeInTheDocument();
     });
   });
 
@@ -173,13 +156,11 @@ describe('StackDuplicationFormInner', () => {
       const user = userEvent.setup();
 
       await waitFor(() => {
-        const input = getByPlaceholderText(
-          'Stack name (optional for migration)'
-        );
+        const input = getByPlaceholderText('Stack name');
         expect(input).toBeVisible();
       });
 
-      const input = getByPlaceholderText('Stack name (optional for migration)');
+      const input = getByPlaceholderText('Stack name');
       await user.type(input, 'mystack');
 
       expect(input).toHaveValue('mystack');
@@ -193,7 +174,7 @@ describe('StackDuplicationFormInner', () => {
       // In a real scenario, validation would trigger after user interaction
       await waitFor(() => {
         const form = getByText(
-          'This feature allows you to duplicate or migrate this stack.'
+          'This feature allows you to duplicate or rename this stack.'
         );
         expect(form).toBeVisible();
       });
@@ -201,32 +182,30 @@ describe('StackDuplicationFormInner', () => {
   });
 
   describe('action handlers', () => {
-    it('should call onSubmit with actionType "migrate" when Migrate button clicked', async () => {
+    it('should call onSubmit with actionType "migrate" when Rename button clicked', async () => {
       const onSubmit = vi.fn();
       const { getByRole } = renderFormInner({
         onSubmit,
         initialValues: {
-          environmentId: 2,
-          newName: '',
+          environmentId: 1,
+          newName: 'newname',
           actionType: 'migrate',
         },
       });
       const user = userEvent.setup();
 
       await waitFor(() => {
-        const migrateButton = getByRole('button', { name: /migrate/i });
-        expect(migrateButton).toBeEnabled();
+        expect(getByRole('button', { name: /rename/i })).toBeEnabled();
       });
 
-      const migrateButton = getByRole('button', { name: /migrate/i });
-      await user.click(migrateButton);
+      await user.click(getByRole('button', { name: /rename/i }));
 
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledWith(
           expect.objectContaining({
             actionType: 'migrate',
-            environmentId: 2,
-            newName: '',
+            environmentId: 1,
+            newName: 'newname',
           }),
           expect.anything()
         );
@@ -320,7 +299,7 @@ describe('StackDuplicationFormInner', () => {
 
       expect(
         getByText(
-          'To rename the stack, choose the same environment when migrating.'
+          'To rename the stack, choose the current environment.'
         )
       ).toBeVisible();
     });
@@ -377,26 +356,6 @@ describe('StackDuplicationFormInner', () => {
       });
     });
 
-    it('should show "Migration in progress..." loading text when migrating to different environment', async () => {
-      const onSubmit = vi.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
-      const { getByRole } = renderFormInner({
-        onSubmit,
-        initialValues: {
-          environmentId: 2,
-          newName: '',
-          actionType: 'migrate',
-        },
-        currentEnvironmentId: 1,
-        isLoading: true,
-      });
-
-      await waitFor(() => {
-        expect(
-          getByRole('button', { name: /migration in progress/i })
-        ).toBeInTheDocument();
-      });
-    });
-
     it('should disable rename button when renaming to the same name', async () => {
       const currentStackName = 'test-stack';
       const { getByRole } = renderFormInner({
@@ -435,7 +394,7 @@ describe('StackDuplicationFormInner', () => {
       });
 
       // Type a valid different name
-      const input = getByPlaceholderText('Stack name (optional for migration)');
+      const input = getByPlaceholderText('Stack name');
       await user.type(input, 'newname');
 
       // Button should now be enabled

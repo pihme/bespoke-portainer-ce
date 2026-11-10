@@ -168,7 +168,6 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var websocketHandler = websocket.NewHandler(requestBouncer)
 	websocketHandler.DataStore = server.DataStore
-	websocketHandler.SignatureService = server.SignatureService
 
 	server.Handler = &handler.Handler{
 		CustomTemplatesHandler: customTemplatesHandler,

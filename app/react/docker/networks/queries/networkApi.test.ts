@@ -118,7 +118,7 @@ describe('local Docker network API helpers', () => {
       )
     );
     await expect(
-      createNetwork(1, { Name: 'app-net', Driver: 'bridge' }, { nodeName: 'n1' })
+      createNetwork(1, { Name: 'app-net', Driver: 'bridge' })
     ).resolves.toEqual({ Id: 'created', Warning: '' });
   });
 

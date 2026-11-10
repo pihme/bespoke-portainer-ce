@@ -88,7 +88,7 @@ describe('REQ-CTR-14 useRemoveContainer', () => {
     expect(volumes).toBe('0');
   });
 
-  it('sends X-PortainerAgent-Target when nodeName is set', async () => {
+  it('REQ-TAI-007 sends no X-PortainerAgent-Target even if a nodeName is passed', async () => {
     let target: string | null = null;
     server.use(
       http.delete(
@@ -108,7 +108,7 @@ describe('REQ-CTR-14 useRemoveContainer', () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(target).toBe('node-c');
+    expect(target).toBeNull();
   });
 
   it('surfaces an error when remove fails', async () => {

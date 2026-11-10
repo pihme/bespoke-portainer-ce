@@ -26,9 +26,7 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToAzureAPI)))
 	h.PathPrefix("/{id}/docker").Handler(
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToDockerAPI)))
-	// Only the Kubernetes proxy takes a kubeconfig-scoped token.
-	h.PathPrefix("/{id}/agent/docker").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToDockerAPI)))
-	h.PathPrefix("/{id}/agent/host").Handler(httperror.LoggerHandler(h.proxyRequestsToAgentHostAPI))
+	// The Portainer Agent routes (/{id}/agent/docker, /{id}/agent/host) are
+	// removed with Agent environments (TAI-007).
 	return h
 }

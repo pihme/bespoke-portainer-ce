@@ -36,7 +36,6 @@ angular.module('portainer.docker').controller('VolumeController', [
     }
 
     function initView() {
-      HttpRequestHelper.setPortainerAgentTargetHeader($transition$.params().nodeName);
       $scope.showBrowseAction = $scope.applicationState.endpoint.mode.agentProxy && (Authentication.isAdmin() || endpoint.SecuritySettings.allowVolumeBrowserForRegularUsers);
 
       VolumeService.volume($transition$.params().id)

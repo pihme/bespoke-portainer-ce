@@ -1,5 +1,4 @@
 import { Download, Upload } from 'lucide-react';
-import _ from 'lodash';
 
 import { Authorized } from '@/react/hooks/useUser';
 import { notifyWarning } from '@/portainer/services/notifications';
@@ -64,10 +63,7 @@ export function ImportExportButtons({
       return;
     }
 
-    exportMutation.mutate({
-      images: selectedItems,
-      nodeName: selectedItems[0].nodeName,
-    });
+    exportMutation.mutate({ images: selectedItems });
   }
 }
 
@@ -81,14 +77,6 @@ function isValidToDownload(selectedItems: Array<ImagesListResponse>) {
       notifyWarning('', 'Cannot download an untagged image');
       return false;
     }
-  }
-
-  if (_.uniqBy(selectedItems, 'nodeName').length > 1) {
-    notifyWarning(
-      '',
-      'Cannot download images from different nodes at the same time'
-    );
-    return false;
   }
 
   return true;

@@ -6,8 +6,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/agent"
-	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/pendingactions"
 
@@ -93,6 +91,8 @@ func SupportDirectSnapshot(endpoint *portainer.Endpoint) bool {
 	switch endpoint.Type {
 	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment, portainer.AzureEnvironment:
 		return false
+	case portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment:
+		return false
 	}
 
 	return true
@@ -105,18 +105,9 @@ func (service *Service) SnapshotEndpoint(endpoint *portainer.Endpoint) error {
 }
 
 func (service *Service) SnapshotEndpointTx(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) error {
-	if endpoint.Type == portainer.AgentOnDockerEnvironment || endpoint.Type == portainer.AgentOnKubernetesEnvironment {
-		tlsConfig, err := crypto.CreateTLSConfigurationFromDisk(endpoint.TLSConfig)
-		if err != nil {
-			return err
-		}
-
-		_, version, err := agent.GetAgentVersionAndPlatform(endpoint.URL, tlsConfig)
-		if err != nil {
-			return err
-		}
-
-		endpoint.Agent.Version = version
+	// The Portainer Agent is removed (TAI-007): a legacy Agent environment is not dialled.
+	if portainer.IsAgentEnvironmentType(endpoint.Type) {
+		return portainer.ErrAgentEnvironmentNotSupported
 	}
 
 	switch endpoint.Type {

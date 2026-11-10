@@ -247,7 +247,7 @@ describe('REQ-IMG-06 ImageController local Docker image details', () => {
     expect(ctx.$scope.state).toEqual({ exportInProgress: false });
     expect(ctx.$scope.sortType).toBe('Order');
     expect(ctx.$scope.sortReverse).toBe(false);
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('node-1');
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.Authentication.isAdmin).toHaveBeenCalled();
 
     await ctx.settleInit();
@@ -511,7 +511,7 @@ describe('REQ-IMG-06 ImageController local Docker image details', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('agent-node');
+    expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ctx.$scope.state.exportInProgress).toBe(true);
     expect(ctx.ImageService.downloadImages).toHaveBeenCalledWith([
       { tags: ['nginx:latest', 'nginx:1.25'], id: 'sha256:abc' },

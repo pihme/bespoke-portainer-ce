@@ -64,7 +64,7 @@ describe('local Docker image queries', () => {
     restore();
   });
 
-  it('deleteImage deletes via docker proxy and forwards agent header', async () => {
+  it('deleteImage deletes via docker proxy without an agent header (REQ-TAI-007)', async () => {
     let agent: string | null = null;
     let force: string | null = null;
     server.use(
@@ -80,7 +80,7 @@ describe('local Docker image queries', () => {
       nodeName: 'n1',
       force: true,
     });
-    expect(agent).toBe('n1');
+    expect(agent).toBeNull();
     expect(force).toBe('true');
 
     const restore = suppressConsoleLogs();

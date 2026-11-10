@@ -3,12 +3,12 @@ import { render } from '@testing-library/react';
 import { FormValues } from './PullImageFormWidget.types';
 import { useValidation } from './PullImageFormWidget.validation';
 
-function setup(...args: Parameters<typeof useValidation>) {
+function setup() {
   const returnVal: { schema?: ReturnType<typeof useValidation> } = {
     schema: undefined,
   };
   function TestComponent() {
-    Object.assign(returnVal, { schema: useValidation(...args) });
+    Object.assign(returnVal, { schema: useValidation() });
     return null;
   }
   render(<TestComponent />);
@@ -16,10 +16,9 @@ function setup(...args: Parameters<typeof useValidation>) {
 }
 
 test('image is required', async () => {
-  const { schema } = setup(false);
+  const { schema } = setup();
   const object: FormValues = {
     config: { image: '' },
-    node: '',
   };
 
   await expect(
@@ -27,4 +26,9 @@ test('image is required', async () => {
   ).rejects.toThrowErrorMatchingInlineSnapshot(
     `[ValidationError: Image is required]`
   );
+});
+
+test('REQ-TAI-007 has no node field', () => {
+  const { schema } = setup();
+  expect(Object.keys(schema?.fields ?? {})).toEqual(['config']);
 });

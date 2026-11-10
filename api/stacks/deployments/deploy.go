@@ -8,8 +8,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/agent"
-	"github.com/portainer/portainer/api/crypto"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/git/update"
@@ -291,17 +289,8 @@ func getUserRegistries(datastore dataservices.DataStore, user *portainer.User, e
 	return filteredRegistries, nil
 }
 
+// isEnvironmentOnline reports whether a stack on the environment can be redeployed.
+// A legacy Portainer Agent environment never is: the Agent is removed (TAI-007).
 func isEnvironmentOnline(endpoint *portainer.Endpoint) bool {
-	if endpoint.Type != portainer.AgentOnDockerEnvironment &&
-		endpoint.Type != portainer.AgentOnKubernetesEnvironment {
-		return true
-	}
-
-	tlsConfig, err := crypto.CreateTLSConfigurationFromDisk(endpoint.TLSConfig)
-	if err != nil {
-		return false
-	}
-
-	_, _, err = agent.GetAgentVersionAndPlatform(endpoint.URL, tlsConfig)
-	return err == nil
+	return !portainer.IsAgentEnvironmentType(endpoint.Type)
 }

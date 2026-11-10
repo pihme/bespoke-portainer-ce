@@ -8,20 +8,16 @@ import { withUserProvider } from '@/react/test-utils/withUserProvider';
 import { ListView } from './ListView';
 
 vi.mock('./PullImageFormWidget', () => ({
-  PullImageFormWidget: ({ isNodeVisible }: { isNodeVisible: boolean }) => (
+  PullImageFormWidget: (props: object) => (
     <div data-cy="pull-image-form-widget">
-      PullImageFormWidget - isNodeVisible: {String(isNodeVisible)}
+      PullImageFormWidget - props: [{Object.keys(props).join(',')}]
     </div>
   ),
 }));
 vi.mock('./ImagesDatatable/ImagesDatatable', () => ({
-  ImagesDatatable: ({
-    isHostColumnVisible,
-  }: {
-    isHostColumnVisible: boolean;
-  }) => (
+  ImagesDatatable: (props: object) => (
     <div data-cy="images-datatable">
-      ImagesDatatable - isHostColumnVisible: {String(isHostColumnVisible)}
+      ImagesDatatable - props: [{Object.keys(props).join(',')}]
     </div>
   ),
 }));
@@ -48,15 +44,15 @@ describe('ListView', () => {
     });
   });
 
-  describe('REQ-TAI-003 Docker Swarm is removed', () => {
-    it('never shows the Swarm node selector or host column', async () => {
+  describe('REQ-TAI-003 / REQ-TAI-007 Swarm and per-node targeting are removed', () => {
+    it('has no node selector or host column switch at all', async () => {
       renderComponent();
 
       expect(screen.getByTestId('pull-image-form-widget')).toHaveTextContent(
-        'isNodeVisible: false'
+        'props: []'
       );
       expect(screen.getByTestId('images-datatable')).toHaveTextContent(
-        'isHostColumnVisible: false'
+        'props: []'
       );
     });
   });

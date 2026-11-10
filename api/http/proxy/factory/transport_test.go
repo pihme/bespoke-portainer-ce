@@ -77,8 +77,8 @@ func TestNewDockerHTTPProxy_NonEdgeTLS(t *testing.T) {
 func TestNewAgentProxy_NonEdgeNoTLS(t *testing.T) {
 	f := &ProxyFactory{}
 	endpoint := &portainer.Endpoint{
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  "tcp://192.168.1.100:9001",
+		Type: portainer.DockerEnvironment,
+		URL:  "tcp://192.168.1.100:2375",
 	}
 
 	proxyServer, err := f.NewAgentProxy(endpoint)
@@ -91,8 +91,8 @@ func TestNewAgentProxy_NonEdgeNoTLS(t *testing.T) {
 func TestNewAgentProxy_NonEdgeTLS(t *testing.T) {
 	f := &ProxyFactory{}
 	endpoint := &portainer.Endpoint{
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  "tcp://192.168.1.100:9001",
+		Type: portainer.DockerEnvironment,
+		URL:  "tcp://192.168.1.100:2376",
 		TLSConfig: portainer.TLSConfiguration{
 			TLS:           true,
 			TLSSkipVerify: true,
@@ -123,4 +123,20 @@ func TestREQ_TAI_004_EdgeEnvironmentsGetNoProxy(t *testing.T) {
 
 	_, err := f.newDockerHTTPProxy(&portainer.Endpoint{Type: portainer.EdgeAgentOnDockerEnvironment, URL: "tcp://192.168.1.100:2376"})
 	require.ErrorIs(t, err, portainer.ErrEdgeEnvironmentNotSupported)
+}
+
+// REQ-TAI-007: the Portainer Agent is removed. A legacy Agent environment gets
+// no proxy; the request is refused instead of being signed and forwarded.
+func TestREQ_TAI_007_AgentEnvironmentsGetNoProxy(t *testing.T) {
+	f := &ProxyFactory{}
+
+	for _, endpointType := range []portainer.EndpointType{portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment} {
+		endpoint := &portainer.Endpoint{Type: endpointType, URL: "tcp://192.168.1.100:9001"}
+
+		_, err := f.NewEndpointProxy(endpoint)
+		require.ErrorIs(t, err, portainer.ErrAgentEnvironmentNotSupported)
+
+		_, err = f.NewAgentProxy(endpoint)
+		require.ErrorIs(t, err, portainer.ErrAgentEnvironmentNotSupported)
+	}
 }

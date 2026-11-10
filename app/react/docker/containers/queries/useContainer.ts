@@ -15,7 +15,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import { queryClient, withError } from '@/react-tools/react-query';
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 
 import { queryKeys } from './query-keys';
 
@@ -125,12 +124,7 @@ export async function getContainer(
 ) {
   try {
     const { data } = await axios.get<ContainerDetailsResponse>(
-      buildDockerProxyUrl(environmentId, 'containers', id, 'json'),
-      {
-        headers: {
-          ...withAgentTargetHeader(nodeName),
-        },
-      }
+      buildDockerProxyUrl(environmentId, 'containers', id, 'json')
     );
     return data;
   } catch (error) {

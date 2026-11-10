@@ -7,7 +7,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/api/http/proxy/factory/agent"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/url"
 	"github.com/portainer/portainer/pkg/libhttp/ssrf"
@@ -22,10 +21,16 @@ type ProxyServer struct {
 	Port   int
 }
 
-// NewAgentProxy creates a new instance of ProxyServer that wrap http requests with agent headers
+// NewAgentProxy creates a new instance of ProxyServer that forwards http requests to a
+// Docker API reached over TCP (the --host flag). Agent environments are refused: the
+// Portainer Agent and its signed headers are removed (TAI-007).
 func (factory *ProxyFactory) NewAgentProxy(endpoint *portainer.Endpoint) (*ProxyServer, error) {
 	if endpointutils.IsEdgeEndpoint(endpoint) {
 		return nil, portainer.ErrEdgeEnvironmentNotSupported
+	}
+
+	if portainer.IsAgentEnvironmentType(endpoint.Type) {
+		return nil, portainer.ErrAgentEnvironmentNotSupported
 	}
 
 	endpointURL, err := url.ParseURL(endpoint.URL)
@@ -44,21 +49,15 @@ func (factory *ProxyFactory) NewAgentProxy(endpoint *portainer.Endpoint) (*Proxy
 
 		endpointURL.Scheme = "https"
 
-		if endpointutils.IsEdgeEndpoint(endpoint) {
-			innerTransport = ssrf.NewInternalTransport(tlsConfig)
-		} else {
-			innerTransport = ssrf.NewTransport(tlsConfig)
-			innerTransport.Protocols = ssrf.HTTP1Only()
-		}
-	} else if endpointutils.IsEdgeEndpoint(endpoint) {
-		innerTransport = ssrf.NewInternalTransport(nil)
+		innerTransport = ssrf.NewTransport(tlsConfig)
+		innerTransport.Protocols = ssrf.HTTP1Only()
 	} else {
 		innerTransport = ssrf.NewTransport(nil)
 	}
 
 	proxy := NewSingleHostReverseProxyWithHostHeader(endpointURL)
 
-	proxy.Transport = agent.NewTransport(factory.signatureService, innerTransport)
+	proxy.Transport = innerTransport
 
 	proxyServer := &ProxyServer{
 		server: &http.Server{

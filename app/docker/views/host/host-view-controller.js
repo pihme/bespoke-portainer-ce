@@ -3,9 +3,8 @@ angular.module('portainer.docker').controller('HostViewController', [
   'SystemService',
   'Notifications',
   'StateManager',
-  'AgentService',
   'Authentication',
-  function HostViewController($q, SystemService, Notifications, StateManager, AgentService, Authentication) {
+  function HostViewController($q, SystemService, Notifications, StateManager, Authentication) {
     var ctrl = this;
 
     this.$onInit = initView;
@@ -17,8 +16,6 @@ angular.module('portainer.docker').controller('HostViewController', [
 
     this.engineDetails = {};
     this.hostDetails = {};
-    this.devices = undefined;
-    this.disks = null;
 
     function initView() {
       var applicationState = StateManager.getState();
@@ -35,13 +32,6 @@ angular.module('portainer.docker').controller('HostViewController', [
         .then(function success(data) {
           ctrl.engineDetails = buildEngineDetails(data);
           ctrl.hostDetails = buildHostDetails(data.info);
-
-          if (ctrl.state.isAgent && agentApiVersion > 1 && ctrl.state.enableHostManagementFeatures) {
-            return AgentService.hostInfo(ctrl.endpoint.Id).then(function onHostInfoLoad(agentHostInfo) {
-              ctrl.devices = agentHostInfo.PCIDevices;
-              ctrl.disks = agentHostInfo.PhysicalDisks;
-            });
-          }
         })
         .catch(function error(err) {
           Notifications.error('Failure', err, 'Unable to retrieve engine details');

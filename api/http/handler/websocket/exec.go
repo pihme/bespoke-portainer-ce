@@ -21,15 +21,13 @@ type execStartOperationPayload struct {
 }
 
 // @summary Execute a websocket
-// @description If the nodeName query parameter is present, the request will be proxied to the underlying agent environment(endpoint).
-// @description If the nodeName query parameter is not specified, the request will be upgraded to the websocket protocol and
+// @description The request will be upgraded to the websocket protocol and
 // @description an ExecStart operation HTTP request will be created and hijacked.
 // @**Access policy**: authenticated
 // @tags websocket
 // @accept json
 // @produce json
 // @param endpointId query int true "environment(endpoint) ID of the environment(endpoint) where the resource is located"
-// @param nodeName query string false "node name"
 // @success 200
 // @failure 400
 // @failure 409
@@ -64,7 +62,6 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 	params := &webSocketRequestParams{
 		endpoint: endpoint,
 		ID:       execID,
-		nodeName: r.FormValue("nodeName"),
 	}
 
 	err = handler.handleExecRequest(w, r, params)
@@ -78,8 +75,8 @@ func (handler *Handler) websocketExec(w http.ResponseWriter, r *http.Request) *h
 func (handler *Handler) handleExecRequest(w http.ResponseWriter, r *http.Request, params *webSocketRequestParams) error {
 	r.Header.Del("Origin")
 
-	if params.endpoint.Type == portainer.AgentOnDockerEnvironment {
-		return handler.proxyAgentWebsocketRequest(w, r, params)
+	if portainer.IsAgentEnvironmentType(params.endpoint.Type) {
+		return portainer.ErrAgentEnvironmentNotSupported
 	} else if params.endpoint.Type == portainer.EdgeAgentOnDockerEnvironment {
 		return portainer.ErrEdgeEnvironmentNotSupported
 	}

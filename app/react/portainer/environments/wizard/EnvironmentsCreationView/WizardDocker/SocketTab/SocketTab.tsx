@@ -3,7 +3,7 @@ import {
   Environment,
 } from '@/react/portainer/environments/types';
 
-import { DeploymentScripts } from '../APITab/DeploymentScripts';
+import { DeploymentScripts } from './DeploymentScripts';
 
 import { SocketForm } from './SocketForm';
 

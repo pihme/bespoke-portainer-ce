@@ -5,7 +5,6 @@ import (
 	"slices"
 	"strings"
 
-	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/http/middlewares"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -43,9 +42,7 @@ func (handler *Handler) containerGpusInspect(w http.ResponseWriter, r *http.Requ
 		return httperror.NotFound("Unable to find an environment on request context", err)
 	}
 
-	agentTargetHeader := r.Header.Get(portainer.PortainerAgentTargetHeader)
-
-	cli, err := handler.dockerClientFactory.CreateClient(endpoint, agentTargetHeader, nil)
+	cli, err := handler.dockerClientFactory.CreateClient(endpoint, nil)
 	if err != nil {
 		return httperror.InternalServerError("Unable to connect to the Docker daemon", err)
 	}

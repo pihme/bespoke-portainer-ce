@@ -28,7 +28,6 @@ describe('shared frontend setup HTTP handlers', () => {
 
   it('serves local Docker and endpoint stubs', async () => {
     await expect(get('/api/endpoints')).resolves.toEqual([]);
-    await expect(get('/api/endpoints/agent_versions')).resolves.toEqual([]);
     const env = await get('/api/endpoints/1');
     expect(env.Id).toBe(1);
 

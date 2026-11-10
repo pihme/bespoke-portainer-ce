@@ -44,8 +44,6 @@ angular.module('portainer.docker').controller('ImportImageController', [
     async function uploadImageAsync() {
       $scope.state.actionInProgress = true;
 
-      var nodeName = $scope.formValues.NodeName;
-      HttpRequestHelper.setPortainerAgentTargetHeader(nodeName);
       var file = $scope.formValues.UploadFile;
       try {
         const { data } = await ImageService.uploadImage(file);

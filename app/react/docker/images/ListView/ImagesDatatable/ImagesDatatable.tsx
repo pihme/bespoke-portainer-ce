@@ -1,5 +1,4 @@
 import { List } from 'lucide-react';
-import { useMemo } from 'react';
 
 import { Authorized } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -21,8 +20,7 @@ import { withColumnFilters } from '@@/datatables/extend-options/withColumnFilter
 
 import { useImages } from '../../queries/useImages';
 
-import { columns as defColumns } from './columns';
-import { host as hostColumn } from './columns/host';
+import { columns } from './columns';
 import { RemoveButtonMenu } from './RemoveButtonMenu';
 import { ImportExportButtons } from './ImportExportButtons';
 import { PruneButton } from './PruneButton';
@@ -44,17 +42,10 @@ const settingsStore = createPersistedStore<TableSettings>(
   })
 );
 
-export function ImagesDatatable({
-  isHostColumnVisible,
-}: {
-  isHostColumnVisible: boolean;
-}) {
+// The per-node host column is removed with the Portainer Agent (TAI-007).
+export function ImagesDatatable() {
   const environmentId = useEnvironmentId();
   const tableState = useTableState(settingsStore, tableKey);
-  const columns = useMemo(
-    () => (isHostColumnVisible ? [...defColumns, hostColumn] : defColumns),
-    [isHostColumnVisible]
-  );
   const imagesQuery = useImages(environmentId, true, {
     refetchInterval: tableState.autoRefreshRateMS,
   });

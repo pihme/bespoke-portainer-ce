@@ -169,7 +169,7 @@ func (migrator *PostInitMigrator) MigrateEnvironment(environment *portainer.Endp
 		return latestErr
 	case endpointutils.IsDockerEndpoint(environment):
 		// get the docker client for the environment, and skip all docker migrations if there's an error
-		dockerClient, err := migrator.dockerFactory.CreateClient(environment, "", nil)
+		dockerClient, err := migrator.dockerFactory.CreateClient(environment, nil)
 		if err != nil {
 			log.Error().
 				Err(err).

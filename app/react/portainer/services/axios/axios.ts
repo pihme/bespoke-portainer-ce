@@ -1,4 +1,4 @@
-import Axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import Axios, { AxiosInstance } from 'axios';
 import {
   AxiosCacheInstance,
   buildMemoryStorage,
@@ -14,8 +14,6 @@ import qs from 'qs';
 import {
   CACHE_DURATION,
   dispatchCacheRefreshEventIfNeeded,
-  portainerAgentManagerOperation,
-  portainerAgentTargetHeader,
 } from '@/portainer/services/http-request.helper';
 import { dockerMaxAPIVersionInterceptor } from '@/portainer/services/dockerMaxApiVersionInterceptor';
 
@@ -102,26 +100,5 @@ export default axios;
 
 loadProgressBar(undefined, axios);
 
-export const agentTargetHeader = 'X-PortainerAgent-Target';
-
-export function agentInterceptor(config: InternalAxiosRequestConfig) {
-  if (!config.url || !config.url.includes('/docker/')) {
-    return config;
-  }
-
-  const newConfig = { ...config };
-  const target = portainerAgentTargetHeader();
-  if (target) {
-    newConfig.headers[agentTargetHeader] = target;
-  }
-
-  if (portainerAgentManagerOperation()) {
-    newConfig.headers['X-PortainerAgent-ManagerOperation'] = '1';
-  }
-
-  return newConfig;
-}
-
 axios.interceptors.request.use(dockerMaxAPIVersionInterceptor);
-axios.interceptors.request.use(agentInterceptor);
 

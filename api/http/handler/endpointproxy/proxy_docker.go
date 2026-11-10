@@ -3,7 +3,6 @@ package endpointproxy
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	portainer "github.com/portainer/portainer/api"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -32,6 +31,10 @@ func (handler *Handler) proxyRequestsToDockerAPI(w http.ResponseWriter, r *http.
 		return httperror.BadRequest(portainer.ErrEdgeEnvironmentNotSupported.Error(), portainer.ErrEdgeEnvironmentNotSupported)
 	}
 
+	if portainer.IsAgentEnvironmentType(endpoint.Type) {
+		return httperror.BadRequest(portainer.ErrAgentEnvironmentNotSupported.Error(), portainer.ErrAgentEnvironmentNotSupported)
+	}
+
 	var proxy http.Handler
 	proxy = handler.ProxyManager.GetEndpointProxy(endpoint)
 	if proxy == nil {
@@ -43,11 +46,6 @@ func (handler *Handler) proxyRequestsToDockerAPI(w http.ResponseWriter, r *http.
 
 	id := strconv.Itoa(endpointID)
 
-	prefix := "/" + id + "/agent/docker"
-	if !strings.HasPrefix(r.URL.Path, prefix) {
-		prefix = "/" + id + "/docker"
-	}
-
-	http.StripPrefix(prefix, proxy).ServeHTTP(w, r)
+	http.StripPrefix("/"+id+"/docker", proxy).ServeHTTP(w, r)
 	return nil
 }

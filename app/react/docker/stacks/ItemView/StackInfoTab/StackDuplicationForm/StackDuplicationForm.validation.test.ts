@@ -88,48 +88,35 @@ describe('getMigrateValidationSchema', () => {
     currentEnvironmentId
   );
 
-  describe('name validation (optional)', () => {
+  describe('name validation', () => {
     it.each([
       {
-        name: '',
-        environmentId: 2,
-        error: '',
-        scenario: 'should be valid with empty string',
-      },
-      {
-        name: undefined,
-        environmentId: 2,
-        error: '',
-        scenario: 'should be valid with undefined',
-      },
-      {
         name: 'mystack',
-        environmentId: 2,
         error: '',
         scenario: 'should be valid with lowercase alphanumeric',
       },
       {
         name: 'my_stack-123',
-        environmentId: 2,
         error: '',
         scenario: 'should be valid with underscores and hyphens',
       },
       {
         name: 'MyStack',
-        environmentId: 2,
         error:
           "Stack name must consist of lower case alphanumeric characters, '_' or '-'",
         scenario: 'should fail with uppercase letters',
       },
       {
         name: 'my@stack',
-        environmentId: 2,
         error:
           "Stack name must consist of lower case alphanumeric characters, '_' or '-'",
         scenario: 'should fail with special characters',
       },
-    ])('$scenario', async ({ name, environmentId, error }) => {
-      const promise = schema.validate({ name, environmentId });
+    ])('$scenario', async ({ name, error }) => {
+      const promise = schema.validate({
+        name,
+        environmentId: currentEnvironmentId,
+      });
       if (error) {
         await expect(promise).rejects.toThrow(error);
       } else {
@@ -139,7 +126,7 @@ describe('getMigrateValidationSchema', () => {
   });
 
   describe('environmentId validation', () => {
-    testEnvironmentIdValidation(schema);
+    testEnvironmentIdValidation(schema, currentEnvironmentId);
   });
 
   describe('rename validation (same environment)', () => {
@@ -178,41 +165,14 @@ describe('getMigrateValidationSchema', () => {
     });
   });
 
-  describe('migrate validation (different environment)', () => {
+  describe('REQ-TAI-007 migrating to a different environment is refused', () => {
     it.each([
-      {
-        name: '',
-        environmentId: 2,
-        error: '',
-        scenario: 'should be valid when migrating with empty name',
-      },
-      {
-        name: undefined,
-        environmentId: 2,
-        error: '',
-        scenario: 'should be valid when migrating with undefined name',
-      },
-      {
-        name: currentStackName,
-        environmentId: 2,
-        error: '',
-        scenario:
-          'should be valid when migrating with same name to different environment',
-      },
-      {
-        name: 'new-stack-name',
-        environmentId: 2,
-        error: '',
-        scenario:
-          'should be valid when migrating with different name to different environment',
-      },
-    ])('$scenario', async ({ name, environmentId, error }) => {
-      const promise = schema.validate({ name, environmentId });
-      if (error) {
-        await expect(promise).rejects.toThrow(error);
-      } else {
-        await expect(promise).resolves.toBeTruthy();
-      }
+      { name: 'new-stack-name', scenario: 'with a new name' },
+      { name: currentStackName, scenario: 'with the same name' },
+    ])('$scenario', async ({ name }) => {
+      await expect(schema.validate({ name, environmentId: 2 })).rejects.toThrow(
+        'A stack can only be renamed in its current environment'
+      );
     });
   });
 });
@@ -305,7 +265,7 @@ describe('useValidation', () => {
   });
 });
 
-function testEnvironmentIdValidation(schema: AnySchema) {
+function testEnvironmentIdValidation(schema: AnySchema, validId = 2) {
   it('should require environmentId', async () => {
     await expect(
       schema.validate({ name: 'mystack', environmentId: undefined })
@@ -314,7 +274,7 @@ function testEnvironmentIdValidation(schema: AnySchema) {
 
   it('should accept valid environmentId', async () => {
     await expect(
-      schema.validate({ name: 'mystack', environmentId: 2 })
+      schema.validate({ name: 'mystack', environmentId: validId })
     ).resolves.toBeTruthy();
   });
 }

@@ -195,9 +195,6 @@ function getComponent(id: EnvironmentOptionValue) {
 
 function useAnalyticsState() {
   const [analytics, setAnalyticsState] = useState<AnalyticsState>({
-    dockerAgent: 0,
-    dockerApi: 0,
-    podmanAgent: 0,
     podmanLocalEnvironment: 0,
     aciApi: 0,
     localEndpoint: 0,

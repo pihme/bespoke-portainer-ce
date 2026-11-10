@@ -18,7 +18,7 @@ describe('containerStats', () => {
     expect(result).toEqual(statsData);
   });
 
-  it('sends X-PortainerAgent-Target header when nodeName is provided', async () => {
+  it('REQ-TAI-007 sends no X-PortainerAgent-Target header even if a nodeName is passed', async () => {
     let capturedRequest: Request | undefined;
     server.use(
       http.get(
@@ -32,9 +32,7 @@ describe('containerStats', () => {
 
     await containerStats(1, 'abc', 'node1');
 
-    expect(capturedRequest?.headers.get('x-portaineragent-target')).toBe(
-      'node1'
-    );
+    expect(capturedRequest?.headers.get('x-portaineragent-target')).toBeNull();
   });
 
   it('does not send X-PortainerAgent-Target header when nodeName is undefined', async () => {

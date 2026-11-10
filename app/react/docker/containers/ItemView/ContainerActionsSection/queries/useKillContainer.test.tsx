@@ -43,7 +43,7 @@ describe('REQ-CTR-02 useKillContainer', () => {
     );
   });
 
-  it('sends X-PortainerAgent-Target when nodeName is set', async () => {
+  it('REQ-TAI-007 sends no X-PortainerAgent-Target even if a nodeName is passed', async () => {
     let target: string | null = null;
     server.use(
       http.post(
@@ -63,7 +63,7 @@ describe('REQ-CTR-02 useKillContainer', () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(target).toBe('node-a');
+    expect(target).toBeNull();
   });
 
   it('surfaces an error when kill fails', async () => {

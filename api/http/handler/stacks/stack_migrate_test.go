@@ -87,7 +87,7 @@ func TestREQ_STK_07_MigrateInvalidPayload_ReturnsBadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestREQ_STK_07_MigrateComposeStack_ToNewEndpointWithRename(t *testing.T) {
+func TestREQ_STK_07_MigrateComposeStack_RenameInSameEndpoint(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
 	teardown := &stubTeardown{}
@@ -103,8 +103,6 @@ func TestREQ_STK_07_MigrateComposeStack_ToNewEndpointWithRename(t *testing.T) {
 	require.NoError(t, err)
 	srcEndpoint := &portainer.Endpoint{ID: 1, Name: "src", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
 	require.NoError(t, store.Endpoint().Create(srcEndpoint))
-	dstEndpoint := &portainer.Endpoint{ID: 2, Name: "dst", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
-	require.NoError(t, store.Endpoint().Create(dstEndpoint))
 
 	projectPath := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(projectPath, "docker-compose.yml"), []byte("services:\n  web:\n    image: alpine\n"), 0o600))
@@ -125,7 +123,7 @@ func TestREQ_STK_07_MigrateComposeStack_ToNewEndpointWithRename(t *testing.T) {
 		Public:     true,
 	}))
 
-	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(dstEndpoint.ID), Name: "migrated-name"})
+	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(srcEndpoint.ID), Name: "migrated-name"})
 	url := fmt.Sprintf("/stacks/%d/migrate", stack.ID)
 	req := mockCreateStackRequestWithSecurityContext(http.MethodPost, url, bytes.NewReader(body))
 	w := httptest.NewRecorder()
@@ -134,14 +132,58 @@ func TestREQ_STK_07_MigrateComposeStack_ToNewEndpointWithRename(t *testing.T) {
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	updated, err := store.Stack().Read(stack.ID)
 	require.NoError(t, err)
-	assert.Equal(t, dstEndpoint.ID, updated.EndpointID)
+	assert.Equal(t, srcEndpoint.ID, updated.EndpointID)
 	assert.Equal(t, "migrated-name", updated.Name)
 	require.Contains(t, teardown.torndownStacks, stack.ID)
 
 	var resp portainer.Stack
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
 	assert.Equal(t, "migrated-name", resp.Name)
-	assert.Equal(t, dstEndpoint.ID, resp.EndpointID)
+	assert.Equal(t, srcEndpoint.ID, resp.EndpointID)
+}
+
+// REQ-TAI-007: migrating a stack to another environment is removed (rename and
+// duplicate stay). The request is refused with 400 and the stack, its
+// environment and its resources are left untouched.
+func TestREQ_TAI_007_MigrateToOtherEndpoint_IsRefused(t *testing.T) {
+	t.Parallel()
+	_, store := datastore.MustNewTestStore(t, true, false)
+	teardown := &stubTeardown{}
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), teardown)
+	h.DataStore = store
+	h.StackDeployer = testhelpers.NewTestStackDeployer()
+	h.ComposeStackManager = testhelpers.NewComposeStackManager()
+
+	_, err := mockCreateUser(store)
+	require.NoError(t, err)
+	src := &portainer.Endpoint{ID: 1, Name: "src", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
+	require.NoError(t, store.Endpoint().Create(src))
+	dst := &portainer.Endpoint{ID: 2, Name: "dst", SecuritySettings: portainer.EndpointSecuritySettings{AllowStackManagementForRegularUsers: true}}
+	require.NoError(t, store.Endpoint().Create(dst))
+	require.NoError(t, store.Stack().Create(&portainer.Stack{ID: 5, Name: "stay", Type: portainer.DockerComposeStack, EndpointID: src.ID, ProjectPath: t.TempDir(), EntryPoint: "docker-compose.yml"}))
+
+	for _, tc := range []struct {
+		name string
+		url  string
+		body stackMigratePayload
+	}{
+		{name: "other environment", url: "/stacks/5/migrate", body: stackMigratePayload{EndpointID: int(dst.ID)}},
+		{name: "other environment with rename", url: "/stacks/5/migrate", body: stackMigratePayload{EndpointID: int(dst.ID), Name: "moved"}},
+		{name: "other environment via endpointId query", url: "/stacks/5/migrate?endpointId=1", body: stackMigratePayload{EndpointID: int(dst.ID)}},
+		{name: "unknown environment", url: "/stacks/5/migrate", body: stackMigratePayload{EndpointID: 99}},
+	} {
+		body, _ := json.Marshal(tc.body)
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, mockCreateStackRequestWithSecurityContext(http.MethodPost, tc.url, bytes.NewReader(body)))
+		require.Equal(t, http.StatusBadRequest, w.Code, tc.name+": "+w.Body.String())
+		require.Contains(t, w.Body.String(), errStackMigrateToOtherEnvironment.Error(), tc.name)
+	}
+
+	stack, err := store.Stack().Read(5)
+	require.NoError(t, err)
+	assert.Equal(t, src.ID, stack.EndpointID)
+	assert.Equal(t, "stay", stack.Name)
+	assert.Empty(t, teardown.torndownStacks)
 }
 
 func TestREQ_STK_07_MigrateComposeStack_NameCollision_ReturnsConflict(t *testing.T) {
@@ -159,12 +201,11 @@ func TestREQ_STK_07_MigrateComposeStack_NameCollision_ReturnsConflict(t *testing
 	require.NoError(t, store.Endpoint().Create(dst))
 
 	require.NoError(t, store.Stack().Create(&portainer.Stack{ID: 1, Name: "same", Type: portainer.DockerComposeStack, EndpointID: src.ID, ProjectPath: t.TempDir(), EntryPoint: "docker-compose.yml"}))
-	require.NoError(t, store.Stack().Create(&portainer.Stack{ID: 2, Name: "same", Type: portainer.DockerComposeStack, EndpointID: dst.ID}))
+	require.NoError(t, store.Stack().Create(&portainer.Stack{ID: 2, Name: "taken", Type: portainer.DockerComposeStack, EndpointID: src.ID}))
 
-	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(dst.ID)})
+	body, _ := json.Marshal(stackMigratePayload{EndpointID: int(src.ID), Name: "taken"})
 	req := mockCreateStackRequestWithSecurityContext(http.MethodPost, "/stacks/1/migrate", bytes.NewReader(body))
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusConflict, w.Code)
 }
-

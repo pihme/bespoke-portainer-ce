@@ -1,4 +1,3 @@
-import { RawAxiosRequestHeaders } from 'axios';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { withInvalidate } from '@/react-tools/react-query';
@@ -29,15 +28,8 @@ export async function deleteImage({
   nodeName?: string;
   force?: boolean;
 }) {
-  const headers: RawAxiosRequestHeaders = {};
-
-  if (nodeName) {
-    headers['X-PortainerAgent-Target'] = nodeName;
-  }
-
   try {
     await axios.delete(buildDockerProxyUrl(environmentId, 'images', imageId), {
-      headers,
       params: { force },
     });
   } catch (err) {

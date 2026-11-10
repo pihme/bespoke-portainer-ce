@@ -17,10 +17,10 @@ import { StackDuplicationForm } from './StackDuplicationForm';
 it('should render Widget with title and inner component', async () => {
   const { getByText } = renderComponent();
 
-  expect(getByText('Stack duplication / migration')).toBeVisible();
+  expect(getByText('Stack duplication / rename')).toBeVisible();
   await waitFor(() => {
     expect(
-      getByText('This feature allows you to duplicate or migrate this stack.')
+      getByText('This feature allows you to duplicate or rename this stack.')
     ).toBeVisible();
   });
 });
@@ -30,9 +30,9 @@ it('should initialize form with empty name and no selected environment', async (
 
   await waitFor(() => {
     expect(
-      getByPlaceholderText('Stack name (optional for migration)')
+      getByPlaceholderText('Stack name')
     ).toHaveValue('');
-    expect(getByRole('button', { name: /migrate/i })).toBeDisabled();
+    expect(getByRole('button', { name: /rename/i })).toBeDisabled();
     expect(getByRole('button', { name: /duplicate/i })).toBeDisabled();
   });
 });
@@ -43,7 +43,7 @@ it('should display rename help text', async () => {
   await waitFor(() => {
     expect(
       getByText(
-        'To rename the stack, choose the same environment when migrating.'
+        'To rename the stack, choose the current environment.'
       )
     ).toBeVisible();
   });

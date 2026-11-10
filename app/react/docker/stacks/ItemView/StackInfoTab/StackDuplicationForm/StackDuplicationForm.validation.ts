@@ -94,40 +94,20 @@ export function getMigrateValidationSchema(
   currentEnvironmentId?: number
 ) {
   return object({
+    // Migrating to another environment is removed (TAI-007): the "migrate"
+    // action is a rename in the current environment and needs a new name.
     name: baseNameValidation
-      .test(
-        'required-for-rename',
-        'Stack name is required when renaming',
-        function validate(value) {
-          const { environmentId } = this.parent;
-          // If renaming (same environment), name is required
-          if (
-            currentEnvironmentId !== undefined &&
-            environmentId === currentEnvironmentId
-          ) {
-            return !!value && value.length > 0;
-          }
-          // For migration to different environment, name is optional
-          return true;
-        }
-      )
+      .required('Stack name is required when renaming')
       .test(
         'not-same-name-for-rename',
         "Can't rename to the same name",
-        function validate(value) {
-          const { environmentId } = this.parent;
-          // If renaming (same environment) and name matches current stack name, reject
-          if (
-            currentStackName &&
-            currentEnvironmentId !== undefined &&
-            environmentId === currentEnvironmentId &&
-            value === currentStackName
-          ) {
-            return false;
-          }
-          return true;
-        }
+        (value) => !currentStackName || value !== currentStackName
       ),
-    environmentId: baseEnvValidation,
+    environmentId: baseEnvValidation.test(
+      'same-environment-only',
+      'A stack can only be renamed in its current environment',
+      (value) =>
+        currentEnvironmentId === undefined || value === currentEnvironmentId
+    ),
   });
 }

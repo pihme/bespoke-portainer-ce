@@ -4,7 +4,6 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 
 export type VolumeConfiguration = {
   Name?: Volume['Name']; // docker auto generates if empty
@@ -25,7 +24,6 @@ export async function createVolume(
       {
         headers: {
           'X-Portainer-VolumeName': volumeConfiguration.Name,
-          ...withAgentTargetHeader(nodeName),
         },
       }
     );

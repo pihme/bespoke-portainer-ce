@@ -51,15 +51,15 @@ export function StackDuplicationFormInner({
   return (
     <Form>
       <TextTip color="blue">
-        <p>This feature allows you to duplicate or migrate this stack. </p>
-        <p>To rename the stack, choose the same environment when migrating.</p>
+        <p>This feature allows you to duplicate or rename this stack.</p>
+        <p>To rename the stack, choose the current environment.</p>
       </TextTip>
 
       <div className="form-group">
         <Field
           as={Input}
           type="text"
-          placeholder="Stack name (optional for migration)"
+          placeholder="Stack name"
           aria-label="Stack name"
           name="newName"
           data-cy="stack-duplicate-name-input"
@@ -84,17 +84,13 @@ export function StackDuplicationFormInner({
           size="small"
           disabled={isMigrateDisabled}
           isLoading={isMigrateInProgress}
-          loadingText={
-            values.environmentId === currentEnvironmentId
-              ? 'Renaming in progress...'
-              : 'Migration in progress...'
-          }
+          loadingText="Renaming in progress..."
           onClick={() => handleAction('migrate')}
           icon={ArrowRight}
           data-cy="stack-migrate-button"
           className="!ml-0"
         >
-          {values.environmentId === currentEnvironmentId ? 'Rename' : 'Migrate'}
+          Rename
         </LoadingButton>
 
         <LoadingButton

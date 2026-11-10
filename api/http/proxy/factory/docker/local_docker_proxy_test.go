@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	dockerclient "github.com/portainer/portainer/api/docker/client"
-	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
+	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/stacks/stackutils"
@@ -30,9 +30,9 @@ type stubSnapshotService struct {
 	err       error
 }
 
-func (s *stubSnapshotService) Start(ctx context.Context)                              {}
-func (s *stubSnapshotService) SetSnapshotInterval(string) error                       { return nil }
-func (s *stubSnapshotService) SnapshotEndpoint(*portainer.Endpoint) error             { return nil }
+func (s *stubSnapshotService) Start(ctx context.Context)                  {}
+func (s *stubSnapshotService) SetSnapshotInterval(string) error           { return nil }
+func (s *stubSnapshotService) SnapshotEndpoint(*portainer.Endpoint) error { return nil }
 func (s *stubSnapshotService) FillSnapshotData(endpoint *portainer.Endpoint, _ bool) error {
 	if s.err != nil {
 		return s.err
@@ -375,7 +375,7 @@ func TestREQ_VOL_01_InheritedResourceControlFromVolumeLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -406,7 +406,7 @@ func TestREQ_NET_03_InheritedResourceControlFromNetworkLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -449,7 +449,7 @@ func TestREQ_CTR_04_InheritedResourceControlFromContainerLabels(t *testing.T) {
 	})
 	t.Cleanup(srv.Close)
 
-	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, "", nil)
+	cli, err := dockerclient.NewClientFactory(nil).CreateClient(&portainer.Endpoint{URL: srv.URL}, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -505,7 +505,7 @@ func TestREQ_USR_08_GetInheritedResourceControlFromServiceOrStack(t *testing.T) 
 		endpoint:            &portainer.Endpoint{ID: 2, URL: srv.URL},
 		dockerClientFactory: dockerclient.NewClientFactory(nil),
 	}
-	cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, "", nil)
+	cli, err := transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = cli.Close() })
 
@@ -707,7 +707,7 @@ func TestREQ_CTR_04_ProxyContainerInspect(t *testing.T) {
 	// non-owner of a different container id without RC is denied
 	srv2, version2 := mockDockerAPIServer(t, RoutesDefinition{
 		{http.MethodGet, "/containers/other/json"}: map[string]any{
-			"Id": "other",
+			"Id":     "other",
 			"Config": map[string]any{"Labels": map[string]any{}},
 		},
 	})

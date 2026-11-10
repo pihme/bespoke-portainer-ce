@@ -1,20 +1,11 @@
 import { Form, useFormikContext } from 'formik';
 
 import { ImageConfigFieldset } from '@@/ImageConfigFieldset';
-import { FormSection } from '@@/form-components/FormSection';
 import { FormActions } from '@@/form-components/FormActions';
-
-import { NodeSelector } from '../../agent/NodeSelector';
 
 import { FormValues } from './PullImageFormWidget.types';
 
-export function PullImageForm({
-  isLoading,
-  isNodeVisible,
-}: {
-  isLoading: boolean;
-  isNodeVisible: boolean;
-}) {
+export function PullImageForm({ isLoading }: { isLoading: boolean }) {
   const { values, setFieldValue, errors, isValid } =
     useFormikContext<FormValues>();
 
@@ -27,16 +18,6 @@ export function PullImageForm({
         }
         errors={errors.config}
       >
-        {isNodeVisible && (
-          <FormSection title="Deployment">
-            <NodeSelector
-              value={values.node}
-              onChange={(node) => setFieldValue('node', node)}
-              error={errors.node}
-            />
-          </FormSection>
-        )}
-
         <FormActions
           isLoading={isLoading}
           isValid={isValid}

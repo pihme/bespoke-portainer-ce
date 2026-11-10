@@ -13,8 +13,8 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/dataservices"
+	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/internal/authorization"
@@ -497,7 +497,7 @@ func TestCreateResourceControl_CreateError_LogsAndReturns(t *testing.T) {
 	existing := authorization.NewPublicResourceControl("old-fail", portainer.ContainerResourceControl)
 	h.dataStore = storeOverride{
 		DataStore: store,
-		rc: failCreateRC{items: []portainer.ResourceControl{*existing}},
+		rc:        failCreateRC{items: []portainer.ResourceControl{*existing}},
 	}
 	h.createResourceControl("old-fail", "new-fail")
 }
@@ -509,9 +509,9 @@ func TestUpdateWebhook_UpdateError_LogsAndReturns(t *testing.T) {
 	h.dataStore = storeOverride{
 		DataStore: store,
 		wh: failUpdateWebhook{webhook: &portainer.Webhook{
-			ID:         9,
-			Token:      "t",
-			ResourceID: "old-upd",
+			ID:          9,
+			Token:       "t",
+			ResourceID:  "old-upd",
 			WebhookType: portainer.ServiceWebhook,
 		}},
 	}

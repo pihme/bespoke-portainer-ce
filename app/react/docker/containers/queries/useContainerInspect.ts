@@ -4,7 +4,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 
 import { ContainerId } from '../types';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 
 import { queryKeys } from './query-keys';
@@ -28,8 +27,7 @@ export async function inspectContainer(
 ) {
   try {
     const { data } = await axios.get<ContainerDetailsJSON>(
-      buildDockerProxyUrl(environmentId, 'containers', id, 'json'),
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      buildDockerProxyUrl(environmentId, 'containers', id, 'json')
     );
     return data;
   } catch (e) {

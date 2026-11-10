@@ -44,7 +44,7 @@ export function StackContainersDatatable({ stackName }: Props) {
   const tableState = useTableState(settingsStore, storageKey);
 
   const isGPUsColumnVisible = useShowGPUsColumn(environmentQuery.data);
-  const columns = useColumns(false, isGPUsColumnVisible);
+  const columns = useColumns(isGPUsColumnVisible);
 
   const containersQuery = useComposeStackContainers(
     { environmentId: environmentQuery.data?.Id, stackName },

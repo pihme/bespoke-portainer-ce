@@ -166,71 +166,6 @@ func TestREQ_ENV_11_CreateDockerEndpoint_InvalidPayload_ReturnsBadRequest(t *tes
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestREQ_ENV_11_CreateTLSSecuredDockerEndpoint_SkipVerifyAndClient(t *testing.T) {
-	t.Parallel()
-	h, store := newCreateDockerHandler(t)
-
-	req := multipartCreateRequest(t, map[string]string{
-		"Name":                 "tls-docker",
-		"EndpointCreationType": "1",
-		"URL":                  "tcp://docker.example:2376",
-		"TLS":                  "true",
-		"TLSSkipVerify":        "true",
-		"TLSSkipClientVerify":  "true",
-		"ContainerEngine":      "docker",
-	}, nil)
-
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, req)
-	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
-
-	var ep portainer.Endpoint
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &ep))
-	assert.True(t, ep.TLSConfig.TLS)
-	assert.True(t, ep.TLSConfig.TLSSkipVerify)
-
-	stored, err := store.Endpoint().Endpoint(ep.ID)
-	require.NoError(t, err)
-	assert.Equal(t, "tls-docker", stored.Name)
-}
-
-func TestREQ_ENV_11_StoreTLSFiles_PersistsCACertAndClientPair(t *testing.T) {
-	t.Parallel()
-	h, _ := newCreateDockerHandler(t)
-
-	ep := &portainer.Endpoint{ID: 9, TLSConfig: portainer.TLSConfiguration{TLS: true}}
-	payload := &endpointCreatePayload{
-		TLS:               true,
-		TLSSkipVerify:     false,
-		TLSSkipClientVerify: false,
-		TLSCACertFile:     []byte("ca-data"),
-		TLSCertFile:       []byte("cert-data"),
-		TLSKeyFile:        []byte("key-data"),
-	}
-	httpErr := h.storeTLSFiles(ep, payload)
-	require.Nil(t, httpErr)
-	assert.NotEmpty(t, ep.TLSConfig.TLSCACertPath)
-	assert.NotEmpty(t, ep.TLSConfig.TLSCertPath)
-	assert.NotEmpty(t, ep.TLSConfig.TLSKeyPath)
-}
-
-func TestREQ_ENV_11_StoreTLSFiles_SkipClientVerify_StoresOnlyCA(t *testing.T) {
-	t.Parallel()
-	h, _ := newCreateDockerHandler(t)
-
-	ep := &portainer.Endpoint{ID: 10, TLSConfig: portainer.TLSConfiguration{TLS: true}}
-	payload := &endpointCreatePayload{
-		TLS:                 true,
-		TLSSkipVerify:       false,
-		TLSSkipClientVerify: true,
-		TLSCACertFile:       []byte("ca-only"),
-	}
-	httpErr := h.storeTLSFiles(ep, payload)
-	require.Nil(t, httpErr)
-	assert.NotEmpty(t, ep.TLSConfig.TLSCACertPath)
-	assert.Empty(t, ep.TLSConfig.TLSCertPath)
-}
-
 func TestREQ_ENV_11_CreateUnsecuredEndpoint_Direct_SnapshotFailure(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
@@ -285,32 +220,43 @@ func TestREQ_ENV_11_CreateUnsecuredDockerEndpoint_WithTagsAndGpus(t *testing.T) 
 	assert.True(t, updated.Endpoints[ep.ID])
 }
 
-func TestREQ_ENV_11_CreateTLSSecuredDockerEndpoint_WithCAAndClientFiles(t *testing.T) {
+// REQ-TAI-007: the Portainer Agent and remote Docker hosts are removed. Only the
+// local Docker or Podman socket can be added; Agent creation (type 2), a TCP or
+// HTTP URL and TLS are refused with 400 and nothing is stored.
+func TestREQ_TAI_007_CreateRefusesAgentAndRemoteDocker(t *testing.T) {
 	t.Parallel()
-	h, _ := newCreateDockerHandler(t)
 
-	req := multipartCreateRequest(t, map[string]string{
-		"Name":                 "tls-files",
-		"EndpointCreationType": "1",
-		"URL":                  "tcp://docker.example:2376",
-		"TLS":                  "true",
-		"TLSSkipVerify":        "false",
-		"TLSSkipClientVerify":  "false",
-		"ContainerEngine":      "docker",
-	}, map[string][]byte{
-		"TLSCACertFile": []byte("ca"),
-		"TLSCertFile":   []byte("cert"),
-		"TLSKeyFile":    []byte("key"),
-	})
+	cases := []struct {
+		name   string
+		fields map[string]string
+	}{
+		{name: "agent environment", fields: map[string]string{"Name": "agent", "EndpointCreationType": "2", "URL": "tcp://agent:9001"}},
+		{name: "agent environment without URL", fields: map[string]string{"Name": "agent", "EndpointCreationType": "2"}},
+		{name: "docker api over tcp", fields: map[string]string{"Name": "api", "EndpointCreationType": "1", "URL": "tcp://docker.example:2375"}},
+		{name: "docker api over http", fields: map[string]string{"Name": "http", "EndpointCreationType": "1", "URL": "http://docker.example:2375"}},
+		{name: "docker api with tls", fields: map[string]string{"Name": "tls", "EndpointCreationType": "1", "URL": "tcp://docker.example:2376", "TLS": "true", "TLSSkipVerify": "true", "TLSSkipClientVerify": "true"}},
+		{name: "local socket with tls", fields: map[string]string{"Name": "tls-sock", "EndpointCreationType": "1", "URL": "unix:///var/run/docker.sock", "TLS": "true"}},
+	}
 
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, req)
-	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			h, store := newCreateDockerHandler(t)
 
-	var ep portainer.Endpoint
-	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &ep))
-	assert.True(t, ep.TLSConfig.TLS)
-	assert.NotEmpty(t, ep.TLSConfig.TLSCACertPath)
-	assert.NotEmpty(t, ep.TLSConfig.TLSCertPath)
-	assert.NotEmpty(t, ep.TLSConfig.TLSKeyPath)
+			w := httptest.NewRecorder()
+			h.ServeHTTP(w, multipartCreateRequest(t, tc.fields, nil))
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+
+			endpoints, err := store.Endpoint().Endpoints()
+			require.NoError(t, err)
+			require.Empty(t, endpoints)
+		})
+	}
+
+	p := &endpointCreatePayload{}
+	err := p.Validate(&http.Request{Form: map[string][]string{"Name": {"a"}, "EndpointCreationType": {"2"}}})
+	require.ErrorIs(t, err, portainer.ErrAgentEnvironmentNotSupported)
+
+	err = p.Validate(&http.Request{Form: map[string][]string{"Name": {"a"}, "EndpointCreationType": {"1"}, "URL": {"tcp://docker.example:2375"}}})
+	require.ErrorIs(t, err, portainer.ErrRemoteEnvironmentNotSupported)
 }

@@ -7,8 +7,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/docker/docker/api/types/swarm"
-	"github.com/docker/docker/api/types/system"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,11 +77,4 @@ func Test_getTargetSocketBindHostAndContainer(t *testing.T) {
 
 	assert.Equal(t, "//./pipe/docker_engine", getTargetSocketBindContainer("windows"))
 	assert.Equal(t, "/var/run/docker.sock", getTargetSocketBindContainer("LINUX"))
-}
-
-func Test_isNotInASwarm(t *testing.T) {
-	t.Parallel()
-
-	assert.True(t, isNotInASwarm(&system.Info{Swarm: swarm.Info{LocalNodeState: swarm.LocalNodeStateInactive}}))
-	assert.False(t, isNotInASwarm(&system.Info{Swarm: swarm.Info{LocalNodeState: swarm.LocalNodeStateActive}}))
 }

@@ -200,7 +200,8 @@ describe('REQ-CTR-01 ContainersDatatableActions', () => {
     await user.click(start);
 
     await waitFor(() => {
-      expect(mockSetAgentHeader).toHaveBeenCalledWith('node-a');
+      // REQ-TAI-007: no per-node agent target header any more
+      expect(mockSetAgentHeader).not.toHaveBeenCalled();
       expect(mockStart).toHaveBeenCalledWith(1, 'stopped-1');
       expect(mockSuccess).toHaveBeenCalledWith(
         'Container successfully started',
@@ -321,7 +322,6 @@ describe('REQ-CTR-01 ContainersDatatableActions', () => {
       );
       expect(mockRemove).toHaveBeenCalledWith(1, 'cid-1', {
         removeVolumes: true,
-        nodeName: 'node-a',
       });
       expect(mockSuccess).toHaveBeenCalledWith(
         'Container successfully removed',

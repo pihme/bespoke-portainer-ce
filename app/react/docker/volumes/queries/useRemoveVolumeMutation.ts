@@ -4,7 +4,6 @@ import { EnvironmentId } from '@/react/portainer/environments/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 
 export async function removeVolume(
   environmentId: EnvironmentId,
@@ -12,11 +11,7 @@ export async function removeVolume(
   { nodeName }: { nodeName: string }
 ) {
   try {
-    await axios.delete(buildDockerProxyUrl(environmentId, 'volumes', name), {
-      headers: {
-        ...withAgentTargetHeader(nodeName),
-      },
-    });
+    await axios.delete(buildDockerProxyUrl(environmentId, 'volumes', name));
   } catch (e) {
     throw parseAxiosError(e, 'Unable to remove volume');
   }

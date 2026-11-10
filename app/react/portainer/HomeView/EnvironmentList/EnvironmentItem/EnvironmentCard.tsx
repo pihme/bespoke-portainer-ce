@@ -14,7 +14,6 @@ import {
 import { EnvironmentURL } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentURL';
 import { EnvironmentGroupName } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentGroupName';
 import { EnvironmentStats } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentStats';
-import { AgentDetails } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/AgentDetails';
 import { EnvironmentTypeTag } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentTypeTag';
 
 import { SnapshotBadge } from '@@/SnapshotBadge';
@@ -101,7 +100,6 @@ export function EnvironmentCard({
             <div className="flex items-center gap-2">
               <EnvironmentGroupName groupName={groupName} />
               <EnvironmentTypeTag environment={environment} />
-              <AgentDetails environment={environment} />
             </div>
           </div>
         </div>

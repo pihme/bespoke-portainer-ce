@@ -6,19 +6,13 @@ vi.mock('axios-progress-bar', () => ({
 vi.mock('@/portainer/services/http-request.helper', () => ({
   CACHE_DURATION: 1000,
   dispatchCacheRefreshEventIfNeeded: vi.fn(),
-  portainerAgentManagerOperation: vi.fn(() => false),
-  portainerAgentTargetHeader: vi.fn(() => ''),
 }));
 vi.mock('@/portainer/services/dockerMaxApiVersionInterceptor', () => ({
   dockerMaxAPIVersionInterceptor: (c: unknown) => c,
 }));
 
-import axios, {
-  agentInterceptor,
-  agentTargetHeader,
-  cache,
-  updateAxiosAdapter,
-} from './axios';
+import * as axiosModule from './axios';
+import axios, { cache, updateAxiosAdapter } from './axios';
 
 describe('axios client helpers', () => {
   it('exposes a configured axios instance with api baseURL', () => {
@@ -30,19 +24,11 @@ describe('axios client helpers', () => {
     expect(() => cache.store.clear()).not.toThrow();
   });
 
-  it('agentInterceptor leaves non-docker URLs alone', () => {
-    const config = { url: '/stacks', headers: {} } as never;
-    expect(agentInterceptor(config)).toBe(config);
-  });
-
-  it('agentInterceptor passes docker URLs through when no agent target is set', () => {
-    const config = {
-      url: '/endpoints/1/docker/containers/json',
-      headers: {},
-    } as never;
-    const result = agentInterceptor(config);
-    expect(result.url).toContain('/docker/');
-    expect(result.headers[agentTargetHeader]).toBeUndefined();
+  // REQ-TAI-007: per-node targeting is removed; no agent interceptor decorates
+  // docker requests with X-PortainerAgent-Target any more.
+  it('REQ-TAI-007 has no agent interceptor or agent target header', () => {
+    expect(Object.keys(axiosModule)).not.toContain('agentInterceptor');
+    expect(Object.keys(axiosModule)).not.toContain('agentTargetHeader');
   });
 
   it('updateAxiosAdapter is a no-op when cache is already enabled or disabled', () => {

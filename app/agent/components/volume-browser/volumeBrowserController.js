@@ -144,7 +144,6 @@ export class VolumeBrowserController {
   }
 
   async $onInit() {
-    this.HttpRequestHelper.setPortainerAgentTargetHeader(this.nodeName);
     try {
       this.files = await this.VolumeBrowserService.ls(this.endpointId, this.volumeId, this.state.path);
     } catch (err) {

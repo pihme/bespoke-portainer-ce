@@ -56,11 +56,11 @@ func TestREQ_ENV_01_FilterEndpointsByStatuses_EdgeCheckin(t *testing.T) {
 	now := time.Now().Unix()
 	eps := []portainer.Endpoint{
 		{
-			ID:               1,
-			Name:             "edge-online",
-			Type:             portainer.EdgeAgentOnDockerEnvironment,
+			ID:                  1,
+			Name:                "edge-online",
+			Type:                portainer.EdgeAgentOnDockerEnvironment,
 			EdgeCheckinInterval: 60,
-			LastCheckInDate:  now,
+			LastCheckInDate:     now,
 		},
 		{
 			ID:              2,

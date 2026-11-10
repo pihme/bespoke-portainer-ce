@@ -3,8 +3,6 @@ package snapshot_test
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -55,12 +53,14 @@ func TestREQ_ENV_12_SupportDirectSnapshot_LocalDockerAndDeferredTypes(t *testing
 	t.Parallel()
 
 	require.True(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.DockerEnvironment}))
-	require.True(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.AgentOnDockerEnvironment}))
 	require.True(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.KubernetesLocalEnvironment}))
 
 	require.False(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.EdgeAgentOnDockerEnvironment}))
 	require.False(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.EdgeAgentOnKubernetesEnvironment}))
 	require.False(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.AzureEnvironment}))
+	// REQ-TAI-007: a legacy Agent environment is no longer snapshotted directly.
+	require.False(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.AgentOnDockerEnvironment}))
+	require.False(t, snapshot.SupportDirectSnapshot(&portainer.Endpoint{Type: portainer.AgentOnKubernetesEnvironment}))
 }
 
 func TestREQ_ENV_12_NewService_ParsesFlagIntervalAndRejectsInvalid(t *testing.T) {
@@ -256,59 +256,26 @@ func TestREQ_ENV_12_SnapshotEndpointTx_PodmanEngineRejectsDockerSnapshot(t *test
 	require.Contains(t, err.Error(), "Podman environment option")
 }
 
-func TestREQ_ENV_12_SnapshotEndpointTx_AgentOnDocker_FetchesVersionAndPersists(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-
-	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set(portainer.PortainerAgentHeader, "2.27.0")
-		w.Header().Set(portainer.HTTPResponseAgentPlatform, "1")
-		w.WriteHeader(http.StatusNoContent)
-	}))
-	t.Cleanup(srv.Close)
-
-	dockerSnapshot := &portainer.DockerSnapshot{DockerVersion: "27.1"}
-	service, store := newTestService(t, stubDockerSnapshotter{snapshot: dockerSnapshot}, nil)
-	endpoint := &portainer.Endpoint{
-		ID:   11,
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  srv.URL,
-		TLSConfig: portainer.TLSConfiguration{
-			TLS:           true,
-			TLSSkipVerify: true,
-		},
-	}
-
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return service.SnapshotEndpointTx(tx, endpoint)
-	})
-	require.NoError(t, err)
-	require.Equal(t, "2.27.0", endpoint.Agent.Version)
-
-	persisted, err := store.Snapshot().Read(endpoint.ID)
-	require.NoError(t, err)
-	require.NotNil(t, persisted.Docker)
-}
-
-func TestREQ_ENV_12_SnapshotEndpointTx_AgentOnDocker_AgentUnreachable(t *testing.T) {
+// REQ-TAI-007: the Portainer Agent is removed. Snapshotting a legacy Agent
+// environment fails with a clear error and dials nothing.
+func TestREQ_TAI_007_SnapshotEndpointTx_RefusesAgentEnvironments(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
 
 	service, store := newTestService(t, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, nil)
-	endpoint := &portainer.Endpoint{
-		ID:   12,
-		Type: portainer.AgentOnDockerEnvironment,
-		URL:  "https://127.0.0.1:1",
-		TLSConfig: portainer.TLSConfiguration{
-			TLS:           true,
-			TLSSkipVerify: true,
-		},
-	}
+	for i, envType := range []portainer.EndpointType{portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment} {
+		endpoint := &portainer.Endpoint{
+			ID:   portainer.EndpointID(12 + i),
+			Type: envType,
+			URL:  "https://127.0.0.1:1",
+		}
 
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return service.SnapshotEndpointTx(tx, endpoint)
-	})
-	require.Error(t, err)
+		err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
+			return service.SnapshotEndpointTx(tx, endpoint)
+		})
+		require.ErrorIs(t, err, portainer.ErrAgentEnvironmentNotSupported)
+		require.Empty(t, endpoint.Agent.Version)
+	}
 }
 
 func TestREQ_ENV_12_Start_SnapshotsLocalDockerAndMarksEndpointUp(t *testing.T) {

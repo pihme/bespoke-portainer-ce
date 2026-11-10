@@ -125,7 +125,6 @@ angular.module('portainer.docker').controller('ContainerConsoleController', [
     };
 
     $scope.initView = function () {
-      HttpRequestHelper.setPortainerAgentTargetHeader($transition$.params().nodeName);
       return ContainerService.container(endpoint.Id, $transition$.params().id)
         .then(function (data) {
           $scope.container = data;
@@ -167,9 +166,6 @@ angular.module('portainer.docker').controller('ContainerConsoleController', [
         Object.keys(params)
           .map((k) => k + '=' + params[k])
           .join('&');
-      if ($transition$.params().nodeName) {
-        url += '&nodeName=' + $transition$.params().nodeName;
-      }
       return url.startsWith('https') ? url.replace('https://', 'wss://') : url.replace('http://', 'ws://');
     }
   },

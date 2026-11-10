@@ -3,8 +3,8 @@ import { PageHeader } from '@@/PageHeader';
 import { PullImageFormWidget } from './PullImageFormWidget';
 import { ImagesDatatable } from './ImagesDatatable/ImagesDatatable';
 
-// Docker Swarm is removed (TAI-003): images are never listed or pulled per
-// Swarm node, so the node selector and host column stay hidden.
+// Docker Swarm (TAI-003) and the Portainer Agent with per-node targeting
+// (TAI-007) are removed: images are never listed or pulled per node.
 export function ListView() {
   return (
     <>
@@ -12,11 +12,11 @@ export function ListView() {
 
       <div className="row">
         <div className="col-sm-12">
-          <PullImageFormWidget isNodeVisible={false} />
+          <PullImageFormWidget />
         </div>
       </div>
 
-      <ImagesDatatable isHostColumnVisible={false} />
+      <ImagesDatatable />
     </>
   );
 }

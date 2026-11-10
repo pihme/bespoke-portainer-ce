@@ -3,7 +3,6 @@ import { Resources, RestartPolicy } from 'docker-types';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { EnvironmentId } from '@/react/portainer/environments/types';
 
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 
 /**
@@ -27,8 +26,7 @@ export async function updateContainer(
   try {
     await axios.post<{ Warnings: string[] }>(
       buildDockerProxyUrl(environmentId, 'containers', containerId, 'update'),
-      config,
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      config
     );
   } catch (err) {
     throw parseAxiosError(err, 'failed updating container');

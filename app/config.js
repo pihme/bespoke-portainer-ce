@@ -1,4 +1,3 @@
-import { agentInterceptor } from '@/react/portainer/services/axios/axios';
 import { dispatchCacheRefreshEventIfNeeded } from './portainer/services/http-request.helper';
 
 /* @ngInject */
@@ -20,10 +19,6 @@ export function configApp($urlRouterProvider, $httpProvider, localStorageService
   $httpProvider.defaults.headers.post['Content-Type'] = 'application/json';
   $httpProvider.defaults.headers.put['Content-Type'] = 'application/json';
   $httpProvider.defaults.headers.patch['Content-Type'] = 'application/json';
-
-  $httpProvider.interceptors.push(() => ({
-    request: agentInterceptor,
-  }));
 
   $uibTooltipProvider.setTriggers({
     mouseenter: 'mouseleave',

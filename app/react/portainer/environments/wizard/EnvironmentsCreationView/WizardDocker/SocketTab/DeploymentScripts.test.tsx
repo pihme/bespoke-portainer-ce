@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import { DeploymentScripts } from './DeploymentScripts';
 
 describe('DeploymentScripts', () => {
-  it('uses the same OS labels as the Docker agent tab and switches socket examples', async () => {
+  it('shows the OS labels and switches socket examples', async () => {
     const user = userEvent.setup();
     render(<DeploymentScripts />);
 

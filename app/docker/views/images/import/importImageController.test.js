@@ -103,9 +103,7 @@ describe('ImportImageController local Docker image import', () => {
 
     await scope.uploadImage();
 
-    expect(HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith(
-      null
-    );
+    expect(HttpRequestHelper.setPortainerAgentTargetHeader).not.toHaveBeenCalled();
     expect(ImageService.uploadImage).toHaveBeenCalled();
     expect(ImageHelper.createImageConfigForContainer).toHaveBeenCalled();
     expect(ImageService.tagImage).toHaveBeenCalledWith(

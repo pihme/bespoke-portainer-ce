@@ -171,7 +171,7 @@ func TestREQ_ENV_01_List_EndpointIdsAndExcludeGroupIds(t *testing.T) {
 	assert.Equal(t, "keep", excl[0].Name)
 }
 
-func TestREQ_ENV_01_List_IncludeSnapshotsAndAgentVersions(t *testing.T) {
+func TestREQ_ENV_01_List_IncludeSnapshotsAndIgnoredAgentVersions(t *testing.T) {
 	t.Parallel()
 	h, store := newDockerEndpointHandler(t)
 	createDockerEndpoint(t, store, 1, "local")
@@ -189,7 +189,7 @@ func TestREQ_ENV_01_List_IncludeSnapshotsAndAgentVersions(t *testing.T) {
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	var got []portainer.Endpoint
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got))
-	// agent match + non-agent docker endpoints are kept by the filter
+	// REQ-TAI-007: the agent-version filter is removed; the parameter is ignored
 	ids := map[portainer.EndpointID]bool{}
 	for _, ep := range got {
 		ids[ep.ID] = true

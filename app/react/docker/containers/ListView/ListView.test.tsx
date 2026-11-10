@@ -5,33 +5,17 @@ import { Environment } from '@/react/portainer/environments/types';
 
 import { ListView } from './ListView';
 
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useInfo: vi.fn(),
-}));
-
-vi.mock('@/react/portainer/environments/utils', () => ({
-  isAgentEnvironment: vi.fn((type: number) => type === 2),
-}));
-
 vi.mock('@@/PageHeader', () => ({
   PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
 }));
 
 vi.mock('./ContainersDatatable', () => ({
-  ContainersDatatable: ({
-    isHostColumnVisible,
-    environment,
-  }: {
-    isHostColumnVisible: boolean;
-    environment: Environment;
-  }) => (
+  ContainersDatatable: (props: { environment: Environment }) => (
     <div data-cy="containers-table">
-      host:{String(isHostColumnVisible)};env:{environment.Id}
+      props:{Object.keys(props).sort().join(',')};env:{props.environment.Id}
     </div>
   ),
 }));
-
-import { useInfo } from '@/react/docker/proxy/queries/useInfo';
 
 function env(overrides: Partial<Environment> = {}): Environment {
   return {
@@ -43,27 +27,20 @@ function env(overrides: Partial<Environment> = {}): Environment {
 }
 
 describe('containers ListView parent', () => {
-  it('hides host column for non-agent environments', () => {
-    vi.mocked(useInfo).mockReturnValue({ data: true } as ReturnType<
-      typeof useInfo
-    >);
+  it('renders the container list for the environment', () => {
     render(<ListView endpoint={env({ Type: 1 })} />);
     expect(screen.getByText('Container list')).toBeVisible();
     expect(screen.getByTestId('containers-table')).toHaveTextContent(
-      'host:false;env:9'
+      'props:environment;env:9'
     );
   });
 
-  it('shows host column for agent swarm managers', () => {
-    vi.mocked(useInfo).mockImplementation((_id, opts?: { select?: (i: { Swarm?: { NodeID?: string } }) => boolean }) => {
-      const info = { Swarm: { NodeID: 'node-1' } };
-      return {
-        data: opts?.select ? opts.select(info) : info,
-      } as ReturnType<typeof useInfo>;
-    });
+  // REQ-TAI-007: per-node targeting is removed; even a legacy Agent environment
+  // gets no host column switch.
+  it('REQ-TAI-007 passes no host column flag, even for a legacy agent environment', () => {
     render(<ListView endpoint={env({ Type: 2 })} />);
     expect(screen.getByTestId('containers-table')).toHaveTextContent(
-      'host:true;env:9'
+      'props:environment;env:9'
     );
   });
 });

@@ -32,7 +32,6 @@ export interface BaseEnvironmentsQueryParams {
   name?: string;
   /** Filter environments by partial name match (case-insensitive, searches name only) */
   nameFilter?: string;
-  agentVersions?: string[];
   updateInformation?: boolean;
   platformTypes?: PlatformType[];
   outdated?: boolean;
@@ -131,17 +130,6 @@ export async function getEnvironmentSummaryCounts() {
       buildUrl(undefined, 'summary')
     );
     return data;
-  } catch (e) {
-    throw parseAxiosError(e as Error);
-  }
-}
-
-export async function getAgentVersions() {
-  try {
-    const response = await axios.get<string[]>(
-      buildUrl(undefined, 'agent_versions')
-    );
-    return response.data;
   } catch (e) {
     throw parseAxiosError(e as Error);
   }

@@ -76,7 +76,6 @@ const ngModule = angular
       'host',
       'isBrowseEnabled',
       'browseUrl',
-      'endpointId',
     ])
   );
 export const componentsModule = ngModule.name;

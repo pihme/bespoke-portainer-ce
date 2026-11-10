@@ -10,7 +10,6 @@ import {
 
 import { buildDockerProxyUrl } from '../../proxy/queries/buildDockerProxyUrl';
 import { queryKeys as containerQueryKeys } from '../../containers/queries/query-keys';
-import { withAgentTargetHeader } from '../../proxy/queries/utils';
 import { ContainerId } from '../../containers/types';
 import { NetworkId } from '../types';
 
@@ -62,8 +61,7 @@ export async function disconnectContainer(
       {
         Container: containerId,
         Force: false,
-      },
-      { headers: { ...withAgentTargetHeader(nodeName) } }
+      }
     );
     return { networkId, environmentId };
   } catch (err) {

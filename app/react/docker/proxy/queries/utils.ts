@@ -1,5 +1,3 @@
-import { agentTargetHeader } from '@/portainer/services/axios/axios';
-
 /**
  * Generates the `filters` query param entry for docker API list actions
  *
@@ -8,24 +6,6 @@ import { agentTargetHeader } from '@/portainer/services/axios/axios';
  */
 export function withFiltersQueryParam<T = unknown>(filters?: T) {
   return { filters: filters && JSON.stringify(filters) };
-}
-
-/**
- * Generates the `X-PortainerAgent-Target` header
- * @param nodeName The node name to target
- * @returns
- */
-export function withAgentTargetHeader(nodeName?: string) {
-  return nodeName ? { [agentTargetHeader]: nodeName } : {};
-}
-
-/**
- * Generates the `'X-PortainerAgent-ManagerOperation'` header
- * @param managerOperation
- * @returns
- */
-export function withAgentManagerOperationHeader(managerOperation?: boolean) {
-  return managerOperation ? { 'X-PortainerAgent-ManagerOperation': '1' } : {};
 }
 
 /**

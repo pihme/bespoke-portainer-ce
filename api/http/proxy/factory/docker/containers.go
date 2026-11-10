@@ -327,9 +327,7 @@ func (transport *Transport) decorateContainerCreationOperation(request *http.Req
 
 		if !securitySettings.AllowBindMountsForRegularUsers {
 			getClient := func() (*client.Client, error) {
-				agentTargetHeader := request.Header.Get(portainer.PortainerAgentTargetHeader)
-
-				return transport.dockerClientFactory.CreateClient(transport.endpoint, agentTargetHeader, nil)
+				return transport.dockerClientFactory.CreateClient(transport.endpoint, nil)
 			}
 
 			if err := CheckContainerBindMountRestrictions(request.Context(), partialContainer.HostConfig.Binds, partialContainer.HostConfig.VolumesFrom, partialContainer.HostConfig.Mounts, getClient); err != nil {

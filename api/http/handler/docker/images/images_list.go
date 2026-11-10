@@ -1,12 +1,9 @@
 package images
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/handler/docker/utils"
 	"github.com/portainer/portainer/api/set"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -18,11 +15,10 @@ import (
 )
 
 type ImageResponse struct {
-	Created  int64    `json:"created"`
-	NodeName string   `json:"nodeName"`
-	ID       string   `json:"id"`
-	Size     int64    `json:"size"`
-	Tags     []string `json:"tags"`
+	Created int64    `json:"created"`
+	ID      string   `json:"id"`
+	Size    int64    `json:"size"`
+	Tags    []string `json:"tags"`
 
 	// Used is true if the image is used by at least one container
 	// supplied only when withUsage is true
@@ -47,12 +43,7 @@ func (handler *Handler) imagesList(w http.ResponseWriter, r *http.Request) *http
 		return httpErr
 	}
 
-	nodeNames := make(map[string]string)
-
-	// Pass the node names map to the context so the custom NodeNameTransport can use it
-	ctx := context.WithValue(r.Context(), client.NodeNamesCtxKey{}, nodeNames)
-
-	images, err := cli.ImageList(ctx, image.ListOptions{})
+	images, err := cli.ImageList(r.Context(), image.ListOptions{})
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve Docker images", err)
 	}
@@ -86,15 +77,10 @@ func (handler *Handler) imagesList(w http.ResponseWriter, r *http.Request) *http
 
 		imagesList[i] = ImageResponse{
 			Created: image.Created,
-			// Only works if the order of `images` is not changed between unmarshaling the agent's response
-			// in NodeNameTransport.RoundTrip()  (api/docker/client/client.go)
-			// and docker's cli.ImageList()
-			// As both functions unmarshal the same response body, the resulting array will be ordered the same way.
-			NodeName: nodeNames[fmt.Sprintf("%s-%d", image.ID, i)],
-			ID:       image.ID,
-			Size:     image.Size,
-			Tags:     image.RepoTags,
-			Used:     imageUsageSet.Contains(image.ID),
+			ID:      image.ID,
+			Size:    image.Size,
+			Tags:    image.RepoTags,
+			Used:    imageUsageSet.Contains(image.ID),
 		}
 	}
 

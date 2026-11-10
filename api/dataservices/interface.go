@@ -21,7 +21,6 @@ type (
 		SSLSettings() SSLSettingsService
 		Source() SourceService
 		Stack() StackService
-		Tag() TagService
 		TeamMembership() TeamMembershipService
 		Team() TeamService
 		User() UserService
@@ -143,12 +142,6 @@ type (
 		StacksByName(name string) ([]portainer.Stack, error)
 		GetNextIdentifier() int
 		StackByWebhookID(ID string) (*portainer.Stack, error)
-	}
-
-	// TagService represents a service for managing tag data
-	TagService interface {
-		BaseCRUD[portainer.Tag, portainer.TagID]
-		UpdateTagFunc(ID portainer.TagID, updateFunc func(tag *portainer.Tag)) error
 	}
 
 	// TeamService represents a service for managing user data

@@ -107,7 +107,7 @@ func TestREQ_TAI_013_SaveEndpoint_DoesNotTouchTags(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
 	tag := &portainer.Tag{Name: "env-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.Tag().Create(tag))
+	require.NoError(t, store.TagService.Create(tag))
 
 	h := &Handler{DataStore: store}
 	ep := &portainer.Endpoint{
@@ -123,7 +123,7 @@ func TestREQ_TAI_013_SaveEndpoint_DoesNotTouchTags(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "tagged-env", saved.Name)
 
-	updated, err := store.Tag().Read(tag.ID)
+	updated, err := store.TagService.Read(tag.ID)
 	require.NoError(t, err)
 	assert.False(t, updated.Endpoints[ep.ID])
 }

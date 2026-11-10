@@ -25,7 +25,6 @@ type testDatastore struct {
 	settings        dataservices.SettingsService
 	snapshot        dataservices.SnapshotService
 	stack           dataservices.StackService
-	tag             dataservices.TagService
 	teamMembership  dataservices.TeamMembershipService
 	team            dataservices.TeamService
 	user            dataservices.UserService
@@ -59,7 +58,6 @@ func (d *testDatastore) Settings() dataservices.SettingsService             { re
 func (d *testDatastore) Snapshot() dataservices.SnapshotService             { return d.snapshot }
 func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }
 func (d *testDatastore) Stack() dataservices.StackService                   { return d.stack }
-func (d *testDatastore) Tag() dataservices.TagService                       { return d.tag }
 func (d *testDatastore) TeamMembership() dataservices.TeamMembershipService { return d.teamMembership }
 func (d *testDatastore) Team() dataservices.TeamService                     { return d.team }
 func (d *testDatastore) User() dataservices.UserService                     { return d.user }

@@ -28,16 +28,6 @@ func NewService(connection portainer.Connection) (*Service, error) {
 	}, nil
 }
 
-func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
-	return ServiceTx{
-		BaseDataServiceTx: dataservices.BaseDataServiceTx[portainer.Tag, portainer.TagID]{
-			Bucket:     BucketName,
-			Connection: service.Connection,
-			Tx:         tx,
-		},
-	}
-}
-
 // CreateTag creates a new tag.
 func (service *Service) Create(tag *portainer.Tag) error {
 	return service.Connection.CreateObject(
@@ -47,14 +37,4 @@ func (service *Service) Create(tag *portainer.Tag) error {
 			return int(tag.ID), tag
 		},
 	)
-}
-
-// UpdateTagFunc updates a tag inside a transaction avoiding data races.
-func (service *Service) UpdateTagFunc(ID portainer.TagID, updateFunc func(tag *portainer.Tag)) error {
-	id := service.Connection.ConvertToKey(int(ID))
-	tag := &portainer.Tag{}
-
-	return service.Connection.UpdateObjectFunc(BucketName, id, tag, func() {
-		updateFunc(tag)
-	})
 }

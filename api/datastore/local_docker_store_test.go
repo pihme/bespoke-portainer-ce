@@ -30,7 +30,7 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Source())
 	require.NotNil(t, store.SSLSettings())
 	require.NotNil(t, store.Stack())
-	require.NotNil(t, store.Tag())
+	require.NotNil(t, store.TagService)
 	require.NotNil(t, store.Version())
 	require.NotNil(t, store.Workflow())
 
@@ -79,12 +79,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		AdministratorsOnly: true,
 	}
 
-	tag := &portainer.Tag{
-		Name:           "prod",
-		Endpoints:      map[portainer.EndpointID]bool{},
-		EndpointGroups: map[portainer.EndpointGroupID]bool{},
-	}
-
 	snap := &portainer.Snapshot{
 		EndpointID: endpointID,
 		Docker: &portainer.DockerSnapshot{
@@ -106,7 +100,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.NotNil(t, tx.Source())
 		require.NotNil(t, tx.SSLSettings())
 		require.NotNil(t, tx.Stack())
-		require.NotNil(t, tx.Tag())
 		require.NotNil(t, tx.Workflow())
 
 		// Observed StoreTx stub for a service without a tx wrapper.
@@ -128,14 +121,11 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		if err := tx.ResourceControl().Create(rc); err != nil {
 			return err
 		}
-		if err := tx.Tag().Create(tag); err != nil {
-			return err
-		}
 		if err := tx.Snapshot().Create(snap); err != nil {
 			return err
 		}
-		if rc.ID == 0 || tag.ID == 0 {
-			return errors.New("expected Create to assign resource control and tag IDs")
+		if rc.ID == 0 {
+			return errors.New("expected Create to assign a resource control ID")
 		}
 
 		settings, err := tx.Settings().Settings()
@@ -167,12 +157,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 			return err
 		}
 		require.Equal(t, "container-abc", gotRC.ResourceID)
-
-		gotTag, err := tx.Tag().Read(tag.ID)
-		if err != nil {
-			return err
-		}
-		require.Equal(t, "prod", gotTag.Name)
 
 		gotSnap, err := tx.Snapshot().Read(endpointID)
 		if err != nil {
@@ -277,7 +261,7 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 		Endpoints:      map[portainer.EndpointID]bool{endpointID: true},
 		EndpointGroups: map[portainer.EndpointGroupID]bool{},
 	}
-	require.NoError(t, store.Tag().Create(tag))
+	require.NoError(t, store.TagService.Create(tag))
 	tagID := tag.ID
 
 	tplID := portainer.CustomTemplateID(store.CustomTemplate().GetNextIdentifier())
@@ -349,7 +333,7 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, gotSnap.Docker.TotalCPU)
 
-	gotTag, err := store.Tag().Read(tagID)
+	gotTag, err := store.TagService.Read(tagID)
 	require.NoError(t, err)
 	require.Equal(t, "export-tag", gotTag.Name)
 

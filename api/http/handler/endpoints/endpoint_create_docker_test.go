@@ -189,7 +189,7 @@ func TestREQ_TAI_013_CreateIgnoresGroupAndTags(t *testing.T) {
 	t.Parallel()
 	h, store := newCreateDockerHandler(t)
 	tag := &portainer.Tag{Name: "create-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.Tag().Create(tag))
+	require.NoError(t, store.TagService.Create(tag))
 	group := &portainer.EndpointGroup{Name: "legacy-group"}
 	require.NoError(t, store.EndpointGroup().Create(group))
 	require.NotEqual(t, portainer.EndpointGroupID(1), group.ID)
@@ -216,7 +216,7 @@ func TestREQ_TAI_013_CreateIgnoresGroupAndTags(t *testing.T) {
 	assert.Equal(t, "docker.example.com", ep.PublicURL)
 	assert.Equal(t, []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}}, ep.Gpus)
 
-	updated, err := store.Tag().Read(tag.ID)
+	updated, err := store.TagService.Read(tag.ID)
 	require.NoError(t, err)
 	assert.False(t, updated.Endpoints[ep.ID])
 }

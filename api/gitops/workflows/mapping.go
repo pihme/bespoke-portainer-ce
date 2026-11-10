@@ -1,33 +1,13 @@
 package workflows
 
 import (
-	"fmt"
 	"slices"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/gitops/sources"
-	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/set"
 	"github.com/portainer/portainer/api/slicesx"
 )
-
-// BuildGroupEndpoints builds a map between EdgeGroup id and its endpoints
-func BuildGroupEndpoints(tx dataservices.DataStoreTx, groups []portainer.EdgeGroup) (map[portainer.EdgeGroupID][]portainer.EndpointID, error) {
-	m := make(map[portainer.EdgeGroupID][]portainer.EndpointID, len(groups))
-	for _, g := range groups {
-		if g.Dynamic {
-			ids, err := endpointutils.GetEndpointsByTags(tx, g.TagIDs, g.PartialMatch)
-			if err != nil {
-				return nil, fmt.Errorf("failed to resolve endpoints for dynamic edge group: %w", err)
-			}
-			m[g.ID] = ids
-		} else {
-			m[g.ID] = g.EndpointIDs.ToSlice()
-		}
-	}
-	return m, nil
-}
 
 // WorkflowMappingFields holds the fields shared between ArtifactDetail and the sources handler package's Workflow type.
 type WorkflowMappingFields struct {

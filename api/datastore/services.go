@@ -217,11 +217,6 @@ func (store *Store) Stack() dataservices.StackService {
 	return store.StackService
 }
 
-// Tag gives access to the Tag data management layer
-func (store *Store) Tag() dataservices.TagService {
-	return store.TagService
-}
-
 // TeamMembership gives access to the TeamMembership data management layer
 func (store *Store) TeamMembership() dataservices.TeamMembershipService {
 	return store.TeamMembershipService
@@ -359,7 +354,7 @@ func (store *Store) Export(filename string) (err error) {
 		backup.Stack = t
 	}
 
-	if t, err := store.Tag().ReadAll(); err != nil {
+	if t, err := store.TagService.ReadAll(); err != nil {
 		if !store.IsErrObjectNotFound(err) {
 			log.Error().Err(err).Msg("exporting Tags")
 		}
@@ -506,7 +501,7 @@ func (store *Store) Import(filename string) (err error) {
 	}
 
 	for _, v := range backup.Tag {
-		if err := store.Tag().Update(v.ID, &v); err != nil {
+		if err := store.TagService.Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the tag in the database")
 		}
 	}

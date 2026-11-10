@@ -126,7 +126,7 @@ func TestREQ_ENV_01_List_FilterByTags(t *testing.T) {
 	t.Parallel()
 	h, store := newDockerEndpointHandler(t)
 	tag := &portainer.Tag{Name: "prod", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.Tag().Create(tag))
+	require.NoError(t, store.TagService.Create(tag))
 
 	ep1 := createDockerEndpoint(t, store, 1, "tagged")
 	ep1.TagIDs = []portainer.TagID{tag.ID}

@@ -19,12 +19,12 @@ func TestNewService(t *testing.T) {
 	require.Equal(t, tag.BucketName, svc.Bucket)
 }
 
-// TestCreateReadUpdateTagFuncAndDelete covers Create, UpdateTagFunc, and
-// base Read/Delete for local environment tags.
-func TestCreateReadUpdateTagFuncAndDelete(t *testing.T) {
+// TestCreateReadUpdateAndDelete covers Create and the base Read, Update and
+// Delete the 1.24 migration and the backup export rely on.
+func TestCreateReadUpdateAndDelete(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
-	svc := store.Tag()
+	svc := store.TagService
 
 	tagObj := &portainer.Tag{
 		Name:           "local",
@@ -38,10 +38,9 @@ func TestCreateReadUpdateTagFuncAndDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "local", got.Name)
 
-	require.NoError(t, svc.UpdateTagFunc(tagObj.ID, func(tg *portainer.Tag) {
-		tg.Name = "local-renamed"
-		tg.Endpoints[portainer.EndpointID(1)] = true
-	}))
+	got.Name = "local-renamed"
+	got.Endpoints[portainer.EndpointID(1)] = true
+	require.NoError(t, svc.Update(got.ID, got))
 
 	updated, err := svc.Read(tagObj.ID)
 	require.NoError(t, err)

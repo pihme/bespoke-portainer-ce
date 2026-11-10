@@ -279,4 +279,3 @@ func TestREQ_STK_02_EnsureUniqueComposeStackName_CleansSwarmDuplicate(t *testing
 	_, err = store.Stack().Read(swarmDup.ID)
 	assert.True(t, store.IsErrObjectNotFound(err), "swarm duplicate with same name should be cleaned")
 }
-

@@ -122,4 +122,3 @@ func TestREQ_STK_04_StackFile_OrphanEndpoint_NonAdmin_ReturnsNotFound(t *testing
 	h.ServeHTTP(w, req.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
-

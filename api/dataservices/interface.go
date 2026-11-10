@@ -19,11 +19,8 @@ type (
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		EndpointRelation() EndpointRelationService
-		HelmUserRepository() HelmUserRepositoryService
 		Registry() RegistryService
 		ResourceControl() ResourceControlService
-		Role() RoleService
-		APIKeyRepository() APIKeyRepository
 		Settings() SettingsService
 		Snapshot() SnapshotService
 		SSLSettings() SSLSettingsService
@@ -32,7 +29,6 @@ type (
 		Tag() TagService
 		TeamMembership() TeamMembershipService
 		Team() TeamService
-		TunnelServer() TunnelServerService
 		User() UserService
 		Version() VersionService
 		Webhook() WebhookService
@@ -150,12 +146,6 @@ type (
 		BucketName() string
 	}
 
-	// HelmUserRepositoryService represents a service to manage HelmUserRepositories
-	HelmUserRepositoryService interface {
-		BaseCRUD[portainer.HelmUserRepository, portainer.HelmUserRepositoryID]
-		HelmUserRepositoryByUserID(userID portainer.UserID) ([]portainer.HelmUserRepository, error)
-	}
-
 	// RegistryService represents a service for managing registry data
 	RegistryService interface {
 		BaseCRUD[portainer.Registry, portainer.RegistryID]
@@ -165,18 +155,6 @@ type (
 	ResourceControlService interface {
 		BaseCRUD[portainer.ResourceControl, portainer.ResourceControlID]
 		ResourceControlByResourceIDAndType(resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error)
-	}
-
-	// RoleService represents a service for managing user roles
-	RoleService interface {
-		BaseCRUD[portainer.Role, portainer.RoleID]
-	}
-
-	// APIKeyRepositoryService
-	APIKeyRepository interface {
-		BaseCRUD[portainer.APIKey, portainer.APIKeyID]
-		GetAPIKeysByUserID(userID portainer.UserID) ([]portainer.APIKey, error)
-		GetAPIKeyByDigest(digest string) (*portainer.APIKey, error)
 	}
 
 	// SettingsService represents a service for managing application settings
@@ -245,13 +223,6 @@ type (
 		DeleteTeamMembershipByUserID(userID portainer.UserID) error
 		DeleteTeamMembershipByTeamID(teamID portainer.TeamID) error
 		DeleteTeamMembershipByTeamIDAndUserID(teamID portainer.TeamID, userID portainer.UserID) error
-	}
-
-	// TunnelServerService represents a service for managing data associated to the tunnel server
-	TunnelServerService interface {
-		Info() (*portainer.TunnelServerInfo, error)
-		UpdateInfo(info *portainer.TunnelServerInfo) error
-		BucketName() string
 	}
 
 	// UserService represents a service for managing user data

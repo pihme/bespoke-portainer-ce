@@ -8,7 +8,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/crypto"
-	"github.com/portainer/portainer/pkg/librand"
 
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -36,11 +35,9 @@ func TestStoreFull(t *testing.T) {
 		"Environments":     store.testEnvironments,
 		"Settings":         store.testSettings,
 		"SSL Settings":     store.testSSLSettings,
-		"Tunnel Server":    store.testTunnelServer,
 		"Custom Templates": store.testCustomTemplates,
 		"Registries":       store.testRegistries,
 		"Resource Control": store.testResourceControl,
-		"Schedules":        store.testSchedules,
 		"Tags":             store.testTags,
 	}
 
@@ -125,7 +122,6 @@ func (store *Store) CreateEndpoint(t *testing.T, name string, endpointType porta
 		// generator went with Edge (TAI-004), so a fixed key stands in.
 		expectedEndpoint = newEndpoint(endpointType, id, name, URL, tls)
 		expectedEndpoint.EdgeKey = "legacy-edge-key"
-		store.testTunnelServer(t)
 
 	case portainer.KubernetesLocalEnvironment:
 		if URL == "" {
@@ -171,19 +167,6 @@ func (store *Store) testSSLSettings(t *testing.T) {
 	settings, err := store.SSLSettings().Settings()
 	require.NoError(t, err, "Get sslsettings should succeed")
 	is.Equal(ssl, settings, "Stored SSLSettings should be the same as what is read out")
-}
-
-func (store *Store) testTunnelServer(t *testing.T) {
-	is := assert.New(t)
-	expectPrivateKeySeed := librand.String(16)
-
-	err := store.TunnelServer().UpdateInfo(&portainer.TunnelServerInfo{PrivateKeySeed: expectPrivateKeySeed})
-	require.NoError(t, err, "UpdateInfo should have succeeded")
-
-	serverInfo, err := store.TunnelServer().Info()
-	require.NoError(t, err, "Info should have succeeded")
-
-	is.Equal(expectPrivateKeySeed, serverInfo.PrivateKeySeed, "hashed passwords should not differ")
 }
 
 // add users, read them back and check the details are unchanged
@@ -331,24 +314,6 @@ func (store *Store) testResourceControl(t *testing.T) {
 	// ctrl := &portainer.ResourceControl{
 	// }
 	// resControl().Create()
-}
-
-func (store *Store) testSchedules(t *testing.T) {
-	is := assert.New(t)
-
-	schedule := store.ScheduleService
-	s := &portainer.Schedule{
-		ID:             portainer.ScheduleID(schedule.GetNextIdentifier()),
-		Name:           "My Custom Schedule 1",
-		CronExpression: "*/5 * * * * portainer /bin/sh -c echo 'hello world'",
-	}
-
-	err := schedule.CreateSchedule(s)
-	require.NoError(t, err, "CreateSchedule should succeed")
-
-	actual, err := schedule.Schedule(s.ID)
-	require.NoError(t, err, "schedule should be found")
-	is.Equal(s, actual, "schedules differ")
 }
 
 func (store *Store) testTags(t *testing.T) {

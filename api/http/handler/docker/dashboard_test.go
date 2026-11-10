@@ -463,4 +463,3 @@ func TestDashboard_NonAdminWithoutStackManagement_ZeroStacks(t *testing.T) {
 	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &got))
 	require.Equal(t, 0, got.Stacks)
 }
-

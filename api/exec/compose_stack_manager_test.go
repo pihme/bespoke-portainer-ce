@@ -328,7 +328,6 @@ func Test_createEnvFile_openFailure(t *testing.T) {
 	assert.Empty(t, path)
 }
 
-
 func TestREQ_STK_02_ComposeStackManager_RunEnvFileError(t *testing.T) {
 	t.Parallel()
 

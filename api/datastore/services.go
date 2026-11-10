@@ -8,9 +8,7 @@ import (
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/allowlist"
-	"github.com/portainer/portainer/api/dataservices/apikeyrepository"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/dockerhub"
 	"github.com/portainer/portainer/api/dataservices/edgegroup"
 	"github.com/portainer/portainer/api/dataservices/edgejob"
 	"github.com/portainer/portainer/api/dataservices/edgestack"
@@ -18,13 +16,9 @@ import (
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer/api/dataservices/endpointrelation"
-	"github.com/portainer/portainer/api/dataservices/extension"
-	"github.com/portainer/portainer/api/dataservices/helmuserrepository"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
-	"github.com/portainer/portainer/api/dataservices/role"
-	"github.com/portainer/portainer/api/dataservices/schedule"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/snapshot"
 	"github.com/portainer/portainer/api/dataservices/source"
@@ -33,7 +27,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/tag"
 	"github.com/portainer/portainer/api/dataservices/team"
 	"github.com/portainer/portainer/api/dataservices/teammembership"
-	"github.com/portainer/portainer/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/webhook"
@@ -51,38 +44,31 @@ type Store struct {
 	flags      *portainer.CLIFlags
 	connection portainer.Connection
 
-	fileService               portainer.FileService
-	AllowListService          *allowlist.Service
-	CustomTemplateService     *customtemplate.Service
-	DockerHubService          *dockerhub.Service
-	EdgeGroupService          *edgegroup.Service
-	EdgeJobService            *edgejob.Service
-	EdgeStackService          *edgestack.Service
-	EdgeStackStatusService    *edgestackstatus.Service
-	EndpointGroupService      *endpointgroup.Service
-	EndpointService           *endpoint.Service
-	EndpointRelationService   *endpointrelation.Service
-	ExtensionService          *extension.Service
-	HelmUserRepositoryService *helmuserrepository.Service
-	RegistryService           *registry.Service
-	ResourceControlService    *resourcecontrol.Service
-	RoleService               *role.Service
-	APIKeyRepositoryService   *apikeyrepository.Service
-	ScheduleService           *schedule.Service
-	SettingsService           *settings.Service
-	SnapshotService           *snapshot.Service
-	SourceService             *source.Service
-	SSLSettingsService        *ssl.Service
-	StackService              *stack.Service
-	TagService                *tag.Service
-	TeamMembershipService     *teammembership.Service
-	TeamService               *team.Service
-	TunnelServerService       *tunnelserver.Service
-	UserService               *user.Service
-	VersionService            *version.Service
-	WebhookService            *webhook.Service
-	WorkflowService           *workflow.Service
-	PendingActionsService     *pendingactions.Service
+	fileService             portainer.FileService
+	AllowListService        *allowlist.Service
+	CustomTemplateService   *customtemplate.Service
+	EdgeGroupService        *edgegroup.Service
+	EdgeJobService          *edgejob.Service
+	EdgeStackService        *edgestack.Service
+	EdgeStackStatusService  *edgestackstatus.Service
+	EndpointGroupService    *endpointgroup.Service
+	EndpointService         *endpoint.Service
+	EndpointRelationService *endpointrelation.Service
+	RegistryService         *registry.Service
+	ResourceControlService  *resourcecontrol.Service
+	SettingsService         *settings.Service
+	SnapshotService         *snapshot.Service
+	SourceService           *source.Service
+	SSLSettingsService      *ssl.Service
+	StackService            *stack.Service
+	TagService              *tag.Service
+	TeamMembershipService   *teammembership.Service
+	TeamService             *team.Service
+	UserService             *user.Service
+	VersionService          *version.Service
+	WebhookService          *webhook.Service
+	WorkflowService         *workflow.Service
+	PendingActionsService   *pendingactions.Service
 }
 
 func (store *Store) initServices() error {
@@ -92,23 +78,11 @@ func (store *Store) initServices() error {
 	}
 	store.AllowListService = allowListService
 
-	authorizationsetService, err := role.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.RoleService = authorizationsetService
-
 	customTemplateService, err := customtemplate.NewService(store.connection)
 	if err != nil {
 		return err
 	}
 	store.CustomTemplateService = customTemplateService
-
-	dockerhubService, err := dockerhub.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.DockerHubService = dockerhubService
 
 	endpointRelationService, err := endpointrelation.NewService(store.connection)
 	if err != nil {
@@ -154,18 +128,6 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EndpointService = endpointService
-
-	extensionService, err := extension.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.ExtensionService = extensionService
-
-	helmUserRepositoryService, err := helmuserrepository.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.HelmUserRepositoryService = helmUserRepositoryService
 
 	registryService, err := registry.NewService(store.connection)
 	if err != nil {
@@ -227,23 +189,11 @@ func (store *Store) initServices() error {
 	}
 	store.TeamService = teamService
 
-	tunnelServerService, err := tunnelserver.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.TunnelServerService = tunnelServerService
-
 	userService, err := user.NewService(store.connection)
 	if err != nil {
 		return err
 	}
 	store.UserService = userService
-
-	apiKeyService, err := apikeyrepository.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.APIKeyRepositoryService = apiKeyService
 
 	versionService, err := version.NewService(store.connection)
 	if err != nil {
@@ -262,12 +212,6 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.WorkflowService = workflowService
-
-	scheduleService, err := schedule.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.ScheduleService = scheduleService
 
 	pendingActionsService, err := pendingactions.NewService(store.connection)
 	if err != nil {
@@ -327,11 +271,6 @@ func (store *Store) EndpointRelation() dataservices.EndpointRelationService {
 	return store.EndpointRelationService
 }
 
-// HelmUserRepository access the helm user repository settings
-func (store *Store) HelmUserRepository() dataservices.HelmUserRepositoryService {
-	return store.HelmUserRepositoryService
-}
-
 // Registry gives access to the Registry data management layer
 func (store *Store) Registry() dataservices.RegistryService {
 	return store.RegistryService
@@ -340,16 +279,6 @@ func (store *Store) Registry() dataservices.RegistryService {
 // ResourceControl gives access to the ResourceControl data management layer
 func (store *Store) ResourceControl() dataservices.ResourceControlService {
 	return store.ResourceControlService
-}
-
-// Role gives access to the Role data management layer
-func (store *Store) Role() dataservices.RoleService {
-	return store.RoleService
-}
-
-// APIKeyRepository gives access to the api-key data management layer
-func (store *Store) APIKeyRepository() dataservices.APIKeyRepository {
-	return store.APIKeyRepositoryService
 }
 
 // Settings gives access to the Settings data management layer
@@ -391,11 +320,6 @@ func (store *Store) Team() dataservices.TeamService {
 	return store.TeamService
 }
 
-// TunnelServer gives access to the TunnelServer data management layer
-func (store *Store) TunnelServer() dataservices.TunnelServerService {
-	return store.TunnelServerService
-}
-
 // User gives access to the User data management layer
 func (store *Store) User() dataservices.UserService {
 	return store.UserService
@@ -417,33 +341,28 @@ func (store *Store) Workflow() dataservices.WorkflowService {
 }
 
 type storeExport struct {
-	CustomTemplate     []portainer.CustomTemplate     `json:"customtemplates,omitempty"`
-	EdgeGroup          []portainer.EdgeGroup          `json:"edgegroups,omitempty"`
-	EdgeJob            []portainer.EdgeJob            `json:"edgejobs,omitempty"`
-	EdgeStack          []portainer.EdgeStack          `json:"edge_stack,omitempty"`
-	Endpoint           []portainer.Endpoint           `json:"endpoints,omitempty"`
-	EndpointGroup      []portainer.EndpointGroup      `json:"endpoint_groups,omitempty"`
-	EndpointRelation   []portainer.EndpointRelation   `json:"endpoint_relations,omitempty"`
-	Extensions         []portainer.Extension          `json:"extension,omitempty"`
-	HelmUserRepository []portainer.HelmUserRepository `json:"helm_user_repository,omitempty"`
-	Registry           []portainer.Registry           `json:"registries,omitempty"`
-	ResourceControl    []portainer.ResourceControl    `json:"resource_control,omitempty"`
-	Role               []portainer.Role               `json:"roles,omitempty"`
-	Schedules          []portainer.Schedule           `json:"schedules,omitempty"`
-	Settings           portainer.Settings             `json:"settings,omitzero"`
-	Snapshot           []portainer.Snapshot           `json:"snapshots,omitempty"`
-	SSLSettings        portainer.SSLSettings          `json:"ssl,omitzero"`
-	Source             []portainer.Source             `json:"sources,omitempty"`
-	Stack              []portainer.Stack              `json:"stacks,omitempty"`
-	Tag                []portainer.Tag                `json:"tags,omitempty"`
-	TeamMembership     []portainer.TeamMembership     `json:"team_membership,omitempty"`
-	Team               []portainer.Team               `json:"teams,omitempty"`
-	TunnelServer       portainer.TunnelServerInfo     `json:"tunnel_server,omitzero"`
-	User               []portainer.User               `json:"users,omitempty"`
-	Version            models.Version                 `json:"version,omitzero"`
-	Webhook            []portainer.Webhook            `json:"webhooks,omitempty"`
-	Workflow           []portainer.Workflow           `json:"workflows,omitempty"`
-	Metadata           map[string]any                 `json:"metadata,omitempty"`
+	CustomTemplate   []portainer.CustomTemplate   `json:"customtemplates,omitempty"`
+	EdgeGroup        []portainer.EdgeGroup        `json:"edgegroups,omitempty"`
+	EdgeJob          []portainer.EdgeJob          `json:"edgejobs,omitempty"`
+	EdgeStack        []portainer.EdgeStack        `json:"edge_stack,omitempty"`
+	Endpoint         []portainer.Endpoint         `json:"endpoints,omitempty"`
+	EndpointGroup    []portainer.EndpointGroup    `json:"endpoint_groups,omitempty"`
+	EndpointRelation []portainer.EndpointRelation `json:"endpoint_relations,omitempty"`
+	Registry         []portainer.Registry         `json:"registries,omitempty"`
+	ResourceControl  []portainer.ResourceControl  `json:"resource_control,omitempty"`
+	Settings         portainer.Settings           `json:"settings,omitzero"`
+	Snapshot         []portainer.Snapshot         `json:"snapshots,omitempty"`
+	SSLSettings      portainer.SSLSettings        `json:"ssl,omitzero"`
+	Source           []portainer.Source           `json:"sources,omitempty"`
+	Stack            []portainer.Stack            `json:"stacks,omitempty"`
+	Tag              []portainer.Tag              `json:"tags,omitempty"`
+	TeamMembership   []portainer.TeamMembership   `json:"team_membership,omitempty"`
+	Team             []portainer.Team             `json:"teams,omitempty"`
+	User             []portainer.User             `json:"users,omitempty"`
+	Version          models.Version               `json:"version,omitzero"`
+	Webhook          []portainer.Webhook          `json:"webhooks,omitempty"`
+	Workflow         []portainer.Workflow         `json:"workflows,omitempty"`
+	Metadata         map[string]any               `json:"metadata,omitempty"`
 }
 
 func (store *Store) Export(filename string) (err error) {
@@ -505,22 +424,6 @@ func (store *Store) Export(filename string) (err error) {
 		backup.EndpointRelation = r
 	}
 
-	if r, err := store.ExtensionService.Extensions(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Extensions")
-		}
-	} else {
-		backup.Extensions = r
-	}
-
-	if r, err := store.HelmUserRepository().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Helm User Repositories")
-		}
-	} else {
-		backup.HelmUserRepository = r
-	}
-
 	if r, err := store.Registry().ReadAll(); err != nil {
 		if !store.IsErrObjectNotFound(err) {
 			log.Error().Err(err).Msg("exporting Registries")
@@ -535,22 +438,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.ResourceControl = c
-	}
-
-	if role, err := store.Role().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Roles")
-		}
-	} else {
-		backup.Role = role
-	}
-
-	if r, err := store.ScheduleService.Schedules(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Schedules")
-		}
-	} else {
-		backup.Schedules = r
 	}
 
 	if settings, err := store.Settings().Settings(); err != nil {
@@ -615,14 +502,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.Team = t
-	}
-
-	if info, err := store.TunnelServer().Info(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Tunnel Server")
-		}
-	} else {
-		backup.TunnelServer = *info
 	}
 
 	if users, err := store.User().ReadAll(); err != nil {
@@ -729,12 +608,6 @@ func (store *Store) Import(filename string) (err error) {
 		}
 	}
 
-	for _, v := range backup.HelmUserRepository {
-		if err := store.HelmUserRepository().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the helm user repository in the database")
-		}
-	}
-
 	for _, v := range backup.Registry {
 		if err := store.Registry().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the registry in the database")
@@ -744,12 +617,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.ResourceControl {
 		if err := store.ResourceControl().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the resource control in the database")
-		}
-	}
-
-	for _, v := range backup.Role {
-		if err := store.Role().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the role in the database")
 		}
 	}
 
@@ -801,10 +668,6 @@ func (store *Store) Import(filename string) (err error) {
 		if err := store.Team().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the team in the database")
 		}
-	}
-
-	if err := store.TunnelServer().UpdateInfo(&backup.TunnelServer); err != nil {
-		log.Warn().Err(err).Msg("failed to update the tunnel server info in the database")
 	}
 
 	for _, user := range backup.User {

@@ -82,17 +82,3 @@ func TestTeamIDs(t *testing.T) {
 	require.Equal(t, []portainer.TeamID{1, 2}, ids)
 	require.Empty(t, TeamIDs(nil))
 }
-
-func TestGetRoleFromTeamAccessPolicies(t *testing.T) {
-	t.Parallel()
-	require.Nil(t, GetRoleFromTeamAccessPolicies(nil, nil, allRoles))
-
-	memberships := []portainer.TeamMembership{{TeamID: 10}, {TeamID: 20}}
-	policies := portainer.TeamAccessPolicies{
-		10: {RoleID: roleOperator.ID},
-		20: {RoleID: roleReadOnly.ID},
-	}
-	role := GetRoleFromTeamAccessPolicies(memberships, policies, allRoles)
-	require.NotNil(t, role)
-	require.Equal(t, roleReadOnly.ID, role.ID) // higher priority wins
-}

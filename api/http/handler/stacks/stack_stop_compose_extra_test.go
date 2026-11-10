@@ -55,4 +55,3 @@ func TestREQ_STK_05_StopManageDisabled_NonAdmin_ReturnsForbidden(t *testing.T) {
 	h.ServeHTTP(w, req.WithContext(securityStoreNonAdmin(req, std)))
 	assert.Equal(t, http.StatusForbidden, w.Code)
 }
-

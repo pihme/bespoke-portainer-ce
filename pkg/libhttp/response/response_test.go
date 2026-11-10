@@ -159,7 +159,7 @@ func (w *errWriter) Header() http.Header {
 	}
 	return w.header
 }
-func (w *errWriter) Write([]byte) (int, error) { return 0, errors.New("write failed") }
+func (w *errWriter) Write([]byte) (int, error)  { return 0, errors.New("write failed") }
 func (w *errWriter) WriteHeader(statusCode int) { w.code = statusCode }
 
 func TestJSONWithStatus_EncodeError(t *testing.T) {

@@ -431,20 +431,6 @@ func importJSON(t *testing.T, r io.Reader, store *Store) error {
 				}
 			}
 
-		case "dockerhub":
-			obj, ok := v.([]any)
-			if !ok {
-				t.Logf("failed to cast %s to []any", k)
-			}
-			err := con.CreateObjectWithStringId(
-				k,
-				[]byte("DOCKERHUB"),
-				obj[0],
-			)
-			if err != nil {
-				t.Logf("failed writing DOCKERHUB in %s: %v", k, err)
-			}
-
 		case "ssl":
 			obj, ok := v.(map[string]any)
 			if !ok {
@@ -473,19 +459,6 @@ func importJSON(t *testing.T, r io.Reader, store *Store) error {
 				t.Logf("failed writing SETTINGS in %s: %v", k, err)
 			}
 
-		case "tunnel_server":
-			obj, ok := v.(map[string]any)
-			if !ok {
-				t.Logf("failed to case %s to map[string]any", k)
-			}
-			err := con.CreateObjectWithStringId(
-				k,
-				[]byte("INFO"),
-				obj,
-			)
-			if err != nil {
-				t.Logf("failed writing INFO in %s: %v", k, err)
-			}
 		case "templates":
 			continue
 

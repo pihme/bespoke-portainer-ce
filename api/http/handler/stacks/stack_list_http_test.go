@@ -91,4 +91,3 @@ func TestREQ_STK_01_ListStacks_InvalidFilters_ReturnsBadRequest(t *testing.T) {
 	h.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
-

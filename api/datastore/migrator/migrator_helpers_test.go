@@ -11,12 +11,9 @@ import (
 	"github.com/portainer/portainer/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
-	"github.com/portainer/portainer/api/dataservices/role"
-	"github.com/portainer/portainer/api/dataservices/schedule"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/stack"
 	"github.com/portainer/portainer/api/dataservices/tag"
-	"github.com/portainer/portainer/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/filesystem"
@@ -38,9 +35,6 @@ type testServices struct {
 	resourceCtrl   *resourcecontrol.Service
 	pendingActions *pendingactions.Service
 	tagSvc         *tag.Service
-	scheduleSvc    *schedule.Service
-	roleSvc        *role.Service
-	tunnelSvc      *tunnelserver.Service
 	fileSvc        *filesystem.Service
 	authSvc        *authorization.Service
 }
@@ -71,12 +65,6 @@ func openTestServices(t *testing.T) *testServices {
 	require.NoError(t, err)
 	tagSvc, err := tag.NewService(conn)
 	require.NoError(t, err)
-	scheduleSvc, err := schedule.NewService(conn)
-	require.NoError(t, err)
-	roleSvc, err := role.NewService(conn)
-	require.NoError(t, err)
-	tunnelSvc, err := tunnelserver.NewService(conn)
-	require.NoError(t, err)
 
 	fileRoot := t.TempDir()
 	fileSvc, err := filesystem.NewService(fileRoot, fileRoot)
@@ -94,9 +82,6 @@ func openTestServices(t *testing.T) *testServices {
 		resourceCtrl:   resourceCtrl,
 		pendingActions: pendingSvc,
 		tagSvc:         tagSvc,
-		scheduleSvc:    scheduleSvc,
-		roleSvc:        roleSvc,
-		tunnelSvc:      tunnelSvc,
 		fileSvc:        fileSvc,
 		authSvc:        authorization.NewService(nil),
 	}
@@ -119,9 +104,6 @@ func (s *testServices) newMigrator(current *models.Version) *Migrator {
 		ResourceControlService:  s.resourceCtrl,
 		PendingActionsService:   s.pendingActions,
 		TagService:              s.tagSvc,
-		ScheduleService:         s.scheduleSvc,
-		RoleService:             s.roleSvc,
-		TunnelServerService:     s.tunnelSvc,
 		FileService:             s.fileSvc,
 		AuthorizationService:    s.authSvc,
 	})
@@ -130,11 +112,4 @@ func (s *testServices) newMigrator(current *models.Version) *Migrator {
 func seedSettings(t *testing.T, svc *settings.Service, s *portainer.Settings) {
 	t.Helper()
 	require.NoError(t, svc.UpdateSettings(s))
-}
-
-func seedRoles1to4(t *testing.T, svc *role.Service) {
-	t.Helper()
-	for _, name := range []string{"endpoint-admin", "helpdesk", "standard", "readonly"} {
-		require.NoError(t, svc.Create(&portainer.Role{Name: name}))
-	}
 }

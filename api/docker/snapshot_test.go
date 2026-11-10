@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	portainer "github.com/portainer/portainer/api"
-	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/api/types/volume"
+	portainer "github.com/portainer/portainer/api"
+	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/require"
 )

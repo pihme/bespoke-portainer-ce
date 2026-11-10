@@ -126,5 +126,3 @@ func TestREQ_STK_04_UpdateStack_MissingStack_ReturnsNotFound(t *testing.T) {
 	h.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusNotFound, w.Code)
 }
-
-

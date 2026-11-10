@@ -54,8 +54,6 @@ func (tx *StoreTx) EndpointRelation() dataservices.EndpointRelationService {
 	return tx.store.EndpointRelationService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) HelmUserRepository() dataservices.HelmUserRepositoryService { return nil }
-
 func (tx *StoreTx) Registry() dataservices.RegistryService {
 	return tx.store.RegistryService.Tx(tx.tx)
 }
@@ -63,12 +61,6 @@ func (tx *StoreTx) Registry() dataservices.RegistryService {
 func (tx *StoreTx) ResourceControl() dataservices.ResourceControlService {
 	return tx.store.ResourceControlService.Tx(tx.tx)
 }
-
-func (tx *StoreTx) Role() dataservices.RoleService {
-	return tx.store.RoleService.Tx(tx.tx)
-}
-
-func (tx *StoreTx) APIKeyRepository() dataservices.APIKeyRepository { return nil }
 
 func (tx *StoreTx) Settings() dataservices.SettingsService {
 	return tx.store.SettingsService.Tx(tx.tx)
@@ -101,8 +93,6 @@ func (tx *StoreTx) TeamMembership() dataservices.TeamMembershipService {
 func (tx *StoreTx) Team() dataservices.TeamService {
 	return tx.store.TeamService.Tx(tx.tx)
 }
-
-func (tx *StoreTx) TunnelServer() dataservices.TunnelServerService { return nil }
 
 func (tx *StoreTx) User() dataservices.UserService {
 	return tx.store.UserService.Tx(tx.tx)

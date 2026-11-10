@@ -22,9 +22,9 @@ type stubSnapshotService struct {
 	called int
 }
 
-func (s *stubSnapshotService) Start(context.Context)                              {}
-func (s *stubSnapshotService) SetSnapshotInterval(string) error                   { return nil }
-func (s *stubSnapshotService) FillSnapshotData(*portainer.Endpoint, bool) error   { return nil }
+func (s *stubSnapshotService) Start(context.Context)                            {}
+func (s *stubSnapshotService) SetSnapshotInterval(string) error                 { return nil }
+func (s *stubSnapshotService) FillSnapshotData(*portainer.Endpoint, bool) error { return nil }
 func (s *stubSnapshotService) SnapshotEndpoint(*portainer.Endpoint) error {
 	s.called++
 	return s.err
@@ -32,11 +32,11 @@ func (s *stubSnapshotService) SnapshotEndpoint(*portainer.Endpoint) error {
 
 type setupEndpointService struct {
 	dataservices.EndpointService
-	endpoints   []portainer.Endpoint
-	listErr     error
-	createErr   error
-	nextID      int
-	created     []*portainer.Endpoint
+	endpoints []portainer.Endpoint
+	listErr   error
+	createErr error
+	nextID    int
+	created   []*portainer.Endpoint
 }
 
 func (s *setupEndpointService) Endpoints() ([]portainer.Endpoint, error) {

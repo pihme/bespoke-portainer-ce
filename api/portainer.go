@@ -172,17 +172,6 @@ type (
 		Proxy  map[string]string `json:"Proxy,omitempty"`
 	}
 
-	// DockerHub represents all the required information to connect and use the
-	// Docker Hub
-	DockerHub struct {
-		// Is authentication against DockerHub enabled
-		Authentication bool `json:"Authentication" example:"true"`
-		// Username used to authenticate against the DockerHub
-		Username string `json:"Username" example:"user"`
-		// Password used to authenticate against the DockerHub
-		Password string `json:"Password,omitempty" example:"passwd"`
-	}
-
 	// DockerSnapshot represents a snapshot of a specific Docker environment(endpoint) at a specific time
 	DockerSnapshot struct {
 		Time                    int64               `json:"Time" validate:"required"`
@@ -278,18 +267,6 @@ type (
 
 	// EdgeJobLogsStatus represent status of logs collection job
 	EdgeJobLogsStatus int
-
-	// EdgeSchedule represents a scheduled job that can run on Edge environments(endpoints).
-	//
-	// Deprecated: in favor of EdgeJob
-	EdgeSchedule struct {
-		// EdgeSchedule Identifier
-		ID             ScheduleID   `json:"Id" example:"1"`
-		CronExpression string       `json:"CronExpression"`
-		Script         string       `json:"Script"`
-		Version        int          `json:"Version"`
-		Endpoints      []EndpointID `json:"Endpoints"`
-	}
 
 	// StackDeploymentStatus records one status transition in the current deployment lifecycle.
 	// The slice is reset at the start of each new deployment, so it represents the
@@ -746,29 +723,6 @@ type (
 		MigrateRegistrySASecrets bool `json:"MigrateRegistrySASecrets"`
 	}
 
-	// Extension represents a deprecated Portainer extension
-	Extension struct {
-		ID               ExtensionID                 `json:"Id" example:"1"`
-		Enabled          bool                        `json:"Enabled"`
-		Name             string                      `json:"Name,omitempty"`
-		ShortDescription string                      `json:"ShortDescription,omitempty"`
-		Description      string                      `json:"Description,omitempty"`
-		DescriptionURL   string                      `json:"DescriptionURL,omitempty"`
-		Price            string                      `json:"Price,omitempty"`
-		PriceDescription string                      `json:"PriceDescription,omitempty"`
-		Deal             bool                        `json:"Deal,omitempty"`
-		Available        bool                        `json:"Available,omitempty"`
-		License          ExtensionLicenseInformation `json:"License,omitzero"`
-		Version          string                      `json:"Version"`
-		UpdateAvailable  bool                        `json:"UpdateAvailable"`
-		ShopURL          string                      `json:"ShopURL,omitempty"`
-		Images           []string                    `json:"Images,omitempty"`
-		Logo             string                      `json:"Logo,omitempty"`
-	}
-
-	// ExtensionID represents a extension identifier
-	ExtensionID int
-
 	// GitlabRegistryData represents data required for gitlab registry to work
 	GitlabRegistryData struct {
 		ProjectID   int    `json:"ProjectId"`
@@ -782,18 +736,6 @@ type (
 		OrganisationName string `json:"OrganisationName"`
 	}
 
-	HelmUserRepositoryID int
-
-	// HelmUserRepositories stores a Helm repository URL for the given user
-	HelmUserRepository struct {
-		// Membership Identifier
-		ID HelmUserRepositoryID `json:"Id" example:"1"`
-		// User identifier
-		UserID UserID `json:"UserId" example:"1"`
-		// Helm repository URL
-		URL string `json:"URL" example:"https://charts.bitnami.com/bitnami"`
-	}
-
 	// QuayRegistryData represents data required for Quay registry to work
 	QuayRegistryData struct {
 		UseOrganisation  bool   `json:"UseOrganisation,omitempty"`
@@ -804,9 +746,6 @@ type (
 	EcrData struct {
 		Region string `json:"Region" example:"ap-southeast-2"`
 	}
-
-	// JobType represents a job type
-	JobType int
 
 	K8sNamespaceInfo struct {
 		Id                  string                 `json:"Id"`
@@ -950,14 +889,6 @@ type (
 		Groups []string
 	}
 
-	// ExtensionLicenseInformation represents information about an extension license
-	ExtensionLicenseInformation struct {
-		LicenseKey string `json:"LicenseKey,omitempty"`
-		Company    string `json:"Company,omitempty"`
-		Expiration string `json:"Expiration,omitempty"`
-		Valid      bool   `json:"Valid,omitempty"`
-	}
-
 	// MembershipRole represents the role of a user within a team
 	MembershipRole int
 
@@ -1091,65 +1022,8 @@ type (
 	// ResourceControlType represents the type of resource associated to the resource control (volume, container, service...)
 	ResourceControlType int
 
-	// Role represents a set of authorizations that can be associated to a user or
-	// to a team.
-	Role struct {
-		// Role Identifier
-		ID RoleID `json:"Id" example:"1"`
-		// Role name
-		Name string `json:"Name" example:"HelpDesk"`
-		// Role description
-		Description string `json:"Description" example:"Read-only access of all resources in an environment(endpoint)"`
-		// Authorizations associated to a role
-		Authorizations Authorizations `json:"Authorizations"`
-		Priority       int            `json:"Priority"`
-	}
-
 	// RoleID represents a role identifier
 	RoleID int
-
-	// APIKeyID represents an API key identifier
-	APIKeyID int
-
-	// APIKey represents an API key
-	APIKey struct {
-		ID          APIKeyID `json:"id" example:"1"`
-		UserID      UserID   `json:"userId" example:"1"`
-		Description string   `json:"description" example:"portainer-api-key"`
-		Prefix      string   `json:"prefix"`           // API key identifier (7 char prefix)
-		DateCreated int64    `json:"dateCreated"`      // Unix timestamp (UTC) when the API key was created
-		LastUsed    int64    `json:"lastUsed"`         // Unix timestamp (UTC) when the API key was last used
-		Digest      string   `json:"digest,omitempty"` // Digest represents SHA256 hash of the raw API key
-	}
-
-	// Schedule represents a scheduled job.
-	// It only contains a pointer to one of the JobRunner implementations
-	// based on the JobType.
-	// NOTE: The Recurring option is only used by ScriptExecutionJob at the moment
-	// Deprecated in favor of EdgeJob
-	Schedule struct {
-		// Schedule Identifier
-		ID             ScheduleID `json:"Id" example:"1"`
-		Name           string
-		CronExpression string
-		Recurring      bool
-		Created        int64
-		JobType        JobType
-		EdgeSchedule   *EdgeSchedule
-	}
-
-	// ScheduleID represents a schedule identifier.
-	// Deprecated in favor of EdgeJob
-	ScheduleID int
-
-	// ScriptExecutionJob represents a scheduled job that can execute a script via a privileged container
-	ScriptExecutionJob struct {
-		Endpoints     []EndpointID
-		Image         string
-		ScriptPath    string
-		RetryCount    int
-		RetryInterval int
-	}
 
 	GlobalDeploymentOptions struct {
 		HideStacksFunctionality bool `json:"hideStacksFunctionality" example:"false"`
@@ -1591,11 +1465,6 @@ type (
 		HasSnapshot  bool
 	}
 
-	// TunnelServerInfo represents information associated to the tunnel server
-	TunnelServerInfo struct {
-		PrivateKeySeed string `json:"PrivateKeySeed"`
-	}
-
 	// User represents a user account
 	User struct {
 		// User Identifier
@@ -1820,8 +1689,6 @@ type (
 		CopySSLCACert(caCertPath string) (string, error)
 		StoreMTLSCertificates(caCert, cert, key []byte) (string, string, string, error)
 		GetMTLSCertificates() (string, string, string, error)
-		GetDefaultChiselPrivateKeyPath() string
-		StoreChiselPrivateKey(privateKey []byte) error
 	}
 
 	// GitService represents a service for managing Git
@@ -2315,12 +2182,6 @@ const (
 	AzurePlatformType
 	PodmanPlatformType
 	UnknownPlatformType
-)
-
-const (
-	_ JobType = iota
-	// SnapshotJobType is a system job used to create environment(endpoint) snapshots
-	SnapshotJobType = 2
 )
 
 const (

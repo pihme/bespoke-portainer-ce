@@ -272,9 +272,9 @@ func TestREQ_GIT_01_WorkflowPhaseToStatus(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name   string
-		phase  WorkflowPhaseStatus
-		want   portainer.SourceStatus
+		name    string
+		phase   WorkflowPhaseStatus
+		want    portainer.SourceStatus
 		wantErr string
 	}{
 		{"healthy", WorkflowPhaseStatus{Status: StatusHealthy}, portainer.SourceStatusHealthy, ""},
@@ -298,9 +298,9 @@ func TestREQ_GIT_01_DeriveStackTargetState_ComposeDeploymentStatuses(t *testing.
 	t.Parallel()
 
 	cases := []struct {
-		name   string
-		stack  portainer.Stack
-		want   WorkflowPhaseStatus
+		name  string
+		stack portainer.Stack
+		want  WorkflowPhaseStatus
 	}{
 		{
 			name:  "empty deployment status is healthy",

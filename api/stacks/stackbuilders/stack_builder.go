@@ -125,4 +125,3 @@ func (b *StackBuilder) initComposeDeployment(secCtx *security.RestrictedRequestC
 
 	return nil
 }
-

@@ -177,7 +177,7 @@ func TestImagesList_ContainerListErrorWithUsage(t *testing.T) {
 func TestImagesList_DefaultWithUsageWhenOmitted(t *testing.T) {
 	t.Parallel()
 	fx := &imagesFixture{
-		images: []image.Summary{{ID: "sha256:eee", Created: 3, Size: 7, RepoTags: []string{"y:1"}}},
+		images:     []image.Summary{{ID: "sha256:eee", Created: 3, Size: 7, RepoTags: []string{"y:1"}}},
 		containers: []container.Summary{{ID: "c", ImageID: "sha256:eee"}},
 	}
 	srv := newImagesDockerServer(t, fx)

@@ -279,8 +279,8 @@ func TestREQ_STK_08_Remove_VolumesAndDownError(t *testing.T) {
 
 func TestREQ_STK_02_addServiceLabels_Local(t *testing.T) {
 	project := &types.Project{
-		Name:        "labels-proj",
-		WorkingDir:  "/tmp/proj",
+		Name:         "labels-proj",
+		WorkingDir:   "/tmp/proj",
 		ComposeFiles: []string{"/tmp/proj/docker-compose.yml"},
 		Services: types.Services{
 			"web": {Name: "web"},
@@ -323,4 +323,3 @@ func TestREQ_STK_02_Config_Success(t *testing.T) {
 	require.Contains(t, string(payload), "web")
 	require.Contains(t, string(payload), "alpine:latest")
 }
-

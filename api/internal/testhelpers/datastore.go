@@ -14,35 +14,31 @@ import (
 var _ dataservices.DataStore = &testDatastore{}
 
 type testDatastore struct {
-	allowList               dataservices.AllowListService
-	customTemplate          dataservices.CustomTemplateService
-	edgeGroup               dataservices.EdgeGroupService
-	edgeJob                 dataservices.EdgeJobService
-	edgeStack               dataservices.EdgeStackService
-	edgeStackStatus         dataservices.EdgeStackStatusService
-	endpoint                dataservices.EndpointService
-	endpointGroup           dataservices.EndpointGroupService
-	endpointRelation        dataservices.EndpointRelationService
-	helmUserRepository      dataservices.HelmUserRepositoryService
-	registry                dataservices.RegistryService
-	resourceControl         dataservices.ResourceControlService
-	source                  dataservices.SourceService
-	apiKeyRepositoryService dataservices.APIKeyRepository
-	role                    dataservices.RoleService
-	sslSettings             dataservices.SSLSettingsService
-	settings                dataservices.SettingsService
-	snapshot                dataservices.SnapshotService
-	stack                   dataservices.StackService
-	tag                     dataservices.TagService
-	teamMembership          dataservices.TeamMembershipService
-	team                    dataservices.TeamService
-	tunnelServer            dataservices.TunnelServerService
-	user                    dataservices.UserService
-	version                 dataservices.VersionService
-	webhook                 dataservices.WebhookService
-	pendingActionsService   dataservices.PendingActionsService
-	workflow                dataservices.WorkflowService
-	connection              portainer.Connection
+	allowList             dataservices.AllowListService
+	customTemplate        dataservices.CustomTemplateService
+	edgeGroup             dataservices.EdgeGroupService
+	edgeJob               dataservices.EdgeJobService
+	edgeStack             dataservices.EdgeStackService
+	edgeStackStatus       dataservices.EdgeStackStatusService
+	endpoint              dataservices.EndpointService
+	endpointGroup         dataservices.EndpointGroupService
+	endpointRelation      dataservices.EndpointRelationService
+	registry              dataservices.RegistryService
+	resourceControl       dataservices.ResourceControlService
+	source                dataservices.SourceService
+	sslSettings           dataservices.SSLSettingsService
+	settings              dataservices.SettingsService
+	snapshot              dataservices.SnapshotService
+	stack                 dataservices.StackService
+	tag                   dataservices.TagService
+	teamMembership        dataservices.TeamMembershipService
+	team                  dataservices.TeamService
+	user                  dataservices.UserService
+	version               dataservices.VersionService
+	webhook               dataservices.WebhookService
+	pendingActionsService dataservices.PendingActionsService
+	workflow              dataservices.WorkflowService
+	connection            portainer.Connection
 }
 
 func (d *testDatastore) Backup(path string) (string, error)                  { return "", nil }
@@ -71,18 +67,11 @@ func (d *testDatastore) EndpointRelation() dataservices.EndpointRelationService 
 	return d.endpointRelation
 }
 
-func (d *testDatastore) HelmUserRepository() dataservices.HelmUserRepositoryService {
-	return d.helmUserRepository
-}
 func (d *testDatastore) Registry() dataservices.RegistryService { return d.registry }
 func (d *testDatastore) ResourceControl() dataservices.ResourceControlService {
 	return d.resourceControl
 }
-func (d *testDatastore) Source() dataservices.SourceService { return d.source }
-func (d *testDatastore) Role() dataservices.RoleService     { return d.role }
-func (d *testDatastore) APIKeyRepository() dataservices.APIKeyRepository {
-	return d.apiKeyRepositoryService
-}
+func (d *testDatastore) Source() dataservices.SourceService                 { return d.source }
 func (d *testDatastore) Settings() dataservices.SettingsService             { return d.settings }
 func (d *testDatastore) Snapshot() dataservices.SnapshotService             { return d.snapshot }
 func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }
@@ -90,7 +79,6 @@ func (d *testDatastore) Stack() dataservices.StackService                   { re
 func (d *testDatastore) Tag() dataservices.TagService                       { return d.tag }
 func (d *testDatastore) TeamMembership() dataservices.TeamMembershipService { return d.teamMembership }
 func (d *testDatastore) Team() dataservices.TeamService                     { return d.team }
-func (d *testDatastore) TunnelServer() dataservices.TunnelServerService     { return d.tunnelServer }
 func (d *testDatastore) User() dataservices.UserService                     { return d.user }
 func (d *testDatastore) Version() dataservices.VersionService               { return d.version }
 func (d *testDatastore) Webhook() dataservices.WebhookService               { return d.webhook }

@@ -88,7 +88,7 @@ func TestREQ_STK_04_StackDeploy_ShouldUndeploy_CallsUndeployBeforeDeploy(t *test
 	_, store := datastore.MustNewTestStore(t, true, false)
 	stack := &portainer.Stack{
 		ID: 1, Name: "undeploy-first", Type: portainer.DockerComposeStack,
-		Status:               portainer.StackStatusDeploying,
+		Status:                portainer.StackStatusDeploying,
 		DeploymentStartStatus: portainer.StackStatusError,
 		DeploymentStatus: []portainer.StackDeploymentStatus{
 			{Status: portainer.StackStatusDeploying},
@@ -150,4 +150,3 @@ func TestREQ_STK_04_StackDeploy_NilPostDeploy_OK(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, portainer.StackStatusActive, updated.Status)
 }
-

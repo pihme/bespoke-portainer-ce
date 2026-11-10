@@ -281,10 +281,10 @@ func TestMigrate_CleanOrphanedWorkflowEnvIDs_2_45_0_LocalEndpoints(t *testing.T)
 	}))
 
 	m := NewMigrator(&MigratorParameters{
-		EndpointService:   s.endpointSvc,
-		WorkflowService:   workflowSvc,
-		EdgeGroupService:  edgeGroupSvc,
-		StackService:      s.stackSvc,
+		EndpointService:  s.endpointSvc,
+		WorkflowService:  workflowSvc,
+		EdgeGroupService: edgeGroupSvc,
+		StackService:     s.stackSvc,
 	})
 	require.NoError(t, m.cleanOrphanedWorkflowReferences_2_45_0())
 

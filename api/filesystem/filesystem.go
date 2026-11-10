@@ -65,11 +65,6 @@ const (
 	MTLSCertFilename   = "mtls-cert.pem"
 	MTLSCACertFilename = "mtls-ca-cert.pem"
 	MTLSKeyFilename    = "mtls-key.pem"
-
-	// ChiselPath represents the default chisel path
-	ChiselPath = "chisel"
-	// ChiselPrivateKeyFilename represents the chisel private key file name
-	ChiselPrivateKeyFilename = "private-key.pem"
 )
 
 // ErrUndefinedTLSFileType represents an error returned on undefined TLS file type
@@ -835,28 +830,6 @@ func defaultMTLSCertPathUnderFileStore() (string, string, string) {
 	keyPath := JoinPaths(SSLCertPath, MTLSKeyFilename)
 
 	return caCertPath, certPath, keyPath
-}
-
-// GetDefaultChiselPrivateKeyPath returns the chisel private key path
-func (service *Service) GetDefaultChiselPrivateKeyPath() string {
-	privateKeyPath := defaultChiselPrivateKeyPathUnderFileStore()
-	return service.wrapFileStore(privateKeyPath)
-}
-
-func defaultChiselPrivateKeyPathUnderFileStore() string {
-	return JoinPaths(ChiselPath, ChiselPrivateKeyFilename)
-}
-
-// StoreChiselPrivateKey store the specified chisel private key content on disk.
-func (service *Service) StoreChiselPrivateKey(privateKey []byte) error {
-	err := service.createDirectoryInStore(ChiselPath)
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-
-	r := bytes.NewReader(privateKey)
-	privateKeyPath := defaultChiselPrivateKeyPathUnderFileStore()
-	return service.createFileInStore(privateKeyPath, r)
 }
 
 // StoreSSLCertPair stores a ssl certificate pair

@@ -45,8 +45,8 @@ func TestREQ_CTR_06_Recreate_ForcePullImage(t *testing.T) {
 				}
 			}
 			body := map[string]any{
-				"Id":   id,
-				"Name": "/web",
+				"Id":         id,
+				"Name":       "/web",
 				"HostConfig": map[string]any{},
 				"Config":     map[string]any{"Image": "nginx:latest"},
 				"NetworkSettings": map[string]any{
@@ -106,8 +106,8 @@ func TestREQ_CTR_06_Recreate_ForcePullImageError(t *testing.T) {
 			_, _ = w.Write([]byte("OK"))
 		case strings.Contains(path, "/containers/") && strings.HasSuffix(path, "/json"):
 			body := map[string]any{
-				"Id":   "old-ctr",
-				"Name": "/web",
+				"Id":         "old-ctr",
+				"Name":       "/web",
 				"HostConfig": map[string]any{},
 				"Config":     map[string]any{"Image": "nginx:latest"},
 				"NetworkSettings": map[string]any{

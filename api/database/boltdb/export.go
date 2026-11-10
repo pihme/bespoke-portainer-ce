@@ -86,8 +86,7 @@ func (c *DbConnection) ExportJSON(databasePath string, metadata bool) ([]byte, e
 			}
 
 			if bucketName == "ssl" ||
-				bucketName == "settings" ||
-				bucketName == "tunnel_server" {
+				bucketName == "settings" {
 				backup[bucketName] = nil
 				if len(list) > 0 {
 					backup[bucketName] = list[0]

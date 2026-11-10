@@ -272,9 +272,6 @@ func TestExportJSONAndExportRaw(t *testing.T) {
 	require.NoError(t, conn.SetServiceName("ssl"))
 	require.NoError(t, conn.CreateObjectWithId("ssl", 1, map[string]any{"cert": "c"}))
 
-	require.NoError(t, conn.SetServiceName("tunnel_server"))
-	require.NoError(t, conn.CreateObjectWithId("tunnel_server", 1, map[string]any{"PrivateKeySeed": "s"}))
-
 	dbPath := conn.GetDatabaseFilePath()
 	require.NoError(t, conn.Close())
 

@@ -27,7 +27,7 @@ func (s *tagsEndpointService) Endpoints() ([]portainer.Endpoint, error) {
 
 type tagsTagService struct {
 	dataservices.TagService
-	tags   map[portainer.TagID]*portainer.Tag
+	tags    map[portainer.TagID]*portainer.Tag
 	readErr error
 }
 

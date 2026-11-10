@@ -1,7 +1,6 @@
 package migrator
 
 import (
-	"os"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -169,27 +168,18 @@ func TestMigrate_UpdateResourceControlsToDBVersion22_ClearsAdministratorsOnly(t 
 	}
 }
 
-func TestMigrate_UpdateUsersAndRolesToDBVersion22_SetsPrioritiesAndAuthz(t *testing.T) {
+func TestMigrate_UpdateUsersToDBVersion22_SetsAuthz(t *testing.T) {
 	t.Parallel()
 	s := openTestServices(t)
-	seedSettings(t, s.settingsSvc, &portainer.Settings{AllowVolumeBrowserForRegularUsers: true})
-	seedRoles1to4(t, s.roleSvc)
 	require.NoError(t, s.userSvc.Create(&portainer.User{Username: "alice", Role: portainer.StandardUserRole}))
 
 	m := s.newMigrator(nil)
-	require.NoError(t, m.updateUsersAndRolesToDBVersion22())
+	require.NoError(t, m.updateUsersToDBVersion22())
 
 	users, err := s.userSvc.ReadAll()
 	require.NoError(t, err)
 	require.Len(t, users, 1)
 	assert.True(t, users[0].PortainerAuthorizations[portainer.OperationPortainerEndpointList])
-
-	for id, wantPriority := range map[portainer.RoleID]int{1: 1, 2: 2, 3: 3, 4: 4} {
-		role, err := s.roleSvc.Read(id)
-		require.NoError(t, err)
-		assert.Equal(t, wantPriority, role.Priority)
-		assert.NotEmpty(t, role.Authorizations)
-	}
 }
 
 func TestMigrate_UpdateSettingsToDBVersion20_DisablesVolumeBrowser(t *testing.T) {
@@ -208,69 +198,6 @@ func TestMigrate_UpdateUsersToDBVersion20_CallsAuthorizationNoOp(t *testing.T) {
 	s := openTestServices(t)
 	m := s.newMigrator(nil)
 	require.NoError(t, m.updateUsersToDBVersion20())
-}
-
-func TestMigrate_UpdateSchedulesToDBVersion20_RewritesCronExpressions(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-	cases := []struct {
-		id   portainer.ScheduleID
-		cron string
-		want string
-	}{
-		{1, "0 0 * * *", "0 * * * *"},
-		{2, "0 0 0/2 * *", "0 */2 * * *"},
-		{3, "0 0 0 * *", "0 0 * * *"},
-		{4, "0 15 * * * *", "15 * * * *"}, // 6-field → drop first
-		{5, "0 15 * * *", "0 15 * * *"},   // already 5-field script job left alone
-		{6, "0 * * * *", "0 * * * *"},     // non-script job type unchanged below
-	}
-	for _, tc := range cases {
-		jobType := portainer.JobType(scheduleScriptExecutionJobType)
-		if tc.id == 6 {
-			jobType = portainer.SnapshotJobType
-		}
-		require.NoError(t, s.scheduleSvc.CreateSchedule(&portainer.Schedule{
-			ID: tc.id, CronExpression: tc.cron, JobType: jobType,
-		}))
-	}
-
-	m := s.newMigrator(nil)
-	require.NoError(t, m.updateSchedulesToDBVersion20())
-
-	for _, tc := range cases {
-		got, err := s.scheduleSvc.Schedule(tc.id)
-		require.NoError(t, err)
-		assert.Equal(t, tc.want, got.CronExpression, "schedule %d", tc.id)
-	}
-}
-
-func TestMigrate_ConvertSeedToPrivateKeyForDB100_NotFoundBlankAndSeed(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-	m := s.newMigrator(nil)
-
-	// Object not found → success no-op
-	require.NoError(t, m.convertSeedToPrivateKeyForDB100())
-
-	// Blank seed → clear stays blank
-	require.NoError(t, s.tunnelSvc.UpdateInfo(&portainer.TunnelServerInfo{PrivateKeySeed: ""}))
-	require.NoError(t, m.convertSeedToPrivateKeyForDB100())
-	info, err := s.tunnelSvc.Info()
-	require.NoError(t, err)
-	assert.Empty(t, info.PrivateKeySeed)
-
-	// With seed → file written and seed cleared
-	require.NoError(t, s.tunnelSvc.UpdateInfo(&portainer.TunnelServerInfo{PrivateKeySeed: "94qh17MCIk8BOkiI"}))
-	require.NoError(t, m.convertSeedToPrivateKeyForDB100())
-	info, err = s.tunnelSvc.Info()
-	require.NoError(t, err)
-	assert.Empty(t, info.PrivateKeySeed)
-
-	keyPath := s.fileSvc.GetDefaultChiselPrivateKeyPath()
-	st, err := os.Stat(keyPath)
-	require.NoError(t, err)
-	assert.Greater(t, st.Size(), int64(0))
 }
 
 func TestMigrate_ApplyUACOnSourceUpdate_2_43_0_Branches(t *testing.T) {

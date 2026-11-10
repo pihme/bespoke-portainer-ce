@@ -19,11 +19,11 @@ func Test_getServiceStatus_LocalStates(t *testing.T) {
 	ctx := t.Context()
 
 	cases := []struct {
-		name           string
-		svc            service
-		wantStatus     libstack.Status
-		wantMsgSubstr  string
-		wantEmptyMsg   bool
+		name          string
+		svc           service
+		wantStatus    libstack.Status
+		wantMsgSubstr string
+		wantEmptyMsg  bool
 	}{
 		{name: "created", svc: service{Name: "a", State: "created"}, wantStatus: libstack.StatusStarting, wantEmptyMsg: true},
 		{name: "restarting", svc: service{Name: "a", State: "restarting"}, wantStatus: libstack.StatusStarting, wantEmptyMsg: true},
@@ -100,16 +100,16 @@ func Test_aggregateStatuses_Local(t *testing.T) {
 func Test_serviceListFromContainerSummary(t *testing.T) {
 	in := []api.ContainerSummary{
 		{
-			ID:      "id1",
-			Name:    "proj-web-1",
-			Image:   "nginx:latest",
-			Command: "nginx",
-			Project: "proj",
-			Service: "web",
-			Created: 123,
-			State:   "running",
-			Status:  "Up 1s",
-			Health:  "healthy",
+			ID:       "id1",
+			Name:     "proj-web-1",
+			Image:    "nginx:latest",
+			Command:  "nginx",
+			Project:  "proj",
+			Service:  "web",
+			Created:  123,
+			State:    "running",
+			Status:   "Up 1s",
+			Health:   "healthy",
 			ExitCode: 0,
 			Publishers: api.PortPublishers{
 				{URL: "0.0.0.0", TargetPort: 80, PublishedPort: 8080, Protocol: "tcp"},

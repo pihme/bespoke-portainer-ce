@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/dockerhub"
 	"github.com/portainer/portainer/api/dataservices/edgegroup"
 	"github.com/portainer/portainer/api/dataservices/edgejob"
 	"github.com/portainer/portainer/api/dataservices/edgestack"
@@ -14,19 +13,15 @@ import (
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer/api/dataservices/endpointrelation"
-	"github.com/portainer/portainer/api/dataservices/extension"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
-	"github.com/portainer/portainer/api/dataservices/role"
-	"github.com/portainer/portainer/api/dataservices/schedule"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/snapshot"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/stack"
 	"github.com/portainer/portainer/api/dataservices/tag"
 	"github.com/portainer/portainer/api/dataservices/teammembership"
-	"github.com/portainer/portainer/api/dataservices/tunnelserver"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -46,11 +41,8 @@ type (
 		endpointGroupService    *endpointgroup.Service
 		endpointService         *endpoint.Service
 		endpointRelationService *endpointrelation.Service
-		extensionService        *extension.Service
 		registryService         *registry.Service
 		resourceControlService  *resourcecontrol.Service
-		roleService             *role.Service
-		scheduleService         *schedule.Service
 		settingsService         *settings.Service
 		snapshotService         *snapshot.Service
 		stackService            *stack.Service
@@ -60,12 +52,10 @@ type (
 		versionService          *version.Service
 		fileService             portainer.FileService
 		authorizationService    *authorization.Service
-		dockerhubService        *dockerhub.Service
 		edgeStackService        *edgestack.Service
 		edgeStackStatusService  *edgestackstatus.Service
 		edgeJobService          *edgejob.Service
 		edgeGroupService        *edgegroup.Service
-		TunnelServerService     *tunnelserver.Service
 		pendingActionsService   *pendingactions.Service
 		customTemplateService   *customtemplate.Service
 		sourceService           *source.Service
@@ -79,11 +69,8 @@ type (
 		EndpointGroupService    *endpointgroup.Service
 		EndpointService         *endpoint.Service
 		EndpointRelationService *endpointrelation.Service
-		ExtensionService        *extension.Service
 		RegistryService         *registry.Service
 		ResourceControlService  *resourcecontrol.Service
-		RoleService             *role.Service
-		ScheduleService         *schedule.Service
 		SettingsService         *settings.Service
 		SnapshotService         *snapshot.Service
 		StackService            *stack.Service
@@ -93,12 +80,10 @@ type (
 		VersionService          *version.Service
 		FileService             portainer.FileService
 		AuthorizationService    *authorization.Service
-		DockerhubService        *dockerhub.Service
 		EdgeStackService        *edgestack.Service
 		EdgeStackStatusService  *edgestackstatus.Service
 		EdgeJobService          *edgejob.Service
 		EdgeGroupService        *edgegroup.Service
-		TunnelServerService     *tunnelserver.Service
 		PendingActionsService   *pendingactions.Service
 		CustomTemplateService   *customtemplate.Service
 		SourceService           *source.Service
@@ -114,11 +99,8 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		endpointGroupService:    parameters.EndpointGroupService,
 		endpointService:         parameters.EndpointService,
 		endpointRelationService: parameters.EndpointRelationService,
-		extensionService:        parameters.ExtensionService,
 		registryService:         parameters.RegistryService,
 		resourceControlService:  parameters.ResourceControlService,
-		roleService:             parameters.RoleService,
-		scheduleService:         parameters.ScheduleService,
 		settingsService:         parameters.SettingsService,
 		snapshotService:         parameters.SnapshotService,
 		tagService:              parameters.TagService,
@@ -128,12 +110,10 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		versionService:          parameters.VersionService,
 		fileService:             parameters.FileService,
 		authorizationService:    parameters.AuthorizationService,
-		dockerhubService:        parameters.DockerhubService,
 		edgeStackService:        parameters.EdgeStackService,
 		edgeStackStatusService:  parameters.EdgeStackStatusService,
 		edgeJobService:          parameters.EdgeJobService,
 		edgeGroupService:        parameters.EdgeGroupService,
-		TunnelServerService:     parameters.TunnelServerService,
 		pendingActionsService:   parameters.PendingActionsService,
 		customTemplateService:   parameters.CustomTemplateService,
 		sourceService:           parameters.SourceService,
@@ -216,12 +196,11 @@ func (m *Migrator) initMigrations() {
 
 	m.addMigrations("1.22.1",
 		m.updateUsersToDBVersion20,
-		m.updateSettingsToDBVersion20,
-		m.updateSchedulesToDBVersion20)
+		m.updateSettingsToDBVersion20)
 
 	m.addMigrations("1.23",
 		m.updateResourceControlsToDBVersion22,
-		m.updateUsersAndRolesToDBVersion22)
+		m.updateUsersToDBVersion22)
 
 	m.addMigrations("1.24",
 		m.updateTagsToDBVersion23,
@@ -239,7 +218,6 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.9", m.migrateDBVersionToDB32)
 	m.addMigrations("2.9.2", m.migrateDBVersionToDB33)
 	m.addMigrations("2.10.0", m.migrateDBVersionToDB34)
-	m.addMigrations("2.9.3", m.migrateDBVersionToDB35)
 	m.addMigrations("2.12", m.migrateDBVersionToDB36)
 	m.addMigrations("2.13", m.migrateDBVersionToDB40)
 	m.addMigrations("2.14", m.migrateDBVersionToDB50)
@@ -249,7 +227,6 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.17", m.migrateDBVersionToDB80)
 	m.addMigrations("2.18", m.migrateDBVersionToDB90)
 	m.addMigrations("2.19",
-		m.convertSeedToPrivateKeyForDB100,
 		m.migrateDockerDesktopExtensionSetting,
 		m.updateEdgeStackStatusForDB100,
 	)

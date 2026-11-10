@@ -20,9 +20,9 @@ import (
 
 type stubStopStackDeployer struct {
 	deployments.StackDeployer
-	undeployErr     error
-	composeStopped  bool
-	undeployCalls   int
+	undeployErr    error
+	composeStopped bool
+	undeployCalls  int
 }
 
 func (s *stubStopStackDeployer) GetDockerClientFactory() *dockerclient.ClientFactory {

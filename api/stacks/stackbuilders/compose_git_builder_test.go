@@ -62,12 +62,12 @@ func TestREQ_STK_03_ComposeStackGitBuilder_prepare_SetsComposeMetadataAndClones(
 		FromAppTemplate: true,
 		Env:             []portainer.Pair{{Name: "ENV", Value: "prod"}},
 		RepositoryConfigPayload: RepositoryConfigPayload{
-			URL:           "https://github.com/org/compose-repo",
-			ReferenceName: "refs/heads/main",
+			URL:            "https://github.com/org/compose-repo",
+			ReferenceName:  "refs/heads/main",
 			Authentication: true,
-			Username:      "git-user",
-			Password:      "git-token",
-			TLSSkipVerify: true,
+			Username:       "git-user",
+			Password:       "git-token",
+			TLSSkipVerify:  true,
 		},
 	}
 
@@ -196,7 +196,7 @@ func TestREQ_STK_03_ComposeStackGitBuilder_deploy_MissingUser(t *testing.T) {
 	endpoint := &portainer.Endpoint{ID: 1}
 	builder.setGeneralInfo(endpoint)
 	require.NoError(t, builder.prepare(t.Context(), &StackPayload{
-		Name: "bad-git-deploy",
+		Name:                    "bad-git-deploy",
 		RepositoryConfigPayload: RepositoryConfigPayload{URL: "https://github.com/org/x"},
 	}, admin.ID))
 

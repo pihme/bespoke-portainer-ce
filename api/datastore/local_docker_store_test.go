@@ -28,7 +28,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.EndpointRelation())
 	require.NotNil(t, store.PendingActions())
 	require.NotNil(t, store.ResourceControl())
-	require.NotNil(t, store.Role())
 	require.NotNil(t, store.Settings())
 	require.NotNil(t, store.Snapshot())
 	require.NotNil(t, store.Source())
@@ -38,18 +37,15 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Version())
 	require.NotNil(t, store.Webhook())
 	require.NotNil(t, store.Workflow())
-	require.NotNil(t, store.APIKeyRepository())
 
 	// Deferred-feature getters stay wired on the store (observed wiring only).
 	require.NotNil(t, store.EdgeGroup())
 	require.NotNil(t, store.EdgeJob())
 	require.NotNil(t, store.EdgeStack())
 	require.NotNil(t, store.EdgeStackStatus())
-	require.NotNil(t, store.HelmUserRepository())
 	require.NotNil(t, store.Registry())
 	require.NotNil(t, store.Team())
 	require.NotNil(t, store.TeamMembership())
-	require.NotNil(t, store.TunnelServer())
 	require.NotNil(t, store.User())
 }
 
@@ -115,7 +111,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.NotNil(t, tx.EndpointGroup())
 		require.NotNil(t, tx.EndpointRelation())
 		require.NotNil(t, tx.ResourceControl())
-		require.NotNil(t, tx.Role())
 		require.NotNil(t, tx.Settings())
 		require.NotNil(t, tx.Snapshot())
 		require.NotNil(t, tx.Source())
@@ -125,9 +120,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.NotNil(t, tx.Workflow())
 
 		// Observed StoreTx stubs for services without tx wrappers.
-		require.Nil(t, tx.HelmUserRepository())
-		require.Nil(t, tx.APIKeyRepository())
-		require.Nil(t, tx.TunnelServer())
 		require.Nil(t, tx.Version())
 		require.Nil(t, tx.Webhook())
 
@@ -321,13 +313,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 		EntryPoint:  "docker-compose.yml",
 	}))
 
-	role := &portainer.Role{
-		Name:        "readonly",
-		Description: "read only",
-	}
-	require.NoError(t, store.Role().Create(role))
-	roleID := role.ID
-
 	wf := &portainer.Workflow{
 		Name: "export-wf",
 	}
@@ -405,9 +390,7 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "export-tpl", gotTpl.Title)
 
-	gotRole, err := store.Role().Read(roleID)
 	require.NoError(t, err)
-	require.Equal(t, "readonly", gotRole.Name)
 
 	gotWF, err := store.Workflow().Read(wfID)
 	require.NoError(t, err)

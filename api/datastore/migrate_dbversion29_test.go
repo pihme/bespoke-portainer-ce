@@ -53,11 +53,8 @@ func TestMigrateSettings(t *testing.T) {
 		EndpointGroupService:    store.EndpointGroupService,
 		EndpointService:         store.EndpointService,
 		EndpointRelationService: store.EndpointRelationService,
-		ExtensionService:        store.ExtensionService,
 		RegistryService:         store.RegistryService,
 		ResourceControlService:  store.ResourceControlService,
-		RoleService:             store.RoleService,
-		ScheduleService:         store.ScheduleService,
 		SettingsService:         store.SettingsService,
 		StackService:            store.StackService,
 		TagService:              store.TagService,
@@ -65,7 +62,6 @@ func TestMigrateSettings(t *testing.T) {
 		UserService:             store.UserService,
 		VersionService:          store.VersionService,
 		FileService:             store.fileService,
-		DockerhubService:        store.DockerHubService,
 		AuthorizationService:    authorization.NewService(store),
 	})
 

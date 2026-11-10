@@ -234,4 +234,3 @@ func (handler *Handler) migrateComposeStack(r *http.Request, stack *portainer.St
 
 	return nil
 }
-

@@ -18,7 +18,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer/api/http/handler/docker"
-	"github.com/portainer/portainer/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
@@ -28,7 +27,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/stacks"
 	"github.com/portainer/portainer/api/http/handler/storybook"
 	"github.com/portainer/portainer/api/http/handler/system"
-	"github.com/portainer/portainer/api/http/handler/tags"
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
@@ -100,11 +98,6 @@ func (server *Server) Start(ctx context.Context) error {
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 	endpointHandler.PendingActionsService = server.PendingActionsService
 
-	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer)
-	endpointGroupHandler.AuthorizationService = server.AuthorizationService
-	endpointGroupHandler.DataStore = server.DataStore
-	endpointGroupHandler.PendingActionsService = server.PendingActionsService
-
 	var endpointProxyHandler = endpointproxy.NewHandler(requestBouncer)
 	endpointProxyHandler.DataStore = server.DataStore
 	endpointProxyHandler.ProxyManager = server.ProxyManager
@@ -137,9 +130,6 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var storybookHandler = storybook.NewHandler(server.AssetsPath)
 
-	var tagHandler = tags.NewHandler(requestBouncer)
-	tagHandler.DataStore = server.DataStore
-
 	var systemHandler = system.NewHandler(requestBouncer,
 		server.Status,
 		server.DataStore,
@@ -162,7 +152,6 @@ func (server *Server) Start(ctx context.Context) error {
 	server.Handler = &handler.Handler{
 		CustomTemplatesHandler: customTemplatesHandler,
 		DockerHandler:          dockerHandler,
-		EndpointGroupHandler:   endpointGroupHandler,
 		EndpointHandler:        endpointHandler,
 		EndpointProxyHandler:   endpointProxyHandler,
 		GitOperationHandler:    gitOperationHandler,
@@ -172,7 +161,6 @@ func (server *Server) Start(ctx context.Context) error {
 		StackHandler:           stackHandler,
 		StorybookHandler:       storybookHandler,
 		SystemHandler:          systemHandler,
-		TagHandler:             tagHandler,
 		TemplatesHandler:       templatesHandler,
 		UploadHandler:          uploadHandler,
 		UserHandler:            userHandler,

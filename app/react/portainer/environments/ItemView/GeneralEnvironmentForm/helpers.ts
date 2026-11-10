@@ -21,11 +21,6 @@ export function buildInitialValues(
       : stripProtocol(environment.URL),
     publicUrl: environment.PublicURL || '',
 
-    meta: {
-      groupId: environment.GroupId,
-      tagIds: environment.TagIds || [],
-    },
-
     tls: isDockerAPI
       ? {
           tls: environment.TLSConfig?.TLS || false,
@@ -48,8 +43,6 @@ export function buildUpdatePayload({
   return {
     Name: values.name,
     PublicURL: values.publicUrl,
-    GroupID: values.meta.groupId,
-    TagIDs: values.meta.tagIds,
 
     URL: formatURL({
       url: values.environmentUrl,

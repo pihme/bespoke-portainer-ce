@@ -6,7 +6,6 @@ import (
 
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	"github.com/portainer/portainer/api/http/handler/docker"
-	"github.com/portainer/portainer/api/http/handler/endpointgroups"
 	"github.com/portainer/portainer/api/http/handler/endpointproxy"
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
@@ -16,7 +15,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/stacks"
 	"github.com/portainer/portainer/api/http/handler/storybook"
 	"github.com/portainer/portainer/api/http/handler/system"
-	"github.com/portainer/portainer/api/http/handler/tags"
 	"github.com/portainer/portainer/api/http/handler/templates"
 	"github.com/portainer/portainer/api/http/handler/upload"
 	"github.com/portainer/portainer/api/http/handler/users"
@@ -27,7 +25,6 @@ import (
 type Handler struct {
 	CustomTemplatesHandler *customtemplates.Handler
 	DockerHandler          *docker.Handler
-	EndpointGroupHandler   *endpointgroups.Handler
 	EndpointHandler        *endpoints.Handler
 	EndpointProxyHandler   *endpointproxy.Handler
 	GitOperationHandler    *gitops.Handler
@@ -37,7 +34,6 @@ type Handler struct {
 	StackHandler           *stacks.Handler
 	StorybookHandler       *storybook.Handler
 	SystemHandler          *system.Handler
-	TagHandler             *tags.Handler
 	TemplatesHandler       *templates.Handler
 	UploadHandler          *upload.Handler
 	UserHandler            *users.Handler
@@ -47,7 +43,7 @@ type Handler struct {
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","stacks","websocket"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","stacks","websocket"]},{"name":"Environment Management","tags":["endpoints"]},{"name":"GitOps","tags":["gitops"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -65,9 +61,6 @@ type Handler struct {
 // @tag.name docker
 // @tag.description Manage Docker resources
 // @tag.x-displayName Docker resources
-// @tag.name endpoint_groups
-// @tag.description Manage environment groups
-// @tag.x-displayName Environment groups
 // @tag.name endpoints
 // @tag.description Manage environments
 // @tag.x-displayName Environments
@@ -89,9 +82,6 @@ type Handler struct {
 // @tag.name system
 // @tag.description Manage Portainer system
 // @tag.x-displayName Portainer system
-// @tag.name tags
-// @tag.description Manage tags
-// @tag.x-displayName Tags
 // @tag.name templates
 // @tag.description Manage App Templates
 // @tag.x-displayName App templates
@@ -110,8 +100,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):
 		http.StripPrefix("/api", h.CustomTemplatesHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):
-		http.StripPrefix("/api", h.EndpointGroupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/docker"):
 		http.StripPrefix("/api", h.DockerHandler).ServeHTTP(w, r)
 
@@ -134,8 +122,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.SystemHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/system"):
 		http.StripPrefix("/api", h.SystemHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/tags"):
-		http.StripPrefix("/api", h.TagHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/templates"):
 		http.StripPrefix("/api", h.TemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/upload"):

@@ -3,11 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
-import {
-  createMockEnvironment,
-  createMockEnvironmentGroup,
-} from '@/react-tools/test-mocks';
+import { createMockEnvironment } from '@/react-tools/test-mocks';
 import { Environment } from '@/react/portainer/environments/types';
 
 import { EnvSelector, getEnvironmentOptions } from './EnvSelector';
@@ -27,16 +23,8 @@ describe('EnvSelector', () => {
       }),
     ];
 
-    const mockGroups = [
-      createMockEnvironmentGroup({
-        Id: 1,
-        Name: 'Unassigned',
-      }),
-    ];
-
     renderComponent({
       environments: mockEnvironments,
-      groups: mockGroups,
     });
     await waitFor(() => {
       // render select
@@ -73,18 +61,10 @@ describe('EnvSelector', () => {
       }),
     ];
 
-    const mockGroups: EnvironmentGroup[] = [
-      createMockEnvironmentGroup({
-        Id: 1,
-        Name: 'Group 1',
-      }),
-    ];
-
     const error = 'Environment is required';
 
     renderComponent({
       environments: mockEnvironments,
-      groups: mockGroups,
       error,
     });
 
@@ -95,12 +75,10 @@ describe('EnvSelector', () => {
 
   function renderComponent({
     environments = [],
-    groups = [],
     onChange = vi.fn(),
     error,
   }: {
     environments?: Environment[];
-    groups?: EnvironmentGroup[];
     onChange?: (value: number | undefined) => void;
     error?: string;
   } = {}) {
@@ -108,7 +86,11 @@ describe('EnvSelector', () => {
 
     server.use(
       http.get('/api/endpoints', () => HttpResponse.json(environments)),
-      http.get('/api/endpoint_groups', () => HttpResponse.json(groups))
+      // REQ-TAI-013: the groups API is gone; the selector must not need it
+      http.get(
+        '/api/endpoint_groups',
+        () => new HttpResponse(null, { status: 404 })
+      )
     );
 
     return render(
@@ -118,87 +100,32 @@ describe('EnvSelector', () => {
 });
 
 describe('getEnvironmentOptions', () => {
-  it('should return empty array when no data provided', () => {
-    expect(getEnvironmentOptions([], [])).toEqual([]);
-
-    expect(
-      getEnvironmentOptions(
-        [
-          createMockEnvironmentGroup({
-            Id: 1,
-            Name: 'Group 1',
-          }),
-        ],
-        []
-      )
-    ).toEqual([]);
+  it('should return empty array when no environments are provided', () => {
+    expect(getEnvironmentOptions([])).toEqual([]);
   });
 
   it('should exclude current environment when currentEnvironmentId is provided', () => {
-    const groups: EnvironmentGroup[] = [
-      createMockEnvironmentGroup({
-        Id: 1,
-        Name: 'Group 1',
-      }),
-    ];
     const environments = [
       createMockEnvironment({ Id: 1, Name: 'Env 1', GroupId: 1 }),
       createMockEnvironment({ Id: 2, Name: 'Env 2', GroupId: 1 }),
     ];
 
-    const result = getEnvironmentOptions(groups, environments, 1);
-
-    expect(result).toHaveLength(1);
-    expect(result[0].options).toHaveLength(1);
-    expect(result[0].options[0]).toEqual({ label: 'Env 2', value: 2 });
+    expect(getEnvironmentOptions(environments, 1)).toEqual([
+      { label: 'Env 2', value: 2 },
+    ]);
   });
 
-  it('should group environments by GroupId with correct structure', () => {
-    const groups: EnvironmentGroup[] = [
-      createMockEnvironmentGroup({
-        Id: 1,
-        Name: 'Group 1',
-      }),
-      createMockEnvironmentGroup({
-        Id: 2,
-        Name: 'Group 2',
-      }),
-    ];
+  it('REQ-TAI-013 lists environments flat and sorted by name, ignoring GroupId', () => {
     const environments = [
-      createMockEnvironment({ Id: 1, Name: 'Env 1', GroupId: 1 }),
-      createMockEnvironment({ Id: 2, Name: 'Env 2', GroupId: 1 }),
       createMockEnvironment({ Id: 3, Name: 'Env 3', GroupId: 2 }),
-    ];
-
-    const result = getEnvironmentOptions(groups, environments);
-
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({
-      label: 'Group 1',
-      options: [
-        { label: 'Env 1', value: 1 },
-        { label: 'Env 2', value: 2 },
-      ],
-    });
-    expect(result[1]).toEqual({
-      label: 'Group 2',
-      options: [{ label: 'Env 3', value: 3 }],
-    });
-  });
-
-  it('should auto create an Others group if group is missing', () => {
-    const environments = [
       createMockEnvironment({ Id: 1, Name: 'Env 1', GroupId: 1 }),
-      createMockEnvironment({ Id: 2, Name: 'Env 2', GroupId: 2 }),
+      createMockEnvironment({ Id: 2, Name: 'Env 2', GroupId: 7 }),
     ];
-    const groups: EnvironmentGroup[] = [];
 
-    const result = getEnvironmentOptions(groups, environments);
-    expect(result.length).toBe(1);
-    expect(result[0].label).toBe('Others');
-    expect(result[0].options).toEqual([
+    expect(getEnvironmentOptions(environments)).toEqual([
       { label: 'Env 1', value: 1 },
       { label: 'Env 2', value: 2 },
+      { label: 'Env 3', value: 3 },
     ]);
   });
 });

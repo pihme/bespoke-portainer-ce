@@ -69,9 +69,6 @@ vi.mock('@@/BETeaserButton', () => ({ BETeaserButton: () => null }));
 vi.mock('@@/CodeEditor', () => ({ CodeEditor: () => null }));
 vi.mock('@@/Tip/TextTip', () => ({ TextTip: () => null }));
 vi.mock('@/react/portainer/gitops/GitForm', () => ({ GitForm: () => null }));
-vi.mock('@/react/portainer/environments/TagsView/TagsDatatable', () => ({
-  TagsDatatable: () => null,
-}));
 
 vi.mock('./custom-templates', () => ({
   customTemplatesModule: 'custom-templates',
@@ -101,12 +98,6 @@ describe('portainer react components wrappers', () => {
     components.length = 0;
     const { stacksModule } = await import('./stacks');
     expect(stacksModule).toBe('portainer.app.react.components.stacks');
-
-    const { environmentsModule } = await import('./environments');
-    expect(environmentsModule).toBe(
-      'portainer.app.react.components.environments'
-    );
-    expect(components.map((c) => c.name)).toContain('tagsDatatable');
   });
 
   it('aggregates KEEP parent components module', async () => {
@@ -119,12 +110,23 @@ describe('portainer react components wrappers', () => {
       expect.arrayContaining([
         'portainer.app.components.forms.git',
         'portainer.app.react.components.stacks',
-        'portainer.app.react.components.environments',
       ])
     );
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining(['porSwitchField', 'fileUploadField'])
     );
+  });
+
+  it('REQ-TAI-013 registers no tags datatable', async () => {
+    await import('./index');
+    const calls = angularMock.module.mock.calls as unknown as Array<
+      [string, string[]]
+    >;
+    const [, deps] = calls.find(
+      ([name]) => name === 'portainer.app.react.components'
+    )!;
+    expect(deps).not.toContain('portainer.app.react.components.environments');
+    expect(components.map((c) => c.name)).not.toContain('tagsDatatable');
   });
 
   it('REQ-TAI-001 registers no login, user or access-control components', async () => {

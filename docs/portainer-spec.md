@@ -86,9 +86,9 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## ENV – Home and environments
 
-- **REQ-ENV-01 Home screen.** List all environments the user can reach, with status, type, resource counts and snapshot time; search, filter, sort and group; open an environment. Entry: UI `#!/home`; API `GET /endpoints`, `GET /endpoints/summary`. docs: user/home *TAI-007: no Agent version filter or Agent version badge.*
+- **REQ-ENV-01 Home screen.** List all environments the user can reach, with status, type, resource counts and snapshot time; search, filter, sort and group; open an environment. Entry: UI `#!/home`; API `GET /endpoints`, `GET /endpoints/summary`. docs: user/home *TAI-007: no Agent version filter or Agent version badge.* *TAI-013: no grouping or filtering by environment group and no group name on the environment cards.*
 - **REQ-ENV-02 Build information and help.** Show the Portainer version/build and links to help from the home screen. Entry: UI build-info modal in the sidebar; API `GET /system/version`, `GET /system/info`, `GET /status`. docs: user/home
-- **REQ-ENV-03 Manage environments.** List, edit (name, URL, public IP, group, tags, TLS) and remove environments. Entry: UI `#!/endpoints`, `#!/endpoints/{id}`; API `GET/POST /endpoints`, `GET/PUT/DELETE /endpoints/{id}`, `POST /endpoints/delete`. docs: admin/environments/environments *TAI-007: the URL of a Docker environment can only be changed to a local socket.*
+- **REQ-ENV-03 Manage environments.** List, edit (name, URL, public IP, group, tags, TLS) and remove environments. Entry: UI `#!/endpoints`, `#!/endpoints/{id}`; API `GET/POST /endpoints`, `GET/PUT/DELETE /endpoints/{id}`, `POST /endpoints/delete`. docs: admin/environments/environments *TAI-007: the URL of a Docker environment can only be changed to a local socket.* *TAI-013: group and tags can no longer be edited; the list has no group column and the dashboard shows no tags.*
 - **REQ-ENV-04 Add the local Docker environment.** Connect the Docker daemon on the Portainer host through the mounted socket. Entry: UI `#!/wizard/endpoints/create`; CLI `--host`. docs: admin/environments/add/local, admin/environments/add/docker/socket
 - ~~**REQ-ENV-05 Add a remote Docker Standalone environment.** Via Portainer Agent, Docker API (with optional TLS) or socket. docs: admin/environments/add/docker, …/docker/agent, …/docker/api~~ REMOVED (TAI-007)
 - ~~**REQ-ENV-06 Add a Docker Swarm environment.** Via Agent, API or socket. docs: admin/environments/add/swarm and sub-pages~~ REMOVED (TAI-003)
@@ -96,10 +96,10 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - ~~**REQ-ENV-08 Add a Kubernetes environment.** Via Agent. docs: admin/environments/add/kubernetes, …/kubernetes/agent~~ REMOVED (TAI-002)
 - ~~**REQ-ENV-09 Import a Kubernetes cluster from kubeconfig.** **BE-only.** docs: admin/environments/add/kubernetes/import~~ REMOVED (TAI-002)
 - ~~**REQ-ENV-10 Create a Kubernetes cluster (Talos via Omni) and KubeSolo Edge environments.** **BE-only.** docs: admin/environments/add/kube-create, …/kube-create/omni, admin/environments/add/add-a-kubesolo-edge-environment~~ REMOVED (TAI-002, TAI-004)
-- **REQ-ENV-11 Add an environment via the API.** Entry: API `POST /endpoints`. docs: admin/environments/add/api
+- **REQ-ENV-11 Add an environment via the API.** Entry: API `POST /endpoints`. docs: admin/environments/add/api *TAI-013: `GroupID` and `TagIds` are ignored; every new environment joins the Unassigned group (ID 1) with no tags.*
 - **REQ-ENV-12 Environment snapshots.** Portainer periodically snapshots each environment for the home screen; a snapshot can be triggered manually. Entry: API `POST /endpoints/{id}/snapshot`, `POST /endpoints/snapshot`; CLI `--snapshot-interval`; UI `#!/settings`. docs: admin/settings/general (Snapshot interval)
-- **REQ-ENV-13 Environment groups.** Create, edit and delete groups and assign environments. Entry: UI `#!/groups`, `#!/groups/new`, `#!/groups/{id}`; API `/endpoint_groups`, `PUT/DELETE /endpoint_groups/{id}/endpoints/{endpointId}`. docs: admin/environments/groups
-- **REQ-ENV-14 Tags.** Create and delete tags and tag environments. Entry: UI `#!/tags`; API `GET/POST /tags`, `DELETE /tags/{id}`. docs: admin/environments/tags
+- ~~**REQ-ENV-13 Environment groups.** Create, edit and delete groups and assign environments. Entry: UI `#!/groups`, `#!/groups/new`, `#!/groups/{id}`; API `/endpoint_groups`, `PUT/DELETE /endpoint_groups/{id}/endpoints/{endpointId}`. docs: admin/environments/groups~~ REMOVED (TAI-013)
+- ~~**REQ-ENV-14 Tags.** Create and delete tags and tag environments. Entry: UI `#!/tags`; API `GET/POST /tags`, `DELETE /tags/{id}`. docs: admin/environments/tags~~ REMOVED (TAI-013)
 - ~~**REQ-ENV-15 Scheduled environment update and rollback.** Schedule Edge Agent / environment updates and rollbacks. **BE-only** (CE has the routes as upsell views). Entry: UI `#!/endpoints/update-schedules`. docs: admin/environments/update~~ REMOVED (TAI-004)
 
 ## POL – Environment policies
@@ -396,6 +396,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) The UI has no "Upgrade to Business Edition" banner or upgrade dialogs, no message of the day on the home screen, no `#!/activity-logs` page or Activity logs sidebar item, and no "Get Help" link to the commercial support page.
   - (c) No disabled BE-only teaser controls remain on General settings (login screen banner), in the Docker features configuration (change window, image up-to-date indicators), under Git automatic updates (re-pull image, force redeployment) or on editor stacks (stack webhook switch). Saving application settings sends no `CustomLoginBanner`; an editor stack keeps an existing webhook ID on save.
   - (d) The version check and update notification, the footer and "powered by" credit, Git stack auto-update by polling and webhook (REQ-STK-03, REQ-STK-09) and the notifications history (REQ-LOG-04) are unchanged.
+- **REQ-TAI-013 No environment groups or tags.** Added by TAI-013 (2026-11-10).
+  - (a) `/endpoint_groups` and `/tags` and everything under them (list, create, update, delete, add or remove an environment from a group) answer 404, and so does the bulk `PUT /endpoints/relations`.
+  - (b) `POST /endpoints` ignores `GroupID` and `TagIds`: a new environment joins the built-in Unassigned group (ID 1) with no tags, and no tag record changes. `PUT /endpoints/{id}` ignores `GroupID` and `TagIDs` and keeps the stored values.
+  - (c) The database is unchanged: the environment group and tag collections, their migrations and the `GroupID`/`TagIDs` fields of an environment stay, so legacy records keep their group and tags. Access to an environment and resource control still work for the local Docker and Podman sockets; deleting an environment still removes it from leftover tag records.
+  - (d) The UI has no `#!/groups` or `#!/tags` pages; the Administration sidebar shows a single Environments item instead of the "Environment-related" menu. The environment wizard and the environment details page have no group or tag fields; the environment list has no group column; the home screen has no Group sort and no group name on the cards; the dashboard has no Tags row; the stack duplication environment picker is a flat list sorted by name.
 
 ## Not covered as requirements
 

@@ -24,10 +24,6 @@ vi.mock('@/portainer/services/notifications', () => ({
   notifySuccess: vi.fn(),
 }));
 
-vi.mock('../../shared/MoreSettingsSection', () => ({
-  MoreSettingsSection: () => <div data-cy="more-settings">more</div>,
-}));
-
 import { SocketForm } from './SocketForm';
 
 describe('SocketForm', () => {
@@ -48,7 +44,10 @@ describe('SocketForm', () => {
     );
 
     const Wrapped = withTestQueryProvider(() => (
-      <SocketForm onCreate={onCreate} containerEngine={ContainerEngine.Docker} />
+      <SocketForm
+        onCreate={onCreate}
+        containerEngine={ContainerEngine.Docker}
+      />
     ));
     render(<Wrapped />);
 
@@ -73,6 +72,41 @@ describe('SocketForm', () => {
     });
   });
 
+  it('REQ-TAI-013 shows no group or tag fields and sends no metadata', async () => {
+    const user = userEvent.setup();
+    mutate.mockReset();
+    mutate.mockImplementation((_vars, opts) => {
+      opts?.onSuccess?.(createMockEnvironment({ Name: 'plain' }));
+    });
+    server.use(
+      http.get('/api/endpoints', () =>
+        HttpResponse.json([], {
+          headers: { 'x-total-available': '0', 'x-total-count': '0' },
+        })
+      )
+    );
+
+    const Wrapped = withTestQueryProvider(() => (
+      <SocketForm
+        onCreate={() => {}}
+        containerEngine={ContainerEngine.Docker}
+      />
+    ));
+    render(<Wrapped />);
+
+    expect(screen.queryByText('More settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Group')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tags')).not.toBeInTheDocument();
+
+    await user.type(screen.getByTestId('environmentCreate-nameInput'), 'plain');
+    const connect = screen.getByTestId('docker-socket-connect-button');
+    await waitFor(() => expect(connect).not.toBeDisabled());
+    await user.click(connect);
+
+    await waitFor(() => expect(mutate).toHaveBeenCalled());
+    expect(mutate.mock.calls[0][0]).not.toHaveProperty('meta');
+  });
+
   it('sends an overridden socket path when enabled', async () => {
     const user = userEvent.setup();
     mutate.mockImplementation((_vars, opts) => {
@@ -87,7 +121,10 @@ describe('SocketForm', () => {
     );
 
     const Wrapped = withTestQueryProvider(() => (
-      <SocketForm onCreate={() => {}} containerEngine={ContainerEngine.Docker} />
+      <SocketForm
+        onCreate={() => {}}
+        containerEngine={ContainerEngine.Docker}
+      />
     ));
     render(<Wrapped />);
 

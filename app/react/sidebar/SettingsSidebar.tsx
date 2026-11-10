@@ -21,40 +21,15 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
     <SidebarSection title="Administration">
       {isPureAdmin && (
         <>
-          <SidebarParent
-            label="Environment-related"
+          {/* Environment groups and tags are removed (TAI-013): Environments
+              is a single item instead of an "Environment-related" menu. */}
+          <SidebarItem
+            label="Environments"
             icon={HardDrive}
             to="portainer.endpoints"
-            pathOptions={{
-              includePaths: [
-                'portainer.wizard.endpoints',
-                'portainer.groups',
-                'portainer.tags',
-              ],
-            }}
-            data-cy="portainerSidebar-environments-area"
-            listId="portainer-environments"
-          >
-            <SidebarItem
-              label="Environments"
-              to="portainer.endpoints"
-              includePaths={['portainer.wizard.endpoints']}
-              isSubMenu
-              data-cy="portainerSidebar-environments"
-            />
-            <SidebarItem
-              to="portainer.groups"
-              label="Groups"
-              isSubMenu
-              data-cy="portainerSidebar-environmentGroups"
-            />
-            <SidebarItem
-              to="portainer.tags"
-              label="Tags"
-              isSubMenu
-              data-cy="portainerSidebar-environmentTags"
-            />
-          </SidebarParent>
+            includePaths={['portainer.wizard.endpoints']}
+            data-cy="portainerSidebar-environments"
+          />
 
           {isBE && (
             <SidebarItem

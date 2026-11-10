@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import * as constants from './constants';
 import {
   API_ENDPOINT_AUTH,
   API_ENDPOINT_ENDPOINTS,
@@ -24,5 +25,10 @@ describe('app constants', () => {
     expect(new RegExp(STACK_NAME_VALIDATION_REGEX).test('Bad Stack')).toBe(
       false
     );
+  });
+
+  it('REQ-TAI-013 exposes no environment group or tag API prefix', () => {
+    expect(constants).not.toHaveProperty('API_ENDPOINT_ENDPOINT_GROUPS');
+    expect(constants).not.toHaveProperty('API_ENDPOINT_TAGS');
   });
 });

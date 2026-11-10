@@ -72,7 +72,6 @@ function env(overrides: Record<string, unknown> = {}) {
     URL: 'unix:///var/run/docker.sock',
     Type: EnvironmentType.Docker,
     Status: EnvironmentStatus.Up,
-    GroupName: 'default',
     ...overrides,
   };
 }
@@ -179,5 +178,11 @@ describe('REQ-ENV-03 environment list columns for local Docker', () => {
 
   it('REQ-TAI-001 offers no manage-access column', () => {
     expect(columns.map((c) => c.id || c.header)).not.toContain('Actions');
+  });
+
+  it('REQ-TAI-013 offers no group column', () => {
+    const ids = columns.map((c) => c.id || c.header);
+    expect(ids).not.toContain('Group Name');
+    expect(ids).not.toContain('GroupName');
   });
 });

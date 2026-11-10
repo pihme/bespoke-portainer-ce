@@ -110,7 +110,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.CustomTemplatesHandler)
 	assert.NotNil(t, h.DockerHandler)
 	assert.NotNil(t, h.EndpointHandler)
-	assert.NotNil(t, h.EndpointGroupHandler)
 	assert.NotNil(t, h.EndpointProxyHandler)
 	assert.NotNil(t, h.FileHandler)
 	assert.NotNil(t, h.GitOperationHandler)
@@ -119,7 +118,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.StackHandler)
 	assert.NotNil(t, h.StorybookHandler)
 	assert.NotNil(t, h.SystemHandler)
-	assert.NotNil(t, h.TagHandler)
 	assert.NotNil(t, h.TemplatesHandler)
 	assert.NotNil(t, h.UploadHandler)
 	assert.NotNil(t, h.UserHandler)
@@ -742,6 +740,80 @@ func TestREQ_TAI_011_Start_WorkflowsRoutesAreGone(t *testing.T) {
 	}
 
 	assert.Equal(t, http.StatusOK, get("/api/gitops/sources"))
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+func TestREQ_TAI_013_Start_GroupAndTagRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	get := func(path string) int {
+		req, err := http.NewRequest(http.MethodGet, base+path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		return resp.StatusCode
+	}
+
+	do := func(method, path string) int {
+		req, err := http.NewRequest(method, base+path, strings.NewReader(`{}`))
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		return resp.StatusCode
+	}
+
+	for _, path := range []string{
+		"/api/endpoint_groups",
+		"/api/endpoint_groups/1",
+		"/api/tags",
+	} {
+		assert.Equal(t, http.StatusNotFound, get(path), path)
+	}
+
+	for _, tc := range []struct{ method, path string }{
+		{http.MethodPost, "/api/endpoint_groups"},
+		{http.MethodPut, "/api/endpoint_groups/1"},
+		{http.MethodDelete, "/api/endpoint_groups/2"},
+		{http.MethodPut, "/api/endpoint_groups/1/endpoints/1"},
+		{http.MethodDelete, "/api/endpoint_groups/1/endpoints/1"},
+		{http.MethodPost, "/api/tags"},
+		{http.MethodDelete, "/api/tags/1"},
+	} {
+		assert.Equal(t, http.StatusNotFound, do(tc.method, tc.path), tc.method+" "+tc.path)
+	}
+
+	// The bulk group/tag relations route is gone; /endpoints/{id} does not
+	// accept PUT on "relations" as an ID.
+	assert.NotEqual(t, http.StatusNoContent, do(http.MethodPut, "/api/endpoints/relations"))
+
+	assert.Equal(t, http.StatusOK, get("/api/endpoints"))
 
 	cancel()
 

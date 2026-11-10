@@ -12,7 +12,6 @@ import {
   isSnapshotBrowsingSupported,
 } from '@/react/portainer/environments/utils';
 import { EnvironmentURL } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentURL';
-import { EnvironmentGroupName } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentGroupName';
 import { EnvironmentStats } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentStats';
 import { EnvironmentTypeTag } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentTypeTag';
 
@@ -28,16 +27,11 @@ import { EditButtons } from './EditButtons';
 
 interface Props {
   environment: Environment;
-  groupName?: string;
 
   onClickBrowse(): void;
 }
 
-export function EnvironmentCard({
-  environment,
-  groupName,
-  onClickBrowse,
-}: Props) {
+export function EnvironmentCard({ environment, onClickBrowse }: Props) {
   const isEdge = isEdgeEnvironment(environment.Type);
 
   const snapshotTime = getSnapshotTime(environment);
@@ -98,7 +92,6 @@ export function EnvironmentCard({
               <EnvironmentURL environment={environment} />
             </div>
             <div className="flex items-center gap-2">
-              <EnvironmentGroupName groupName={groupName} />
               <EnvironmentTypeTag environment={environment} />
             </div>
           </div>

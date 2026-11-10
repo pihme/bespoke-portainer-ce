@@ -8,7 +8,6 @@ import {
 } from '@/react/portainer/environments/types';
 import { Stack, StackStatus, StackType } from '@/react/common/stacks/types';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 
 export function createMockUser(overrides: Partial<User> = {}) {
   return {
@@ -161,17 +160,6 @@ export function createMockEnvironment(
       TLSSkipVerify: false,
     },
     LastCheckInDate: 0,
-    ...overrides,
-  };
-}
-
-export function createMockEnvironmentGroup(
-  overrides: Partial<EnvironmentGroup> = {}
-): EnvironmentGroup {
-  return {
-    Id: 1,
-    Name: 'Unassigned',
-    Description: '',
     ...overrides,
   };
 }

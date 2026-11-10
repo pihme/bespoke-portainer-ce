@@ -153,7 +153,6 @@ describe('buildUpdatePayload', () => {
         name: 'my-docker',
         environmentUrl: '10.0.0.1:2375',
         publicUrl: '1.2.3.4',
-        meta: { groupId: 1, tagIds: [1, 2] },
         tls: {
           tls: true,
           skipVerify: false,
@@ -171,7 +170,6 @@ describe('buildUpdatePayload', () => {
         name: 'my-k8s',
         environmentUrl: 'k8s.local:6443',
         publicUrl: '',
-        meta: { groupId: 1, tagIds: [] },
         tls: undefined,
       },
       environmentType: EnvironmentType.KubernetesLocal,
@@ -183,7 +181,6 @@ describe('buildUpdatePayload', () => {
         name: 'k8s-agent',
         environmentUrl: 'agent:9001',
         publicUrl: '',
-        meta: { groupId: 2, tagIds: [] },
         tls: undefined,
       },
       environmentType: EnvironmentType.AgentOnKubernetes,
@@ -195,7 +192,6 @@ describe('buildUpdatePayload', () => {
         name: 'local-docker',
         environmentUrl: 'unix:///var/run/docker.sock',
         publicUrl: '',
-        meta: { groupId: 1, tagIds: [] },
         tls: undefined,
       },
       environmentType: EnvironmentType.Docker,
@@ -210,7 +206,8 @@ describe('buildUpdatePayload', () => {
     expect(payload.URL).toBe(expectedUrl);
     expect(payload.Name).toBe(values.name);
     expect(payload.PublicURL).toBe(values.publicUrl);
-    expect(payload.GroupID).toBe(values.meta.groupId);
-    expect(payload.TagIDs).toEqual(values.meta.tagIds);
+    // REQ-TAI-013: environment groups and tags are removed
+    expect(payload).not.toHaveProperty('GroupID');
+    expect(payload).not.toHaveProperty('TagIDs');
   });
 });

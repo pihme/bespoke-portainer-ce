@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 import { EnvironmentsQueryParams } from '@/react/portainer/environments/environment.service';
 import {
   EdgeTypes,
@@ -10,18 +9,11 @@ import {
 
 export function useParseSortGroupApiParams(
   sortGroupFilter: string | null,
-  sortKey: string,
-  groupQueryData: EnvironmentGroup[] | undefined
+  sortKey: string
 ) {
   return useMemo<Partial<EnvironmentsQueryParams>>(() => {
     if (!sortGroupFilter) return {};
     switch (sortKey) {
-      case 'Group': {
-        const group = groupQueryData
-          ? groupQueryData.find((g) => g.Id.toString() === sortGroupFilter)
-          : undefined;
-        return group ? { groupIds: [group.Id] } : {};
-      }
       case 'PlatformType': {
         const typesByPlatform: Record<string, PlatformType> = {
           Docker: PlatformType.Docker,
@@ -56,5 +48,5 @@ export function useParseSortGroupApiParams(
       default:
         return {};
     }
-  }, [sortGroupFilter, sortKey, groupQueryData]);
+  }, [sortGroupFilter, sortKey]);
 }

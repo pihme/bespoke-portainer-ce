@@ -7,7 +7,6 @@ import { ContainerEngine } from '@/react/portainer/environments/types';
 import {
   createMockContainer,
   createMockEnvironment,
-  createMockEnvironmentGroup,
   createMockQueryResult,
   createMockResourceGroups,
   createMockStack,
@@ -55,12 +54,6 @@ describe('test-mocks local Docker helpers', () => {
     expect(env.Name).toBe('local');
     expect(env.Id).toBe(9);
     expect(env.Type).toBe(1);
-  });
-
-  it('createMockEnvironmentGroup applies overrides', () => {
-    expect(
-      createMockEnvironmentGroup({ Name: 'devs', Description: 'team' })
-    ).toEqual({ Id: 1, Name: 'devs', Description: 'team' });
   });
 
   it('createMockStack defaults to an active compose stack', () => {

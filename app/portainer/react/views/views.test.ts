@@ -66,17 +66,6 @@ vi.mock('@/react/portainer/environments/wizard', () => ({
   EnvironmentTypeSelectView: () => null,
   HomeView: () => null,
 }));
-vi.mock('@/react/portainer/environments/environment-groups/ListView', () => ({
-  ListView: () => null,
-}));
-vi.mock(
-  '@/react/portainer/environments/environment-groups/ItemView/EditGroupView',
-  () => ({ EditGroupView: () => null })
-);
-vi.mock(
-  '@/react/portainer/environments/environment-groups/CreateView/CreateGroupView',
-  () => ({ CreateGroupView: () => null })
-);
 vi.mock('@/react/portainer/environments/ListView', () => ({ ListView: () => null }));
 vi.mock('@/react/portainer/environments/ItemView/ItemView', () => ({
   ItemView: () => null,
@@ -148,7 +137,7 @@ describe('portainer react view wrappers', () => {
     ]);
   });
 
-  it('registers KEEP templates, gitops, environments and env-group views', async () => {
+  it('registers KEEP templates, gitops and environments views', async () => {
     const { templatesModule } = await import('./templates');
     expect(templatesModule).toBe('portainer.app.react.views.templates');
     expect(components.map((c) => c.name)).toEqual(
@@ -180,19 +169,6 @@ describe('portainer react view wrappers', () => {
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining(['environmentsListView', 'environmentsItemView'])
     );
-
-    components.length = 0;
-    const { environmentGroupModule } = await import('./env-groups');
-    expect(environmentGroupModule).toBe(
-      'portainer.app.react.views.environment-groups'
-    );
-    expect(components.map((c) => c.name)).toEqual(
-      expect.arrayContaining([
-        'environmentGroupsListView',
-        'environmentGroupEditView',
-        'environmentGroupCreateView',
-      ])
-    );
   });
 
   it('registers KEEP sidebar and aggregates viewsModule (REQ-TAI-012: no activity logs)', async () => {
@@ -222,6 +198,18 @@ describe('portainer react view wrappers', () => {
       expect.anything()
     );
     expect(components.map((c) => c.name)).not.toContain('activityLogsView');
+    // REQ-TAI-013: no environment group views
+    expect(angularMock.module).not.toHaveBeenCalledWith(
+      'portainer.app.react.views.environment-groups',
+      expect.anything()
+    );
+    for (const gone of [
+      'environmentGroupsListView',
+      'environmentGroupEditView',
+      'environmentGroupCreateView',
+    ]) {
+      expect(components.map((c) => c.name)).not.toContain(gone);
+    }
   });
 
   it('REQ-TAI-001 registers no login, user, team or token views', async () => {

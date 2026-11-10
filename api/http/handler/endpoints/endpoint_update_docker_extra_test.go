@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -12,17 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestREQ_ENV_03_UpdateDockerEndpoint_GroupAndGpus(t *testing.T) {
+func TestREQ_ENV_03_UpdateDockerEndpoint_StatusAndGpus(t *testing.T) {
 	t.Parallel()
 	h, store := newDockerEndpointHandler(t)
 	createDockerEndpoint(t, store, 1, "local")
-	group := &portainer.EndpointGroup{Name: "other"}
-	require.NoError(t, store.EndpointGroup().Create(group))
 
 	body, err := json.Marshal(endpointUpdatePayload{
-		GroupID: intPtr(int(group.ID)),
-		Gpus:    []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}},
-		Status:  intPtr(2),
+		Gpus:   []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}},
+		Status: intPtr(2),
 	})
 	require.NoError(t, err)
 
@@ -32,9 +30,36 @@ func TestREQ_ENV_03_UpdateDockerEndpoint_GroupAndGpus(t *testing.T) {
 
 	updated, err := store.Endpoint().Endpoint(1)
 	require.NoError(t, err)
-	assert.Equal(t, group.ID, updated.GroupID)
 	assert.Equal(t, portainer.EndpointStatusDown, updated.Status)
 	assert.Equal(t, []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}}, updated.Gpus)
+}
+
+// REQ-TAI-013: environment groups and tags are removed. An update ignores
+// GroupID and TagIDs in the body and keeps the stored values (legacy records
+// keep their group and tags), while other fields still apply.
+func TestREQ_TAI_013_UpdateIgnoresGroupAndTags(t *testing.T) {
+	t.Parallel()
+	h, store := newDockerEndpointHandler(t)
+	ep := createDockerEndpoint(t, store, 1, "local")
+	group := &portainer.EndpointGroup{Name: "other"}
+	require.NoError(t, store.EndpointGroup().Create(group))
+	ep.TagIDs = []portainer.TagID{7}
+	require.NoError(t, store.Endpoint().UpdateEndpoint(ep.ID, ep))
+	before, err := store.Endpoint().Endpoint(1)
+	require.NoError(t, err)
+
+	body := []byte(`{"Name":"renamed","GroupID":` + strconv.Itoa(int(group.ID)) + `,"TagIDs":[1,2]}`)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, endpointAdminRequest(http.MethodPut, "/endpoints/1", body))
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	updated, err := store.Endpoint().Endpoint(1)
+	require.NoError(t, err)
+	assert.Equal(t, "renamed", updated.Name)
+	assert.Equal(t, before.GroupID, updated.GroupID)
+	assert.NotEqual(t, group.ID, updated.GroupID)
+	assert.Equal(t, []portainer.TagID{7}, updated.TagIDs)
 }
 
 func TestREQ_ENV_03_UpdateDockerEndpoint_DisableTLS_DeletesFiles(t *testing.T) {

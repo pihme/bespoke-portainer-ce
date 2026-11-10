@@ -2,7 +2,6 @@ import { HardDrive, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 import { useEnvironmentList } from '@/react/portainer/environments/queries';
-import { useGroups } from '@/react/portainer/environments/environment-groups/queries';
 
 import { Datatable } from '@@/datatables';
 import { createPersistedStore } from '@@/datatables/types';
@@ -28,7 +27,6 @@ export function EnvironmentsDatatable({
 
   const [page, setPage] = useState(0);
 
-  const groupsQuery = useGroups();
   const { environments, isLoading, totalCount } = useEnvironmentList(
     {
       search: tableState.search,
@@ -40,25 +38,14 @@ export function EnvironmentsDatatable({
         : undefined,
       order: tableState.sortBy?.desc ? 'desc' : 'asc',
     },
-    { enabled: groupsQuery.isSuccess, refetchInterval: 30 * 1000 }
-  );
-
-  const environmentsWithGroups = environments.map<EnvironmentListItem>(
-    (env) => {
-      const groupId = env.GroupId;
-      const group = groupsQuery.data?.find((g) => g.Id === groupId);
-      return {
-        ...env,
-        GroupName: group?.Name,
-      };
-    }
+    { refetchInterval: 30 * 1000 }
   );
 
   return (
     <Datatable
       title="Environments"
       titleIcon={HardDrive}
-      dataset={environmentsWithGroups}
+      dataset={environments}
       columns={columns}
       settingsManager={tableState}
       isServerSidePagination

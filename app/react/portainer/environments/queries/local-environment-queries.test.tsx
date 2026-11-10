@@ -180,7 +180,8 @@ describe('REQ-ENV-01 summary and sort groups', () => {
     const groups = wrapHook(() =>
       useAvailableSortGroups(summary.result.current.data)
     );
-    expect(groups.result.current.Group[0].label).toBe('Unassigned');
+    // REQ-TAI-013: no environment group options
+    expect(groups.result.current).not.toHaveProperty('Group');
     expect(groups.result.current.PlatformType.map((p) => p.key)).toEqual(
       expect.arrayContaining(['Docker', 'Podman'])
     );
@@ -191,7 +192,7 @@ describe('REQ-ENV-01 summary and sort groups', () => {
 
   it('returns empty sort groups without summary data', () => {
     const { result } = wrapHook(() => useAvailableSortGroups(undefined));
-    expect(result.current.Group).toEqual([]);
+    expect(result.current).not.toHaveProperty('Group');
     expect(result.current.PlatformType).toEqual([]);
   });
 });

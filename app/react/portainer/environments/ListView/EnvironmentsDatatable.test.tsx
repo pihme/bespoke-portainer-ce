@@ -6,14 +6,10 @@ import { EnvironmentStatus, EnvironmentType } from '@/react/portainer/environmen
 import { EnvironmentsDatatable } from './EnvironmentsDatatable';
 
 const useEnvironmentList = vi.fn();
-const useGroups = vi.fn();
 const useTableState = vi.fn();
 
 vi.mock('@/react/portainer/environments/queries', () => ({
   useEnvironmentList: (...args: unknown[]) => useEnvironmentList(...args),
-}));
-vi.mock('@/react/portainer/environments/environment-groups/queries', () => ({
-  useGroups: (...args: unknown[]) => useGroups(...args),
 }));
 vi.mock('@@/datatables/types', () => ({
   createPersistedStore: () => ({}),
@@ -92,10 +88,6 @@ describe('REQ-ENV-03 EnvironmentsDatatable for local Docker environments', () =>
       pageSize: 10,
       sortBy: { id: 'Name', desc: false },
     });
-    useGroups.mockReturnValue({
-      isSuccess: true,
-      data: [{ Id: 1, Name: 'default' }],
-    });
     useEnvironmentList.mockReturnValue({
       environments: [
         {
@@ -111,7 +103,7 @@ describe('REQ-ENV-03 EnvironmentsDatatable for local Docker environments', () =>
     });
   });
 
-  it('lists environments with their group names and add action', async () => {
+  it('lists environments and the add action without loading groups (REQ-TAI-013)', async () => {
     const user = userEvent.setup();
     const onRemove = vi.fn();
     render(<EnvironmentsDatatable onRemove={onRemove} />);
@@ -126,5 +118,6 @@ describe('REQ-ENV-03 EnvironmentsDatatable for local Docker environments', () =>
 
     await user.click(screen.getByRole('button', { name: 'Next page' }));
     expect(useEnvironmentList).toHaveBeenCalled();
+    expect(useEnvironmentList.mock.calls[0][1]).not.toHaveProperty('enabled');
   });
 });

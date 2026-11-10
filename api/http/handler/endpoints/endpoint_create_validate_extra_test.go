@@ -16,7 +16,7 @@ func formRequest(values map[string][]string) *http.Request {
 	return &http.Request{Form: values, PostForm: values, Method: http.MethodPost, URL: &url.URL{Path: "/endpoints"}}
 }
 
-func TestREQ_ENV_11_Validate_LocalDocker_AcceptsPublicURLGpusAndTags(t *testing.T) {
+func TestREQ_ENV_11_Validate_LocalDocker_AcceptsPublicURLAndGpus(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
 	p := &endpointCreatePayload{}
@@ -32,7 +32,6 @@ func TestREQ_ENV_11_Validate_LocalDocker_AcceptsPublicURLGpusAndTags(t *testing.
 	}))
 	require.NoError(t, err)
 	assert.Equal(t, "docker.example.com", p.PublicURL)
-	assert.Equal(t, []portainer.TagID{1, 2}, p.TagIDs)
 	assert.Equal(t, []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}}, p.Gpus)
 	assert.Equal(t, localDockerEnvironment, p.EndpointCreationType)
 }
@@ -61,17 +60,19 @@ func TestREQ_ENV_11_Validate_InvalidCreationType_ReturnsError(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestREQ_ENV_11_Validate_InvalidTagIdsJSON_ReturnsError(t *testing.T) {
+// REQ-TAI-013: environment groups and tags are removed; the GroupID and
+// TagIds form values are no longer read, even when malformed.
+func TestREQ_TAI_013_Validate_IgnoresGroupAndTagIds(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
 	p := &endpointCreatePayload{}
 	err := p.Validate(formRequest(map[string][]string{
 		"Name":                 {"local"},
 		"EndpointCreationType": {"1"},
+		"GroupID":              {"not-a-number"},
 		"TagIds":               {"not-json"},
 	}))
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "TagIds")
+	require.NoError(t, err)
 }
 
 func TestREQ_ENV_11_Validate_InvalidGpusJSON_ReturnsError(t *testing.T) {
@@ -100,7 +101,9 @@ func TestREQ_ENV_11_Validate_PodmanEngine_OK(t *testing.T) {
 	assert.Equal(t, portainer.ContainerEnginePodman, p.ContainerEngine)
 }
 
-func TestREQ_ENV_11_SaveEndpointAndUpdateAuthorizations_WithTags(t *testing.T) {
+// REQ-TAI-013: tags are removed; saving an environment stores it and no
+// longer writes tag records.
+func TestREQ_TAI_013_SaveEndpoint_DoesNotTouchTags(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
 	tag := &portainer.Tag{Name: "env-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
@@ -116,9 +119,13 @@ func TestREQ_ENV_11_SaveEndpointAndUpdateAuthorizations_WithTags(t *testing.T) {
 	}
 	require.NoError(t, h.saveEndpointAndUpdateAuthorizations(store, ep))
 
+	saved, err := store.Endpoint().Endpoint(ep.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "tagged-env", saved.Name)
+
 	updated, err := store.Tag().Read(tag.ID)
 	require.NoError(t, err)
-	assert.True(t, updated.Endpoints[ep.ID])
+	assert.False(t, updated.Endpoints[ep.ID])
 }
 
 // REQ-TAI-002: the local Kubernetes environment (creation type 5) is removed

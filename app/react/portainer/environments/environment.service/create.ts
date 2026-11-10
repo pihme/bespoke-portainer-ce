@@ -1,27 +1,18 @@
 import { endpointCreate } from '@api/sdk.gen';
 import { EndpointCreateData } from '@api/types.gen';
 
-import { arrayToJson } from '@/portainer/helpers/json';
 import { parseAxiosError } from '@/portainer/services/axios/axios';
 import {
-  type EnvironmentGroupId,
   ContainerEngine,
   EnvironmentCreationTypes,
 } from '@/react/portainer/environments/types';
-import { type TagId } from '@/portainer/tags/types';
 
 import { toEnvironment } from './utils';
-
-export interface EnvironmentMetadata {
-  groupId?: EnvironmentGroupId;
-  tagIds?: TagId[];
-}
 
 interface CreateLocalDockerEnvironment {
   name: string;
   socketPath?: string;
   publicUrl?: string;
-  meta?: EnvironmentMetadata;
   containerEngine?: ContainerEngine;
 }
 
@@ -29,7 +20,6 @@ export async function createLocalDockerEnvironment({
   name,
   socketPath = '',
   publicUrl = '',
-  meta = { tagIds: [] },
   containerEngine,
 }: CreateLocalDockerEnvironment) {
   const url = prefixPath(socketPath);
@@ -40,7 +30,6 @@ export async function createLocalDockerEnvironment({
     {
       url,
       publicUrl,
-      meta,
       containerEngine,
     }
   );
@@ -62,10 +51,11 @@ export async function createLocalDockerEnvironment({
 export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
-  meta?: EnvironmentMetadata;
   containerEngine?: ContainerEngine;
 }
 
+// Environment groups and tags are removed (TAI-013): no GroupID or TagIds
+// are sent; the server puts every new environment in the Unassigned group.
 // Portainer Agent and remote Docker API environments are removed (TAI-007):
 // Azure Container Instances are removed (TAI-008): only local sockets can be
 // created.
@@ -84,15 +74,12 @@ async function createEnvironment(
   };
 
   if (options) {
-    const { meta, containerEngine } = options;
-    const { groupId, tagIds = [] } = meta || {};
+    const { containerEngine } = options;
 
     payload = {
       ...payload,
       URL: options.url,
       PublicURL: options.publicUrl,
-      GroupID: groupId,
-      TagIds: arrayToJson(tagIds),
       ContainerEngine: containerEngine,
     };
   }

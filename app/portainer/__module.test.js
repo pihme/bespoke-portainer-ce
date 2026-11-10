@@ -111,7 +111,7 @@ describe('portainer.app local-docker UI-Router states', () => {
     registerStates();
   });
 
-  it('registers root, endpoint, home, endpoints, groups, gitops, settings, and tags', () => {
+  it('registers root, endpoint, home, endpoints, gitops and settings', () => {
     const names = registeredStates.map((s) => s.name);
 
     expect(names).toEqual(
@@ -122,16 +122,19 @@ describe('portainer.app local-docker UI-Router states', () => {
         'portainer.home',
         'portainer.endpoints',
         'portainer.endpoints.endpoint',
-        'portainer.groups',
-        'portainer.groups.group',
-        'portainer.groups.new',
         'portainer.gitops',
         'portainer.gitops.sources',
         'portainer.gitops.sources.item',
         'portainer.gitops.sources.new',
         'portainer.settings',
-        'portainer.tags',
       ])
+    );
+  });
+
+  it('REQ-TAI-013 registers no environment group or tag states', () => {
+    const names = registeredStates.map((s) => s.name);
+    expect(names.filter((n) => /^portainer\.(groups|tags)\b/.test(n))).toEqual(
+      []
     );
   });
 
@@ -181,7 +184,7 @@ describe('portainer.app local-docker UI-Router states', () => {
     expect(typeof endpoint.resolve.endpoint).toBe('function');
   });
 
-  it('configures home, endpoints list/item, groups, settings root, and tags', () => {
+  it('configures home, endpoints list/item and settings root', () => {
     expect(stateByName('portainer.home').views['content@'].component).toBe(
       'homeView'
     );
@@ -192,23 +195,9 @@ describe('portainer.app local-docker UI-Router states', () => {
       stateByName('portainer.endpoints.endpoint').views['content@'].component
     ).toBe('environmentsItemView');
 
-    const groups = stateByName('portainer.groups');
-    expect(groups.data.access).toBe('admin');
-    expect(groups.views['content@'].component).toBe(
-      'environmentGroupsListView'
-    );
-    expect(stateByName('portainer.groups.group').params.id.type).toBe('int');
-    expect(
-      stateByName('portainer.groups.new').views['content@'].component
-    ).toBe('environmentGroupCreateView');
-
     const settings = stateByName('portainer.settings');
     expect(settings.data.access).toBe('admin');
     expect(settings.views['content@'].component).toBe('settingsView');
-
-    const tags = stateByName('portainer.tags');
-    expect(tags.data.access).toBe('admin');
-    expect(tags.views['content@'].templateUrl).toContain('tags.html');
   });
 
   it('configures gitops sources under an abstract gitops parent', () => {

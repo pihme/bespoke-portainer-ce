@@ -2,12 +2,10 @@ import { useMemo } from 'react';
 
 import {
   EnvironmentSummaryCounts,
-  GroupCount,
   HealthCounts,
   PlatformCounts,
 } from '@/react/portainer/environments/environment.service';
 import { getPlatformIconByPlatform } from '@/react/portainer/environments/utils/get-platform-icon';
-import { getGroupIcon } from '@/react/portainer/environments/utils/get-group-icon';
 import { getHealthIcon } from '@/react/portainer/environments/utils/get-health-icon';
 import {
   EnvironmentHealth,
@@ -21,9 +19,6 @@ export function useAvailableSortGroups(
 ) {
   return useMemo<Record<string, DropdownOption[]>>(
     () => ({
-      Group: summaryQueryData
-        ? buildGroupEntries(summaryQueryData.byGroup ?? [])
-        : [],
       PlatformType: summaryQueryData
         ? buildPlatformEntries(summaryQueryData.byPlatformType ?? [])
         : [],
@@ -33,15 +28,6 @@ export function useAvailableSortGroups(
     }),
     [summaryQueryData]
   );
-}
-
-function buildGroupEntries(byGroup: GroupCount[]): DropdownOption[] {
-  return byGroup.map(({ groupName, groupID, count }) => ({
-    key: groupID.toString(),
-    label: groupName,
-    count,
-    icon: getGroupIcon('sm'),
-  }));
 }
 
 function buildPlatformEntries(

@@ -9,26 +9,14 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
     expect(handlers.length).toBeGreaterThan(10);
   });
 
-  it('serves tags and creates a tag', async () => {
-    const list = await fetch('/api/tags');
-    expect(list.ok).toBe(true);
-    const tags = await list.json();
-    expect(Array.isArray(tags)).toBe(true);
-
-    const created = await fetch('/api/tags', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: `tag-${Date.now()}` }),
-    });
-    expect(created.ok).toBe(true);
-    const tag = await created.json();
-    expect(tag.Name).toMatch(/^tag-/);
+  it('REQ-TAI-013 serves no tag or environment group stubs', () => {
+    const paths = handlers.map((h) => String(h.info.path));
+    expect(paths.filter((p) => /\/api\/(tags|endpoint_groups)/.test(p))).toEqual(
+      []
+    );
   });
 
-  it('serves endpoint group, status and version', async () => {
-    const group = await fetch('/api/endpoint_groups/5');
-    expect((await group.json()).Name).toBe('group5');
-
+  it('serves status and version', async () => {
     const status = await fetch('/api/system/status');
     expect(status.ok).toBe(true);
 
@@ -49,10 +37,10 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
 
   it('allows overriding handlers via server.use', async () => {
     server.use(
-      http.get('/api/tags', () => HttpResponse.json([{ ID: 99, Name: 'x' }]))
+      http.get('/api/stacks', () => HttpResponse.json([{ Id: 99, Name: 'x' }]))
     );
-    const tags = await (await fetch('/api/tags')).json();
-    expect(tags).toEqual([{ ID: 99, Name: 'x' }]);
+    const stacks = await (await fetch('/api/stacks')).json();
+    expect(stacks).toEqual([{ Id: 99, Name: 'x' }]);
   });
 });
 
@@ -86,7 +74,6 @@ describe('setup-tests server handlers extra arms', () => {
     for (const path of [
       '/api/status',
       '/api/system/info',
-      '/api/endpoint_groups',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',
       '/api/webhooks',
@@ -94,12 +81,5 @@ describe('setup-tests server handlers extra arms', () => {
     ]) {
       expect((await fetch(path)).ok).toBe(true);
     }
-  });
-
-  it('rejects non-string endpoint group ids', async () => {
-    // Force the Array branch by overriding the handler temporarily is hard;
-    // instead hit a numeric id path which is the happy path already covered.
-    const res = await fetch('/api/endpoint_groups/2');
-    expect((await res.json()).Id).toBe(2);
   });
 });

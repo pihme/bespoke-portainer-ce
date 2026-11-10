@@ -80,9 +80,6 @@ describe('REQ-ENV-02 EnvironmentInfo', () => {
           ServerVersion: '24.0.7',
           Swarm: { NodeID: '' },
         })
-      ),
-      http.get('/api/tags', () =>
-        HttpResponse.json([{ ID: 10, Name: 'dev', Endpoints: { 1: true } }])
       )
     );
   });
@@ -95,7 +92,7 @@ describe('REQ-ENV-02 EnvironmentInfo', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows environment name, snapshot stats, docker info, URL, GPU and tags', async () => {
+  it('shows environment name, snapshot stats, docker info, URL and GPU', async () => {
     renderEnvironmentInfo();
 
     expect(
@@ -108,7 +105,8 @@ describe('REQ-ENV-02 EnvironmentInfo', () => {
     });
     expect(screen.getByText('/var/run/docker.sock')).toBeVisible();
     expect(await screen.findByLabelText('GPU')).toBeVisible();
-    expect(await screen.findByLabelText('Tags')).toHaveTextContent('dev');
+    // REQ-TAI-013: no Tags row, even for a legacy environment with tag IDs
+    expect(screen.queryByLabelText('Tags')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: /cluster visualizer/i })
     ).not.toBeInTheDocument();

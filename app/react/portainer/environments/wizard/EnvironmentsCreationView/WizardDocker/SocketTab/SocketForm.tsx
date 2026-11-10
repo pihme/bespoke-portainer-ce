@@ -15,8 +15,6 @@ import { FormControl } from '@@/form-components/FormControl';
 import { Input } from '@@/form-components/Input';
 import { SwitchField } from '@@/form-components/SwitchField';
 
-import { MoreSettingsSection } from '../../shared/MoreSettingsSection';
-
 import { useValidation } from './SocketForm.validation';
 import { FormValues } from './types';
 
@@ -31,7 +29,6 @@ export function SocketForm({ onCreate, containerEngine }: Props) {
     name: '',
     socketPath: '',
     overridePath: false,
-    meta: { groupId: 1, tagIds: [] },
   };
 
   const mutation = useCreateLocalDockerEnvironmentMutation();
@@ -50,8 +47,6 @@ export function SocketForm({ onCreate, containerEngine }: Props) {
           <NameField />
 
           <OverrideSocketFieldset />
-
-          <MoreSettingsSection />
 
           <div className="form-group">
             <div className="col-sm-12">
@@ -77,7 +72,6 @@ export function SocketForm({ onCreate, containerEngine }: Props) {
       {
         name: values.name,
         socketPath: values.overridePath ? values.socketPath : '',
-        meta: values.meta,
         containerEngine,
       },
       {

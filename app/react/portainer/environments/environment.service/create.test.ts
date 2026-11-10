@@ -43,7 +43,6 @@ describe('create local Docker environments (backwards compatibility)', () => {
         EndpointCreationType: EnvironmentCreationTypes.LocalDockerEnvironment,
         URL: '',
         PublicURL: '',
-        TagIds: '[]',
       }),
     });
     expect(env.Id).toBe(11);
@@ -54,14 +53,12 @@ describe('create local Docker environments (backwards compatibility)', () => {
       name: 'unix-docker',
       socketPath: '/var/run/docker.sock',
       publicUrl: 'docker.example',
-      meta: { groupId: 2, tagIds: [3] },
       containerEngine: ContainerEngine.Docker,
     });
     expect(endpointCreate.mock.calls[0][0].body.URL).toBe(
       'unix:///var/run/docker.sock'
     );
     expect(endpointCreate.mock.calls[0][0].body.PublicURL).toBe('docker.example');
-    expect(endpointCreate.mock.calls[0][0].body.GroupID).toBe(2);
 
     endpointCreate.mockClear();
     await createLocalDockerEnvironment({
@@ -95,5 +92,12 @@ describe('create local Docker environments (backwards compatibility)', () => {
     expect(body).not.toHaveProperty('TLSCACertFile');
     // REQ-TAI-004: no Edge check-in interval is sent
     expect(body).not.toHaveProperty('EdgeCheckinInterval');
+  });
+
+  it('REQ-TAI-013 sends no GroupID or TagIds', async () => {
+    await createLocalDockerEnvironment({ name: 'local' });
+    const body = endpointCreate.mock.calls[0][0].body;
+    expect(body).not.toHaveProperty('GroupID');
+    expect(body).not.toHaveProperty('TagIds');
   });
 });

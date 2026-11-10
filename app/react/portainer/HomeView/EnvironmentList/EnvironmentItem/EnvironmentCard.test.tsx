@@ -1,4 +1,3 @@
-import { http, HttpResponse } from 'msw';
 import { render, screen } from '@testing-library/react';
 
 import { createMockEnvironment } from '@/react-tools/test-mocks';
@@ -8,24 +7,21 @@ import {
   EnvironmentType,
 } from '@/react/portainer/environments/types';
 import { UserViewModel } from '@/portainer/models/user';
-import { server } from '@/setup-tests/server';
 import { withTestRouter } from '@/react/test-utils/withRouter';
 import { withUserProvider } from '@/react/test-utils/withUserProvider';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
 
 import { EnvironmentCard } from './EnvironmentCard';
 
-function renderCard(env: Environment, groupName?: string, isAdmin = false) {
+function renderCard(env: Environment, isAdmin = false) {
   const user = new UserViewModel({ Username: 'test', Role: isAdmin ? 1 : 2 });
-
-  server.use(http.get('/api/tags', () => HttpResponse.json([])));
 
   const Wrapped = withTestQueryProvider(
     withTestRouter(withUserProvider(EnvironmentCard, user))
   );
 
   return render(
-    <Wrapped environment={env} groupName={groupName} onClickBrowse={() => {}} />
+    <Wrapped environment={env} onClickBrowse={() => {}} />
   );
 }
 
@@ -36,16 +32,11 @@ describe('EnvironmentCard', () => {
     expect(screen.getByText('my-env')).toBeVisible();
   });
 
-  it('renders the group name when provided', () => {
-    const env = createMockEnvironment();
-    renderCard(env, 'Production');
-    expect(screen.getByText(/Production/)).toBeVisible();
-  });
-
-  it('shows Unassigned when no group name is provided', () => {
+  it('REQ-TAI-013 shows no environment group', () => {
     const env = createMockEnvironment();
     renderCard(env);
-    expect(screen.getByText(/Unassigned/)).toBeVisible();
+    expect(screen.queryByText(/Group:/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Unassigned/)).not.toBeInTheDocument();
   });
 
   describe('Live connect / disconnect', () => {

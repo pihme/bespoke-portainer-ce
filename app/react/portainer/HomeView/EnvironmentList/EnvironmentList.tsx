@@ -11,7 +11,6 @@ import {
   SortType,
   useEnvironmentList,
 } from '@/react/portainer/environments/queries/useEnvironmentList';
-import { useGroups } from '@/react/portainer/environments/environment-groups/queries';
 import { EnvironmentsQueryParams } from '@/react/portainer/environments/environment.service';
 import { useIsPureAdmin } from '@/react/hooks/useUser';
 import {
@@ -24,7 +23,6 @@ import { useBaseApiQueryParams } from '@/react/portainer/environments/queries/us
 import { useAvailableSortGroups } from '@/react/portainer/environments/queries/useAvailableSortGroups';
 import { getPlatformIconByPlatform } from '@/react/portainer/environments/utils/get-platform-icon';
 import { getHealthIcon } from '@/react/portainer/environments/utils/get-health-icon';
-import { getGroupIcon } from '@/react/portainer/environments/utils/get-group-icon';
 import { EnvironmentCard } from '@/react/portainer/HomeView/EnvironmentList/EnvironmentItem/EnvironmentCard';
 
 import { DropdownOption } from '@@/DropdownMenu/DropdownMenu';
@@ -49,7 +47,6 @@ const SORT_OPTIONS: SortOption<SortType>[] = [
     descendingLabel: 'Newest',
     ascendingLabel: 'Oldest',
   },
-  { key: 'Group', label: 'Group', grouped: true },
   { key: 'PlatformType', label: 'Platform', grouped: true },
   { key: 'Health', label: 'Health', grouped: true },
 ];
@@ -94,7 +91,6 @@ const healthDetails: Record<
 
 const GROUP_FIELD: Partial<Record<SortType, (item: EnvironmentRow) => string>> =
   {
-    Group: (item) => item.GroupId.toString(),
     PlatformType: (item) => item.platformName,
     Health: (item) => item.healthLabel,
   };
@@ -105,27 +101,15 @@ export function EnvironmentList({ onClickBrowse }: Props) {
 
   const tableState = useHomeViewState();
 
-  const groupsQuery = useGroups();
-
-  const groupDetails = useMemo(
-    () =>
-      Object.fromEntries(
-        (groupsQuery.data ?? []).map((group) => [
-          group.Id.toString(),
-          { name: group.Name, description: group.Description },
-        ])
-      ),
-    [groupsQuery.data]
-  );
-
+  // Environment groups are removed (TAI-013): the list cannot be grouped or
+  // filtered by environment group.
   const baseQueryParams: EnvironmentsQueryParams = useBaseApiQueryParams(
     tableState.search
   );
 
   const sortGroupApiParams = useParseSortGroupApiParams(
     tableState.groupFilter,
-    tableState.groupKey,
-    groupsQuery.data
+    tableState.groupKey
   );
 
   const listQueryParams: EnvironmentsQueryParams = useMemo(
@@ -152,22 +136,16 @@ export function EnvironmentList({ onClickBrowse }: Props) {
   const environmentRows = useMemo<EnvironmentRow[]>(() => {
     return environments.map((env) => ({
       ...env,
-      groupName: groupDetails[env.GroupId.toString()]?.name ?? 'Unassigned',
       platformName:
         PlatformType[getPlatformType(env.Type, env.ContainerEngine)],
       healthLabel: getHealthLabel(env, tableState.groupFilter),
     }));
-  }, [environments, groupDetails, tableState.groupFilter]);
+  }, [environments, tableState.groupFilter]);
 
   const environmentGroups = useMemo(
     () =>
-      buildGroups(
-        environmentRows,
-        tableState.groupKey,
-        availableGroupsBySort,
-        groupDetails
-      ),
-    [environmentRows, tableState.groupKey, availableGroupsBySort, groupDetails]
+      buildGroups(environmentRows, tableState.groupKey, availableGroupsBySort),
+    [environmentRows, tableState.groupKey, availableGroupsBySort]
   );
 
   const headerButtons: React.ReactElement[] = [];
@@ -182,7 +160,6 @@ export function EnvironmentList({ onClickBrowse }: Props) {
         renderItem={(row: EnvironmentRow) => (
           <EnvironmentCard
             environment={row}
-            groupName={row.groupName}
             onClickBrowse={() => onClickBrowse(row)}
           />
         )}
@@ -202,7 +179,6 @@ export function EnvironmentList({ onClickBrowse }: Props) {
 }
 
 type EnvironmentRow = Environment & {
-  groupName: string;
   platformName: string;
   healthLabel: string;
 };
@@ -243,8 +219,7 @@ function resolveBaseStatus(env: Environment): string {
 function buildGroups(
   items: EnvironmentRow[],
   sortBy: SortType,
-  groupOptions: Record<string, DropdownOption[]>,
-  groupDetails: Record<string, { name: string; description: string }>
+  groupOptions: Record<string, DropdownOption[]>
 ): SortableGroup<EnvironmentRow>[] {
   if (!items?.length) return [];
   const options = groupOptions[sortBy];
@@ -277,9 +252,6 @@ function buildGroups(
     } else if (sortBy === 'Health' && healthDetails[key]) {
       icon = getHealthIcon(healthDetails[key].type, 'md');
       description = healthDetails[key].description;
-    } else if (sortBy === 'Group') {
-      icon = getGroupIcon('md');
-      description = groupDetails[key]?.description;
     }
 
     return [{ key, label, icon, description, items: groupItems }];

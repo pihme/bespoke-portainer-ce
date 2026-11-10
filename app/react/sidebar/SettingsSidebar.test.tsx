@@ -44,7 +44,7 @@ describe('SettingsSidebar', () => {
 
       expect(screen.getByText('Administration')).toBeInTheDocument();
       expect(
-        screen.getByTestId('portainerSidebar-environments-area')
+        screen.getByTestId('portainerSidebar-environments')
       ).toBeInTheDocument();
       // REQ-TAI-005: no Registries entry
       expect(
@@ -75,18 +75,22 @@ describe('SettingsSidebar', () => {
       }
     });
 
-    it('should render environment-related submenu items', () => {
+    it('REQ-TAI-013 renders Environments as a single item without Groups or Tags', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
       expect(
         screen.getByTestId('portainerSidebar-environments')
       ).toBeInTheDocument();
       expect(
-        screen.getByTestId('portainerSidebar-environmentGroups')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-environments-area')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Environment-related')).not.toBeInTheDocument();
       expect(
-        screen.getByTestId('portainerSidebar-environmentTags')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-environmentGroups')
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('portainerSidebar-environmentTags')
+      ).not.toBeInTheDocument();
     });
 
     it('REQ-TAI-012 renders no logs items', () => {
@@ -154,7 +158,7 @@ describe('SettingsSidebar', () => {
         screen.queryByTestId('portainerSidebar-userRelated')
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByTestId('portainerSidebar-environments-area')
+        screen.queryByTestId('portainerSidebar-environments')
       ).not.toBeInTheDocument();
       expect(
         screen.queryByTestId('portainerSidebar-registries')
@@ -183,7 +187,7 @@ describe('SettingsSidebar', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
       expect(
-        screen.getByTestId('portainerSidebar-environments-area')
+        screen.getByTestId('portainerSidebar-environments')
       ).toBeInTheDocument();
       // REQ-TAI-005: no Registries entry
       expect(

@@ -6,20 +6,13 @@ import {
   EnvironmentType,
   PlatformType,
 } from '@/react/portainer/environments/types';
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
-import { createMockEnvironmentGroup } from '@/react-tools/test-mocks';
 
 import { useParseSortGroupApiParams } from './useParseApiSortParams';
-
-const groups: EnvironmentGroup[] = [
-  createMockEnvironmentGroup({ Id: 1, Name: 'Unassigned' }),
-  createMockEnvironmentGroup({ Id: 2, Name: 'Production' }),
-];
 
 describe('useParseSortGroupApiParams', () => {
   it('returns empty params when no filter is selected', () => {
     const { result } = renderHook(() =>
-      useParseSortGroupApiParams(null, 'Health', groups)
+      useParseSortGroupApiParams(null, 'Health')
     );
     expect(result.current).toEqual({});
   });
@@ -27,28 +20,28 @@ describe('useParseSortGroupApiParams', () => {
   describe('Health sort', () => {
     it('maps Up to status=[Up]', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Up', 'Health', groups)
+        useParseSortGroupApiParams('Up', 'Health')
       );
       expect(result.current).toEqual({ status: [EnvironmentStatus.Up] });
     });
 
     it('maps Down to status=[Down]', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Down', 'Health', groups)
+        useParseSortGroupApiParams('Down', 'Health')
       );
       expect(result.current).toEqual({ status: [EnvironmentStatus.Down] });
     });
 
     it('maps Outdated to outdated=true (no status)', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Outdated', 'Health', groups)
+        useParseSortGroupApiParams('Outdated', 'Health')
       );
       expect(result.current).toEqual({ outdated: true });
     });
 
     it('maps Heartbeat to edge types + status=[Up] so backend returns only edge envs with a valid heartbeat', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Heartbeat', 'Health', groups)
+        useParseSortGroupApiParams('Heartbeat', 'Health')
       );
       expect(result.current).toEqual({
         types: [
@@ -61,34 +54,20 @@ describe('useParseSortGroupApiParams', () => {
 
     it('returns a fresh types array (not the shared EdgeTypes tuple) for each call', () => {
       const { result: first } = renderHook(() =>
-        useParseSortGroupApiParams('Heartbeat', 'Health', groups)
+        useParseSortGroupApiParams('Heartbeat', 'Health')
       );
       const { result: second } = renderHook(() =>
-        useParseSortGroupApiParams('Heartbeat', 'Health', groups)
+        useParseSortGroupApiParams('Heartbeat', 'Health')
       );
       expect(first.current.types).not.toBe(second.current.types);
       expect(first.current.types).toEqual(second.current.types);
     });
   });
 
-  describe('Group sort', () => {
-    it('maps Unassigned to groupIds=[1]', () => {
+  describe('REQ-TAI-013 Group sort', () => {
+    it('ignores a group filter: environment groups are removed', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('1', 'Group', groups)
-      );
-      expect(result.current).toEqual({ groupIds: [1] });
-    });
-
-    it('maps a named group to that group id', () => {
-      const { result } = renderHook(() =>
-        useParseSortGroupApiParams('2', 'Group', groups)
-      );
-      expect(result.current).toEqual({ groupIds: [2] });
-    });
-
-    it('returns empty params when the group id cannot be resolved', () => {
-      const { result } = renderHook(() =>
-        useParseSortGroupApiParams('99', 'Group', groups)
+        useParseSortGroupApiParams('2', 'Group')
       );
       expect(result.current).toEqual({});
     });
@@ -97,7 +76,7 @@ describe('useParseSortGroupApiParams', () => {
   describe('Platform sort', () => {
     it('maps Docker to platformTypes=[Docker] and clears types', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Docker', 'PlatformType', groups)
+        useParseSortGroupApiParams('Docker', 'PlatformType')
       );
       expect(result.current).toEqual({
         types: [],
@@ -107,7 +86,7 @@ describe('useParseSortGroupApiParams', () => {
 
     it('returns empty platformTypes for unknown platforms', () => {
       const { result } = renderHook(() =>
-        useParseSortGroupApiParams('Unknown', 'PlatformType', groups)
+        useParseSortGroupApiParams('Unknown', 'PlatformType')
       );
       expect(result.current).toEqual({
         types: [],

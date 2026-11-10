@@ -128,13 +128,21 @@ test('renders environments returned by the API', async () => {
 test('sort buttons are rendered for each sort option', async () => {
   const { findByRole } = await renderComponent(false, []);
 
-  await expect(findByRole('button', { name: /Group/i })).resolves.toBeVisible();
   await expect(
-    screen.findByRole('button', { name: /Platform/i })
+    findByRole('button', { name: /Platform/i })
   ).resolves.toBeVisible();
   await expect(
     screen.findByRole('button', { name: /Health/i })
   ).resolves.toBeVisible();
+});
+
+test('REQ-TAI-013 offers no Group sort option', async () => {
+  await renderComponent(false, []);
+
+  await screen.findByRole('button', { name: /Platform/i });
+  expect(
+    screen.queryByRole('button', { name: /^Group$/i })
+  ).not.toBeInTheDocument();
 });
 
 test('clicking inactive sort button switches active sort', async () => {

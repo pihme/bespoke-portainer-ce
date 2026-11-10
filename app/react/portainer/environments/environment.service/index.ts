@@ -179,19 +179,6 @@ export async function snapshotEndpoint(id: EnvironmentId) {
   }
 }
 
-export async function endpointsByGroup(
-  groupId: EnvironmentGroupId,
-  start: number,
-  limit: number,
-  query: Omit<EnvironmentsQueryParams, 'groupIds'>
-) {
-  return getEnvironments({
-    start,
-    limit,
-    query: { groupIds: [groupId], ...query },
-  });
-}
-
 export async function disassociateEndpoint(id: EnvironmentId) {
   try {
     await axios.delete(buildUrl(id, 'association'));

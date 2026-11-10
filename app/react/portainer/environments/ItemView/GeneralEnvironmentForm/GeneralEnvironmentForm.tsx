@@ -5,7 +5,6 @@ import { NameField } from '@/react/portainer/environments/common/NameField/NameF
 import { EnvironmentUrlField } from '@/react/portainer/environments/common/EnvironmentUrlField/EnvironmentUrlField';
 import { PublicUrlField } from '@/react/portainer/environments/common/PublicUrlField/PublicUrlField';
 import { TLSFieldset } from '@/react/components/TLSFieldset';
-import { MetadataFieldset } from '@/react/portainer/environments/common/MetadataFieldset';
 import {
   isAgentEnvironment,
   isLocalDockerEnvironment,
@@ -87,8 +86,6 @@ export function GeneralEnvironmentForm({ environment, onSuccess }: Props) {
                   />
                 )}
               </FormSection>
-
-              <MetadataFieldset />
 
               <EnvironmentFormActions
                 isLoading={updateMutation.isLoading}

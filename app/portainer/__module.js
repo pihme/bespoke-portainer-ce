@@ -128,48 +128,6 @@ angular
         },
       };
 
-      var groups = {
-        name: 'portainer.groups',
-        url: '/groups',
-        views: {
-          'content@': {
-            component: 'environmentGroupsListView',
-          },
-        },
-        data: {
-          docs: '/admin/environments/groups',
-          access: AccessHeaders.Admin,
-        },
-      };
-
-      var group = {
-        name: 'portainer.groups.group',
-        url: '/:id?tab',
-        views: {
-          'content@': {
-            component: 'environmentGroupEditView',
-          },
-        },
-        params: {
-          id: {
-            type: 'int',
-          },
-          tab: {
-            dynamic: true,
-          },
-        },
-      };
-
-      var groupCreation = {
-        name: 'portainer.groups.new',
-        url: '/new',
-        views: {
-          'content@': {
-            component: 'environmentGroupCreateView',
-          },
-        },
-      };
-
       var home = {
         name: 'portainer.home',
         url: '/home?redirect&environmentId&environmentName&route&groupBy&groupFilter&search&order',
@@ -263,30 +221,12 @@ angular
         },
       };
 
-      var tags = {
-        name: 'portainer.tags',
-        url: '/tags',
-        views: {
-          'content@': {
-            templateUrl: './views/tags/tags.html',
-            controller: 'TagsController',
-          },
-        },
-        data: {
-          docs: '/admin/environments/tags',
-          access: AccessHeaders.Admin,
-        },
-      };
-
       $stateRegistryProvider.register(root);
       $stateRegistryProvider.register(endpointRoot);
       $stateRegistryProvider.register(portainer);
       $stateRegistryProvider.register(account);
       $stateRegistryProvider.register(endpoints);
       $stateRegistryProvider.register(endpoint);
-      $stateRegistryProvider.register(groups);
-      $stateRegistryProvider.register(group);
-      $stateRegistryProvider.register(groupCreation);
       $stateRegistryProvider.register(home);
       $stateRegistryProvider.register(gitopsBase);
       $stateRegistryProvider.register(gitopsSources);
@@ -294,7 +234,6 @@ angular
       $stateRegistryProvider.register(gitopsSourceCreate);
       $stateRegistryProvider.register(init);
       $stateRegistryProvider.register(settings);
-      $stateRegistryProvider.register(tags);
     },
   ])
   .run(run);

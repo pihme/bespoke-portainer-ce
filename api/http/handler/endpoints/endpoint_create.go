@@ -19,12 +19,14 @@ type endpointCreatePayload struct {
 	EndpointCreationType endpointCreationEnum
 	PublicURL            string
 	Gpus                 []portainer.Pair
-	GroupID              int
-	TagIDs               []portainer.TagID
 	ContainerEngine      string
 }
 
 type endpointCreationEnum int
+
+// unassignedGroupID is the built-in Unassigned environment group. It is the
+// only group since environment groups were removed (TAI-013).
+const unassignedGroupID portainer.EndpointGroupID = 1
 
 const (
 	_ endpointCreationEnum = iota
@@ -65,20 +67,9 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		return errors.New("invalid container engine value. Value must be one of: 'docker' or 'podman'")
 	}
 
-	groupID, _ := request.RetrieveNumericMultiPartFormValue(r, "GroupID", true)
-	if groupID == 0 {
-		groupID = 1
-	}
-	payload.GroupID = groupID
-
-	var tagIDs []portainer.TagID
-	if err := request.RetrieveMultiPartFormJSONValue(r, "TagIds", &tagIDs, true); err != nil {
-		return errors.New("invalid TagIds parameter")
-	}
-	payload.TagIDs = tagIDs
-	if payload.TagIDs == nil {
-		payload.TagIDs = make([]portainer.TagID, 0)
-	}
+	// Environment groups and tags are removed (TAI-013): the GroupID and
+	// TagIds form values are ignored and every new environment joins the
+	// built-in Unassigned group with no tags.
 
 	// TLS only ever secured a remote Docker API; remote hosts are removed (TAI-007).
 	if useTLS, _ := request.RetrieveBooleanMultiPartFormValue(r, "TLS", true); useTLS {
@@ -121,8 +112,6 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @param ContainerEngine formData string false "Container engine used by the environment(endpoint). Value must be one of: 'docker' or 'podman'"
 // @param URL formData string false "Local Docker or Podman socket (unix:// or npipe://). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine)."
 // @param PublicURL formData string false "URL or IP address where exposed containers will be reachable. Defaults to URL if not specified (example: docker.mydomain.tld:2375)"
-// @param GroupID formData int false "Environment(Endpoint) group identifier. If not specified will default to 1 (unassigned)."
-// @param TagIds formData string false "JSON-parsable array of tag identifiers to which this environment(endpoint) is associated"
 // @param Gpus formData string false "List of GPUs - json stringified array of {name, value} structs"
 // @success 200 {object} portainer.Endpoint "Success"
 // @failure 400 "Invalid request"
@@ -186,7 +175,7 @@ func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, pay
 		URL:             payload.URL,
 		Type:            endpointType,
 		ContainerEngine: payload.ContainerEngine,
-		GroupID:         portainer.EndpointGroupID(payload.GroupID),
+		GroupID:         unassignedGroupID,
 		PublicURL:       payload.PublicURL,
 		Gpus:            payload.Gpus,
 		TLSConfig: portainer.TLSConfiguration{
@@ -194,7 +183,7 @@ func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, pay
 		},
 		UserAccessPolicies: portainer.UserAccessPolicies{},
 		TeamAccessPolicies: portainer.TeamAccessPolicies{},
-		TagIDs:             payload.TagIDs,
+		TagIDs:             []portainer.TagID{},
 		Status:             portainer.EndpointStatusUp,
 		Snapshots:          []portainer.DockerSnapshot{},
 		Kubernetes:         portainer.KubernetesDefault(),
@@ -228,17 +217,5 @@ func (handler *Handler) snapshotAndPersistEndpoint(tx dataservices.DataStoreTx, 
 func (handler *Handler) saveEndpointAndUpdateAuthorizations(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) error {
 	endpoint.SecuritySettings = portainer.DefaultEndpointSecuritySettings()
 
-	if err := tx.Endpoint().Create(endpoint); err != nil {
-		return err
-	}
-
-	for _, tagID := range endpoint.TagIDs {
-		if err := tx.Tag().UpdateTagFunc(tagID, func(tag *portainer.Tag) {
-			tag.Endpoints[endpoint.ID] = true
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return tx.Endpoint().Create(endpoint)
 }

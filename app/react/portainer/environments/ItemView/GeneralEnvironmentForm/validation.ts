@@ -7,7 +7,6 @@ import {
 } from '@/react/portainer/environments/types';
 
 import { useNameValidation } from '../../common/NameField/NameField';
-import { metadataValidation } from '../../common/MetadataFieldset/validation';
 
 import { GeneralEnvironmentFormValues } from './types';
 
@@ -28,6 +27,5 @@ export function useGeneralValidation({
         : string().default(''),
     publicUrl: string().default(''),
     tls: tlsConfigValidation({ optionalCert: true }).optional(),
-    meta: metadataValidation(),
   });
 }

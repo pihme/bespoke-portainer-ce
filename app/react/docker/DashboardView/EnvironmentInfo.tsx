@@ -13,7 +13,6 @@ import { Widget } from '@@/Widget';
 import { GpuInfo } from './EnvironmentInfo.GpuInfo';
 import { SnapshotStats } from './EnvironmentInfo.SnapshotStats';
 import { DockerInfo } from './EnvironmentInfo.DockerInfo';
-import { TagsInfo } from './EnvironmentInfo.TagsInfo';
 
 export function EnvironmentInfo() {
   const envQuery = useCurrentEnvironment();
@@ -53,8 +52,6 @@ export function EnvironmentInfo() {
             gpus={environment.Gpus || []}
             snapshot={environment.Snapshots[0]}
           />
-
-          <TagsInfo ids={environment.TagIds} />
         </DetailsTable>
       </Widget.Body>
     </Widget>

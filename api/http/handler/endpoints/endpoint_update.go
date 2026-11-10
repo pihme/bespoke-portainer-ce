@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -27,8 +26,6 @@ type endpointUpdatePayload struct {
 	PublicURL *string `example:"docker.mydomain.tld:2375"`
 	// GPUs information
 	Gpus []portainer.Pair
-	// Group identifier
-	GroupID *int `example:"1"`
 	// Require TLS to connect against this environment(endpoint)
 	TLS *bool `example:"true"`
 	// Skip server verification when using TLS
@@ -36,9 +33,7 @@ type endpointUpdatePayload struct {
 	// Skip client verification when using TLS
 	TLSSkipClientVerify *bool `example:"false"`
 	// The status of the environment(endpoint) (1 - up, 2 - down)
-	Status *int `example:"1"`
-	// List of tag identifiers to which this environment(endpoint) is associated
-	TagIDs             []portainer.TagID `example:"1,2"`
+	Status             *int `example:"1"`
 	UserAccessPolicies portainer.UserAccessPolicies
 	TeamAccessPolicies portainer.TeamAccessPolicies
 }
@@ -112,30 +107,8 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	endpoint.PublicURL = *cmp.Or(payload.PublicURL, &endpoint.PublicURL)
 
-	updateRelations := false
-
-	if payload.GroupID != nil {
-		groupID := portainer.EndpointGroupID(*payload.GroupID)
-
-		updateRelations = updateRelations || groupID != endpoint.GroupID
-		endpoint.GroupID = groupID
-	}
-
-	if payload.TagIDs != nil {
-		if err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			tagsChanged, err := updateEnvironmentTags(tx, payload.TagIDs, endpoint.TagIDs, endpoint.ID)
-			if err != nil {
-				return err
-			}
-
-			endpoint.TagIDs = payload.TagIDs
-			updateRelations = updateRelations || tagsChanged
-
-			return nil
-		}); err != nil {
-			return httperror.InternalServerError("Unable to update environment tags", err)
-		}
-	}
+	// Environment groups and tags are removed (TAI-013): an update keeps the
+	// stored GroupID and TagIDs.
 
 	if payload.UserAccessPolicies != nil && !reflect.DeepEqual(payload.UserAccessPolicies, endpoint.UserAccessPolicies) {
 		endpoint.UserAccessPolicies = payload.UserAccessPolicies
@@ -215,14 +188,6 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 
 	if err := handler.DataStore.Endpoint().UpdateEndpoint(endpoint.ID, endpoint); err != nil {
 		return httperror.InternalServerError("Unable to persist environment changes inside the database", err)
-	}
-
-	if updateRelations {
-		if err := handler.DataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			return handler.updateEdgeRelations(tx, endpoint)
-		}); err != nil {
-			return httperror.InternalServerError("Unable to update environment relations", err)
-		}
 	}
 
 	if err := handler.SnapshotService.FillSnapshotData(endpoint, true); err != nil {

@@ -5,10 +5,8 @@ import { http, HttpResponse } from 'msw';
 
 import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 import {
   createMockEnvironment,
-  createMockEnvironmentGroup,
 } from '@/react-tools/test-mocks';
 
 import { StackDuplicationFormInner } from './StackDuplicationFormInner';
@@ -458,13 +456,8 @@ function renderFormInner({
     createMockEnvironment({ Id: 2, Name: 'Target Environment', GroupId: 1 }),
   ];
 
-  const mockGroups: EnvironmentGroup[] = [
-    createMockEnvironmentGroup({ Id: 1, Name: 'Unassigned' }),
-  ];
-
   server.use(
-    http.get('/api/endpoints', () => HttpResponse.json(mockEnvironments)),
-    http.get('/api/endpoint_groups', () => HttpResponse.json(mockGroups))
+    http.get('/api/endpoints', () => HttpResponse.json(mockEnvironments))
   );
 
   const Component = withTestQueryProvider(() => (

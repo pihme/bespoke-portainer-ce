@@ -4,11 +4,9 @@ import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 
 import { server } from '@/setup-tests/server';
 import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
-import { EnvironmentGroup } from '@/react/portainer/environments/environment-groups/types';
 import { Stack } from '@/react/common/stacks/types';
 import {
   createMockEnvironment,
-  createMockEnvironmentGroup,
   createMockStack,
 } from '@/react-tools/test-mocks';
 
@@ -65,13 +63,8 @@ function renderComponent({
     createMockEnvironment({ Id: 2, Name: 'Target Environment', GroupId: 1 }),
   ];
 
-  const mockGroups: EnvironmentGroup[] = [
-    createMockEnvironmentGroup({ Id: 1, Name: 'Unassigned' }),
-  ];
-
   server.use(
-    http.get('/api/endpoints', () => HttpResponse.json(mockEnvironments)),
-    http.get('/api/endpoint_groups', () => HttpResponse.json(mockGroups))
+    http.get('/api/endpoints', () => HttpResponse.json(mockEnvironments))
   );
 
   const mockRouter = {

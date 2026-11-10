@@ -21,14 +21,12 @@ export default {
 
 interface Args {
   environment: Environment;
-  groupName?: string;
 }
 
-function Template({ environment, groupName }: Args) {
+function Template({ environment }: Args) {
   return (
     <WrappedEnvironmentCard
       environment={environment}
-      groupName={groupName}
       onClickBrowse={() => {}}
     />
   );
@@ -88,7 +86,6 @@ LongEnvironmentName.args = {
       Name: 'production-eu-west-1-kubernetes-cluster-primary-workload-node-pool',
     }
   ),
-  groupName: 'Production Europe',
 };
 
 export const LongEnvironmentNameWithStats: StoryFn<Args> = Template.bind({});
@@ -96,14 +93,12 @@ LongEnvironmentNameWithStats.args = {
   environment: mockKubernetesEnvironmentWithStats({
     Name: 'production-eu-west-1-kubernetes-cluster-primary-workload-node-pool',
   }),
-  groupName: 'Production Europe',
 };
 
 // With group name
 export const WithGroupName: StoryFn<Args> = Template.bind({});
 WithGroupName.args = {
   environment: mockEnvironment(EnvironmentType.AgentOnKubernetes),
-  groupName: 'Production',
 };
 
 // With stats

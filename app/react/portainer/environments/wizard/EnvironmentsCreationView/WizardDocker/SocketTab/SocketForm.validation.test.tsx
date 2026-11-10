@@ -1,18 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { array, number, object, string } from 'yup';
+import { string } from 'yup';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/react/portainer/environments/common/NameField/NameField', () => ({
   useNameValidation: () => string().required('Name is required'),
 }));
-
-vi.mock(
-  '@/react/portainer/environments/common/MetadataFieldset/validation',
-  () => ({
-    metadataValidation: () =>
-      object({ groupId: number(), tagIds: array() }),
-  })
-);
 
 import { useValidation } from './SocketForm.validation';
 
@@ -24,13 +16,11 @@ describe('SocketForm validation', () => {
         name: 'local',
         overridePath: false,
         socketPath: '',
-        meta: { groupId: 1, tagIds: [] },
       })
     ).resolves.toEqual({
       name: 'local',
       overridePath: false,
       socketPath: '',
-      meta: { groupId: 1, tagIds: [] },
     });
 
     await expect(
@@ -38,7 +28,6 @@ describe('SocketForm validation', () => {
         name: 'local',
         overridePath: true,
         socketPath: '',
-        meta: { groupId: 1, tagIds: [] },
       })
     ).rejects.toThrow(/Socket Path is required/);
   });

@@ -8,7 +8,6 @@ import { withUIRouter } from '@/react-tools/withUIRouter';
 import { SettingsView } from '@/react/portainer/settings/SettingsView/SettingsView';
 
 import { wizardModule } from './wizard';
-import { environmentGroupModule } from './env-groups';
 import { templatesModule } from './templates';
 import { environmentsModule } from './environments';
 import { gitopsViewsModule } from './gitops';
@@ -16,7 +15,6 @@ import { gitopsViewsModule } from './gitops';
 export const viewsModule = angular
   .module('portainer.app.react.views', [
     wizardModule,
-    environmentGroupModule,
     templatesModule,
     environmentsModule,
     gitopsViewsModule,

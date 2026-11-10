@@ -18,7 +18,6 @@ vi.mock('@api/sdk.gen', () => ({
 import {
   deleteEndpoint,
   disassociateEndpoint,
-  endpointsByGroup,
   getDeploymentOptions,
   getEndpoint,
   getEnvironmentSummaryCounts,
@@ -111,11 +110,9 @@ describe('environment.service local Docker reads (backwards compatibility)', () 
     });
   });
 
-  it('endpointsByGroup scopes the query to a group id', async () => {
-    endpointList.mockResolvedValue({ data: [], headers: {} });
-    await endpointsByGroup(3, 0, 20, { search: 'x' });
-    expect(endpointList.mock.calls[0][0].query.groupIds).toEqual([3]);
-    expect(endpointList.mock.calls[0][0].query.search).toBe('x');
+  it('REQ-TAI-013 offers no endpointsByGroup helper', async () => {
+    const service = await import('./index');
+    expect(service).not.toHaveProperty('endpointsByGroup');
   });
 
   it('getEndpoint loads and maps a single environment', async () => {

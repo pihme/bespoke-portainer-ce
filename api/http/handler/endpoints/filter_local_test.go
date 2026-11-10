@@ -80,34 +80,41 @@ func TestREQ_ENV_01_FilterEndpointsByStatuses_EdgeCheckin(t *testing.T) {
 
 func TestREQ_ENV_01_EndpointMatchSearchCriteria(t *testing.T) {
 	t.Parallel()
-	tags := map[portainer.TagID]string{1: "prod", 2: "staging"}
 	ep := &portainer.Endpoint{
 		Name:   "local-docker",
 		URL:    "unix:///var/run/docker.sock",
 		Status: portainer.EndpointStatusUp,
 		TagIDs: []portainer.TagID{1},
 	}
-	assert.True(t, endpointMatchSearchCriteria(ep, tags, "local"))
-	assert.True(t, endpointMatchSearchCriteria(ep, tags, "unix"))
-	assert.True(t, endpointMatchSearchCriteria(ep, tags, "up"))
-	assert.True(t, endpointMatchSearchCriteria(ep, tags, "prod"))
-	assert.False(t, endpointMatchSearchCriteria(ep, tags, "missing"))
+	assert.True(t, endpointMatchSearchCriteria(ep, "local"))
+	assert.True(t, endpointMatchSearchCriteria(ep, "unix"))
+	assert.True(t, endpointMatchSearchCriteria(ep, "up"))
+	assert.False(t, endpointMatchSearchCriteria(ep, "missing"))
 
 	ep.Status = portainer.EndpointStatusDown
-	assert.True(t, endpointMatchSearchCriteria(ep, tags, "down"))
+	assert.True(t, endpointMatchSearchCriteria(ep, "down"))
+}
+
+// TestREQ_TAI_021_SearchReadsNoTagNames proves that the environment search
+// no longer looks up tag names: the tags collection is gone (TAI-021).
+func TestREQ_TAI_021_SearchReadsNoTagNames(t *testing.T) {
+	t.Parallel()
+	ep := &portainer.Endpoint{Name: "local-docker", GroupID: 2, TagIDs: []portainer.TagID{1}}
+	groups := []portainer.EndpointGroup{{ID: 2, Name: "default-group", TagIDs: []portainer.TagID{5}}}
+
+	assert.False(t, endpointMatchSearchCriteria(ep, "prod"))
+	assert.False(t, endpointGroupMatchSearchCriteria(ep, groups, "grouptag"))
 }
 
 func TestREQ_ENV_01_EndpointGroupMatchSearchCriteria(t *testing.T) {
 	t.Parallel()
-	tags := map[portainer.TagID]string{5: "grouptag"}
 	ep := &portainer.Endpoint{GroupID: 2}
 	groups := []portainer.EndpointGroup{
 		{ID: 1, Name: "other"},
 		{ID: 2, Name: "default-group", TagIDs: []portainer.TagID{5}},
 	}
-	assert.True(t, endpointGroupMatchSearchCriteria(ep, groups, tags, "default"))
-	assert.True(t, endpointGroupMatchSearchCriteria(ep, groups, tags, "grouptag"))
-	assert.False(t, endpointGroupMatchSearchCriteria(ep, groups, tags, "nope"))
+	assert.True(t, endpointGroupMatchSearchCriteria(ep, groups, "default"))
+	assert.False(t, endpointGroupMatchSearchCriteria(ep, groups, "nope"))
 }
 
 func TestREQ_ENV_01_FilteredEndpointsByTags_PartialAndFull(t *testing.T) {
@@ -143,7 +150,7 @@ func TestREQ_ENV_01_FilterEndpointsBySearchCriteria_CombinesSources(t *testing.T
 		{ID: 2, Name: "beta", GroupID: 2, URL: "tcp://b:2375"},
 	}
 	groups := []portainer.EndpointGroup{{ID: 2, Name: "special-group"}}
-	got := filterEndpointsBySearchCriteria(append([]portainer.Endpoint{}, eps...), groups, nil, nil, "special")
+	got := filterEndpointsBySearchCriteria(append([]portainer.Endpoint{}, eps...), groups, "special")
 	require.Len(t, got, 1)
 	assert.Equal(t, "beta", got[0].Name)
 }

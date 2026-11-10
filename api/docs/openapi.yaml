@@ -711,51 +711,6 @@ paths:
           name: name
           schema:
             type: string
-        - description: will return the environments of the specified edge stack
-          in: query
-          name: edgeStackId
-          schema:
-            type: integer
-        - description: only applied when edgeStackId exists. Filter the returned
-            environments based on their deployment status in the stack (not the
-            environment status!)
-          in: query
-          name: edgeStackStatus
-          schema:
-            type: integer
-            enum:
-              - 0
-              - 1
-              - 2
-              - 3
-              - 4
-              - 5
-              - 6
-              - 7
-              - 8
-              - 9
-              - 10
-              - 11
-              - 12
-              - 13
-        - description: List environments(endpoints) of these edge groups
-          in: query
-          name: edgeGroupIds
-          style: form
-          explode: false
-          schema:
-            type: array
-            items:
-              type: integer
-        - description: Exclude environments(endpoints) of these edge groups
-          in: query
-          name: excludeEdgeGroupIds
-          style: form
-          explode: false
-          schema:
-            type: array
-            items:
-              type: integer
       responses:
         "200":
           description: Endpoints

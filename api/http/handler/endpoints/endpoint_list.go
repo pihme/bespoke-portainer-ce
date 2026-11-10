@@ -45,10 +45,6 @@ const (
 // @param edgeCheckInPassedSeconds query number false "if bigger then zero, show only edge agents that checked-in in the last provided seconds (relevant only for edge agents)"
 // @param excludeSnapshots query bool false "if true, the snapshot data won't be retrieved"
 // @param name query string false "will return only environments(endpoints) with this name"
-// @param edgeStackId query int false "will return the environments of the specified edge stack"
-// @param edgeStackStatus query portainer.EdgeStackStatusType false "only applied when edgeStackId exists. Filter the returned environments based on their deployment status in the stack (not the environment status!)" Enum("Pending", "Ok", "Error", "Acknowledged", "Remove", "RemoteUpdateSuccess", "ImagesPulled")
-// @param edgeGroupIds query []int false "List environments(endpoints) of these edge groups"
-// @param excludeEdgeGroupIds query []int false "Exclude environments(endpoints) of these edge groups"
 // @success 200 {array} portainer.Endpoint "Endpoints"
 // @failure 500 "Server error"
 // @router /endpoints [get]
@@ -65,11 +61,6 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 	endpointGroups, err := handler.DataStore.EndpointGroup().ReadAll()
 	if err != nil {
 		return httperror.InternalServerError("Unable to retrieve environment groups from the database", err)
-	}
-
-	edgeGroups, err := handler.DataStore.EdgeGroup().ReadAll()
-	if err != nil {
-		return httperror.InternalServerError("Unable to retrieve edge groups from the database", err)
 	}
 
 	endpoints, err := handler.DataStore.Endpoint().Endpoints()
@@ -92,7 +83,7 @@ func (handler *Handler) endpointList(w http.ResponseWriter, r *http.Request) *ht
 		return httperror.BadRequest("Invalid query parameters", err)
 	}
 
-	filteredEndpoints, totalAvailableEndpoints, err := handler.filterEndpointsByQuery(endpoints, query, endpointGroups, edgeGroups, settings, securityContext)
+	filteredEndpoints, totalAvailableEndpoints, err := handler.filterEndpointsByQuery(endpoints, query, endpointGroups, settings, securityContext)
 	if err != nil {
 		return httperror.InternalServerError("Unable to filter endpoints", err)
 	}

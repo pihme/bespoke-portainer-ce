@@ -114,10 +114,6 @@ func TestREQ_ENV_11_CreateUnsecuredDockerEndpoint_Persists(t *testing.T) {
 	stored, err := store.Endpoint().Endpoint(ep.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "local-docker", stored.Name)
-
-	rel, err := store.EndpointRelation().EndpointRelation(ep.ID)
-	require.NoError(t, err)
-	assert.NotNil(t, rel)
 }
 
 func TestREQ_ENV_11_CreateUnsecuredDockerEndpoint_DefaultSocketURL(t *testing.T) {

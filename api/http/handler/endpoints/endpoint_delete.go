@@ -8,7 +8,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/internal/endpointutils"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
 	"github.com/portainer/portainer/pkg/libhttp/response"
@@ -159,49 +158,6 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 
 	handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 
-	if err := tx.EndpointRelation().DeleteEndpointRelation(endpoint.ID); err != nil {
-		log.Warn().Err(err).Msg("Unable to remove environment relation from the database")
-	}
-
-	for _, tagID := range endpoint.TagIDs {
-		var tag *portainer.Tag
-		tag, err = tx.Tag().Read(tagID)
-		if err == nil {
-			delete(tag.Endpoints, endpoint.ID)
-			err = tx.Tag().Update(tagID, tag)
-		}
-
-		if tx.IsErrObjectNotFound(err) {
-			log.Warn().Err(err).Msg("Unable to find tag inside the database")
-		} else if err != nil {
-			log.Warn().Err(err).Msg("Unable to delete tag relation from the database")
-		}
-	}
-
-	edgeGroups, err := tx.EdgeGroup().ReadAll()
-	if err != nil {
-		log.Warn().Err(err).Msgf("Unable to retrieve edge groups from the database")
-	}
-
-	for _, edgeGroup := range edgeGroups {
-		edgeGroup.EndpointIDs.Remove(endpoint.ID)
-
-		if err := tx.EdgeGroup().Update(edgeGroup.ID, &edgeGroup); err != nil {
-			log.Warn().Err(err).Msg("Unable to update edge group")
-		}
-	}
-
-	edgeStacks, err := tx.EdgeStack().EdgeStacks()
-	if err != nil {
-		log.Warn().Err(err).Msg("Unable to retrieve edge stacks from the database")
-	}
-
-	for _, edgeStack := range edgeStacks {
-		if err := tx.EdgeStackStatus().Delete(edgeStack.ID, endpoint.ID); err != nil {
-			log.Warn().Err(err).Msg("Unable to delete edge stack status")
-		}
-	}
-
 	registries, err := tx.Registry().ReadAll()
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to retrieve registries from the database")
@@ -214,24 +170,6 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 
 			if err := tx.Registry().Update(registry.ID, registry); err != nil {
 				log.Warn().Err(err).Msg("Unable to update registry accesses")
-			}
-		}
-	}
-
-	if endpointutils.IsEdgeEndpoint(endpoint) {
-		edgeJobs, err := tx.EdgeJob().ReadAll()
-		if err != nil {
-			log.Warn().Err(err).Msg("Unable to retrieve edge jobs from the database")
-		}
-
-		for idx := range edgeJobs {
-			edgeJob := &edgeJobs[idx]
-			if _, ok := edgeJob.Endpoints[endpoint.ID]; ok {
-				delete(edgeJob.Endpoints, endpoint.ID)
-
-				if err := tx.EdgeJob().Update(edgeJob.ID, edgeJob); err != nil {
-					log.Warn().Err(err).Msg("Unable to update edge job")
-				}
 			}
 		}
 	}

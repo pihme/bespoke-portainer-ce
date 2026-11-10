@@ -3204,22 +3204,6 @@ export type EndpointListData = {
      * will return only environments(endpoints) with this name
      */
     name?: string;
-    /**
-     * will return the environments of the specified edge stack
-     */
-    edgeStackId?: number;
-    /**
-     * only applied when edgeStackId exists. Filter the returned environments based on their deployment status in the stack (not the environment status!)
-     */
-    edgeStackStatus?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
-    /**
-     * List environments(endpoints) of these edge groups
-     */
-    edgeGroupIds?: Array<number>;
-    /**
-     * Exclude environments(endpoints) of these edge groups
-     */
-    excludeEdgeGroupIds?: Array<number>;
   };
   url: '/endpoints';
 };

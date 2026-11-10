@@ -142,15 +142,6 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 		return httperror.InternalServerError("Unable to find an environment group inside the database", err)
 	}
 
-	relationObject := &portainer.EndpointRelation{
-		EndpointID: endpoint.ID,
-		EdgeStacks: map[portainer.EdgeStackID]bool{},
-	}
-
-	if err := handler.DataStore.EndpointRelation().Create(relationObject); err != nil {
-		return httperror.InternalServerError("Unable to persist the relation object inside the database", err)
-	}
-
 	return response.JSON(w, endpoint)
 }
 

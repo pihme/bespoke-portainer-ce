@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestREQ_ENV_03_DeleteEndpoint_WithTLSTagsAndRelation(t *testing.T) {
+func TestREQ_ENV_03_DeleteEndpoint_WithTLS(t *testing.T) {
 	t.Parallel()
 	fips.InitFIPS(false)
 	h, store := newDockerEndpointHandler(t)
@@ -21,21 +21,9 @@ func TestREQ_ENV_03_DeleteEndpoint_WithTLSTagsAndRelation(t *testing.T) {
 	require.NoError(t, err)
 	h.FileService = fs
 
-	tag := &portainer.Tag{
-		Name:           "to-clean",
-		Endpoints:      map[portainer.EndpointID]bool{1: true},
-		EndpointGroups: map[portainer.EndpointGroupID]bool{},
-	}
-	require.NoError(t, store.Tag().Create(tag))
-
 	ep := createDockerEndpoint(t, store, 1, "tls-delete")
 	ep.TLSConfig = portainer.TLSConfiguration{TLS: true, TLSSkipVerify: true}
-	ep.TagIDs = []portainer.TagID{tag.ID}
 	require.NoError(t, store.Endpoint().UpdateEndpoint(ep.ID, ep))
-	require.NoError(t, store.EndpointRelation().Create(&portainer.EndpointRelation{
-		EndpointID: 1,
-		EdgeStacks: map[portainer.EdgeStackID]bool{},
-	}))
 	// create a snapshot row so delete Snapshot path is exercised (missing is only warned)
 	_ = store.Snapshot().Create(&portainer.Snapshot{EndpointID: 1})
 
@@ -45,10 +33,6 @@ func TestREQ_ENV_03_DeleteEndpoint_WithTLSTagsAndRelation(t *testing.T) {
 
 	_, err = store.Endpoint().Endpoint(1)
 	assert.Error(t, err)
-
-	updatedTag, err := store.Tag().Read(tag.ID)
-	require.NoError(t, err)
-	assert.False(t, updatedTag.Endpoints[1])
 }
 
 func TestREQ_ENV_03_DeleteEndpoint_MissingTag_StillDeletes(t *testing.T) {

@@ -804,8 +804,6 @@ export const endpointList = <ThrowOnError extends boolean = true>(
         tagIds: { array: { explode: false } },
         endpointIds: { array: { explode: false } },
         excludeIds: { array: { explode: false } },
-        edgeGroupIds: { array: { explode: false } },
-        excludeEdgeGroupIds: { array: { explode: false } },
       },
     },
     requestValidator: async (data) =>

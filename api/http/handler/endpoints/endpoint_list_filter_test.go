@@ -197,3 +197,21 @@ func TestREQ_ENV_01_List_IncludeSnapshotsAndIgnoredAgentVersions(t *testing.T) {
 	assert.True(t, ids[1])
 	assert.True(t, ids[2])
 }
+
+// TestREQ_TAI_021_ListIgnoresRemovedEdgeFilters proves that the environment
+// list no longer reads Edge groups, Edge stacks or Edge stack statuses: the
+// removed Edge query parameters are ignored instead of failing the request.
+func TestREQ_TAI_021_ListIgnoresRemovedEdgeFilters(t *testing.T) {
+	t.Parallel()
+	h, store := newDockerEndpointHandler(t)
+	createDockerEndpoint(t, store, 1, "alpha")
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, endpointAdminRequest(http.MethodGet, "/endpoints?excludeSnapshots=true&edgeStackId=99&edgeStackStatus=1&edgeGroupIds[]=7&excludeEdgeGroupIds[]=8", nil))
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+
+	var got []portainer.Endpoint
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got))
+	require.Len(t, got, 1)
+	assert.Equal(t, "alpha", got[0].Name)
+}

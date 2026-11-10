@@ -3910,44 +3910,6 @@ paths:
         in: query
         name: name
         type: string
-      - description: will return the environments of the specified edge stack
-        in: query
-        name: edgeStackId
-        type: integer
-      - description: only applied when edgeStackId exists. Filter the returned environments
-          based on their deployment status in the stack (not the environment status!)
-        enum:
-        - 0
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-        - 6
-        - 7
-        - 8
-        - 9
-        - 10
-        - 11
-        - 12
-        - 13
-        in: query
-        name: edgeStackStatus
-        type: integer
-      - collectionFormat: csv
-        description: List environments(endpoints) of these edge groups
-        in: query
-        items:
-          type: integer
-        name: edgeGroupIds
-        type: array
-      - collectionFormat: csv
-        description: Exclude environments(endpoints) of these edge groups
-        in: query
-        items:
-          type: integer
-        name: excludeEdgeGroupIds
-        type: array
       produces:
       - application/json
       responses:

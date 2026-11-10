@@ -86,18 +86,18 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 	bindHTTPS := "127.0.0.1:" + freeTCPPort(t)
 
 	server := &Server{
-		BindAddress:            bindHTTP,
-		BindAddressHTTPS:       bindHTTPS,
-		CSP:                    csp,
-		HTTPEnabled:            httpEnabled,
-		AssetsPath:             assetsDir,
-		Status:                 &portainer.Status{Version: "test"},
-		FileService:            fileService,
-		DataStore:              store,
-		ProxyManager:           proxy.NewManager(nil),
-		SSLService:             sslService,
-		ShutdownTrigger:        cancel,
-		TrustedOrigins:         trustedOrigins,
+		BindAddress:      bindHTTP,
+		BindAddressHTTPS: bindHTTPS,
+		CSP:              csp,
+		HTTPEnabled:      httpEnabled,
+		AssetsPath:       assetsDir,
+		Status:           &portainer.Status{Version: "test"},
+		FileService:      fileService,
+		DataStore:        store,
+		ProxyManager:     proxy.NewManager(nil),
+		SSLService:       sslService,
+		ShutdownTrigger:  cancel,
+		TrustedOrigins:   trustedOrigins,
 	}
 
 	return server, ctx, cancel

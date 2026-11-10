@@ -81,4 +81,3 @@ func (manager *Manager) DeleteEndpointProxy(endpointID portainer.EndpointID) {
 		manager.k8sClientFactory.RemoveKubeClient(endpointID)
 	}
 }
-

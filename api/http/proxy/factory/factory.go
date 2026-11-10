@@ -54,4 +54,3 @@ func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (htt
 
 	return factory.newDockerProxy(endpoint)
 }
-

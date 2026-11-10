@@ -1332,8 +1332,6 @@ const (
 	VersionCheckURL = ReleasesURL + "/latest"
 	// PortainerAgentHeader represents the name of the header available in any agent response
 	PortainerAgentHeader = "Portainer-Agent"
-	// PortainerAgentEdgeIDHeader represent the name of the header containing the Edge ID associated to an agent/agent cluster
-	PortainerAgentEdgeIDHeader = "X-PortainerAgent-EdgeID"
 	// HTTPResponseAgentPlatform represents the name of the header containing the Agent platform
 	HTTPResponseAgentPlatform = "Portainer-Agent-Platform"
 	// PortainerAgentTargetHeader represent the name of the header containing the target node name

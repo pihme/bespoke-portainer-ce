@@ -31,17 +31,13 @@ const (
 	// ComposeFileDefaultName represents the default name of a compose file.
 	ComposeFileDefaultName = "docker-compose.yml"
 
-	// EdgeStackStorePath represents the subfolder where edge stack files are stored in the file store folder.
-	EdgeStackStorePath = "edge_stacks"
 	// PrivateKeyFile represents the name on disk of the file containing the private key.
 	PrivateKeyFile = "portainer.key"
 	// PublicKeyFile represents the name on disk of the file containing the public key.
 	PublicKeyFile = "portainer.pub"
 	// BinaryStorePath represents the subfolder where binaries are stored in the file store folder.
 	BinaryStorePath = "bin"
-	// ExtensionRegistryManagementStorePath represents the subfolder where files related to the
-	// registry management extension are stored.
-	ExtensionRegistryManagementStorePath = "extensions"
+
 	// CustomTemplateStorePath represents the subfolder where custom template files are stored in the file store folder.
 	CustomTemplateStorePath = "custom_templates"
 	// TempPath represent the subfolder where temporary files are saved
@@ -52,12 +48,6 @@ const (
 	SSLCertFilename = "cert.pem"
 	// SSLKeyFilename represents the ssl key file name
 	SSLKeyFilename = "key.pem"
-	// SSLCACertFilename represents the CA ssl certificate file name for mTLS
-	SSLCACertFilename = "ca-cert.pem"
-
-	MTLSCertFilename   = "mtls-cert.pem"
-	MTLSCACertFilename = "mtls-ca-cert.pem"
-	MTLSKeyFilename    = "mtls-key.pem"
 )
 
 // ErrUndefinedTLSFileType represents an error returned on undefined TLS file type

@@ -188,8 +188,6 @@ func TestREQ_ENV_11_CreateUnsecuredEndpoint_Direct_SnapshotFailure(t *testing.T)
 func TestREQ_TAI_013_CreateIgnoresGroupAndTags(t *testing.T) {
 	t.Parallel()
 	h, store := newCreateDockerHandler(t)
-	tag := &portainer.Tag{Name: "create-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.TagService.Create(tag))
 	group := &portainer.EndpointGroup{Name: "legacy-group"}
 	require.NoError(t, store.EndpointGroup().Create(group))
 	require.NotEqual(t, portainer.EndpointGroupID(1), group.ID)
@@ -200,7 +198,7 @@ func TestREQ_TAI_013_CreateIgnoresGroupAndTags(t *testing.T) {
 		"URL":                  "unix:///var/run/docker.sock",
 		"ContainerEngine":      "docker",
 		"GroupID":              strconv.Itoa(int(group.ID)),
-		"TagIds":               "[" + strconv.Itoa(int(tag.ID)) + "]",
+		"TagIds":               "[1]",
 		"Gpus":                 `[{"name":"gpu0","value":"nvidia.com/gpu=0"}]`,
 		"PublicURL":            "docker.example.com",
 	}, nil)
@@ -216,9 +214,6 @@ func TestREQ_TAI_013_CreateIgnoresGroupAndTags(t *testing.T) {
 	assert.Equal(t, "docker.example.com", ep.PublicURL)
 	assert.Equal(t, []portainer.Pair{{Name: "gpu0", Value: "nvidia.com/gpu=0"}}, ep.Gpus)
 
-	updated, err := store.TagService.Read(tag.ID)
-	require.NoError(t, err)
-	assert.False(t, updated.Endpoints[ep.ID])
 }
 
 // REQ-TAI-007: the Portainer Agent and remote Docker hosts are removed. Only the

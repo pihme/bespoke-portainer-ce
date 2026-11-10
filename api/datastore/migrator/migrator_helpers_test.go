@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/stack"
-	"github.com/portainer/portainer/api/dataservices/tag"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/filesystem"
@@ -30,7 +29,6 @@ type testServices struct {
 	userSvc       *user.Service
 	versionSvc    *version.Service
 	resourceCtrl  *resourcecontrol.Service
-	tagSvc        *tag.Service
 	fileSvc       *filesystem.Service
 	authSvc       *authorization.Service
 }
@@ -55,8 +53,6 @@ func openTestServices(t *testing.T) *testServices {
 	require.NoError(t, err)
 	resourceCtrl, err := resourcecontrol.NewService(conn)
 	require.NoError(t, err)
-	tagSvc, err := tag.NewService(conn)
-	require.NoError(t, err)
 
 	fileRoot := t.TempDir()
 	fileSvc, err := filesystem.NewService(fileRoot, fileRoot)
@@ -71,7 +67,6 @@ func openTestServices(t *testing.T) *testServices {
 		userSvc:       userSvc,
 		versionSvc:    versionSvc,
 		resourceCtrl:  resourceCtrl,
-		tagSvc:        tagSvc,
 		fileSvc:       fileSvc,
 		authSvc:       authorization.NewService(nil),
 	}
@@ -91,7 +86,6 @@ func (s *testServices) newMigrator(current *models.Version) *Migrator {
 		UserService:            s.userSvc,
 		VersionService:         s.versionSvc,
 		ResourceControlService: s.resourceCtrl,
-		TagService:             s.tagSvc,
 		FileService:            s.fileSvc,
 		AuthorizationService:   s.authSvc,
 	})

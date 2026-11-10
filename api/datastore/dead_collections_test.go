@@ -111,6 +111,7 @@ var tai023Collections = map[string]string{
 	"teams":           "team",
 	"team_membership": "teammembership",
 	"registries":      "registry",
+	"tags":            "tag",
 }
 
 // TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a

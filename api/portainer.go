@@ -921,18 +921,6 @@ type (
 		InstanceID string `example:"299ab403-70a8-4c05-92f7-bf7a994d50df"`
 	}
 
-	// Tag represents a tag that can be associated to a resource
-	Tag struct {
-		// Tag identifier
-		ID TagID `example:"1"`
-		// Tag name
-		Name string `json:"Name" example:"org/acme"`
-		// A set of environment(endpoint) ids that have this tag
-		Endpoints map[EndpointID]bool `json:"Endpoints"`
-		// A set of environment(endpoint) group ids that have this tag
-		EndpointGroups map[EndpointGroupID]bool `json:"EndpointGroups"`
-	}
-
 	// TagID represents a tag identifier
 	TagID int
 

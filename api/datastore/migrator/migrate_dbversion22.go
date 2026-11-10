@@ -6,38 +6,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (m *Migrator) updateTagsToDBVersion23() error {
-	log.Info().Msg("updating tags")
-
-	tags, err := m.tagService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	for _, tag := range tags {
-		tag.EndpointGroups = make(map[portainer.EndpointGroupID]bool)
-		tag.Endpoints = make(map[portainer.EndpointID]bool)
-		err = m.tagService.Update(tag.ID, &tag)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
+// updateEndpointsAndEndpointGroupsToDBVersion23 converts the legacy tag names
+// of environments and environment groups to tag IDs. There is no tags
+// collection (TAI-023), so no name resolves and every environment and group
+// gets an empty tag ID list, as it did when the collection was empty.
 func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 	log.Info().Msg("updating endpoints and endpoint groups")
-
-	tags, err := m.tagService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	tagsNameMap := make(map[string]portainer.Tag)
-	for _, tag := range tags {
-		tagsNameMap[tag.Name] = tag
-	}
 
 	endpoints, err := m.endpointService.Endpoints()
 	if err != nil {
@@ -45,15 +19,7 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 	}
 
 	for _, endpoint := range endpoints {
-		endpointTags := make([]portainer.TagID, 0)
-		for _, tagName := range endpoint.Tags {
-			tag, ok := tagsNameMap[tagName]
-			if ok {
-				endpointTags = append(endpointTags, tag.ID)
-				tag.Endpoints[endpoint.ID] = true
-			}
-		}
-		endpoint.TagIDs = endpointTags
+		endpoint.TagIDs = make([]portainer.TagID, 0)
 		err = m.endpointService.UpdateEndpoint(endpoint.ID, &endpoint)
 		if err != nil {
 			return err
@@ -66,23 +32,8 @@ func (m *Migrator) updateEndpointsAndEndpointGroupsToDBVersion23() error {
 	}
 
 	for _, endpointGroup := range endpointGroups {
-		endpointGroupTags := make([]portainer.TagID, 0)
-		for _, tagName := range endpointGroup.Tags {
-			tag, ok := tagsNameMap[tagName]
-			if ok {
-				endpointGroupTags = append(endpointGroupTags, tag.ID)
-				tag.EndpointGroups[endpointGroup.ID] = true
-			}
-		}
-		endpointGroup.TagIDs = endpointGroupTags
+		endpointGroup.TagIDs = make([]portainer.TagID, 0)
 		err = m.endpointGroupService.Update(endpointGroup.ID, &endpointGroup)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, tag := range tagsNameMap {
-		err = m.tagService.Update(tag.ID, &tag)
 		if err != nil {
 			return err
 		}

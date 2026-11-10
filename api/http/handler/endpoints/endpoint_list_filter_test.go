@@ -125,16 +125,15 @@ func TestREQ_ENV_01_List_SearchExcludeIdsAndTypes(t *testing.T) {
 func TestREQ_ENV_01_List_FilterByTags(t *testing.T) {
 	t.Parallel()
 	h, store := newDockerEndpointHandler(t)
-	tag := &portainer.Tag{Name: "prod", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.TagService.Create(tag))
+	tagID := portainer.TagID(1)
 
 	ep1 := createDockerEndpoint(t, store, 1, "tagged")
-	ep1.TagIDs = []portainer.TagID{tag.ID}
+	ep1.TagIDs = []portainer.TagID{tagID}
 	require.NoError(t, store.Endpoint().UpdateEndpoint(ep1.ID, ep1))
 	createDockerEndpoint(t, store, 2, "untagged")
 
 	w := httptest.NewRecorder()
-	h.ServeHTTP(w, endpointAdminRequest(http.MethodGet, "/endpoints?tagIds[]="+strconv.Itoa(int(tag.ID))+"&tagsPartialMatch=true&excludeSnapshots=true", nil))
+	h.ServeHTTP(w, endpointAdminRequest(http.MethodGet, "/endpoints?tagIds[]="+strconv.Itoa(int(tagID))+"&tagsPartialMatch=true&excludeSnapshots=true", nil))
 	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
 	var got []portainer.Endpoint
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &got))

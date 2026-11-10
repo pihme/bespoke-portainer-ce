@@ -106,8 +106,6 @@ func TestREQ_ENV_11_Validate_PodmanEngine_OK(t *testing.T) {
 func TestREQ_TAI_013_SaveEndpoint_DoesNotTouchTags(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
-	tag := &portainer.Tag{Name: "env-tag", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{}}
-	require.NoError(t, store.TagService.Create(tag))
 
 	h := &Handler{DataStore: store}
 	ep := &portainer.Endpoint{
@@ -115,17 +113,13 @@ func TestREQ_TAI_013_SaveEndpoint_DoesNotTouchTags(t *testing.T) {
 		Name:    "tagged-env",
 		Type:    portainer.DockerEnvironment,
 		GroupID: 1,
-		TagIDs:  []portainer.TagID{tag.ID},
+		TagIDs:  []portainer.TagID{1},
 	}
 	require.NoError(t, h.saveEndpointAndUpdateAuthorizations(store, ep))
 
 	saved, err := store.Endpoint().Endpoint(ep.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "tagged-env", saved.Name)
-
-	updated, err := store.TagService.Read(tag.ID)
-	require.NoError(t, err)
-	assert.False(t, updated.Endpoints[ep.ID])
 }
 
 // REQ-TAI-002: the local Kubernetes environment (creation type 5) is removed

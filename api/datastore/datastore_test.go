@@ -37,7 +37,6 @@ func TestStoreFull(t *testing.T) {
 		"SSL Settings":     store.testSSLSettings,
 		"Custom Templates": store.testCustomTemplates,
 		"Resource Control": store.testResourceControl,
-		"Tags":             store.testTags,
 	}
 
 	for name, test := range testCases {
@@ -262,34 +261,4 @@ func (store *Store) testResourceControl(t *testing.T) {
 	// ctrl := &portainer.ResourceControl{
 	// }
 	// resControl().Create()
-}
-
-func (store *Store) testTags(t *testing.T) {
-	is := assert.New(t)
-
-	tags := store.TagService
-
-	tag1 := &portainer.Tag{
-		ID:   1,
-		Name: "Tag 1",
-	}
-
-	tag2 := &portainer.Tag{
-		ID:   2,
-		Name: "Tag 1",
-	}
-
-	err := tags.Create(tag1)
-	require.NoError(t, err, "Tags.Create should succeed")
-
-	err = tags.Create(tag2)
-	require.NoError(t, err, "Tags.Create should succeed")
-
-	actual, err := tags.Read(tag1.ID)
-	require.NoError(t, err, "tag1 should be found")
-	is.Equal(tag1, actual, "tags differ")
-
-	actual, err = tags.Read(tag2.ID)
-	require.NoError(t, err, "tag2 should be found")
-	is.Equal(tag2, actual, "tags differ")
 }

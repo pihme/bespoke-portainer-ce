@@ -30,7 +30,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Source())
 	require.NotNil(t, store.SSLSettings())
 	require.NotNil(t, store.Stack())
-	require.NotNil(t, store.TagService)
 	require.NotNil(t, store.Version())
 	require.NotNil(t, store.Workflow())
 
@@ -248,14 +247,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 		Docker:     &portainer.DockerSnapshot{TotalCPU: 2},
 	}))
 
-	tag := &portainer.Tag{
-		Name:           "export-tag",
-		Endpoints:      map[portainer.EndpointID]bool{endpointID: true},
-		EndpointGroups: map[portainer.EndpointGroupID]bool{},
-	}
-	require.NoError(t, store.TagService.Create(tag))
-	tagID := tag.ID
-
 	tplID := portainer.CustomTemplateID(store.CustomTemplate().GetNextIdentifier())
 	require.NoError(t, store.CustomTemplate().Create(&portainer.CustomTemplate{
 		ID:          tplID,
@@ -324,10 +315,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	gotSnap, err := store.Snapshot().Read(endpointID)
 	require.NoError(t, err)
 	require.Equal(t, 2, gotSnap.Docker.TotalCPU)
-
-	gotTag, err := store.TagService.Read(tagID)
-	require.NoError(t, err)
-	require.Equal(t, "export-tag", gotTag.Name)
 
 	gotTpl, err := store.CustomTemplate().Read(tplID)
 	require.NoError(t, err)

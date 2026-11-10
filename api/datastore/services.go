@@ -16,7 +16,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/ssl"
 	"github.com/portainer/portainer/api/dataservices/stack"
-	"github.com/portainer/portainer/api/dataservices/tag"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -43,7 +42,6 @@ type Store struct {
 	SourceService          *source.Service
 	SSLSettingsService     *ssl.Service
 	StackService           *stack.Service
-	TagService             *tag.Service
 	UserService            *user.Service
 	VersionService         *version.Service
 	WorkflowService        *workflow.Service
@@ -103,12 +101,6 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.StackService = stackService
-
-	tagService, err := tag.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.TagService = tagService
 
 	userService, err := user.NewService(store.connection)
 	if err != nil {
@@ -200,7 +192,6 @@ type storeExport struct {
 	SSLSettings     portainer.SSLSettings       `json:"ssl,omitzero"`
 	Source          []portainer.Source          `json:"sources,omitempty"`
 	Stack           []portainer.Stack           `json:"stacks,omitempty"`
-	Tag             []portainer.Tag             `json:"tags,omitempty"`
 	User            []portainer.User            `json:"users,omitempty"`
 	Version         models.Version              `json:"version,omitzero"`
 	Workflow        []portainer.Workflow        `json:"workflows,omitempty"`
@@ -280,14 +271,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.Stack = t
-	}
-
-	if t, err := store.TagService.ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Tags")
-		}
-	} else {
-		backup.Tag = t
 	}
 
 	if users, err := store.User().ReadAll(); err != nil {
@@ -397,12 +380,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.Stack {
 		if err := store.Stack().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the stack in the database")
-		}
-	}
-
-	for _, v := range backup.Tag {
-		if err := store.TagService.Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the tag in the database")
 		}
 	}
 

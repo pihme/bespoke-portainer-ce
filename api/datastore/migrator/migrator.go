@@ -13,7 +13,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/snapshot"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/stack"
-	"github.com/portainer/portainer/api/dataservices/tag"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -36,7 +35,6 @@ type (
 		settingsService        *settings.Service
 		snapshotService        *snapshot.Service
 		stackService           *stack.Service
-		tagService             *tag.Service
 		userService            *user.Service
 		versionService         *version.Service
 		fileService            portainer.FileService
@@ -56,7 +54,6 @@ type (
 		SettingsService        *settings.Service
 		SnapshotService        *snapshot.Service
 		StackService           *stack.Service
-		TagService             *tag.Service
 		UserService            *user.Service
 		VersionService         *version.Service
 		FileService            portainer.FileService
@@ -77,7 +74,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		resourceControlService: parameters.ResourceControlService,
 		settingsService:        parameters.SettingsService,
 		snapshotService:        parameters.SnapshotService,
-		tagService:             parameters.TagService,
 		stackService:           parameters.StackService,
 		userService:            parameters.UserService,
 		versionService:         parameters.VersionService,
@@ -165,9 +161,7 @@ func (m *Migrator) initMigrations() {
 		m.updateResourceControlsToDBVersion22,
 		m.updateUsersToDBVersion22)
 
-	m.addMigrations("1.24",
-		m.updateTagsToDBVersion23,
-		m.updateEndpointsAndEndpointGroupsToDBVersion23)
+	m.addMigrations("1.24", m.updateEndpointsAndEndpointGroupsToDBVersion23)
 
 	m.addMigrations("1.24.1", m.updateSettingsToDB24)
 

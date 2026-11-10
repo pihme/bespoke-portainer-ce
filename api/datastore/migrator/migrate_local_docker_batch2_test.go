@@ -87,39 +87,14 @@ func TestMigrate_FindResourcesToUpdateForDB32_MatchesLegacyVolumeID(t *testing.T
 	assert.Equal(t, "vol_did", toUpdate[7])
 }
 
-func TestMigrate_UpdateTagsToDBVersion23_InitializesMaps(t *testing.T) {
+// REQ-TAI-023: there is no tags collection, so the 1.24 migration resolves no
+// tag name and leaves every environment and group with an empty tag ID list.
+func TestMigrate_UpdateEndpointsAndEndpointGroupsToDBVersion23_ClearsTagIDs(t *testing.T) {
 	t.Parallel()
 	s := openTestServices(t)
-	require.NoError(t, s.tagSvc.Create(&portainer.Tag{Name: "prod"}))
-	require.NoError(t, s.tagSvc.Create(&portainer.Tag{Name: "dev"}))
-
-	m := s.newMigrator(nil)
-	require.NoError(t, m.updateTagsToDBVersion23())
-
-	tags, err := s.tagSvc.ReadAll()
-	require.NoError(t, err)
-	require.Len(t, tags, 2)
-	for _, tag := range tags {
-		require.NotNil(t, tag.Endpoints)
-		require.NotNil(t, tag.EndpointGroups)
-		assert.Empty(t, tag.Endpoints)
-		assert.Empty(t, tag.EndpointGroups)
-	}
-}
-
-func TestMigrate_UpdateEndpointsAndEndpointGroupsToDBVersion23_ConvertsTagNames(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-	require.NoError(t, s.tagSvc.Create(&portainer.Tag{
-		Name: "web", Endpoints: map[portainer.EndpointID]bool{}, EndpointGroups: map[portainer.EndpointGroupID]bool{},
-	}))
-	tags, err := s.tagSvc.ReadAll()
-	require.NoError(t, err)
-	require.Len(t, tags, 1)
-	tagID := tags[0].ID
 
 	require.NoError(t, s.endpointSvc.Create(&portainer.Endpoint{
-		ID: 1, Name: "local", Type: portainer.DockerEnvironment, Tags: []string{"web", "missing"},
+		ID: 1, Name: "local", Type: portainer.DockerEnvironment, Tags: []string{"web", "missing"}, TagIDs: []portainer.TagID{7},
 	}))
 	require.NoError(t, s.endpointGroup.Create(&portainer.EndpointGroup{
 		Name: "g1", Tags: []string{"web"},
@@ -130,17 +105,12 @@ func TestMigrate_UpdateEndpointsAndEndpointGroupsToDBVersion23_ConvertsTagNames(
 
 	ep, err := s.endpointSvc.Endpoint(1)
 	require.NoError(t, err)
-	assert.Equal(t, []portainer.TagID{tagID}, ep.TagIDs)
+	assert.Empty(t, ep.TagIDs)
 
 	groups, err := s.endpointGroup.ReadAll()
 	require.NoError(t, err)
 	require.Len(t, groups, 1)
-	assert.Equal(t, []portainer.TagID{tagID}, groups[0].TagIDs)
-
-	updatedTag, err := s.tagSvc.Read(tagID)
-	require.NoError(t, err)
-	assert.True(t, updatedTag.Endpoints[1])
-	assert.True(t, updatedTag.EndpointGroups[groups[0].ID])
+	assert.Empty(t, groups[0].TagIDs)
 }
 
 func TestMigrate_UpdateResourceControlsToDBVersion22_ClearsAdministratorsOnly(t *testing.T) {

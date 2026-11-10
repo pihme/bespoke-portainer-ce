@@ -23,7 +23,7 @@ func newDockerEndpointHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.DataStore = store
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 	h.SnapshotService = fakeSnapshotService{}
-	h.ProxyManager = proxy.NewManager(nil)
+	h.ProxyManager = proxy.NewManager()
 	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 	return h, store
 }

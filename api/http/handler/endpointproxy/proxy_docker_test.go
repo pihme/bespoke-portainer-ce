@@ -144,7 +144,7 @@ func TestREQ_TAI_004_ProxyDockerAPI_EdgeEnvironmentIsRejected(t *testing.T) {
 
 	h := NewHandler(testhelpers.NewTestRequestBouncer())
 	h.DataStore = store
-	h.ProxyManager = proxy.NewManager(nil)
+	h.ProxyManager = proxy.NewManager()
 
 	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
 		ID:     14,
@@ -175,7 +175,7 @@ func TestREQ_TAI_007_ProxyDockerAPI_AgentEnvironmentIsRejected(t *testing.T) {
 
 	h := NewHandler(testhelpers.NewTestRequestBouncer())
 	h.DataStore = store
-	h.ProxyManager = proxy.NewManager(nil)
+	h.ProxyManager = proxy.NewManager()
 
 	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
 		ID:   15,

@@ -20,20 +20,11 @@ func (s stubDockerSnapshotter) CreateSnapshot(endpoint *portainer.Endpoint) (*po
 	return s.snapshot, s.err
 }
 
-type stubKubernetesSnapshotter struct {
-	snapshot *portainer.KubernetesSnapshot
-	err      error
-}
-
-func (s stubKubernetesSnapshotter) CreateSnapshot(endpoint *portainer.Endpoint) (*portainer.KubernetesSnapshot, error) {
-	return s.snapshot, s.err
-}
-
-func newTestService(t *testing.T, dockerSnapshotter portainer.DockerSnapshotter, kubernetesSnapshotter portainer.KubernetesSnapshotter) (*snapshot.Service, *datastore.Store) {
+func newTestService(t *testing.T, dockerSnapshotter portainer.DockerSnapshotter) (*snapshot.Service, *datastore.Store) {
 	t.Helper()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	service, err := snapshot.NewService("", store, dockerSnapshotter, kubernetesSnapshotter)
+	service, err := snapshot.NewService("", store, dockerSnapshotter)
 	require.NoError(t, err)
 
 	return service, store
@@ -42,7 +33,7 @@ func newTestService(t *testing.T, dockerSnapshotter portainer.DockerSnapshotter,
 func TestSnapshotEndpointTx_AzureEnvironment_NoOp(t *testing.T) {
 	t.Parallel()
 
-	service, store := newTestService(t, nil, nil)
+	service, store := newTestService(t, nil)
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.AzureEnvironment}
 
 	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
@@ -54,11 +45,13 @@ func TestSnapshotEndpointTx_AzureEnvironment_NoOp(t *testing.T) {
 	require.Error(t, err, "no snapshot should be persisted for an Azure environment")
 }
 
-func TestSnapshotEndpointTx_KubernetesLocalEnvironment_PersistsSnapshot(t *testing.T) {
+// TestREQ_TAI_023_SnapshotEndpointTx_KubernetesRecordIsNotSnapshotted proves
+// that a leftover Kubernetes record is skipped like an Azure record now that
+// the Kubernetes client is gone; no Kubernetes environment can be created.
+func TestREQ_TAI_023_SnapshotEndpointTx_KubernetesRecordIsNotSnapshotted(t *testing.T) {
 	t.Parallel()
 
-	kubeSnapshot := &portainer.KubernetesSnapshot{}
-	service, store := newTestService(t, nil, stubKubernetesSnapshotter{snapshot: kubeSnapshot})
+	service, store := newTestService(t, nil)
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.KubernetesLocalEnvironment}
 
 	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
@@ -66,16 +59,15 @@ func TestSnapshotEndpointTx_KubernetesLocalEnvironment_PersistsSnapshot(t *testi
 	})
 	require.NoError(t, err)
 
-	persisted, err := store.Snapshot().Read(endpoint.ID)
-	require.NoError(t, err)
-	require.NotNil(t, persisted.Kubernetes)
+	_, err = store.Snapshot().Read(endpoint.ID)
+	require.Error(t, err)
 }
 
 func TestSnapshotEndpointTx_DockerEnvironment_PersistsSnapshot(t *testing.T) {
 	t.Parallel()
 
 	dockerSnapshot := &portainer.DockerSnapshot{}
-	service, store := newTestService(t, stubDockerSnapshotter{snapshot: dockerSnapshot}, nil)
+	service, store := newTestService(t, stubDockerSnapshotter{snapshot: dockerSnapshot})
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.DockerEnvironment}
 
 	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
@@ -91,7 +83,7 @@ func TestSnapshotEndpointTx_DockerEnvironment_PersistsSnapshot(t *testing.T) {
 func TestSnapshotEndpointTx_DockerEnvironment_NilSnapshotNotPersisted(t *testing.T) {
 	t.Parallel()
 
-	service, store := newTestService(t, stubDockerSnapshotter{snapshot: nil}, nil)
+	service, store := newTestService(t, stubDockerSnapshotter{snapshot: nil})
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.DockerEnvironment}
 
 	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
@@ -106,7 +98,7 @@ func TestSnapshotEndpointTx_DockerEnvironment_NilSnapshotNotPersisted(t *testing
 func TestSnapshotEndpointTx_DockerEnvironment_IncompatibleContainerEngine(t *testing.T) {
 	t.Parallel()
 
-	service, store := newTestService(t, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{IsPodman: true}}, nil)
+	service, store := newTestService(t, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{IsPodman: true}})
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.DockerEnvironment, ContainerEngine: portainer.ContainerEngineDocker}
 
 	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
@@ -119,7 +111,7 @@ func TestSnapshotEndpoint_UsesServiceDataStore(t *testing.T) {
 	t.Parallel()
 
 	dockerSnapshot := &portainer.DockerSnapshot{}
-	service, store := newTestService(t, stubDockerSnapshotter{snapshot: dockerSnapshot}, nil)
+	service, store := newTestService(t, stubDockerSnapshotter{snapshot: dockerSnapshot})
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.DockerEnvironment}
 
 	err := service.SnapshotEndpoint(endpoint)

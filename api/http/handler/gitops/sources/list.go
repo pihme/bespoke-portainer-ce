@@ -100,7 +100,7 @@ func (h *Handler) fetchSources(ctx context.Context, sc *security.RestrictedReque
 
 		allSrcs = sources
 
-		stats, err = workflows.FetchSourceStats(tx, h.k8sFactory, sc)
+		stats, err = workflows.FetchSourceStats(tx, sc)
 		return err
 	}); err != nil {
 		return nil, err

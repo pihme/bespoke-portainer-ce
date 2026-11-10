@@ -31,7 +31,7 @@ func setupProxyHandler(t *testing.T, bouncer security.BouncerService) (*Handler,
 
 	h := NewHandler(bouncer)
 	h.DataStore = store
-	h.ProxyManager = proxy.NewManager(nil)
+	h.ProxyManager = proxy.NewManager()
 
 	return h, store
 }

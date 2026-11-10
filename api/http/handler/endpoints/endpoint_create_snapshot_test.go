@@ -21,14 +21,6 @@ func (fakeSnapshotService) FillSnapshotData(endpoint *portainer.Endpoint, includ
 	return nil
 }
 
-type stubKubernetesSnapshotter struct {
-	snapshot *portainer.KubernetesSnapshot
-}
-
-func (s stubKubernetesSnapshotter) CreateSnapshot(endpoint *portainer.Endpoint) (*portainer.KubernetesSnapshot, error) {
-	return s.snapshot, nil
-}
-
 func TestSnapshotAndPersistEndpoint_NonConcreteSnapshotService_ReturnsError(t *testing.T) {
 	t.Parallel()
 
@@ -50,11 +42,11 @@ func TestSnapshotAndPersistEndpoint_ConcreteSnapshotService_PersistsSnapshot(t *
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	snapshotService, err := snapshot.NewService("", store, nil, stubKubernetesSnapshotter{snapshot: &portainer.KubernetesSnapshot{}})
+	snapshotService, err := snapshot.NewService("", store, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}})
 	require.NoError(t, err)
 
 	h := &Handler{DataStore: store, SnapshotService: snapshotService}
-	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.KubernetesLocalEnvironment}
+	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.DockerEnvironment}
 
 	err = store.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		httpErr := h.snapshotAndPersistEndpoint(tx, endpoint)
@@ -67,5 +59,5 @@ func TestSnapshotAndPersistEndpoint_ConcreteSnapshotService_PersistsSnapshot(t *
 
 	persisted, err := store.Snapshot().Read(endpoint.ID)
 	require.NoError(t, err)
-	require.NotNil(t, persisted.Kubernetes)
+	require.NotNil(t, persisted.Docker)
 }

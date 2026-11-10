@@ -295,27 +295,3 @@ type updatingStore struct {
 }
 
 func (s *updatingStore) Endpoint() dataservices.EndpointService { return s.endpoint }
-
-func TestInitialDetections_AlreadyDetectedEarlyReturn(t *testing.T) {
-	t.Parallel()
-
-	svc := &updatingEndpointService{}
-	store := &updatingStore{endpoint: svc}
-
-	endpoint := &portainer.Endpoint{
-		ID: 1,
-		Kubernetes: portainer.KubernetesData{
-			Flags: portainer.KubernetesFlags{
-				IsServerIngressClassDetected: true,
-				IsServerMetricsDetected:      true,
-				IsServerStorageDetected:      true,
-			},
-		},
-	}
-
-	InitialIngressClassDetection(store, endpoint, nil)
-	InitialMetricsDetection(store, endpoint, nil)
-	err := storageDetect(store, endpoint, nil)
-	require.NoError(t, err)
-	assert.Empty(t, svc.updated, "already-detected flags must skip client work and updates")
-}

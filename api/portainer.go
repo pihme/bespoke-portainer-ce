@@ -3,16 +3,12 @@ package portainer
 import (
 	"context"
 	"fmt"
-	"io"
 	"net"
-	"net/http"
 	"time"
 
 	gittypes "github.com/portainer/portainer/api/git/types"
-	models "github.com/portainer/portainer/api/http/models/kubernetes"
 	"github.com/portainer/portainer/api/roar"
 	"github.com/portainer/portainer/pkg/featureflags"
-	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/image"
@@ -21,11 +17,6 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/segmentio/encoding/json"
 	"golang.org/x/oauth2"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/version"
-	"k8s.io/client-go/tools/remotecommand"
-	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 )
 
 type (
@@ -712,31 +703,6 @@ type (
 		Region string `json:"Region" example:"ap-southeast-2"`
 	}
 
-	K8sNamespaceInfo struct {
-		Id                  string                 `json:"Id"`
-		Name                string                 `json:"Name"`
-		Status              corev1.NamespaceStatus `json:"Status"`
-		Annotations         map[string]string      `json:"Annotations"`
-		CreationDate        string                 `json:"CreationDate"`
-		UnhealthyEventCount int                    `json:"UnhealthyEventCount"`
-		NamespaceOwner      string                 `json:"NamespaceOwner"`
-		IsSystem            bool                   `json:"IsSystem"`
-		IsDefault           bool                   `json:"IsDefault"`
-		ResourceQuota       *corev1.ResourceQuota  `json:"ResourceQuota"`
-	}
-
-	K8sNodeLimits struct {
-		CPU    int64 `json:"CPU"`
-		Memory int64 `json:"Memory"`
-	}
-
-	K8sNodesLimits map[string]*K8sNodeLimits
-
-	K8sNamespaceAccessPolicy struct {
-		UserAccessPolicies UserAccessPolicies `json:"UserAccessPolicies"`
-		TeamAccessPolicies TeamAccessPolicies `json:"TeamAccessPolicies"`
-	}
-
 	// KubernetesData contains all the Kubernetes related environment(endpoint) information
 	KubernetesData struct {
 		Snapshots     []KubernetesSnapshot    `json:"Snapshots,omitempty"`
@@ -794,14 +760,6 @@ type (
 		Type              string   `json:"Type" validate:"required"`
 		GloballyBlocked   bool     `json:"Blocked"`
 		BlockedNamespaces []string `json:"BlockedNamespaces,omitempty"`
-	}
-
-	// KubernetesShellPod represents a Kubectl Shell details to facilitate pod exec functionality
-	KubernetesShellPod struct {
-		Namespace        string
-		PodName          string
-		ContainerName    string
-		ShellExecCommand string
 	}
 
 	// InternalAuthSettings represents settings used for the default 'internal' authentication
@@ -1664,211 +1622,6 @@ type (
 			includeExts []string,
 			tlsSkipVerify bool,
 		) ([]string, error)
-	}
-
-	// KubeExecParams holds parameters for KubeClient.StartExecProcess.
-	KubeExecParams struct {
-		Token         string
-		UseAdminToken bool
-		Namespace     string
-		PodName       string
-		ContainerName string
-		Command       []string
-		Stdin         io.Reader                       // bound to the exec process stdin
-		Stdout        io.Writer                       // receives exec process output
-		ResizeQueue   remotecommand.TerminalSizeQueue // nil if resize not needed
-		ErrChan       chan error
-	}
-
-	// KubeClient represents a service used to query a Kubernetes environment(endpoint)
-	KubeClient interface {
-		// Access
-		GetIsKubeAdmin() bool
-		SetIsKubeAdmin(isKubeAdmin bool)
-		GetClientNonAdminNamespaces() []string
-		SetClientNonAdminNamespaces([]string)
-		GetMetricsClient() metricsv.Interface
-		NamespaceAccessPoliciesDeleteNamespace(ns string) error
-		UpdateNamespaceAccessPolicies(accessPolicies map[string]K8sNamespaceAccessPolicy) error
-		GetNamespaceAccessPolicies() (map[string]K8sNamespaceAccessPolicy, error)
-		GetNonAdminNamespaces(userID int, teamIDs []int, isRestrictDefaultNamespace bool) ([]string, error)
-
-		// Applications
-		GetApplications(namespace, nodeName string) ([]models.K8sApplication, error)
-		GetApplicationsResource(namespace, node string) (models.K8sApplicationResource, error)
-		GetClusterNodes() ([]corev1.Node, error)
-
-		// ClusterRole
-		GetClusterRoles() ([]models.K8sClusterRole, error)
-		DeleteClusterRoles(req models.K8sClusterRoleDeleteRequests) error
-
-		// ConfigMap
-		GetConfigMap(namespace, configMapName string) (models.K8sConfigMap, error)
-		CreateConfigMap(namespace string, request models.K8sConfigMapWriteRequest) (models.K8sConfigMap, error)
-		UpdateConfigMap(namespace string, request models.K8sConfigMapWriteRequest) (models.K8sConfigMap, error)
-		DeleteConfigMap(namespace, name string) error
-		CombineConfigMapWithApplications(configMap models.K8sConfigMap) (models.K8sConfigMap, error)
-
-		// CronJob
-		GetCronJobs(namespace string) ([]models.K8sCronJob, error)
-		DeleteCronJobs(payload models.K8sCronJobDeleteRequests) error
-
-		// Event
-		GetEvents(namespace string, resourceId string) ([]models.K8sEvent, error)
-
-		// Exec
-		StartExecProcess(params KubeExecParams)
-
-		// ClusterRoleBinding
-		GetClusterRoleBindings() ([]models.K8sClusterRoleBinding, error)
-		DeleteClusterRoleBindings(reqs models.K8sClusterRoleBindingDeleteRequests) error
-
-		// Dashboard
-		GetDashboard() (models.K8sDashboard, error)
-
-		// Deployment
-		HasStackName(namespace string, stackName string) (bool, error)
-
-		// Ingress
-		GetIngressClasses() ([]models.K8sIngressClass, error)
-		GetIngressControllers() (models.K8sIngressControllers, error)
-		GetIngress(namespace, ingressName string) (models.K8sIngressInfo, error)
-		GetIngresses(namespace string) ([]models.K8sIngressInfo, error)
-		CreateIngress(namespace string, info models.K8sIngressInfo, owner string) error
-		DeleteIngresses(reqs models.K8sIngressDeleteRequests) error
-		UpdateIngress(namespace string, info models.K8sIngressInfo) error
-		CombineIngressWithService(ingress models.K8sIngressInfo) (models.K8sIngressInfo, error)
-		CombineIngressesWithServices(ingresses []models.K8sIngressInfo) ([]models.K8sIngressInfo, error)
-
-		// Job
-		GetJobs(namespace string, includeCronJobChildren bool) ([]models.K8sJob, error)
-		DeleteJobs(payload models.K8sJobDeleteRequests) error
-
-		// Metrics
-		GetMetrics() (models.K8sMetrics, error)
-
-		// Namespace
-		ToggleSystemState(namespaceName string, isSystem bool) error
-		UpdateNamespace(info models.K8sNamespaceDetails) (*corev1.Namespace, error)
-		GetNamespace(name string) (K8sNamespaceInfo, error)
-		CreateNamespace(info models.K8sNamespaceDetails) (*corev1.Namespace, error)
-		GetNamespaces() (map[string]K8sNamespaceInfo, error)
-		CombineNamespaceWithResourceQuota(namespace K8sNamespaceInfo, w http.ResponseWriter) *httperror.HandlerError
-		DeleteNamespace(namespaceName string) (*corev1.Namespace, error)
-		CombineNamespacesWithResourceQuotas(namespaces map[string]K8sNamespaceInfo, w http.ResponseWriter) *httperror.HandlerError
-		ConvertNamespaceMapToSlice(namespaces map[string]K8sNamespaceInfo) []K8sNamespaceInfo
-
-		// NodeLimits
-		GetNodesLimits() (K8sNodesLimits, error)
-		GetMaxResourceLimits(skipNamespace string, overCommitEnabled bool, resourceOverCommitPercent int) (K8sNodeLimits, error)
-
-		// Pod
-		GetPods(namespace string, opts models.K8sResourceListOptions) ([]corev1.Pod, error)
-		GetPodLogsStream(ctx context.Context, namespace, podName string, opts corev1.PodLogOptions) (io.ReadCloser, error)
-		CreateUserShellPod(ctx context.Context, serviceAccountName, shellPodImage string) (*KubernetesShellPod, error)
-		DeletePod(namespace, name string) error
-		RestartPod(namespace, name string) error
-		SupportsPodRestart(ctx context.Context) (bool, error)
-
-		// ReplicaSet
-		GetReplicaSets(namespace, ownerDeployment string, opts models.K8sResourceListOptions) ([]appsv1.ReplicaSet, error)
-
-		// Deployment
-		GetDeployment(namespace, name string) (*appsv1.Deployment, error)
-		GetDeployments(namespace string, opts models.K8sResourceListOptions) ([]appsv1.Deployment, error)
-		CreateDeployment(namespace string, request models.K8sDeploymentWriteRequest) (*appsv1.Deployment, error)
-		UpdateDeployment(namespace string, request models.K8sDeploymentWriteRequest) (*appsv1.Deployment, error)
-		ScaleDeployment(namespace, name string, replicas int32) (*appsv1.Deployment, error)
-		PatchDeployment(namespace, name string, request models.K8sDeploymentPatchRequest) (*appsv1.Deployment, error)
-		RolloutUndo(namespace, name string, revision int64) (*appsv1.Deployment, error)
-		DeleteDeployment(namespace, name string) error
-
-		// ResourceQuota
-		GetResourceQuotas(namespace string) (*[]corev1.ResourceQuota, error)
-
-		// RBAC
-		IsRBACEnabled() (bool, error)
-
-		// Registries
-		DeleteRegistrySecret(registry RegistryID, namespace string) error
-		CreateRegistrySecret(registry *Registry, namespace string) error
-		IsRegistrySecret(namespace, secretName string) (bool, error)
-
-		// RoleBinding
-		GetRoleBindings(namespace string) ([]models.K8sRoleBinding, error)
-		DeleteRoleBindings(reqs models.K8sRoleBindingDeleteRequests) error
-
-		// Role
-		DeleteRoles(reqs models.K8sRoleDeleteRequests) error
-
-		// Secret
-		GetSecrets(namespace string) ([]models.K8sSecret, error)
-		GetSecret(namespace string, secretName string) (models.K8sSecret, error)
-		CreateSecret(namespace string, request models.K8sSecretWriteRequest) (models.K8sSecret, error)
-		UpdateSecret(namespace string, request models.K8sSecretWriteRequest) (models.K8sSecret, error)
-		DeleteSecret(namespace, name string) error
-		CombineSecretWithApplications(secret models.K8sSecret) (models.K8sSecret, error)
-
-		// ServiceAccount
-		GetServiceAccounts(namespace string) ([]models.K8sServiceAccount, error)
-		GetServiceAccount(namespace, name string) (models.K8sServiceAccount, error)
-		DeleteServiceAccounts(reqs models.K8sServiceAccountDeleteRequests) error
-		AddImagePullSecretToServiceAccount(namespace, serviceAccountName, secretName string) error
-		RemoveImagePullSecretFromServiceAccount(namespace, serviceAccountName, secretName string) error
-		UpdateServiceAccountImagePullSecrets(namespace, name string, secretNames []string) error
-		SetupUserServiceAccount(int, []int, bool) error
-		RemoveUserServiceAccountBindings(userID int) error
-		RemoveUserServiceAccount(userID int) error
-		GetPortainerUserServiceAccount(tokendata *TokenData) (*corev1.ServiceAccount, error)
-		GetServiceAccountBearerToken(userID int) (string, error)
-
-		// Service
-		GetServices(namespace string) ([]models.K8sServiceInfo, error)
-		CombineServicesWithApplications(namespace string, services []models.K8sServiceInfo) ([]models.K8sServiceInfo, error)
-		CreateService(namespace string, info models.K8sServiceInfo) error
-		DeleteServices(reqs models.K8sServiceDeleteRequests) error
-		UpdateService(namespace string, info models.K8sServiceInfo) error
-
-		// ServerVersion
-		ServerVersion() (*version.Info, error)
-
-		// Storage
-		GetStorage() ([]KubernetesStorageClassConfig, error)
-
-		// Volumes
-		GetVolumes(namespace string) ([]models.K8sVolumeInfo, error)
-		GetVolume(namespace, volumeName string) (*models.K8sVolumeInfo, error)
-		CombineVolumesWithApplications(volumes *[]models.K8sVolumeInfo) (*[]models.K8sVolumeInfo, error)
-
-		// StorageClass
-		GetStorageClasses() ([]models.K8sStorageClass, error)
-		GetStorageClass(name string) (*models.K8sStorageClass, error)
-		DeleteStorageClasses(names []string) error
-		SetDefaultStorageClass(name string) error
-
-		// PersistentVolume
-		GetPersistentVolumes() ([]models.K8sPersistentVolume, error)
-		GetPersistentVolume(name string) (*models.K8sPersistentVolume, error)
-		DeletePersistentVolumes(names []string) error
-		UpdatePersistentVolumeReclaimPolicy(name string, policy corev1.PersistentVolumeReclaimPolicy) error
-
-		// PersistentVolumeClaim
-		GetPersistentVolumeClaims(namespace string) ([]models.K8sPersistentVolumeClaim, error)
-		GetPersistentVolumeClaim(namespace, name string) (*models.K8sPersistentVolumeClaim, error)
-		CreatePersistentVolumeClaim(namespace string, request models.K8sPersistentVolumeClaimCreateRequest) (*models.K8sPersistentVolumeClaim, error)
-		DeletePersistentVolumeClaims(reqs models.K8sVolumeDeleteRequests) error
-		ResizePersistentVolumeClaim(namespace, name, newSize string) error
-	}
-
-	// KubernetesDeployer represents a service to deploy a manifest inside a Kubernetes environment(endpoint)
-	KubernetesDeployer interface {
-		Deploy(ctx context.Context, userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
-		Remove(ctx context.Context, userID UserID, endpoint *Endpoint, manifestFiles []string, namespace string) (string, error)
-	}
-
-	// KubernetesSnapshotter represents a service used to create Kubernetes environment(endpoint) snapshots
-	KubernetesSnapshotter interface {
-		CreateSnapshot(endpoint *Endpoint) (*KubernetesSnapshot, error)
 	}
 
 	// LDAPService represents a service used to authenticate users against a LDAP/AD

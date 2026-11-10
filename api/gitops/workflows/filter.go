@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"fmt"
-	"slices"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
@@ -10,12 +9,9 @@ import (
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/snapshot"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/set"
 	"github.com/portainer/portainer/api/slicesx"
 	"github.com/portainer/portainer/api/stacks/stackutils"
-
-	"github.com/rs/zerolog/log"
 )
 
 // HasAccessibleSource reports whether any of the artifact's files has a source visible in
@@ -107,73 +103,11 @@ func FilterDockerStacksByAccess(tx dataservices.DataStoreTx, stacks []portainer.
 	return filtered, nil
 }
 
-// ResolveKubeAccess determines sc's Kubernetes admin/namespace access on ep.
-func ResolveKubeAccess(k8sFactory *cli.ClientFactory, sc *security.RestrictedRequestContext, ep *portainer.Endpoint) (endpointAccess, error) {
-	if sc.IsAdmin {
-		return endpointAccess{IsKubeAdmin: true}, nil
-	}
-
-	pcli, err := k8sFactory.GetPrivilegedKubeClient(ep)
-	if err != nil {
-		return endpointAccess{}, fmt.Errorf("unable to get privileged kube client for endpoint %d: %w", ep.ID, err)
-	}
-
-	teamIDs := make([]int, 0, len(sc.UserMemberships))
-	for _, m := range sc.UserMemberships {
-		teamIDs = append(teamIDs, int(m.TeamID))
-	}
-
-	nonAdminNamespaces, err := pcli.GetNonAdminNamespaces(int(sc.UserID), teamIDs, ep.Kubernetes.Configuration.RestrictDefaultNamespace)
-	if err != nil {
-		return endpointAccess{}, fmt.Errorf("unable to retrieve non-admin namespaces for endpoint %d: %w", ep.ID, err)
-	}
-
-	return endpointAccess{IsKubeAdmin: false, NonAdminNamespaces: nonAdminNamespaces}, nil
-}
-
-type endpointAccess struct {
-	IsKubeAdmin        bool
-	NonAdminNamespaces []string
-}
-
-// buildEndpointAccessMap resolves sc's Kubernetes access for every Kubernetes endpoint in
-// endpointMap, skipping (and logging) any endpoint whose access cannot be resolved.
-func buildEndpointAccessMap(k8sFactory *cli.ClientFactory, sc *security.RestrictedRequestContext, endpointMap map[portainer.EndpointID]portainer.Endpoint) (map[portainer.EndpointID]endpointAccess, error) {
-	result := make(map[portainer.EndpointID]endpointAccess, len(endpointMap))
-
-	for epID, ep := range endpointMap {
-		if !endpointutils.IsKubernetesEndpoint(&ep) {
-			continue
-		}
-
-		access, err := ResolveKubeAccess(k8sFactory, sc, &ep)
-		if err != nil {
-			log.Warn().Err(err).Str("context", "buildEndpointAccessMap").Int("endpoint_id", int(epID)).Msg("Failed to resolve kube access for endpoint, skipping")
-			continue
-		}
-
-		result[epID] = access
-	}
-
-	return result, nil
-}
-
-// isK8SNamespaceAccessible reports whether a Kubernetes stack's stored namespace is visible to the
-// user given the resolved endpoint access. Non-Kubernetes stacks always pass.
-func isK8SNamespaceAccessible(stack portainer.Stack, accessMap map[portainer.EndpointID]endpointAccess) bool {
-	if stack.Type != portainer.KubernetesStack {
-		return true
-	}
-
-	access := accessMap[stack.EndpointID]
-	return access.IsKubeAdmin || slices.Contains(access.NonAdminNamespaces, stack.Namespace)
-}
-
-// filterK8SStacks drops Kubernetes stacks whose namespace is not accessible to the user. It relies
-// on the stored stack namespace rather than querying the cluster, matching the workflow list's
-// access filtering. Docker stacks pass through unchanged.
-func filterK8SStacks(items []portainer.Stack, accessMap map[portainer.EndpointID]endpointAccess) []portainer.Stack {
+// filterK8SStacks drops Kubernetes stacks. Their namespace access was only ever resolved for
+// Kubernetes environments, which no longer exist, so such a stack was never visible (TAI-023).
+// Docker stacks pass through unchanged.
+func filterK8SStacks(items []portainer.Stack) []portainer.Stack {
 	return slicesx.Filter(items, func(s portainer.Stack) bool {
-		return isK8SNamespaceAccessible(s, accessMap)
+		return s.Type != portainer.KubernetesStack
 	})
 }

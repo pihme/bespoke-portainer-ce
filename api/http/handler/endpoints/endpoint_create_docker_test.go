@@ -43,7 +43,7 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 		require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{Name: "default"}))
 	}
 
-	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, stubKubernetesSnapshotter{})
+	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}})
 	require.NoError(t, err)
 
 	fs, err := filesystem.NewService(t.TempDir(), "")
@@ -53,7 +53,7 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.DataStore = store
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 	h.SnapshotService = snap
-	h.ProxyManager = proxy.NewManager(nil)
+	h.ProxyManager = proxy.NewManager()
 	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 	h.FileService = fs
 	return h, store
@@ -167,7 +167,7 @@ func TestREQ_ENV_11_CreateUnsecuredEndpoint_Direct_SnapshotFailure(t *testing.T)
 	if _, err := store.EndpointGroup().Read(1); err != nil {
 		require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{Name: "default"}))
 	}
-	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{err: assert.AnError}, nil)
+	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{err: assert.AnError})
 	require.NoError(t, err)
 
 	h := &Handler{DataStore: store, SnapshotService: snap}

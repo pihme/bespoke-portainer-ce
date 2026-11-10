@@ -17,7 +17,7 @@ func (*stubHandler) ServeHTTP(http.ResponseWriter, *http.Request) {}
 func TestCreateAndRegisterEndpointProxy_ProxyFactoryNotInitialized(t *testing.T) {
 	t.Parallel()
 
-	manager := NewManager(nil)
+	manager := NewManager()
 	endpoint := &portainer.Endpoint{ID: 1}
 
 	proxy, err := manager.CreateAndRegisterEndpointProxy(endpoint)
@@ -30,7 +30,7 @@ func TestCreateAndRegisterEndpointProxy_ProxyFactoryNotInitialized(t *testing.T)
 func TestCreateAgentProxyServer_ProxyFactoryNotInitialized(t *testing.T) {
 	t.Parallel()
 
-	manager := NewManager(nil)
+	manager := NewManager()
 	endpoint := &portainer.Endpoint{ID: 1}
 
 	proxyServer, err := manager.CreateAgentProxyServer(endpoint)
@@ -43,7 +43,7 @@ func TestCreateAgentProxyServer_ProxyFactoryNotInitialized(t *testing.T) {
 func TestGetEndpointProxy_NotFound(t *testing.T) {
 	t.Parallel()
 
-	manager := NewManager(nil)
+	manager := NewManager()
 	endpoint := &portainer.Endpoint{ID: 1}
 
 	proxy := manager.GetEndpointProxy(endpoint)
@@ -54,7 +54,7 @@ func TestGetEndpointProxy_NotFound(t *testing.T) {
 func TestGetEndpointProxy_Found(t *testing.T) {
 	t.Parallel()
 
-	manager := NewManager(nil)
+	manager := NewManager()
 	endpoint := &portainer.Endpoint{ID: 42}
 	handler := &stubHandler{}
 	manager.endpointProxies.Store(strconv.Itoa(int(endpoint.ID)), handler)
@@ -67,7 +67,7 @@ func TestGetEndpointProxy_Found(t *testing.T) {
 func TestDeleteEndpointProxy(t *testing.T) {
 	t.Parallel()
 
-	manager := NewManager(nil)
+	manager := NewManager()
 	endpoint := &portainer.Endpoint{ID: 7}
 	manager.endpointProxies.Store(strconv.Itoa(int(endpoint.ID)), &stubHandler{})
 

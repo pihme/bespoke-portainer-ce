@@ -15,7 +15,6 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	http "github.com/portainer/portainer/api/http"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	kubecli "github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/pkg/libcrypto"
 
 	"github.com/stretchr/testify/assert"
@@ -279,10 +278,7 @@ func TestREQ_DED_04_InitSnapshotService_LocalInterval(t *testing.T) {
 	sig := initDigitalSignatureService()
 	dockerFactory := dockerclient.NewClientFactory(sig)
 
-	k8sFactory, err := kubecli.NewClientFactory(sig, store, "test-instance", ":9443", portainer.DefaultUserSessionTimeout)
-	require.NoError(t, err)
-
-	svc, err := initSnapshotService("5m", store, dockerFactory, k8sFactory)
+	svc, err := initSnapshotService("5m", store, dockerFactory)
 	require.NoError(t, err)
 	require.NotNil(t, svc)
 }

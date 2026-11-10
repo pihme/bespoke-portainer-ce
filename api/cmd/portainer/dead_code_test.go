@@ -86,9 +86,8 @@ func TestREQ_TAI_015_UnusedModulesAreGone(t *testing.T) {
 
 // TestREQ_TAI_016_UnreachableKubernetesStackIsGone proves that the Kubernetes
 // proxy, the kubeconfig JWT service, the Kubernetes deployer, libkubectl, the
-// namespace cleanup and the Kubernetes-only pending-action handlers are
-// deleted, while the Kubernetes client the post-init migration and the
-// snapshots of leftover records use stays.
+// namespace cleanup, the pending-action handlers and the Kubernetes client
+// are deleted, while the post-init migration of local Docker stays.
 func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
 	for _, path := range []string{
 		"api/http/proxy/factory/kubernetes",
@@ -100,15 +99,16 @@ func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
 		"api/kubernetes/namespacecleanup",
 		"api/pendingactions/handlers/cleanup_namespace_records.go",
 		"api/pendingactions/handlers/delete_k8s_registry_secrets.go",
-		// The rest of the pending-action service went with its collection (TAI-023).
+		// The rest of the pending-action service and the Kubernetes client
+		// went with the last always-empty collections (TAI-023).
 		"api/pendingactions",
+		"api/kubernetes",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, path))
 		require.Truef(t, os.IsNotExist(err), "%s should be removed", path)
 	}
 
 	for _, path := range []string{
-		"api/kubernetes/cli",
 		"api/datastore/postinit/migrate_post_init.go",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, path))

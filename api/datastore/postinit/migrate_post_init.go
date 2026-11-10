@@ -10,8 +10,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	dockerClient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/internal/endpointutils"
-	"github.com/portainer/portainer/api/internal/registryutils"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/logs"
 	"github.com/portainer/portainer/pkg/endpoints"
 
@@ -19,30 +17,21 @@ import (
 )
 
 type PostInitMigrator struct {
-	kubeFactory        *cli.ClientFactory
-	dockerFactory      *dockerClient.ClientFactory
-	dataStore          dataservices.DataStore
-	assetsPath         string
-	kubernetesDeployer portainer.KubernetesDeployer
+	dockerFactory *dockerClient.ClientFactory
+	dataStore     dataservices.DataStore
 }
 
 func NewPostInitMigrator(
-	kubeFactory *cli.ClientFactory,
 	dockerFactory *dockerClient.ClientFactory,
 	dataStore dataservices.DataStore,
-	assetsPath string,
-	kubernetesDeployer portainer.KubernetesDeployer,
 ) *PostInitMigrator {
 	return &PostInitMigrator{
-		kubeFactory:        kubeFactory,
-		dockerFactory:      dockerFactory,
-		dataStore:          dataStore,
-		assetsPath:         assetsPath,
-		kubernetesDeployer: kubernetesDeployer,
+		dockerFactory: dockerFactory,
+		dataStore:     dataStore,
 	}
 }
 
-// PostInitMigrate will run all post-init migrations, which require docker/kube clients for all edge or non-edge environments
+// PostInitMigrate runs the post-init migrations, which need a Docker client, for every directly connected environment
 func (postInitMigrator *PostInitMigrator) PostInitMigrate() error {
 	var environments []portainer.Endpoint
 
@@ -85,32 +74,6 @@ func (migrator *PostInitMigrator) MigrateEnvironment(environment *portainer.Endp
 		Msg("executing post init migration for environment")
 
 	switch {
-	case endpointutils.IsKubernetesEndpoint(environment):
-		// get the kubeclient for the environment, and skip all kube migrations if there's an error
-		kubeclient, err := migrator.kubeFactory.GetPrivilegedKubeClient(environment)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Int("endpoint_id", int(environment.ID)).
-				Msg("error creating kubeclient for environment")
-
-			return err
-		}
-
-		// If one environment fails, it is logged and the next migration runs. The error is returned at the end and handled by pending actions
-		var latestErr error
-		kubernetesMigrations := []func() error{
-			func() error { return migrator.MigrateIngresses(*environment, kubeclient) },
-			func() error { return migrator.MigrateRegistrySASecrets(*environment, kubeclient) },
-		}
-
-		for _, migration := range kubernetesMigrations {
-			if err := migration(); err != nil {
-				latestErr = err
-			}
-		}
-
-		return latestErr
 	case endpointutils.IsDockerEndpoint(environment):
 		// get the docker client for the environment, and skip all docker migrations if there's an error
 		dockerClient, err := migrator.dockerFactory.CreateClient(environment, nil)
@@ -132,76 +95,6 @@ func (migrator *PostInitMigrator) MigrateEnvironment(environment *portainer.Endp
 
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (migrator *PostInitMigrator) MigrateRegistrySASecrets(environment portainer.Endpoint, kubeclient *cli.KubeClient) error {
-	if !environment.PostInitMigrations.MigrateRegistrySASecrets {
-		return nil
-	}
-
-	log.Debug().
-		Int("endpoint_id", int(environment.ID)).
-		Msg("migrating registry SA secrets for environment")
-
-	return migrator.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		env, err := tx.Endpoint().Endpoint(environment.ID)
-		if err != nil {
-			return err
-		}
-
-		if !env.PostInitMigrations.MigrateRegistrySASecrets {
-			return nil
-		}
-
-		registries, err := tx.Registry().ReadAll()
-		if err != nil {
-			return err
-		}
-
-		for _, registry := range registries {
-			access, ok := registry.RegistryAccesses[env.ID]
-			if !ok || len(access.Namespaces) == 0 {
-				continue
-			}
-
-			secretName := registryutils.RegistrySecretName(registry.ID)
-			for _, namespace := range access.Namespaces {
-				if err := kubeclient.AddImagePullSecretToServiceAccount(namespace, "default", secretName); err != nil {
-					log.Warn().
-						Err(err).
-						Int("endpoint_id", int(env.ID)).
-						Str("namespace", namespace).
-						Str("secret", secretName).
-						Msg("failed to add imagePullSecret to service account during registry SA secret migration")
-				}
-			}
-		}
-
-		env.PostInitMigrations.MigrateRegistrySASecrets = false
-		return tx.Endpoint().UpdateEndpoint(env.ID, env)
-	})
-}
-
-func (migrator *PostInitMigrator) MigrateIngresses(environment portainer.Endpoint, kubeclient *cli.KubeClient) error {
-	// Early exit if we do not need to migrate!
-	if !environment.PostInitMigrations.MigrateIngresses {
-		return nil
-	}
-
-	log.Debug().
-		Int("endpoint_id", int(environment.ID)).
-		Msg("migrating ingresses for environment")
-
-	if err := migrator.kubeFactory.MigrateEndpointIngresses(&environment, migrator.dataStore, kubeclient); err != nil {
-		log.Error().
-			Err(err).
-			Int("endpoint_id", int(environment.ID)).
-			Msg("error migrating ingresses for environment")
-
-		return err
 	}
 
 	return nil

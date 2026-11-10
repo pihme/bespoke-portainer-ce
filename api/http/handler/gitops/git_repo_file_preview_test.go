@@ -68,7 +68,7 @@ func newGitopsHandler(t *testing.T, git portainer.GitService) (*Handler, *datast
 	if git == nil {
 		git = &cloneGit{}
 	}
-	h := NewHandler(testhelpers.NewTestRequestBouncer(), store, git, fileService, nil, nil)
+	h := NewHandler(testhelpers.NewTestRequestBouncer(), store, git, fileService, nil)
 	return h, store, admin
 }
 

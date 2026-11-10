@@ -36,7 +36,6 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/teardown"
@@ -46,29 +45,28 @@ import (
 
 // Server implements the portainer.Server interface
 type Server struct {
-	AuthorizationService    *authorization.Service
-	BindAddress             string
-	BindAddressHTTPS        string
-	CSP                     bool
-	HTTPEnabled             bool
-	AssetsPath              string
-	Status                  *portainer.Status
-	ComposeStackManager     portainer.ComposeStackManager
-	CryptoService           portainer.CryptoService
-	SignatureService        portainer.DigitalSignatureService
-	SnapshotService         portainer.SnapshotService
-	FileService             portainer.FileService
-	DataStore               dataservices.DataStore
-	GitService              portainer.GitService
-	ProxyManager            *proxy.Manager
-	Handler                 *handler.Handler
-	SSLService              *ssl.Service
-	DockerClientFactory     *dockerclient.ClientFactory
-	KubernetesClientFactory *cli.ClientFactory
-	SourceScheduler         *scheduling.SourceScheduler
-	StackDeployer           deployments.StackDeployer
-	PlatformService         platform.Service
-	TrustedOrigins          []string
+	AuthorizationService *authorization.Service
+	BindAddress          string
+	BindAddressHTTPS     string
+	CSP                  bool
+	HTTPEnabled          bool
+	AssetsPath           string
+	Status               *portainer.Status
+	ComposeStackManager  portainer.ComposeStackManager
+	CryptoService        portainer.CryptoService
+	SignatureService     portainer.DigitalSignatureService
+	SnapshotService      portainer.SnapshotService
+	FileService          portainer.FileService
+	DataStore            dataservices.DataStore
+	GitService           portainer.GitService
+	ProxyManager         *proxy.Manager
+	Handler              *handler.Handler
+	SSLService           *ssl.Service
+	DockerClientFactory  *dockerclient.ClientFactory
+	SourceScheduler      *scheduling.SourceScheduler
+	StackDeployer        deployments.StackDeployer
+	PlatformService      platform.Service
+	TrustedOrigins       []string
 }
 
 // Start starts the HTTP server
@@ -101,7 +99,7 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var fileHandler = file.NewHandler(filesystem.JoinPaths(server.AssetsPath, "public"), server.CSP)
 
-	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService, server.KubernetesClientFactory, server.SourceScheduler)
+	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService, server.SourceScheduler)
 
 	var settingsHandler = settings.NewHandler(requestBouncer)
 	settingsHandler.DataStore = server.DataStore

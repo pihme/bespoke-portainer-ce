@@ -13,13 +13,12 @@ import (
 
 // Service represents a service to manage environment(endpoint) snapshots.
 // It provides an interface to start background snapshots as well as
-// specific Docker/Kubernetes environment(endpoint) snapshot methods.
+// specific Docker environment(endpoint) snapshot methods.
 type Service struct {
 	dataStore                 dataservices.DataStore
 	snapshotIntervalCh        chan time.Duration
 	snapshotIntervalInSeconds float64
 	dockerSnapshotter         portainer.DockerSnapshotter
-	kubernetesSnapshotter     portainer.KubernetesSnapshotter
 }
 
 // NewService creates a new instance of a service
@@ -27,7 +26,6 @@ func NewService(
 	snapshotIntervalFromFlag string,
 	dataStore dataservices.DataStore,
 	dockerSnapshotter portainer.DockerSnapshotter,
-	kubernetesSnapshotter portainer.KubernetesSnapshotter,
 ) (*Service, error) {
 	interval, err := parseSnapshotFrequency(snapshotIntervalFromFlag, dataStore)
 	if err != nil {
@@ -39,7 +37,6 @@ func NewService(
 		snapshotIntervalCh:        make(chan time.Duration),
 		snapshotIntervalInSeconds: interval,
 		dockerSnapshotter:         dockerSnapshotter,
-		kubernetesSnapshotter:     kubernetesSnapshotter,
 	}, nil
 }
 
@@ -107,10 +104,10 @@ func (service *Service) SnapshotEndpointTx(tx dataservices.DataStoreTx, endpoint
 	}
 
 	switch endpoint.Type {
-	case portainer.AzureEnvironment:
+	// Kubernetes is removed (TAI-002) and no Kubernetes environment can be
+	// created, so leftover Kubernetes and Azure records are not snapshotted.
+	case portainer.AzureEnvironment, portainer.KubernetesLocalEnvironment, portainer.AgentOnKubernetesEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
 		return nil
-	case portainer.KubernetesLocalEnvironment, portainer.AgentOnKubernetesEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
-		return service.snapshotKubernetesEndpoint(tx, endpoint)
 	}
 
 	return service.snapshotDockerEndpoint(tx, endpoint)
@@ -122,21 +119,6 @@ func (service *Service) Create(snapshot portainer.Snapshot) error {
 
 func (service *Service) FillSnapshotData(endpoint *portainer.Endpoint, includeRaw bool) error {
 	return FillSnapshotData(service.dataStore, endpoint, includeRaw)
-}
-
-func (service *Service) snapshotKubernetesEndpoint(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) error {
-	kubernetesSnapshot, err := service.kubernetesSnapshotter.CreateSnapshot(endpoint)
-	if err != nil {
-		return err
-	}
-
-	if kubernetesSnapshot != nil {
-		snapshot := &portainer.Snapshot{EndpointID: endpoint.ID, Kubernetes: kubernetesSnapshot}
-
-		return tx.Snapshot().Create(snapshot)
-	}
-
-	return nil
 }
 
 func (service *Service) snapshotDockerEndpoint(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) error {

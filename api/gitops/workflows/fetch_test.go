@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer/api/datastore"
 	gittypes "github.com/portainer/portainer/api/git/types"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/set"
 
 	"github.com/stretchr/testify/require"
 )
@@ -86,210 +85,6 @@ func TestAddSourceStats_MultipleSourceIDs(t *testing.T) {
 	require.True(t, result[2].EndpointIDs[10])
 }
 
-func TestFetchWorkflows_ReturnsOnlyGitopsStacks(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		mustCreateGitWorkflow(t, tx, &portainer.Stack{
-			ID:        1,
-			Name:      "gitops-stack",
-			GitConfig: &gittypes.RepoConfig{URL: "https://github.com/x/repo"},
-		})
-		require.NoError(t, tx.Stack().Create(&portainer.Stack{ID: 2, Name: "plain-stack"}))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-	require.Len(t, items, 1)
-	require.Equal(t, "gitops-stack", items[0].Name)
-}
-
-func TestFetchWorkflows_FiltersByEndpointID(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		for i := 1; i <= 3; i++ {
-			mustCreateGitWorkflow(t, tx, &portainer.Stack{
-				ID:         portainer.StackID(i),
-				Name:       "stack-" + strconv.Itoa(i),
-				EndpointID: portainer.EndpointID(i),
-				GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/x/" + strconv.Itoa(i)},
-			})
-		}
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), set.ToSet([]portainer.EndpointID{1, 2}))
-		return err
-	}))
-	require.Len(t, items, 2)
-
-	names := []string{items[0].Name, items[1].Name}
-	require.Contains(t, names, "stack-1")
-	require.Contains(t, names, "stack-2")
-}
-
-func TestFetchWorkflows_EmptyWhenNoGitopsStacks(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.Stack().Create(&portainer.Stack{ID: 1, Name: "plain-1"}))
-		require.NoError(t, tx.Stack().Create(&portainer.Stack{ID: 2, Name: "plain-2"}))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-	require.Empty(t, items)
-}
-
-func TestFetchWorkflows_NilEndpointSetReturnsAll(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		for i := 1; i <= 3; i++ {
-			mustCreateGitWorkflow(t, tx, &portainer.Stack{
-				ID:         portainer.StackID(i),
-				Name:       "stack-" + strconv.Itoa(i),
-				EndpointID: portainer.EndpointID(i),
-				GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/x/" + strconv.Itoa(i)},
-			})
-		}
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-	require.Len(t, items, 3)
-}
-
-func TestFetchWorkflows_GroupsMultipleArtifactsUnderOneWorkflow(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		src := &portainer.Source{Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://github.com/x/repo"}}
-		require.NoError(t, tx.Source().Create(adminUserContext, src))
-
-		wf := &portainer.Workflow{Name: "multi", Artifacts: []portainer.Artifact{
-			{StackID: 1, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-			{StackID: 2, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-		}}
-		require.NoError(t, tx.Workflow().Create(wf))
-
-		require.NoError(t, tx.Stack().Create(&portainer.Stack{ID: 1, Name: "stack-a", WorkflowID: wf.ID}))
-		require.NoError(t, tx.Stack().Create(&portainer.Stack{ID: 2, Name: "stack-b", WorkflowID: wf.ID}))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-
-	require.Len(t, items, 1)
-	require.Equal(t, "multi", items[0].Name)
-	require.Len(t, items[0].Artifacts, 2)
-
-	names := []string{items[0].Artifacts[0].Name, items[0].Artifacts[1].Name}
-	require.Contains(t, names, "stack-a")
-	require.Contains(t, names, "stack-b")
-}
-
-func TestFetchWorkflows_ShowsWorkflowWithNoArtifacts(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.Workflow().Create(&portainer.Workflow{Name: "empty"}))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-
-	require.Len(t, items, 1)
-	require.Equal(t, "empty", items[0].Name)
-	require.Empty(t, items[0].Artifacts)
-}
-
-func TestFetchWorkflows_HidesWorkflowWhenAllArtifactsFiltered(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		// A workflow whose only artifact references a stack that does not exist:
-		// the artifact is filtered out, so the workflow must be hidden.
-		wf := &portainer.Workflow{Name: "dangling", Artifacts: []portainer.Artifact{
-			{StackID: 999, Files: []portainer.ArtifactFile{{SourceID: 1}}},
-		}}
-		require.NoError(t, tx.Workflow().Create(wf))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-
-	require.Empty(t, items)
-}
-
-func TestFetchWorkflows_HidesEmptyWorkflowWhenEndpointFilterActive(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.Workflow().Create(&portainer.Workflow{Name: "empty"}))
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), set.ToSet([]portainer.EndpointID{1}))
-		return err
-	}))
-
-	require.Empty(t, items)
-}
-
 func TestFetchSourceStats_TracksWorkflowCountAndEndpoints(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
@@ -318,7 +113,7 @@ func TestFetchSourceStats_TracksWorkflowCountAndEndpoints(t *testing.T) {
 	var stats map[portainer.SourceID]SourceStats
 	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
 		var err error
-		stats, err = FetchSourceStats(tx, nil, adminContext())
+		stats, err = FetchSourceStats(tx, adminContext())
 
 		return err
 	}))
@@ -345,7 +140,7 @@ func TestFetchSourceStats_UnusedSourceHasZeroStats(t *testing.T) {
 	var stats map[portainer.SourceID]SourceStats
 	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
 		var err error
-		stats, err = FetchSourceStats(tx, nil, adminContext())
+		stats, err = FetchSourceStats(tx, adminContext())
 
 		return err
 	}))
@@ -353,81 +148,4 @@ func TestFetchSourceStats_UnusedSourceHasZeroStats(t *testing.T) {
 	st := stats[unusedID]
 	require.Zero(t, st.WorkflowCount)
 	require.Empty(t, st.EndpointIDs)
-}
-
-func TestREQ_GIT_01_FetchWorkflows_DropsComposeStackOnSwarmEndpoint(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
-			ID:   1,
-			Name: "swarm-node",
-			Type: portainer.DockerEnvironment,
-		}))
-		require.NoError(t, tx.Snapshot().Create(&portainer.Snapshot{
-			EndpointID: 1,
-			Docker:     &portainer.DockerSnapshot{Swarm: true},
-		}))
-
-		mustCreateGitWorkflow(t, tx, &portainer.Stack{
-			ID:         1,
-			Name:       "compose-on-swarm",
-			Type:       portainer.DockerComposeStack,
-			EndpointID: 1,
-			GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/example/compose"},
-		})
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-	require.Empty(t, items)
-}
-
-func TestREQ_GIT_01_FetchWorkflows_KeepsComposeStackOnStandaloneEndpoint(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		require.NoError(t, tx.Endpoint().Create(&portainer.Endpoint{
-			ID:   1,
-			Name: "local-docker",
-			Type: portainer.DockerEnvironment,
-		}))
-		require.NoError(t, tx.Snapshot().Create(&portainer.Snapshot{
-			EndpointID: 1,
-			Docker:     &portainer.DockerSnapshot{Swarm: false},
-		}))
-
-		mustCreateGitWorkflow(t, tx, &portainer.Stack{
-			ID:         1,
-			Name:       "compose-local",
-			Type:       portainer.DockerComposeStack,
-			EndpointID: 1,
-			GitConfig:  &gittypes.RepoConfig{URL: "https://github.com/example/compose"},
-			DeploymentStatus: []portainer.StackDeploymentStatus{
-				{Status: portainer.StackStatusActive, Time: 123},
-			},
-		})
-
-		return tx.User().Create(&portainer.User{ID: 1, Role: portainer.AdministratorRole})
-	}))
-
-	var items []Workflow
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		items, err = FetchWorkflows(tx, nil, adminContext(), nil)
-		return err
-	}))
-	require.Len(t, items, 1)
-	require.Equal(t, "compose-local", items[0].Name)
-	require.Len(t, items[0].Artifacts, 1)
-	require.Equal(t, StatusHealthy, items[0].Artifacts[0].Status.Target.Status)
-	require.Equal(t, int64(123), items[0].Artifacts[0].LastSyncDate)
 }

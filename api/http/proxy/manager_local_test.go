@@ -14,7 +14,7 @@ import (
 func TestNewProxyFactoryAndGitlabProxy(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
-	manager := NewManager(nil)
+	manager := NewManager()
 	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 
 	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil)
@@ -24,7 +24,7 @@ func TestNewProxyFactoryAndGitlabProxy(t *testing.T) {
 func TestCreateAndRegisterEndpointProxy_LocalDocker(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
-	manager := NewManager(nil)
+	manager := NewManager()
 	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil)
 
@@ -42,7 +42,7 @@ func TestCreateAndRegisterEndpointProxy_LocalDocker(t *testing.T) {
 func TestCreateAgentProxyServer_WithFactory(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, false)
-	manager := NewManager(nil)
+	manager := NewManager()
 	factory := dockerclient.NewClientFactory(pkgtesthelpers.NewStubSignatureService())
 	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil)
 

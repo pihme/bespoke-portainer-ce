@@ -95,7 +95,7 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 		Status:           &portainer.Status{Version: "test"},
 		FileService:      fileService,
 		DataStore:        store,
-		ProxyManager:     proxy.NewManager(nil),
+		ProxyManager:     proxy.NewManager(),
 		SSLService:       sslService,
 		TrustedOrigins:   trustedOrigins,
 	}

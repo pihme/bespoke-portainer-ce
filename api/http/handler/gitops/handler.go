@@ -7,7 +7,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/gitops/scheduling"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -23,7 +22,7 @@ type Handler struct {
 	fileService portainer.FileService
 }
 
-func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, gitService portainer.GitService, fileService portainer.FileService, k8sFactory *cli.ClientFactory, sourceScheduler *scheduling.SourceScheduler) *Handler {
+func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStore, gitService portainer.GitService, fileService portainer.FileService, sourceScheduler *scheduling.SourceScheduler) *Handler {
 	h := &Handler{
 		Router:      mux.NewRouter(),
 		dataStore:   dataStore,
@@ -39,7 +38,7 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 	// The GitOps workflows view (/gitops/workflows) is removed (TAI-011); Git
 	// sources keep listing the workflows that use them.
 
-	sourcesHandler := sources.NewHandler(bouncer, dataStore, gitService, k8sFactory, sourceScheduler)
+	sourcesHandler := sources.NewHandler(bouncer, dataStore, gitService, sourceScheduler)
 	authenticatedRouter.PathPrefix("/gitops/sources").Handler(sourcesHandler)
 
 	return h

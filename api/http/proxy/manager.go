@@ -10,23 +10,19 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	dockerclient "github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/proxy/factory"
-	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
 var ErrProxyFactoryNotInitialized = errors.New("proxy factory not initialized")
 
 // Manager represents a service used to manage proxies to environments (endpoints) and extensions.
 type Manager struct {
-	proxyFactory     *factory.ProxyFactory
-	endpointProxies  sync.Map
-	k8sClientFactory *cli.ClientFactory
+	proxyFactory    *factory.ProxyFactory
+	endpointProxies sync.Map
 }
 
 // NewManager initializes a new proxy Service
-func NewManager(kubernetesClientFactory *cli.ClientFactory) *Manager {
-	return &Manager{
-		k8sClientFactory: kubernetesClientFactory,
-	}
+func NewManager() *Manager {
+	return &Manager{}
 }
 
 func (manager *Manager) NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, clientFactory *dockerclient.ClientFactory, gitService portainer.GitService, snapshotService portainer.SnapshotService) {
@@ -70,13 +66,8 @@ func (manager *Manager) GetEndpointProxy(endpoint *portainer.Endpoint) http.Hand
 	return proxy.(http.Handler)
 }
 
-// DeleteEndpointProxy deletes the proxy associated to a key
-// and cleans the k8s environment(endpoint) client cache. DeleteEndpointProxy
-// is currently only called for edge connection clean up and when endpoint is updated
+// DeleteEndpointProxy deletes the proxy associated to a key. It is called
+// when an environment is updated or deleted.
 func (manager *Manager) DeleteEndpointProxy(endpointID portainer.EndpointID) {
 	manager.endpointProxies.Delete(strconv.Itoa(int(endpointID)))
-
-	if manager.k8sClientFactory != nil {
-		manager.k8sClientFactory.RemoveKubeClient(endpointID)
-	}
 }

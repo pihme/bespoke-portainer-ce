@@ -20,7 +20,7 @@ func TestEndpointDeleteRemovesStaleWorkflowReference(t *testing.T) {
 
 	handler := NewHandler(testhelpers.NewTestRequestBouncer())
 	handler.DataStore = store
-	handler.ProxyManager = proxy.NewManager(nil)
+	handler.ProxyManager = proxy.NewManager()
 	handler.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 
 	err := store.Endpoint().Create(&portainer.Endpoint{

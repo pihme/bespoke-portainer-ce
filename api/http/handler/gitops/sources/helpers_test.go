@@ -48,7 +48,7 @@ func createGitWorkflow(t *testing.T, tx dataservices.DataStoreTx, stack *portain
 
 func newTestHandler(t *testing.T, store dataservices.DataStore) *Handler {
 	t.Helper()
-	return NewHandler(testhelpers.NewTestRequestBouncer(), store, nil, nil, nil)
+	return NewHandler(testhelpers.NewTestRequestBouncer(), store, nil, nil)
 }
 
 func adminRestrictedContext(userID portainer.UserID) *security.RestrictedRequestContext {
@@ -184,7 +184,7 @@ func buildGitSourceTestReq(t *testing.T, userID portainer.UserID, body []byte) *
 
 func newTestHandlerWithGit(t *testing.T, store dataservices.DataStore, git portainer.GitService) *Handler {
 	t.Helper()
-	return NewHandler(testhelpers.NewTestRequestBouncer(), store, git, nil, nil)
+	return NewHandler(testhelpers.NewTestRequestBouncer(), store, git, nil)
 }
 
 // stubGitService is a minimal GitService for connection-test handlers.

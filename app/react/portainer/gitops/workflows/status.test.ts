@@ -1,22 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
 import {
-  mockWorkflowHealthy,
-  mockWorkflowTargetError,
-  mockWorkflowEdgeMixed,
-  mockWorkflowMultiArtifact,
-  mockWorkflowEmpty,
-} from './test-utils/workflow.mock';
-import {
   WorkflowPhaseStatus,
   WorkflowStatus,
   WorkflowStatusObject,
 } from './types';
-import {
-  effectiveWorkflowStatus,
-  worstPhaseStatus,
-  computeTargetRollup,
-} from './status';
+import * as statusModule from './status';
+import { effectiveWorkflowStatus, worstPhaseStatus } from './status';
 
 describe('effectiveWorkflowStatus', () => {
   describe('uniform phases', () => {
@@ -119,45 +109,10 @@ describe('worstPhaseStatus', () => {
   });
 });
 
-describe('computeTargetRollup', () => {
-  it('reports success and full sync for an all-healthy stack workflow', () => {
-    expect(computeTargetRollup(mockWorkflowHealthy)).toEqual({
-      synced: 1,
-      total: 1,
-      tone: 'success',
-    });
-  });
-
-  it('reports danger when the single stack target errored', () => {
-    expect(computeTargetRollup(mockWorkflowTargetError)).toEqual({
-      synced: 0,
-      total: 1,
-      tone: 'danger',
-    });
-  });
-
-  it('counts one target per edge group and reports danger if any group errored', () => {
-    expect(computeTargetRollup(mockWorkflowEdgeMixed)).toEqual({
-      synced: 1,
-      total: 2,
-      tone: 'danger',
-    });
-  });
-
-  it('reports warning (not danger) when a target is syncing rather than errored', () => {
-    expect(computeTargetRollup(mockWorkflowMultiArtifact)).toEqual({
-      synced: 1,
-      total: 2,
-      tone: 'warning',
-    });
-  });
-
-  it('reports muted with zero counts for a zero-artifact workflow', () => {
-    expect(computeTargetRollup(mockWorkflowEmpty)).toEqual({
-      synced: 0,
-      total: 0,
-      tone: 'muted',
-    });
+describe('REQ-TAI-019 workflow view leftovers', () => {
+  it('has no workflow target rollup for the removed workflows view', () => {
+    expect(statusModule).not.toHaveProperty('computeTargetRollup');
+    expect(statusModule).not.toHaveProperty('computeArtifactTargetCount');
   });
 });
 

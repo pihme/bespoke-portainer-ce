@@ -139,3 +139,63 @@ func TestREQ_TAI_017_DeadEdgeHelpersAreGone(t *testing.T) {
 	_, err := os.Stat(filepath.Join(repoRoot, "api/internal/edge/edgegroup.go"))
 	require.NoError(t, err)
 }
+
+// swaggerPaths returns the route paths listed in api/docs/swagger.yaml.
+func swaggerPaths(t *testing.T) []string {
+	t.Helper()
+
+	raw, err := os.ReadFile(filepath.Join(repoRoot, "api/docs/swagger.yaml"))
+	require.NoError(t, err)
+
+	var paths []string
+	inPaths := false
+	for line := range strings.SplitSeq(string(raw), "\n") {
+		if line == "paths:" {
+			inPaths = true
+
+			continue
+		}
+		if inPaths && line != "" && !strings.HasPrefix(line, " ") {
+			break
+		}
+		if inPaths && strings.HasPrefix(line, "  /") {
+			paths = append(paths, strings.TrimSuffix(strings.TrimSpace(line), ":"))
+		}
+	}
+
+	return paths
+}
+
+// TestREQ_TAI_019_ApiDocsListNoRemovedRoutes proves that the regenerated
+// Swagger document and the generated client no longer describe the routes
+// TAI-001 to TAI-014 removed, while the kept routes are still described.
+func TestREQ_TAI_019_ApiDocsListNoRemovedRoutes(t *testing.T) {
+	paths := swaggerPaths(t)
+	require.NotEmpty(t, paths)
+
+	removed := []string{
+		"/auth", "/backup", "/restore", "/edge_", "/endpoint_groups", "/kubernetes",
+		"/registries", "/tags", "/teams", "/team_memberships", "/roles", "/webhooks",
+		"/gitops/workflows", "/licenses", "/motd", "/helm", "/endpoints/relations",
+		"/endpoints/global-key", "/endpoints/{id}/kubernetes", "/endpoints/{id}/edge",
+		"/endpoints/{id}/registries", "/endpoints/{id}/dockerhub", "/users/{id}/tokens",
+	}
+	for _, p := range paths {
+		for _, prefix := range removed {
+			require.Falsef(t, strings.HasPrefix(p, prefix), "swagger still lists removed route %s", p)
+		}
+	}
+
+	for _, kept := range []string{
+		"/stacks", "/stacks/webhooks/{webhookID}", "/stacks/{id}/git/redeploy",
+		"/custom_templates", "/gitops/sources", "/endpoints", "/settings", "/system/version",
+	} {
+		require.Containsf(t, paths, kept, "swagger should still list %s", kept)
+	}
+
+	sdk, err := os.ReadFile(filepath.Join(repoRoot, "app/react/portainer/generated-api/portainer/sdk.gen.ts"))
+	require.NoError(t, err)
+	for _, url := range []string{"'/kubernetes/", "'/edge_stacks", "'/edge_groups", "'/endpoint_groups", "'/registries", "'/tags", "'/teams", "'/auth", "'/gitops/workflows"} {
+		require.NotContainsf(t, string(sdk), "url: "+url, "generated client still calls %s", url)
+	}
+}

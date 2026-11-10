@@ -61,13 +61,9 @@ export interface EnvironmentOptions {
 // created.
 async function createEnvironment(
   name: string,
-  creationType: EnvironmentCreationTypes,
+  creationType: EnvironmentCreationTypes.LocalDockerEnvironment,
   options?: EnvironmentOptions
 ) {
-  if (creationType === EnvironmentCreationTypes.KubeConfigEnvironment) {
-    throw new Error('Kube config creation is not supported on CE');
-  }
-
   let payload: EndpointCreateData['body'] = {
     Name: name,
     EndpointCreationType: creationType,

@@ -1,9 +1,3 @@
-import {
-  WorkflowsArtifactDetail,
-  WorkflowsArtifactFileDetail,
-  WorkflowsWorkflow,
-} from '@api/types.gen';
-
 export type WorkflowStatus =
   | 'healthy'
   | 'error'
@@ -40,17 +34,3 @@ export interface WorkflowFileRef {
   path: string;
   ref: string;
 }
-
-export type WorkflowArtifact = Omit<WorkflowsArtifactDetail, 'status'> & {
-  status: WorkflowStatusObject;
-  files: Array<WorkflowArtifactFile>;
-};
-
-export type WorkflowArtifactFile = WorkflowsArtifactFileDetail & {
-  sourceId: number;
-};
-
-export type Workflow = Omit<WorkflowsWorkflow, 'artifacts' | 'status'> & {
-  status: WorkflowStatusObject;
-  artifacts: WorkflowArtifact[];
-};

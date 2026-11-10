@@ -13,7 +13,6 @@ import { useNodesCount } from './useNodesCount';
 import { useSystemInfo } from './useSystemInfo';
 import { getSystemStatus, useSystemStatus } from './useSystemStatus';
 import { getSystemVersion, useSystemVersion } from './useSystemVersion';
-import { useUpgradeEditionMutation } from './useUpgradeEditionMutation';
 
 vi.mock('@/react/portainer/feature-flags/feature-flags.service', () => ({
   isBE: false,
@@ -180,61 +179,5 @@ describe('REQ-ENV-02 system helpers', () => {
       )
     );
     await expect(getSystemVersion()).rejects.toThrow();
-  });
-});
-
-describe('useUpgradeEditionMutation (BE marketing deferred)', () => {
-  it('posts a license and treats disconnect as success', async () => {
-    server.use(
-      http.post('/api/system/upgrade', async ({ request }) => {
-        const body = await request.json();
-        expect(body).toEqual({ license: 'lic-1' });
-        return HttpResponse.error();
-      })
-    );
-
-    const { result } = renderHook(() => useUpgradeEditionMutation(), {
-      wrapper,
-    });
-
-    await expect(
-      result.current.mutateAsync({ license: 'lic-1' })
-    ).resolves.toBeUndefined();
-  });
-
-  it('surfaces HTTP errors from upgrade', async () => {
-    const restore = suppressConsoleLogs();
-    server.use(
-      http.post('/api/system/upgrade', () =>
-        HttpResponse.json({ message: 'bad license' }, { status: 400 })
-      )
-    );
-
-    const { result } = renderHook(() => useUpgradeEditionMutation(), {
-      wrapper,
-    });
-
-    await expect(
-      result.current.mutateAsync({ license: 'bad' })
-    ).rejects.toThrow();
-    restore();
-  });
-
-  it('rethrows non-axios upgrade failures', async () => {
-    const restore = suppressConsoleLogs();
-    const axios = await import('@/portainer/services/axios/axios');
-    const spy = vi
-      .spyOn(axios.default, 'post')
-      .mockRejectedValueOnce(new Error('boom'));
-
-    const { result } = renderHook(() => useUpgradeEditionMutation(), {
-      wrapper,
-    });
-
-    await expect(
-      result.current.mutateAsync({ license: 'x' })
-    ).rejects.toThrow('boom');
-    spy.mockRestore();
-    restore();
   });
 });

@@ -163,13 +163,13 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 - **REQ-STK-01 List stacks.** Stacks created in Portainer (full control) and external stacks (limited control; control column inferred from code: `StacksDatatable/columns/control.tsx`). Entry: UI `#!/{envId}/docker/stacks`; API `GET /stacks`. docs: user/docker/stacks
 - **REQ-STK-02 Deploy a stack from the web editor or an upload.** Compose file in the web editor or uploaded, environment variables (incl. `.env` upload), access control. Entry: UI `#!/{envId}/docker/stacks/newstack`; API `POST /stacks/create/standalone/string`, `…/standalone/file` (Swarm: `…/swarm/string`, `…/swarm/file`). docs: user/docker/stacks/add *TAI-001: no ownership column or access control section (REQ-USR-08 removed).* *TAI-003: the Swarm paths are removed; `POST /stacks/create/swarm/…` answers 400.*
-- **REQ-STK-03 Deploy a stack from Git.** Repository URL, reference, compose path and additional files, authentication, automatic updates (polling or webhook), TLS skip, relative path volumes (BE). Entry: same UI; API `POST /stacks/create/standalone/repository`, `…/swarm/repository`. docs: user/docker/stacks/add, advanced/relative-paths *TAI-003: the Swarm path is removed; `…/swarm/repository` answers 400.*
+- **REQ-STK-03 Deploy a stack from Git.** Repository URL, reference, compose path and additional files, authentication, automatic updates (polling or webhook), TLS skip, relative path volumes (BE). Entry: same UI; API `POST /stacks/create/standalone/repository`, `…/swarm/repository`. docs: user/docker/stacks/add, advanced/relative-paths *TAI-003: the Swarm path is removed; `…/swarm/repository` answers 400.* *TAI-012: the BE-only "Re-pull image" and "Force redeployment" switches under automatic updates are gone.*
 - **REQ-STK-04 Inspect and edit a stack.** See containers/services of a stack, edit the compose file and environment variables, update (optionally re-pull images), redeploy from Git, change Git settings. Entry: UI `#!/{envId}/docker/stacks/{name}`; API `GET/PUT /stacks/{id}`, `GET /stacks/{id}/file`, `POST /stacks/{id}/git`, `PUT /stacks/{id}/git/redeploy`. docs: user/docker/stacks/edit *TAI-003: a stack shows containers only; a leftover Swarm stack record can be inspected and deleted, every other operation answers 400.*
 - **REQ-STK-05 Start and stop a stack.** Entry: UI stack page; API `POST /stacks/{id}/start`, `POST /stacks/{id}/stop`. docs: user/docker/stacks/edit
 - **REQ-STK-06 Create a template from a stack.** Entry: UI stack page. docs: user/docker/stacks/template
 - **REQ-STK-07 Migrate, duplicate or rename a stack.** Move or copy a stack to another environment, or rename it. Entry: UI stack page; API `POST /stacks/{id}/migrate`. docs: user/docker/stacks/migrate *TAI-003: Swarm stacks cannot be migrated or duplicated.* *TAI-007: no migration to another environment; rename (same environment) and duplicate stay.*
 - **REQ-STK-08 Remove a stack.** Entry: API `DELETE /stacks/{id}`, `DELETE /stacks/name/{name}`. docs: user/docker/stacks/remove *TAI-003: removing an external (Swarm) stack via `external=true` answers 400.*
-- **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL (CE, C-01; the CE create and edit forms set webhook IDs for editor and Git stacks). Pull prevention and environment variables on the webhook call are **BE-only**. Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks
+- **REQ-STK-09 Stack webhooks.** Trigger a redeploy through a webhook URL (CE, C-01; the CE create and edit forms set webhook IDs for editor and Git stacks). Pull prevention and environment variables on the webhook call are **BE-only**. Entry: API `POST /stacks/webhooks/{webhookID}`. docs: user/docker/stacks/webhooks *TAI-012: the editor stack "Create a Stack webhook" switch was a disabled BE teaser in CE and is gone; the Git stack webhook (auto-update) and `POST /stacks/webhooks/{webhookID}` stay.*
 - **REQ-STK-10 Associate orphaned stacks.** Re-attach a stack to an environment. Entry: API `PUT /stacks/{id}/associate` (inferred from code; no docs page). *TAI-003: no `swarmId`; Swarm stacks cannot be associated.*
 
 ## SWM – Docker Swarm
@@ -259,7 +259,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 - **REQ-SET-05 Automatic patch updates, experimental features, CA file for Helm repositories, add-on settings.** **BE-only.** docs: admin/settings/general *TAI-002: the "CA file for Kubernetes Helm repositories" teaser is removed from `#!/settings`.*
 - **REQ-SET-06 Shared credentials (Omni, SSH, Git).** **BE-only.** docs: admin/settings/credentials and sub-pages
 - **REQ-SET-07 Support bundle and debug log.** **BE-only.** docs: admin/settings/general (Portainer support)
-- **REQ-SET-08 Message of the day.** Show Portainer news on the home screen. Entry: API `GET /motd` (inferred from code).
+- ~~**REQ-SET-08 Message of the day.** Show Portainer news on the home screen. Entry: API `GET /motd` (inferred from code).~~ REMOVED (TAI-012)
 
 ## BKP – Backup and restore
 
@@ -270,7 +270,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## LOG – Logs and notifications
 
 - ~~**REQ-LOG-01 Authentication logs.** **BE-only** (CE route `#!/auth-logs` shows an upsell, inferred from code). docs: admin/logs/authentication~~ REMOVED (TAI-001)
-- **REQ-LOG-02 Activity logs.** **BE-only** (CE route `#!/activity-logs`). docs: admin/logs/activity
+- ~~**REQ-LOG-02 Activity logs.** **BE-only** (CE route `#!/activity-logs`). docs: admin/logs/activity~~ REMOVED (TAI-012)
 - **REQ-LOG-03 Stream logs to an external SIEM.** **BE-only.** docs: advanced/siem
 - **REQ-LOG-04 Notifications history.** Record of in-app notification messages; search and remove; the 50 most recent behind the bell icon. The history is stored as today and has no bound for now (C-11). Entry: UI `#!/notifications`. docs: admin/notifications
 - **REQ-LOG-05 Server log level and format.** Entry: CLI `--log-level`, `--log-mode`. docs: advanced/cli
@@ -283,8 +283,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## LIC – Licensing and Business Edition
 
 - **REQ-LIC-01 Licenses.** Add, renew and remove BE license keys. **BE-only.** Entry (BE): CLI `--license-key`. docs: admin/licenses
-- **REQ-LIC-02 Upgrade to Business Edition from within CE.** An "Upgrade to Business Edition" banner in the sidebar lets an admin paste a license or request a trial and start the in-place upgrade. Entry: UI sidebar banner (`app/react/sidebar/UpgradeBEBanner`); API `POST /system/upgrade`. docs: start/upgrade/tobe/inapp, start/upgrade/tobe
-- **REQ-LIC-03 Business Edition feature indicators in CE.** BE-only options are shown in CE as disabled controls or upsell pages that link to the Business Edition offer (for example webhooks, RBAC roles, activity logs, registry browsing, S3 backup). (inferred from code: `app/react/portainer/feature-flags/enums.ts`, BE feature indicators in `app/`)
+- ~~**REQ-LIC-02 Upgrade to Business Edition from within CE.** An "Upgrade to Business Edition" banner in the sidebar lets an admin paste a license or request a trial and start the in-place upgrade. Entry: UI sidebar banner (`app/react/sidebar/UpgradeBEBanner`); API `POST /system/upgrade`. docs: start/upgrade/tobe/inapp, start/upgrade/tobe~~ REMOVED (TAI-012)
+- **REQ-LIC-03 Business Edition feature indicators in CE.** BE-only options are shown in CE as disabled controls or upsell pages that link to the Business Edition offer (for example webhooks, RBAC roles, activity logs, registry browsing, S3 backup). (inferred from code: `app/react/portainer/feature-flags/enums.ts`, BE feature indicators in `app/`) *TAI-012: the BE indicators, upsell pages and disabled BE-only controls are removed (activity logs, custom login banner, change window, image up-to-date indicator, Git auto-update re-pull and force redeployment, editor stack webhook); the container webhook teaser goes with TAI-014.*
 
 ## API – REST API and automation
 
@@ -391,6 +391,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) The UI has no `#!/gitops/workflows` or `#!/gitops/workflows/{id}` page and no Workflows entry in the App Delivery sidebar.
   - (c) Git sources (REQ-GIT-02) stay, including `GET /gitops/sources/{id}/workflows`; on the source page a workflow links to its Docker stack, or is shown without a link when it has no stack page.
   - (d) Stack Git deploy, redeploy and auto-update (REQ-STK-03, REQ-STK-04) and file preview (REQ-GIT-03) are unchanged.
+- **REQ-TAI-012 No commercial advertising or Business Edition upsell.** Added by TAI-012 (2026-11-10).
+  - (a) `GET /motd` and `POST /system/upgrade` answer 404; the server no longer fetches the message of the day from the Portainer assets server. The rest of `/system` (status, version, info, nodes) stays.
+  - (b) The UI has no "Upgrade to Business Edition" banner or upgrade dialogs, no message of the day on the home screen, no `#!/activity-logs` page or Activity logs sidebar item, and no "Get Help" link to the commercial support page.
+  - (c) No disabled BE-only teaser controls remain on General settings (login screen banner), in the Docker features configuration (change window, image up-to-date indicators), under Git automatic updates (re-pull image, force redeployment) or on editor stacks (stack webhook switch). Saving application settings sends no `CustomLoginBanner`; an editor stack keeps an existing webhook ID on save.
+  - (d) The version check and update notification, the footer and "powered by" credit, Git stack auto-update by polling and webhook (REQ-STK-03, REQ-STK-09) and the notifications history (REQ-LOG-04) are unchanged.
 
 ## Not covered as requirements
 

@@ -50,9 +50,10 @@ describe('SettingsSidebar', () => {
       expect(
         screen.queryByTestId('portainerSidebar-registries')
       ).not.toBeInTheDocument();
+      // REQ-TAI-012: no Activity logs teaser
       expect(
-        screen.getByTestId('portainerSidebar-activityLogs')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-activityLogs')
+      ).not.toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-notifications')
       ).toBeInTheDocument();
@@ -88,12 +89,13 @@ describe('SettingsSidebar', () => {
       ).toBeInTheDocument();
     });
 
-    it('should render logs submenu items', () => {
+    it('REQ-TAI-012 renders no logs items', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
       expect(
-        screen.getByTestId('portainerSidebar-activityLogs')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-activityLogs')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Activity logs')).not.toBeInTheDocument();
       // REQ-TAI-001: no authentication logs
       expect(
         screen.queryByTestId('portainerSidebar-authLogs')
@@ -116,17 +118,15 @@ describe('SettingsSidebar', () => {
       ).not.toBeInTheDocument();
     });
 
-    it('should render Get Help link with correct CE URL', () => {
+    it('REQ-TAI-012 renders no Get Help link to commercial support', () => {
       renderComponent({ isPureAdmin: true, isAdmin: true });
 
-      const helpLink = screen.getByRole('link', { name: /Get Help/i });
-      expect(helpLink).toBeInTheDocument();
-      expect(helpLink).toHaveAttribute(
-        'href',
-        'https://www.portainer.io/resources/get-support'
-      );
-      expect(helpLink).toHaveAttribute('target', '_blank');
-      expect(helpLink).toHaveAttribute('rel', 'noreferrer');
+      expect(
+        screen.queryByRole('link', { name: /Get Help/i })
+      ).not.toBeInTheDocument();
+      expect(
+        document.querySelector('a[href*="get-support"]')
+      ).not.toBeInTheDocument();
     });
 
     it('should not render Licenses sidebar item in CE', () => {

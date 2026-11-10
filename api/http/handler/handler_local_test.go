@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
-	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	"github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
@@ -39,7 +38,7 @@ func recordingMux(seen *string, code int) *mux.Router {
 func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 	var (
 		seenCustom, seenDocker, seenGroups, seenEndpoints, seenProxy string
-		seenGitops, seenMotd, seenSettings, seenStacks               string
+		seenGitops, seenSettings, seenStacks                         string
 		seenSystem, seenTags, seenTemplates, seenUpload, seenSSL     string
 		seenWS, seenStorybook                                        string
 	)
@@ -51,7 +50,6 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 		EndpointHandler:        &endpoints.Handler{Router: recordingMux(&seenEndpoints, http.StatusOK)},
 		EndpointProxyHandler:   &endpointproxy.Handler{Router: recordingMux(&seenProxy, http.StatusOK)},
 		GitOperationHandler:    &gitops.Handler{Router: recordingMux(&seenGitops, http.StatusOK)},
-		MOTDHandler:            &motd.Handler{Router: recordingMux(&seenMotd, http.StatusOK)},
 		SettingsHandler:        &settings.Handler{Router: recordingMux(&seenSettings, http.StatusOK)},
 		StackHandler:           &stacks.Handler{Router: recordingMux(&seenStacks, http.StatusOK)},
 		SystemHandler:          &system.Handler{Router: recordingMux(&seenSystem, http.StatusOK)},
@@ -80,7 +78,6 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 			require.Equal(t, "/1/docker/containers/json", seenProxy)
 		}},
 		{"/api/gitops/sources", func(t *testing.T) { require.Equal(t, "/gitops/sources", seenGitops) }},
-		{"/api/motd", func(t *testing.T) { require.Equal(t, "/motd", seenMotd) }},
 		{"/api/settings", func(t *testing.T) { require.Equal(t, "/settings", seenSettings) }},
 		{"/api/stacks", func(t *testing.T) { require.Equal(t, "/stacks", seenStacks) }},
 		{"/api/status", func(t *testing.T) { require.Equal(t, "/status", seenSystem) }},

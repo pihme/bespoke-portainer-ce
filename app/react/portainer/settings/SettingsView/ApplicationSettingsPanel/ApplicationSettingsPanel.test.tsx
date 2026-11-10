@@ -17,9 +17,6 @@ vi.mock('@/portainer/services/notifications', () => ({
 vi.mock('./LogoFieldset', () => ({
   LogoFieldset: () => <div>logo-fieldset</div>,
 }));
-vi.mock('./ScreenBannerFieldset', () => ({
-  ScreenBannerFieldset: () => null,
-}));
 vi.mock('./TemplatesUrlSection', () => ({
   TemplatesUrlSection: () => <div>templates-section</div>,
 }));
@@ -63,5 +60,17 @@ describe('REQ-SET-01 ApplicationSettingsPanel', () => {
     );
     expect(notifySuccess).toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it('REQ-TAI-012: has no login screen banner teaser and sends no CustomLoginBanner', async () => {
+    const user = userEvent.setup();
+    render(
+      <ApplicationSettingsPanel settings={settings} onSuccess={onSuccess} />
+    );
+    expect(screen.queryByText(/Login screen banner/i)).toBeNull();
+    expect(screen.queryByTestId('logo-banner-switch')).toBeNull();
+    await user.click(screen.getByRole('button', { name: /Save application settings/i }));
+    await waitFor(() => expect(mutate).toHaveBeenCalled());
+    expect(mutate.mock.calls[0][0]).not.toHaveProperty('CustomLoginBanner');
   });
 });

@@ -13,7 +13,6 @@ import { buildConfirmButton } from '@@/modals/utils';
 
 import { EnvironmentList } from './EnvironmentList';
 import { EdgeLoadingSpinner } from './EdgeLoadingSpinner';
-import { MotdPanel } from './MotdPanel';
 import { LicenseNodePanel } from './LicenseNodePanel';
 import { EnvironmentHeader } from './EnvironmentHeader/EnvironmentHeader';
 
@@ -65,8 +64,6 @@ export function HomeView() {
       />
 
       {process.env.PORTAINER_EDITION !== 'CE' && <LicenseNodePanel />}
-
-      <MotdPanel />
 
 
       {connectingToEdgeEndpoint ? (

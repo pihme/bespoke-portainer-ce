@@ -33,7 +33,6 @@ import (
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/ssl"
-	"github.com/portainer/portainer/api/internal/upgrade"
 	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/kubernetes"
 	kubecli "github.com/portainer/portainer/api/kubernetes/cli"
@@ -483,19 +482,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	platformService := platform.NewService(dataStore)
 
-	upgradeService, err := upgrade.NewService(
-		*flags.Assets,
-		kubernetesClientFactory,
-		dockerClientFactory,
-		composeStackManager,
-		dataStore,
-		fileService,
-		stackDeployer,
-	)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed initializing upgrade service")
-	}
-
 	// Our normal migrations run as part of the database initialization
 	// but some more complex migrations require access to a kubernetes or docker
 	// client. Therefore we run a separate migration process just before
@@ -542,7 +528,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		KubernetesClientFactory:     kubernetesClientFactory,
 		SourceScheduler:             sourceScheduler,
 		StackDeployer:               stackDeployer,
-		UpgradeService:              upgradeService,
 		PendingActionsService:       pendingActionsService,
 		PlatformService:             platformService,
 		TrustedOrigins:              trustedOrigins,

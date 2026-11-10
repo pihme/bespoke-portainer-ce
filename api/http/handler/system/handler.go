@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/upgrade"
 	"github.com/portainer/portainer/api/platform"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
@@ -18,7 +17,6 @@ type Handler struct {
 	*mux.Router
 	status          *portainer.Status
 	dataStore       dataservices.DataStore
-	upgradeService  upgrade.Service
 	platformService platform.Service
 }
 
@@ -26,23 +24,16 @@ type Handler struct {
 func NewHandler(bouncer security.BouncerService,
 	status *portainer.Status,
 	dataStore dataservices.DataStore,
-	platformService platform.Service,
-	upgradeService upgrade.Service) *Handler {
+	platformService platform.Service) *Handler {
 
 	h := &Handler{
 		Router:          mux.NewRouter(),
 		dataStore:       dataStore,
 		status:          status,
-		upgradeService:  upgradeService,
 		platformService: platformService,
 	}
 
 	router := h.PathPrefix("/system").Subrouter()
-
-	adminRouter := router.PathPrefix("/").Subrouter()
-	adminRouter.Use(bouncer.AdminAccess)
-
-	adminRouter.Handle("/upgrade", httperror.LoggerHandler(h.systemUpgrade)).Methods(http.MethodPost)
 
 	authenticatedRouter := router.PathPrefix("/").Subrouter()
 	authenticatedRouter.Use(bouncer.AuthenticatedAccess)

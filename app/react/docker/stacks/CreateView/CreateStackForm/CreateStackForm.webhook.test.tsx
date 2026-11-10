@@ -48,15 +48,12 @@ describe('CreateStackForm - Webhook ID Integration', () => {
     );
   });
 
-  it('should display webhook ID when webhook is enabled in editor method', async () => {
-    const webhookId = 'test-webhook-id-1234';
-
+  it('REQ-TAI-012: the editor method has no BE-only stack webhook teaser', async () => {
     renderComponent({
-      webhookId,
+      webhookId: 'test-webhook-id-1234',
       initialValues: mockFormValues({
         method: 'editor',
         name: 'test-stack',
-        enableWebhook: true,
         editor: {
           fileContent: "version: '3'\nservices:\n  web:\n    image: nginx",
         },
@@ -67,15 +64,11 @@ describe('CreateStackForm - Webhook ID Integration', () => {
       expect(screen.getByTestId('stack-name-input')).toBeInTheDocument();
     });
 
-    await waitFor(() => {
-      const webhookDisplay = screen.queryByRole('textbox', {
-        name: /webhook url/i,
-      });
-      expect(webhookDisplay).toBeInTheDocument();
-      expect(webhookDisplay).toHaveTextContent(webhookId);
-    });
-
-    expect(vi.mocked(uuidv4)).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Create a Stack webhook/i)).toBeNull();
+    expect(screen.queryByTestId('stack-webhook-switch')).toBeNull();
+    expect(
+      screen.queryByRole('textbox', { name: /webhook url/i })
+    ).not.toBeInTheDocument();
   });
 
   it('should display webhook ID in git repository method with auto-update', async () => {
@@ -163,60 +156,6 @@ describe('CreateStackForm - Webhook ID Integration', () => {
     });
 
     expect(vi.mocked(uuidv4)).toHaveBeenCalledOnce();
-  });
-
-  it('should send webhook ID in API request when editor webhook is enabled', async () => {
-    const user = userEvent.setup();
-    let capturedRequestBody: DefaultBodyType;
-
-    server.use(
-      http.post('/api/stacks/create/standalone/string', async ({ request }) => {
-        capturedRequestBody = await request.json();
-        return HttpResponse.json({
-          Id: 1,
-          Name: 'test-stack',
-          ResourceControl: { Id: 1 },
-        });
-      }),
-      http.put('/api/resource_controls/:id', () => HttpResponse.json({}))
-    );
-
-    renderFullComponent({
-      environmentId: 1,
-    });
-
-    const nameInput = await screen.findByRole('textbox', { name: /name/i });
-    await user.clear(nameInput);
-    await user.type(nameInput, 'test-stack');
-
-    const editor = screen.getByTestId('stack-creation-editor');
-    await user.type(editor, 'services:\n  web:\n    image: nginx');
-
-    const webhookToggle = await screen.findByRole('checkbox', {
-      name: /create a stack webhook/i,
-    });
-    await user.click(webhookToggle);
-
-    await waitFor(() => {
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    });
-
-    const deployButton = screen.getByRole('button', {
-      name: /deploy the stack/i,
-    });
-    expect(deployButton).toBeEnabled();
-
-    await user.click(deployButton);
-
-    await waitFor(
-      () => {
-        expect(capturedRequestBody).toBeDefined();
-      },
-      { timeout: 3000 }
-    );
-    assert(capturedRequestBody && typeof capturedRequestBody === 'object');
-
-    expect(capturedRequestBody?.webhook).toBe('test-webhook-id-1234');
   });
 
   it('should not send webhook ID in API request when editor webhook is disabled', async () => {

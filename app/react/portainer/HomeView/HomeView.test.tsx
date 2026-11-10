@@ -56,23 +56,26 @@ describe('HomeView local shell', () => {
       dismissedInfoHash: '',
       dismissedUpdateVersion: '',
     });
+  });
+
+  it('renders the CE home shell with the environment list and no MOTD (REQ-TAI-012)', async () => {
+    let motdRequested = false;
     server.use(
-      http.get('/api/motd', () =>
-        HttpResponse.json({
+      http.get('/api/motd', () => {
+        motdRequested = true;
+        return HttpResponse.json({
           Title: 'Motd',
           Message: 'Local motd',
           Hash: 'home-hash',
-        })
-      )
+        });
+      })
     );
-  });
-
-  it('renders the CE home shell with Motd and environment list', async () => {
     const Wrapped = withTestQueryProvider(withTestRouter(HomeView));
     render(<Wrapped />);
 
     expect(await screen.findByRole('heading', { name: 'Home' })).toBeVisible();
-    expect(await screen.findByText('Local motd')).toBeVisible();
+    expect(screen.queryByText('Local motd')).toBeNull();
+    expect(motdRequested).toBe(false);
     expect(screen.getByText('Environment header')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Browse local' })).toBeVisible();
     expect(screen.queryByText(/Connecting to the Edge environment/i)).toBeNull();

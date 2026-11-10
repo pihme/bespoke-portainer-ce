@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DockerFeaturesConfigurationController from './docker-features-configuration.controller';
+import template from './docker-features-configuration.html?raw';
 
 function securitySettings(overrides = {}) {
   return {
@@ -167,12 +168,23 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     expect(ctrl.state.enableGPUManagement).toBe(false);
   });
 
-  it('toggles auto-update, GPU management, and individual form fields', () => {
+  it('REQ-TAI-012 has no BE-only change window or image up-to-date teaser', () => {
     const { ctrl } = buildController();
     ctrl.$onInit();
 
-    ctrl.onToggleAutoUpdate(true);
-    expect(ctrl.state.autoUpdateSettings.Enabled).toBe(true);
+    expect(ctrl).not.toHaveProperty('onToggleAutoUpdate');
+    expect(ctrl).not.toHaveProperty('limitedFeatureAutoUpdate');
+    expect(ctrl).not.toHaveProperty('limitedFeatureUpToDateImage');
+    expect(ctrl.state).not.toHaveProperty('autoUpdateSettings');
+
+    expect(template).not.toMatch(/Change window/i);
+    expect(template).not.toMatch(/image up to date/i);
+    expect(template).not.toMatch(/feature-id=/);
+  });
+
+  it('toggles GPU management and individual form fields', () => {
+    const { ctrl } = buildController();
+    ctrl.$onInit();
 
     ctrl.onToggleGPUManagement(true);
     expect(ctrl.state.enableGPUManagement).toBe(true);

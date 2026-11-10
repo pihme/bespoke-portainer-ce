@@ -13,7 +13,6 @@ import { FormActions } from '@@/form-components/FormActions';
 import { usePreventExit } from '@@/WebEditorForm';
 import { FormError } from '@@/form-components/FormError';
 
-import { WebhookFieldset } from '../../common/WebhookFieldset';
 
 import { StackEditorFormValues } from './StackEditorTab.types';
 import { useVersionedStackFile } from './useVersionedStackFile';
@@ -21,6 +20,7 @@ import { useVersionedStackFile } from './useVersionedStackFile';
 interface StackEditorTabInnerProps {
   stackType: StackType | undefined;
   composeSyntaxMaxVersion: number;
+  /** Inert since TAI-012 removed the BE-only stack webhook teaser. */
   envType: EnvironmentType;
   schema: JSONSchema7;
   isOrphaned: boolean;
@@ -28,20 +28,19 @@ interface StackEditorTabInnerProps {
   stackId: Stack['Id'];
   isSaved: boolean;
   isSubmitting: boolean;
+  /** Inert since TAI-012 removed the BE-only stack webhook teaser. */
   webhookId: string;
 }
 
 export function StackEditorTabInner({
   stackType,
   composeSyntaxMaxVersion,
-  envType,
   schema,
   isOrphaned,
   versions,
   stackId,
   isSaved,
   isSubmitting,
-  webhookId,
 }: StackEditorTabInnerProps) {
   const { authorized: isAuthorizedToUpdate } = useAuthorizations(
     'PortainerStackUpdate'
@@ -131,14 +130,6 @@ export function StackEditorTabInner({
         showHelpMessage
         isFoldable
       />
-
-      {envType !== EnvironmentType.EdgeAgentOnDocker && (
-        <WebhookFieldset
-          onChange={(value) => setFieldValue('enabledWebhook', value)}
-          value={values.enabledWebhook}
-          webhookId={webhookId}
-        />
-      )}
 
       <Authorized authorizations="PortainerStackUpdate">
         <PruneField

@@ -55,7 +55,7 @@ describe('StackEditorTab - Webhook ID Handling', () => {
   });
 
   describe('Editor stack with existing webhook', () => {
-    it('should display existing webhook ID', async () => {
+    it('REQ-TAI-012: keeps an existing webhook without showing the BE-only teaser', async () => {
       const existingWebhookId = 'existing-webhook-123';
 
       const stack = createMockStack({
@@ -69,13 +69,10 @@ describe('StackEditorTab - Webhook ID Handling', () => {
         expect(screen.getByTestId('stack-deploy-button')).toBeInTheDocument();
       });
 
-      await waitFor(() => {
-        const webhookDisplay = screen.queryByRole('textbox', {
-          name: /webhook url/i,
-        });
-        expect(webhookDisplay).toBeInTheDocument();
-        expect(webhookDisplay).toHaveTextContent(existingWebhookId);
-      });
+      expect(
+        screen.queryByRole('textbox', { name: /webhook url/i })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId('stack-webhook-switch')).toBeNull();
 
       expect(vi.mocked(uuidv4)).not.toHaveBeenCalled();
     });

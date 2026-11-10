@@ -15,7 +15,6 @@ import {
   customTemplate,
 } from '@@/BoxSelector/common-options/build-methods';
 
-import { WebhookFieldset } from '../../common/WebhookFieldset';
 
 import { EditorSection } from './EditorSection/EditorSection';
 import { UploadSection } from './UploadSection/UploadSection';
@@ -89,14 +88,6 @@ export function CreateStackInnerForm({
         <EditorSection
           schema={dockerComposeSchema}
           isSaved={isSaved}
-        />
-      )}
-
-      {values.method !== 'repository' && (
-        <WebhookFieldset
-          value={values.enableWebhook}
-          onChange={(value) => setFieldValue('enableWebhook', value)}
-          webhookId={webhookId}
         />
       )}
 

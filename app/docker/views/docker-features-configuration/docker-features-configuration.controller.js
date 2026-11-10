@@ -1,5 +1,3 @@
-import { FeatureId } from '@/react/portainer/feature-flags/enums';
-
 export default class DockerFeaturesConfigurationController {
   /* @ngInject */
   constructor($async, $scope, $state, EndpointService, SettingsService, Notifications, StateManager) {
@@ -10,9 +8,6 @@ export default class DockerFeaturesConfigurationController {
     this.SettingsService = SettingsService;
     this.Notifications = Notifications;
     this.StateManager = StateManager;
-
-    this.limitedFeatureAutoUpdate = FeatureId.HIDE_AUTO_UPDATE_WINDOW;
-    this.limitedFeatureUpToDateImage = FeatureId.IMAGE_UP_TO_DATE_INDICATOR;
 
     this.formValues = {
       disableBindMountsForRegularUsers: false,
@@ -27,13 +22,11 @@ export default class DockerFeaturesConfigurationController {
 
     this.state = {
       actionInProgress: false,
-      autoUpdateSettings: { Enabled: false },
       timeZone: '',
     };
 
     this.save = this.save.bind(this);
     this.onChangeField = this.onChangeField.bind(this);
-    this.onToggleAutoUpdate = this.onToggleAutoUpdate.bind(this);
     this.onToggleGPUManagement = this.onToggleGPUManagement.bind(this);
     this.onGpusChange = this.onGpusChange.bind(this);
     this.onChangeDisableBindMountsForRegularUsers = this.onChangeField('disableBindMountsForRegularUsers');
@@ -44,12 +37,6 @@ export default class DockerFeaturesConfigurationController {
     this.onChangeDisableContainerCapabilitiesForRegularUsers = this.onChangeField('disableContainerCapabilitiesForRegularUsers');
     this.onChangeDisableSysctlSettingForRegularUsers = this.onChangeField('disableSysctlSettingForRegularUsers');
     this.onChangeDisableSecurityOptForRegularUsers = this.onChangeField('disableSecurityOptForRegularUsers');
-  }
-
-  onToggleAutoUpdate(value) {
-    return this.$scope.$evalAsync(() => {
-      this.state.autoUpdateSettings.Enabled = value;
-    });
   }
 
   onToggleGPUManagement(checked) {

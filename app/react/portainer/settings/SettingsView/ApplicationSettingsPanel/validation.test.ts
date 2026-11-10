@@ -6,8 +6,6 @@ describe('REQ-SET-01 application settings validation', () => {
   it('requires snapshot interval and accepts empty optional urls', async () => {
     await expect(
       schema.validate({
-        loginBannerEnabled: false,
-        loginBanner: '',
         logoEnabled: false,
         logo: '',
         snapshotInterval: '5m',
@@ -19,8 +17,6 @@ describe('REQ-SET-01 application settings validation', () => {
   it('requires logo url when logo is enabled', async () => {
     await expect(
       schema.validate({
-        loginBannerEnabled: false,
-        loginBanner: '',
         logoEnabled: true,
         logo: '',
         snapshotInterval: '5m',
@@ -32,8 +28,6 @@ describe('REQ-SET-01 application settings validation', () => {
   it('rejects an invalid templates url', async () => {
     await expect(
       schema.validate({
-        loginBannerEnabled: false,
-        loginBanner: '',
         logoEnabled: false,
         logo: '',
         snapshotInterval: '5m',

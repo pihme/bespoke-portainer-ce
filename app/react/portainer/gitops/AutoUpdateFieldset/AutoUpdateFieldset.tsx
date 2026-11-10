@@ -7,14 +7,14 @@ import { AutoUpdateSettings } from './AutoUpdateSettings';
 export function AutoUpdateFieldset({
   value,
   onChange,
-  environmentType,
-  isForcePullVisible = true,
   baseWebhookUrl,
   webhookId,
   webhooksDocs,
 }: {
   value: AutoUpdateModel;
   onChange: (value: AutoUpdateModel) => void;
+  // Inert since TAI-012 removed the BE-only Re-pull image and Force
+  // redeployment teasers; callers still pass them.
   environmentType?: 'DOCKER' | 'KUBERNETES';
   isForcePullVisible?: boolean;
   baseWebhookUrl: string;
@@ -43,10 +43,6 @@ export function AutoUpdateFieldset({
         <AutoUpdateSettings
           webhookId={webhookId}
           baseWebhookUrl={baseWebhookUrl}
-          value={value}
-          onChange={handleChange}
-          environmentType={environmentType}
-          showForcePullImage={isForcePullVisible}
           webhookDocs={webhooksDocs}
         />
       )}

@@ -27,16 +27,8 @@ vi.mock('@@/form-components/SwitchField', () => ({
 }));
 
 vi.mock('./AutoUpdateSettings', () => ({
-  AutoUpdateSettings: ({
-    webhookId,
-    environmentType,
-  }: {
-    webhookId: string;
-    environmentType?: string;
-  }) => (
-    <div data-cy="auto-update-settings">
-      {webhookId}:{environmentType || 'none'}
-    </div>
+  AutoUpdateSettings: ({ webhookId }: { webhookId: string }) => (
+    <div data-cy="auto-update-settings">{webhookId}</div>
   ),
 }));
 
@@ -74,7 +66,7 @@ describe('REQ-STK-09 AutoUpdateFieldset', () => {
       />
     );
     expect(screen.getByTestId('auto-update-settings')).toHaveTextContent(
-      'hook-9:DOCKER'
+      'hook-9'
     );
   });
 });

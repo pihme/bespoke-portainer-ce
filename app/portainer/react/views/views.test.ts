@@ -102,9 +102,6 @@ vi.mock('@/react/portainer/templates/app-templates/AppTemplatesView', () => ({
 vi.mock('@/react/portainer/templates/custom-templates/ListView/ListView', () => ({
   ListView: () => null,
 }));
-vi.mock('@/react/portainer/logs/ActivityLogsView/ActivityLogsView', () => ({
-  ActivityLogsView: () => null,
-}));
 vi.mock('@/react/sidebar/Sidebar', () => ({ Sidebar: () => null }));
 vi.mock('@/react/sidebar/useSidebarState', () => ({
   AngularSidebarService: () => ({}),
@@ -198,16 +195,11 @@ describe('portainer react view wrappers', () => {
     );
   });
 
-  it('registers KEEP sidebar, activity logs and aggregates viewsModule', async () => {
+  it('registers KEEP sidebar and aggregates viewsModule (REQ-TAI-012: no activity logs)', async () => {
     const { sidebarModule } = await import('./sidebar');
     expect(sidebarModule).toBe('portainer.app.sidebar');
     expect(components.map((c) => c.name)).toContain('sidebar');
     expect(factories.map((f) => f.name)).toContain('SidebarService');
-
-    components.length = 0;
-    const { activityLogsModule } = await import('./activity-logs');
-    expect(activityLogsModule).toBe('portainer.app.react.views.activity-logs');
-    expect(components.map((c) => c.name)).toContain('activityLogsView');
 
     components.length = 0;
     const { viewsModule } = await import('./index');
@@ -224,6 +216,12 @@ describe('portainer react view wrappers', () => {
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining(['homeView', 'settingsView'])
     );
+    // REQ-TAI-012: no activity logs teaser view
+    expect(angularMock.module).not.toHaveBeenCalledWith(
+      'portainer.app.react.views.activity-logs',
+      expect.anything()
+    );
+    expect(components.map((c) => c.name)).not.toContain('activityLogsView');
   });
 
   it('REQ-TAI-001 registers no login, user, team or token views', async () => {

@@ -218,33 +218,14 @@ describe('conditional rendering - Prune services field', () => {
   });
 });
 
-// TODO: Unskip these tests once WebhookFieldset authorization is properly mocked
-// These tests fail because WebhookFieldset has complex authorization checks
-// (PortainerWebhookCreate, PortainerWebhookList, PortainerWebhookDelete)
-// that aren't properly set up in the test environment
-describe.skip('conditional rendering - Webhook field', () => {
-  it('should show WebhookFieldset for Docker environment', () => {
+describe('REQ-TAI-012 no BE-only stack webhook teaser', () => {
+  it('has no Create a Stack webhook switch on an editor stack', () => {
     renderComponent({
       envType: EnvironmentType.Docker,
     });
 
-    expect(screen.getByText(/Webhook/)).toBeInTheDocument();
-  });
-
-  it('should show WebhookFieldset for KubernetesLocal environment', () => {
-    renderComponent({
-      envType: EnvironmentType.KubernetesLocal,
-    });
-
-    expect(screen.getByText(/Webhook/)).toBeInTheDocument();
-  });
-
-  it('should hide WebhookFieldset for EdgeAgentOnDocker environment', () => {
-    renderComponent({
-      envType: EnvironmentType.EdgeAgentOnDocker,
-    });
-
-    expect(screen.queryByText(/Webhook/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Create a Stack webhook/i)).toBeNull();
+    expect(screen.queryByTestId('stack-webhook-switch')).toBeNull();
   });
 });
 
@@ -509,23 +490,6 @@ describe('environment variables and webhook field updates', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('env-name_0')).toBeInTheDocument();
-    });
-  });
-
-  it('should update enabledWebhook when webhook switch is toggled', async () => {
-    renderComponent({ webhookId: 'hook-1' });
-    const user = userEvent.setup();
-
-    await waitFor(() => {
-      expect(screen.getByTestId('stack-webhook-switch')).toBeInTheDocument();
-    });
-
-    const webhookSwitch = screen.getByTestId('stack-webhook-switch');
-    await user.click(webhookSwitch);
-
-    const checkbox = webhookSwitch.querySelector('input[type="checkbox"]');
-    await waitFor(() => {
-      expect(checkbox).toBeChecked();
     });
   });
 });

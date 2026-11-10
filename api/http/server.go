@@ -23,7 +23,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/endpoints"
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
-	"github.com/portainer/portainer/api/http/handler/motd"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	sslhandler "github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
@@ -40,9 +39,7 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
-	"github.com/portainer/portainer/api/internal/upgrade"
 	"github.com/portainer/portainer/api/kubernetes/cli"
-	motdservice "github.com/portainer/portainer/api/motd"
 	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/api/stacks/deployments"
@@ -77,7 +74,6 @@ type Server struct {
 	KubernetesDeployer          portainer.KubernetesDeployer
 	SourceScheduler             *scheduling.SourceScheduler
 	StackDeployer               deployments.StackDeployer
-	UpgradeService              upgrade.Service
 	PendingActionsService       *pendingactions.PendingActionsService
 	PlatformService             platform.Service
 	TrustedOrigins              []string
@@ -121,11 +117,6 @@ func (server *Server) Start(ctx context.Context) error {
 
 	var gitOperationHandler = gitops.NewHandler(requestBouncer, server.DataStore, server.GitService, server.FileService, server.KubernetesClientFactory, server.SourceScheduler)
 
-	motdSvc := motdservice.NewService(portainer.MessageOfTheDayURL)
-	motdSvc.Start(ctx)
-
-	var motdHandler = motd.NewHandler(requestBouncer, motdSvc)
-
 	var settingsHandler = settings.NewHandler(requestBouncer)
 	settingsHandler.DataStore = server.DataStore
 	settingsHandler.FileService = server.FileService
@@ -152,8 +143,7 @@ func (server *Server) Start(ctx context.Context) error {
 	var systemHandler = system.NewHandler(requestBouncer,
 		server.Status,
 		server.DataStore,
-		server.PlatformService,
-		server.UpgradeService)
+		server.PlatformService)
 
 	var templatesHandler = templates.NewHandler(requestBouncer)
 	templatesHandler.DataStore = server.DataStore
@@ -177,7 +167,6 @@ func (server *Server) Start(ctx context.Context) error {
 		EndpointProxyHandler:   endpointProxyHandler,
 		GitOperationHandler:    gitOperationHandler,
 		FileHandler:            fileHandler,
-		MOTDHandler:            motdHandler,
 		SettingsHandler:        settingsHandler,
 		SSLHandler:             sslHandler,
 		StackHandler:           stackHandler,

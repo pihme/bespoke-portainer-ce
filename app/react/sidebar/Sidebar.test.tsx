@@ -59,9 +59,6 @@ vi.mock('./Footer', () => ({
   Footer: () => <div data-cy="stub-footer">Footer</div>,
 }));
 
-vi.mock('./UpgradeBEBanner', () => ({
-  UpgradeBEBannerWrapper: () => <div data-cy="stub-upgrade">Upgrade</div>,
-}));
 
 vi.mock('./Header', () => ({
   Header: ({ logo }: { logo?: string }) => (
@@ -110,7 +107,9 @@ describe('Sidebar shell', () => {
     expect(screen.getByTestId('stub-header')).toHaveTextContent(
       'https://example.com/logo.png'
     );
-    expect(screen.getByTestId('stub-upgrade')).toBeInTheDocument();
+    // REQ-TAI-012: no Upgrade to Business Edition banner
+    expect(screen.queryByText(/Business Edition/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Upgrade/i)).not.toBeInTheDocument();
   });
 
   it('REQ-TAI-004 renders no Edge compute section, even for admins', () => {

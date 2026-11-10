@@ -40,7 +40,7 @@ func Test_getSystemVersion(t *testing.T) {
 
 	requestBouncer := security.NewRequestBouncer(t.Context(), store)
 
-	h := NewHandler(requestBouncer, &portainer.Status{}, store, nil, nil)
+	h := NewHandler(requestBouncer, &portainer.Status{}, store, nil)
 
 	// generate standard and admin user tokens
 	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})

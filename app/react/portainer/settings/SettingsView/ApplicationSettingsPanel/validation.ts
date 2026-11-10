@@ -6,14 +6,6 @@ import { Values } from './types';
 
 export function validation(): SchemaOf<Values> {
   return object({
-    loginBannerEnabled: boolean().default(false),
-    loginBanner: string()
-      .default('')
-      .when('loginBannerEnabled', {
-        is: true,
-        then: (schema) =>
-          schema.required('Login banner is required when enabled'),
-      }),
     logoEnabled: boolean().default(false),
     logo: string()
       .default('')

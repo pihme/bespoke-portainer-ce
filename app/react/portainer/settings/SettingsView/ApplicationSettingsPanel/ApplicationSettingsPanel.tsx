@@ -14,7 +14,6 @@ import { type Settings } from '../../types';
 import { validation } from './validation';
 import { Values } from './types';
 import { LogoFieldset } from './LogoFieldset';
-import { ScreenBannerFieldset } from './ScreenBannerFieldset';
 import { TemplatesUrlSection } from './TemplatesUrlSection';
 
 export function ApplicationSettingsPanel({
@@ -27,8 +26,6 @@ export function ApplicationSettingsPanel({
   const mutation = useUpdateSettingsMutation();
 
   const initialValues: Values = {
-    loginBannerEnabled: !!settings.CustomLoginBanner,
-    loginBanner: settings.CustomLoginBanner,
     logoEnabled: !!settings.LogoURL,
     logo: settings.LogoURL,
     snapshotInterval: settings.SnapshotInterval,
@@ -56,7 +53,6 @@ export function ApplicationSettingsPanel({
       {
         SnapshotInterval: values.snapshotInterval,
         LogoURL: values.logo,
-        CustomLoginBanner: values.loginBanner,
         TemplatesURL: values.templatesUrl,
       },
       {
@@ -89,8 +85,6 @@ function InnerForm({ isLoading }: { isLoading: boolean }) {
       </FormControl>
 
       <LogoFieldset />
-
-      <ScreenBannerFieldset />
 
       <TemplatesUrlSection />
 

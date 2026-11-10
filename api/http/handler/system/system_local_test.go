@@ -22,7 +22,7 @@ import (
 )
 
 // Phase C KEEP tests for local Portainer system status/version/info/nodes.
-// system_upgrade.go (Business Edition upgrade) is deferred-within-package.
+// system_upgrade.go (Business Edition upgrade) was removed with TAI-012.
 
 type stubPlatformService struct {
 	platform    plf.ContainerPlatform
@@ -60,7 +60,7 @@ func setupSystemHandler(t *testing.T, platform plf.Service) (*Handler, *datastor
 	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	status := &portainer.Status{Version: portainer.APIVersion}
-	h := NewHandler(bouncer, status, store, platform, nil)
+	h := NewHandler(bouncer, status, store, platform)
 
 	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
 	userJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: stdUser.ID, Username: stdUser.Username, Role: stdUser.Role})

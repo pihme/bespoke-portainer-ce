@@ -7,7 +7,6 @@ export const API_ENDPOINT_EDGE_STACKS = 'api/edge_stacks';
 export const API_ENDPOINT_ENDPOINTS = 'api/endpoints';
 export const API_ENDPOINT_ENDPOINT_GROUPS = 'api/endpoint_groups';
 export const API_ENDPOINT_KUBERNETES = 'api/kubernetes';
-export const API_ENDPOINT_MOTD = 'api/motd';
 export const API_ENDPOINT_RESOURCE_CONTROLS = 'api/resource_controls';
 export const API_ENDPOINT_SETTINGS = 'api/settings';
 export const API_ENDPOINT_STACKS = 'api/stacks';

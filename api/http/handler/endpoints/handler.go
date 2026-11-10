@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
-	"github.com/portainer/portainer/api/pendingactions"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
 	"github.com/gorilla/mux"
@@ -25,17 +24,16 @@ func hideFields(endpoint *portainer.Endpoint) {
 // Handler is the HTTP handler used to handle environment(endpoint) operations.
 type Handler struct {
 	*mux.Router
-	requestBouncer        security.BouncerService
-	DataStore             dataservices.DataStore
-	FileService           portainer.FileService
-	ProxyManager          *proxy.Manager
-	SnapshotService       portainer.SnapshotService
-	ComposeStackManager   portainer.ComposeStackManager
-	AuthorizationService  *authorization.Service
-	DockerClientFactory   *dockerclient.ClientFactory
-	BindAddress           string
-	BindAddressHTTPS      string
-	PendingActionsService *pendingactions.PendingActionsService
+	requestBouncer       security.BouncerService
+	DataStore            dataservices.DataStore
+	FileService          portainer.FileService
+	ProxyManager         *proxy.Manager
+	SnapshotService      portainer.SnapshotService
+	ComposeStackManager  portainer.ComposeStackManager
+	AuthorizationService *authorization.Service
+	DockerClientFactory  *dockerclient.ClientFactory
+	BindAddress          string
+	BindAddressHTTPS     string
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.

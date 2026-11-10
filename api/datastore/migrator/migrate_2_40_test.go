@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/boltdb"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
-	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/logs"
 
@@ -25,9 +24,6 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 	require.NoError(t, err)
 
 	endpointService, err := endpoint.NewService(conn)
-	require.NoError(t, err)
-
-	pendingActionsService, err := pendingactions.NewService(conn)
 	require.NoError(t, err)
 
 	t.Run("sets MigrateRegistrySASecrets flag for k8s endpoints with registry access", func(t *testing.T) {
@@ -64,9 +60,8 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 		require.NoError(t, err)
 
 		m := NewMigrator(&MigratorParameters{
-			RegistryService:       registryService,
-			EndpointService:       endpointService,
-			PendingActionsService: pendingActionsService,
+			RegistryService: registryService,
+			EndpointService: endpointService,
 		})
 
 		err = m.migrateRegistryAccessSASecrets_2_40_0()
@@ -89,7 +84,6 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 
 		registryService2, _ := registry.NewService(conn2)
 		endpointService2, _ := endpoint.NewService(conn2)
-		pendingActionsService2, _ := pendingactions.NewService(conn2)
 
 		k8sEndpoint := &portainer.Endpoint{
 			ID:   10,
@@ -112,17 +106,12 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 		require.NoError(t, err)
 
 		m := NewMigrator(&MigratorParameters{
-			RegistryService:       registryService2,
-			EndpointService:       endpointService2,
-			PendingActionsService: pendingActionsService2,
+			RegistryService: registryService2,
+			EndpointService: endpointService2,
 		})
 
 		err = m.migrateRegistryAccessSASecrets_2_40_0()
 		require.NoError(t, err)
-
-		allPAs, err := pendingActionsService2.ReadAll()
-		require.NoError(t, err)
-		assert.Empty(t, allPAs, "should not create pending actions for empty namespaces")
 	})
 
 	t.Run("skips non-existent endpoints", func(t *testing.T) {
@@ -133,7 +122,6 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 
 		registryService3, _ := registry.NewService(conn3)
 		endpointService3, _ := endpoint.NewService(conn3)
-		pendingActionsService3, _ := pendingactions.NewService(conn3)
 
 		reg := &portainer.Registry{
 			ID:   20,
@@ -148,17 +136,12 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 		require.NoError(t, err)
 
 		m := NewMigrator(&MigratorParameters{
-			RegistryService:       registryService3,
-			EndpointService:       endpointService3,
-			PendingActionsService: pendingActionsService3,
+			RegistryService: registryService3,
+			EndpointService: endpointService3,
 		})
 
 		err = m.migrateRegistryAccessSASecrets_2_40_0()
 		require.NoError(t, err)
-
-		allPAs, err := pendingActionsService3.ReadAll()
-		require.NoError(t, err)
-		assert.Empty(t, allPAs, "should not create pending actions for non-existent endpoints")
 	})
 
 	t.Run("idempotent - running twice creates duplicate actions but doesn't error", func(t *testing.T) {
@@ -169,7 +152,6 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 
 		registryService4, _ := registry.NewService(conn4)
 		endpointService4, _ := endpoint.NewService(conn4)
-		pendingActionsService4, _ := pendingactions.NewService(conn4)
 
 		k8sEndpoint := &portainer.Endpoint{
 			ID:   30,
@@ -192,9 +174,8 @@ func TestMigrateRegistryAccessSASecrets_2_40_0(t *testing.T) {
 		require.NoError(t, err)
 
 		m := NewMigrator(&MigratorParameters{
-			RegistryService:       registryService4,
-			EndpointService:       endpointService4,
-			PendingActionsService: pendingActionsService4,
+			RegistryService: registryService4,
+			EndpointService: endpointService4,
 		})
 
 		err = m.migrateRegistryAccessSASecrets_2_40_0()

@@ -18,10 +18,6 @@ func (tx *StoreTx) CustomTemplate() dataservices.CustomTemplateService {
 	return tx.store.CustomTemplateService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) PendingActions() dataservices.PendingActionsService {
-	return tx.store.PendingActionsService.Tx(tx.tx)
-}
-
 func (tx *StoreTx) EdgeStack() dataservices.EdgeStackService {
 	return tx.store.EdgeStackService.Tx(tx.tx)
 }

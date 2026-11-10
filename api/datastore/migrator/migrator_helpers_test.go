@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/stack"
@@ -23,18 +22,17 @@ import (
 )
 
 type testServices struct {
-	conn           *boltdb.DbConnection
-	endpointSvc    *endpoint.Service
-	endpointGroup  *endpointgroup.Service
-	settingsSvc    *settings.Service
-	stackSvc       *stack.Service
-	userSvc        *user.Service
-	versionSvc     *version.Service
-	resourceCtrl   *resourcecontrol.Service
-	pendingActions *pendingactions.Service
-	tagSvc         *tag.Service
-	fileSvc        *filesystem.Service
-	authSvc        *authorization.Service
+	conn          *boltdb.DbConnection
+	endpointSvc   *endpoint.Service
+	endpointGroup *endpointgroup.Service
+	settingsSvc   *settings.Service
+	stackSvc      *stack.Service
+	userSvc       *user.Service
+	versionSvc    *version.Service
+	resourceCtrl  *resourcecontrol.Service
+	tagSvc        *tag.Service
+	fileSvc       *filesystem.Service
+	authSvc       *authorization.Service
 }
 
 func openTestServices(t *testing.T) *testServices {
@@ -57,8 +55,6 @@ func openTestServices(t *testing.T) *testServices {
 	require.NoError(t, err)
 	resourceCtrl, err := resourcecontrol.NewService(conn)
 	require.NoError(t, err)
-	pendingSvc, err := pendingactions.NewService(conn)
-	require.NoError(t, err)
 	tagSvc, err := tag.NewService(conn)
 	require.NoError(t, err)
 
@@ -67,18 +63,17 @@ func openTestServices(t *testing.T) *testServices {
 	require.NoError(t, err)
 
 	return &testServices{
-		conn:           conn,
-		endpointSvc:    endpointSvc,
-		endpointGroup:  endpointGroupSvc,
-		settingsSvc:    settingsSvc,
-		stackSvc:       stackSvc,
-		userSvc:        userSvc,
-		versionSvc:     versionSvc,
-		resourceCtrl:   resourceCtrl,
-		pendingActions: pendingSvc,
-		tagSvc:         tagSvc,
-		fileSvc:        fileSvc,
-		authSvc:        authorization.NewService(nil),
+		conn:          conn,
+		endpointSvc:   endpointSvc,
+		endpointGroup: endpointGroupSvc,
+		settingsSvc:   settingsSvc,
+		stackSvc:      stackSvc,
+		userSvc:       userSvc,
+		versionSvc:    versionSvc,
+		resourceCtrl:  resourceCtrl,
+		tagSvc:        tagSvc,
+		fileSvc:       fileSvc,
+		authSvc:       authorization.NewService(nil),
 	}
 }
 
@@ -96,7 +91,6 @@ func (s *testServices) newMigrator(current *models.Version) *Migrator {
 		UserService:            s.userSvc,
 		VersionService:         s.versionSvc,
 		ResourceControlService: s.resourceCtrl,
-		PendingActionsService:  s.pendingActions,
 		TagService:             s.tagSvc,
 		FileService:            s.fileSvc,
 		AuthorizationService:   s.authSvc,

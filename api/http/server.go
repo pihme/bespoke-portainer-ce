@@ -37,7 +37,6 @@ import (
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
 	"github.com/portainer/portainer/api/kubernetes/cli"
-	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/api/stacks/deployments"
 	"github.com/portainer/portainer/api/stacks/teardown"
@@ -68,7 +67,6 @@ type Server struct {
 	KubernetesClientFactory *cli.ClientFactory
 	SourceScheduler         *scheduling.SourceScheduler
 	StackDeployer           deployments.StackDeployer
-	PendingActionsService   *pendingactions.PendingActionsService
 	PlatformService         platform.Service
 	TrustedOrigins          []string
 }
@@ -92,7 +90,6 @@ func (server *Server) Start(ctx context.Context) error {
 	endpointHandler.AuthorizationService = server.AuthorizationService
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
-	endpointHandler.PendingActionsService = server.PendingActionsService
 
 	var endpointProxyHandler = endpointproxy.NewHandler(requestBouncer)
 	endpointProxyHandler.DataStore = server.DataStore

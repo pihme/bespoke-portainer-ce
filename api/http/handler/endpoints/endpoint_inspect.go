@@ -57,8 +57,5 @@ func (handler *Handler) endpointInspect(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	// Execute endpoint pending actions
-	handler.PendingActionsService.Execute(endpoint.ID)
-
 	return response.JSON(w, endpoint)
 }

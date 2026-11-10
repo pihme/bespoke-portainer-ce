@@ -81,7 +81,6 @@
       "URL": "unix:///var/run/docker.sock"
     }
   ],
-  "pending_actions": null,
   "registries": [
     {
       "Authentication": true,

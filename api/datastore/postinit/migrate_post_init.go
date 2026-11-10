@@ -1,10 +1,8 @@
 package postinit
 
 import (
-	"cmp"
 	"context"
 	"fmt"
-	"slices"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -15,7 +13,6 @@ import (
 	"github.com/portainer/portainer/api/internal/registryutils"
 	"github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/logs"
-	"github.com/portainer/portainer/api/pendingactions/actions"
 	"github.com/portainer/portainer/pkg/endpoints"
 
 	"github.com/rs/zerolog/log"
@@ -49,7 +46,7 @@ func NewPostInitMigrator(
 func (postInitMigrator *PostInitMigrator) PostInitMigrate() error {
 	var environments []portainer.Endpoint
 
-	if err := postInitMigrator.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
+	if err := postInitMigrator.dataStore.ViewTx(func(tx dataservices.DataStoreTx) error {
 		var err error
 		if environments, err = tx.Endpoint().ReadAll(func(endpoint portainer.Endpoint) bool {
 			return endpoints.HasDirectConnectivity(&endpoint)
@@ -57,37 +54,7 @@ func (postInitMigrator *PostInitMigrator) PostInitMigrate() error {
 			return fmt.Errorf("failed to retrieve environments: %w", err)
 		}
 
-		var pendingActions []portainer.PendingAction
-		if pendingActions, err = tx.PendingActions().ReadAll(func(action portainer.PendingAction) bool {
-			return action.Action == actions.PostInitMigrateEnvironment
-		}); err != nil {
-			return fmt.Errorf("failed to retrieve pending actions: %w", err)
-		}
-
-		// Sort for the binary search in createPostInitMigrationPendingAction()
-		slices.SortFunc(pendingActions, func(a, b portainer.PendingAction) int {
-			return cmp.Compare(a.EndpointID, b.EndpointID)
-		})
-
-		for _, environment := range environments {
-			if !endpoints.IsEdgeEndpoint(&environment) {
-				continue
-			}
-
-			// Edge environments will run after the server starts, in pending actions
-			log.Info().
-				Int("endpoint_id", int(environment.ID)).
-				Msg("adding pending action 'PostInitMigrateEnvironment' for environment")
-
-			if err := postInitMigrator.createPostInitMigrationPendingAction(tx, environment.ID, pendingActions); err != nil {
-				log.Error().
-					Err(err).
-					Int("endpoint_id", int(environment.ID)).
-					Msg("error creating pending action for environment")
-			}
-		}
-
-		return err
+		return nil
 	}); err != nil {
 		log.Error().Err(err).Msg("error running post-init migrations")
 
@@ -109,29 +76,6 @@ func (postInitMigrator *PostInitMigrator) PostInitMigrate() error {
 	}
 
 	return nil
-}
-
-// try to create a post init migration pending action. If it already exists, do nothing
-// this function exists for readability, not reusability
-// pending actions must be passed in ascending order by endpoint ID
-func (postInitMigrator *PostInitMigrator) createPostInitMigrationPendingAction(tx dataservices.DataStoreTx, environmentID portainer.EndpointID, pendingActions []portainer.PendingAction) error {
-	action := portainer.PendingAction{
-		EndpointID: environmentID,
-		Action:     actions.PostInitMigrateEnvironment,
-	}
-
-	if _, found := slices.BinarySearchFunc(pendingActions, environmentID, func(e portainer.PendingAction, id portainer.EndpointID) int {
-		return cmp.Compare(e.EndpointID, id)
-	}); found {
-		log.Debug().
-			Str("action", action.Action).
-			Int("endpoint_id", int(action.EndpointID)).
-			Msg("pending action already exists for environment, skipping...")
-
-		return nil
-	}
-
-	return tx.PendingActions().Create(&action)
 }
 
 // MigrateEnvironment runs migrations on a single environment

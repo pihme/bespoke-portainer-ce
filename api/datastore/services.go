@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
@@ -56,7 +55,6 @@ type Store struct {
 	UserService            *user.Service
 	VersionService         *version.Service
 	WorkflowService        *workflow.Service
-	PendingActionsService  *pendingactions.Service
 }
 
 func (store *Store) initServices() error {
@@ -162,18 +160,7 @@ func (store *Store) initServices() error {
 	}
 	store.WorkflowService = workflowService
 
-	pendingActionsService, err := pendingactions.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.PendingActionsService = pendingActionsService
-
 	return nil
-}
-
-// PendingActions gives access to the PendingActions data management layer
-func (store *Store) PendingActions() dataservices.PendingActionsService {
-	return store.PendingActionsService
 }
 
 // CustomTemplate gives access to the CustomTemplate data management layer

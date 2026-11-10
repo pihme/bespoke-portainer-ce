@@ -100,6 +100,8 @@ func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
 		"api/kubernetes/namespacecleanup",
 		"api/pendingactions/handlers/cleanup_namespace_records.go",
 		"api/pendingactions/handlers/delete_k8s_registry_secrets.go",
+		// The rest of the pending-action service went with its collection (TAI-023).
+		"api/pendingactions",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, path))
 		require.Truef(t, os.IsNotExist(err), "%s should be removed", path)
@@ -108,8 +110,6 @@ func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
 	for _, path := range []string{
 		"api/kubernetes/cli",
 		"api/datastore/postinit/migrate_post_init.go",
-		"api/pendingactions/handlers/post_init_migrate_environment.go",
-		"api/pendingactions/handlers/clean_nap_with_override_policies.go",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, path))
 		require.NoErrorf(t, err, "%s should stay", path)

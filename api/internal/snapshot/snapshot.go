@@ -7,7 +7,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/pendingactions"
 
 	"github.com/rs/zerolog/log"
 )
@@ -21,7 +20,6 @@ type Service struct {
 	snapshotIntervalInSeconds float64
 	dockerSnapshotter         portainer.DockerSnapshotter
 	kubernetesSnapshotter     portainer.KubernetesSnapshotter
-	pendingActionsService     *pendingactions.PendingActionsService
 }
 
 // NewService creates a new instance of a service
@@ -30,7 +28,6 @@ func NewService(
 	dataStore dataservices.DataStore,
 	dockerSnapshotter portainer.DockerSnapshotter,
 	kubernetesSnapshotter portainer.KubernetesSnapshotter,
-	pendingActionsService *pendingactions.PendingActionsService,
 ) (*Service, error) {
 	interval, err := parseSnapshotFrequency(snapshotIntervalFromFlag, dataStore)
 	if err != nil {
@@ -43,7 +40,6 @@ func NewService(
 		snapshotIntervalInSeconds: interval,
 		dockerSnapshotter:         dockerSnapshotter,
 		kubernetesSnapshotter:     kubernetesSnapshotter,
-		pendingActionsService:     pendingActionsService,
 	}, nil
 }
 
@@ -212,7 +208,7 @@ func (service *Service) snapshotEndpoints() error {
 		snapshotError := service.SnapshotEndpoint(&endpoint)
 
 		if err := service.dataStore.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			updateEndpointStatus(tx, &endpoint, snapshotError, service.pendingActionsService)
+			updateEndpointStatus(tx, &endpoint, snapshotError)
 
 			return nil
 		}); err != nil {
@@ -226,7 +222,7 @@ func (service *Service) snapshotEndpoints() error {
 	return nil
 }
 
-func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint, snapshotError error, pendingActionsService *pendingactions.PendingActionsService) {
+func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint, snapshotError error) {
 	latestEndpointReference, err := tx.Endpoint().Endpoint(endpoint.ID)
 	if latestEndpointReference == nil {
 		log.Debug().
@@ -255,11 +251,6 @@ func updateEndpointStatus(tx dataservices.DataStoreTx, endpoint *portainer.Endpo
 			Str("endpoint", endpoint.Name).
 			Str("URL", endpoint.URL).Err(err).
 			Msg("background schedule error (environment snapshot), unable to update environment")
-	}
-
-	// Run the pending actions
-	if latestEndpointReference.Status == portainer.EndpointStatusUp {
-		pendingActionsService.Execute(endpoint.ID)
 	}
 }
 

@@ -370,23 +370,3 @@ func TestMigrate_MigrateUsersToDB36_AddsTokenAuthorizations(t *testing.T) {
 	assert.True(t, users[0].PortainerAuthorizations[portainer.OperationPortainerUserCreateToken])
 	assert.True(t, users[0].PortainerAuthorizations[portainer.OperationPortainerUserRevokeToken])
 }
-
-func TestMigrate_MigratePendingActionsDataForDB130_MarshalsActionData(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-	require.NoError(t, s.pendingActions.Create(&portainer.PendingAction{
-		EndpointID: 1,
-		Action:     "example",
-		ActionData: map[string]any{"k": "v", "n": float64(1)},
-	}))
-
-	m := s.newMigrator(nil)
-	require.NoError(t, m.migratePendingActionsDataForDB130())
-
-	all, err := s.pendingActions.ReadAll()
-	require.NoError(t, err)
-	require.Len(t, all, 1)
-	asString, ok := all[0].ActionData.(string)
-	require.True(t, ok, "ActionData should be JSON-encoded string after migration, got %T", all[0].ActionData)
-	assert.NotEmpty(t, asString)
-}

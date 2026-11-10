@@ -9,7 +9,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
@@ -48,7 +47,6 @@ type (
 		fileService            portainer.FileService
 		authorizationService   *authorization.Service
 		edgeStackService       *edgestack.Service
-		pendingActionsService  *pendingactions.Service
 		customTemplateService  *customtemplate.Service
 		sourceService          *source.Service
 		workflowService        *workflow.Service
@@ -72,7 +70,6 @@ type (
 		FileService            portainer.FileService
 		AuthorizationService   *authorization.Service
 		EdgeStackService       *edgestack.Service
-		PendingActionsService  *pendingactions.Service
 		CustomTemplateService  *customtemplate.Service
 		SourceService          *source.Service
 		WorkflowService        *workflow.Service
@@ -98,7 +95,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		fileService:            parameters.FileService,
 		authorizationService:   parameters.AuthorizationService,
 		edgeStackService:       parameters.EdgeStackService,
-		pendingActionsService:  parameters.PendingActionsService,
 		customTemplateService:  parameters.CustomTemplateService,
 		sourceService:          parameters.SourceService,
 		workflowService:        parameters.WorkflowService,
@@ -217,12 +213,6 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.20",
 		m.updateAppTemplatesVersionForDB110,
 		m.updateResourceOverCommitToDB110,
-	)
-	m.addMigrations("2.20.2",
-		m.cleanPendingActionsForDeletedEndpointsForDB111,
-	)
-	m.addMigrations("2.22.0",
-		m.migratePendingActionsDataForDB130,
 	)
 
 	m.addMigrations("2.31.0", m.migrateEdgeStacksStatuses_2_31_0)

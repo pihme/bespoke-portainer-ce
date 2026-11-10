@@ -50,7 +50,7 @@ func TestSnapshotAndPersistEndpoint_ConcreteSnapshotService_PersistsSnapshot(t *
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	snapshotService, err := snapshot.NewService("", store, nil, stubKubernetesSnapshotter{snapshot: &portainer.KubernetesSnapshot{}}, nil)
+	snapshotService, err := snapshot.NewService("", store, nil, stubKubernetesSnapshotter{snapshot: &portainer.KubernetesSnapshot{}})
 	require.NoError(t, err)
 
 	h := &Handler{DataStore: store, SnapshotService: snapshotService}

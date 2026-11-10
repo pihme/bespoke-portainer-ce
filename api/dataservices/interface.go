@@ -27,7 +27,6 @@ type (
 		User() UserService
 		Version() VersionService
 		Workflow() WorkflowService
-		PendingActions() PendingActionsService
 	}
 
 	DataStore interface {
@@ -51,12 +50,6 @@ type (
 	CustomTemplateService interface {
 		BaseCRUD[portainer.CustomTemplate, portainer.CustomTemplateID]
 		GetNextIdentifier() int
-	}
-
-	PendingActionsService interface {
-		BaseCRUD[portainer.PendingAction, portainer.PendingActionID]
-		GetNextIdentifier() int
-		DeleteByEndpointID(ID portainer.EndpointID) error
 	}
 
 	// EdgeStackService represents a service to manage Edge stacks

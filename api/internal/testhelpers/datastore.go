@@ -14,25 +14,24 @@ import (
 var _ dataservices.DataStore = &testDatastore{}
 
 type testDatastore struct {
-	customTemplate        dataservices.CustomTemplateService
-	edgeStack             dataservices.EdgeStackService
-	endpoint              dataservices.EndpointService
-	endpointGroup         dataservices.EndpointGroupService
-	registry              dataservices.RegistryService
-	resourceControl       dataservices.ResourceControlService
-	source                dataservices.SourceService
-	sslSettings           dataservices.SSLSettingsService
-	settings              dataservices.SettingsService
-	snapshot              dataservices.SnapshotService
-	stack                 dataservices.StackService
-	tag                   dataservices.TagService
-	teamMembership        dataservices.TeamMembershipService
-	team                  dataservices.TeamService
-	user                  dataservices.UserService
-	version               dataservices.VersionService
-	pendingActionsService dataservices.PendingActionsService
-	workflow              dataservices.WorkflowService
-	connection            portainer.Connection
+	customTemplate  dataservices.CustomTemplateService
+	edgeStack       dataservices.EdgeStackService
+	endpoint        dataservices.EndpointService
+	endpointGroup   dataservices.EndpointGroupService
+	registry        dataservices.RegistryService
+	resourceControl dataservices.ResourceControlService
+	source          dataservices.SourceService
+	sslSettings     dataservices.SSLSettingsService
+	settings        dataservices.SettingsService
+	snapshot        dataservices.SnapshotService
+	stack           dataservices.StackService
+	tag             dataservices.TagService
+	teamMembership  dataservices.TeamMembershipService
+	team            dataservices.TeamService
+	user            dataservices.UserService
+	version         dataservices.VersionService
+	workflow        dataservices.WorkflowService
+	connection      portainer.Connection
 }
 
 func (d *testDatastore) Backup(path string) (string, error)                  { return "", nil }
@@ -66,10 +65,6 @@ func (d *testDatastore) Team() dataservices.TeamService                     { re
 func (d *testDatastore) User() dataservices.UserService                     { return d.user }
 func (d *testDatastore) Version() dataservices.VersionService               { return d.version }
 func (d *testDatastore) Workflow() dataservices.WorkflowService             { return d.workflow }
-
-func (d *testDatastore) PendingActions() dataservices.PendingActionsService {
-	return d.pendingActionsService
-}
 
 func (d *testDatastore) Connection() portainer.Connection {
 	return d.connection
@@ -363,40 +358,4 @@ func WithStacks(stacks []portainer.Stack) datastoreOption {
 	return func(d *testDatastore) {
 		d.stack = &stubStacksService{stacks: stacks}
 	}
-}
-
-type stubPendingActionService struct {
-	actions []portainer.PendingAction
-	dataservices.PendingActionsService
-}
-
-func WithPendingActions(pendingActions []portainer.PendingAction) datastoreOption {
-	return func(d *testDatastore) {
-		d.pendingActionsService = &stubPendingActionService{
-			actions: pendingActions,
-		}
-	}
-}
-
-func (s *stubPendingActionService) ReadAll(predicates ...func(portainer.PendingAction) bool) ([]portainer.PendingAction, error) {
-	filtered := s.actions
-
-	for _, predicate := range predicates {
-		filtered = slicesx.Filter(filtered, predicate)
-	}
-
-	return filtered, nil
-}
-
-func (s *stubPendingActionService) Delete(ID portainer.PendingActionID) error {
-	actions := []portainer.PendingAction{}
-
-	for _, action := range s.actions {
-		if action.ID != ID {
-			actions = append(actions, action)
-		}
-	}
-	s.actions = actions
-
-	return nil
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,7 +23,6 @@ func newDockerEndpointHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.DataStore = store
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 	h.SnapshotService = fakeSnapshotService{}
-	h.PendingActionsService = pendingactions.NewService(store, nil)
 	h.ProxyManager = proxy.NewManager(nil)
 	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 	return h, store

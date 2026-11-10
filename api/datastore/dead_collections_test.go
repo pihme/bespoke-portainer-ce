@@ -105,7 +105,8 @@ func TestREQ_TAI_021_FreshStoreHasNoAllowList(t *testing.T) {
 // tai023Collections are the remaining always-empty collections TAI-023
 // removes, with their data service folders.
 var tai023Collections = map[string]string{
-	"webhooks": "webhook",
+	"webhooks":        "webhook",
+	"pending_actions": "pendingactions",
 }
 
 // TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a

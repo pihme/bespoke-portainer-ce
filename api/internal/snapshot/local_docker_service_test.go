@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/internal/snapshot"
-	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/pkg/fips"
 
 	"github.com/docker/docker/api/types/swarm"
@@ -18,20 +17,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newServiceWithPending(
+func newLocalService(
 	t *testing.T,
 	interval string,
 	dockerSnapshotter portainer.DockerSnapshotter,
 	kubernetesSnapshotter portainer.KubernetesSnapshotter,
-) (*snapshot.Service, *datastore.Store, *pendingactions.PendingActionsService) {
+) (*snapshot.Service, *datastore.Store) {
 	t.Helper()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	pending := pendingactions.NewService(store, nil)
-	service, err := snapshot.NewService(interval, store, dockerSnapshotter, kubernetesSnapshotter, pending)
+	service, err := snapshot.NewService(interval, store, dockerSnapshotter, kubernetesSnapshotter)
 	require.NoError(t, err)
 
-	return service, store, pending
+	return service, store
 }
 
 func createLocalDockerEndpoint(t *testing.T, store *datastore.Store, id portainer.EndpointID, url string) *portainer.Endpoint {
@@ -68,11 +66,11 @@ func TestREQ_ENV_12_NewService_ParsesFlagIntervalAndRejectsInvalid(t *testing.T)
 
 	_, store := datastore.MustNewTestStore(t, true, false)
 
-	service, err := snapshot.NewService("10m", store, stubDockerSnapshotter{}, nil, nil)
+	service, err := snapshot.NewService("10m", store, stubDockerSnapshotter{}, nil)
 	require.NoError(t, err)
 	require.NotNil(t, service)
 
-	_, err = snapshot.NewService("not-a-duration", store, stubDockerSnapshotter{}, nil, nil)
+	_, err = snapshot.NewService("not-a-duration", store, stubDockerSnapshotter{}, nil)
 	require.Error(t, err)
 }
 
@@ -85,7 +83,7 @@ func TestREQ_ENV_12_NewService_UsesSettingsSnapshotIntervalWhenFlagEmpty(t *test
 	settings.SnapshotInterval = "7m"
 	require.NoError(t, store.Settings().UpdateSettings(settings))
 
-	service, err := snapshot.NewService("", store, stubDockerSnapshotter{}, nil, nil)
+	service, err := snapshot.NewService("", store, stubDockerSnapshotter{}, nil)
 	require.NoError(t, err)
 	require.NotNil(t, service)
 }
@@ -99,7 +97,7 @@ func TestREQ_ENV_12_NewService_FallsBackToDefaultInterval(t *testing.T) {
 	settings.SnapshotInterval = ""
 	require.NoError(t, store.Settings().UpdateSettings(settings))
 
-	service, err := snapshot.NewService("", store, stubDockerSnapshotter{}, nil, nil)
+	service, err := snapshot.NewService("", store, stubDockerSnapshotter{}, nil)
 	require.NoError(t, err)
 	require.NotNil(t, service)
 }
@@ -280,7 +278,7 @@ func TestREQ_TAI_007_SnapshotEndpointTx_RefusesAgentEnvironments(t *testing.T) {
 
 func TestREQ_ENV_12_Start_SnapshotsLocalDockerAndMarksEndpointUp(t *testing.T) {
 	dockerSnapshot := &portainer.DockerSnapshot{DockerVersion: "26.0", TotalCPU: 2}
-	service, store, _ := newServiceWithPending(t, "1h", stubDockerSnapshotter{snapshot: dockerSnapshot}, nil)
+	service, store := newLocalService(t, "1h", stubDockerSnapshotter{snapshot: dockerSnapshot}, nil)
 	createLocalDockerEndpoint(t, store, 1, "unix:///var/run/docker.sock")
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -304,7 +302,7 @@ func TestREQ_ENV_12_Start_SnapshotsLocalDockerAndMarksEndpointUp(t *testing.T) {
 }
 
 func TestREQ_ENV_12_Start_MarksEndpointDownOnSnapshotFailure(t *testing.T) {
-	service, store, _ := newServiceWithPending(t, "1h", stubDockerSnapshotter{err: errors.New("snap failed")}, nil)
+	service, store := newLocalService(t, "1h", stubDockerSnapshotter{err: errors.New("snap failed")}, nil)
 	createLocalDockerEndpoint(t, store, 2, "unix:///var/run/docker.sock")
 
 	// Seed as Up so we can observe the transition to Down.
@@ -336,7 +334,7 @@ func TestREQ_ENV_12_Start_SkipsEdgeAndEmptyURLEndpoints(t *testing.T) {
 	// Wrap via a custom stub that counts — reuse CreateSnapshot side effect with a local type.
 	countingSnapper := &countingDockerSnapshotter{inner: counting, count: &created}
 
-	service, store, _ := newServiceWithPending(t, "1h", countingSnapper, nil)
+	service, store := newLocalService(t, "1h", countingSnapper, nil)
 
 	require.NoError(t, store.Endpoint().Create(&portainer.Endpoint{
 		ID:   1,
@@ -382,7 +380,7 @@ func (c *countingDockerSnapshotter) CreateSnapshot(endpoint *portainer.Endpoint)
 }
 
 func TestREQ_ENV_12_SetSnapshotInterval_ResetsTickerWhileRunning(t *testing.T) {
-	service, store, _ := newServiceWithPending(t, "1h", stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, nil)
+	service, store := newLocalService(t, "1h", stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, nil)
 	createLocalDockerEndpoint(t, store, 5, "unix:///var/run/docker.sock")
 
 	ctx, cancel := context.WithCancel(context.Background())

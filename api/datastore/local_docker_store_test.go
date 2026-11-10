@@ -24,7 +24,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.CustomTemplate())
 	require.NotNil(t, store.Endpoint())
 	require.NotNil(t, store.EndpointGroup())
-	require.NotNil(t, store.PendingActions())
 	require.NotNil(t, store.ResourceControl())
 	require.NotNil(t, store.Settings())
 	require.NotNil(t, store.Snapshot())
@@ -99,7 +98,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.False(t, tx.IsErrObjectNotFound(errors.New("other")))
 
 		require.NotNil(t, tx.CustomTemplate())
-		require.NotNil(t, tx.PendingActions())
 		require.NotNil(t, tx.Endpoint())
 		require.NotNil(t, tx.EndpointGroup())
 		require.NotNil(t, tx.ResourceControl())
@@ -296,7 +294,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	}
 	require.NoError(t, store.Workflow().Create(wf))
 	wfID := wf.ID
-
 
 	adminCtx := source.InsecureNewAdminContext()
 	src := &portainer.Source{

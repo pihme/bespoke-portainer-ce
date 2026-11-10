@@ -16,7 +16,6 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/pendingactions"
 	"github.com/portainer/portainer/pkg/fips"
 
 	"github.com/stretchr/testify/assert"
@@ -44,7 +43,7 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 		require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{Name: "default"}))
 	}
 
-	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, stubKubernetesSnapshotter{}, nil)
+	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{snapshot: &portainer.DockerSnapshot{}}, stubKubernetesSnapshotter{})
 	require.NoError(t, err)
 
 	fs, err := filesystem.NewService(t.TempDir(), "")
@@ -54,7 +53,6 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.DataStore = store
 	h.ComposeStackManager = testhelpers.NewComposeStackManager()
 	h.SnapshotService = snap
-	h.PendingActionsService = pendingactions.NewService(store, nil)
 	h.ProxyManager = proxy.NewManager(nil)
 	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 	h.FileService = fs
@@ -169,7 +167,7 @@ func TestREQ_ENV_11_CreateUnsecuredEndpoint_Direct_SnapshotFailure(t *testing.T)
 	if _, err := store.EndpointGroup().Read(1); err != nil {
 		require.NoError(t, store.EndpointGroup().Create(&portainer.EndpointGroup{Name: "default"}))
 	}
-	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{err: assert.AnError}, nil, nil)
+	snap, err := snapshot.NewService("", store, stubDockerSnapshotter{err: assert.AnError}, nil)
 	require.NoError(t, err)
 
 	h := &Handler{DataStore: store, SnapshotService: snap}

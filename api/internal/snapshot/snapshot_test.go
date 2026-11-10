@@ -33,7 +33,7 @@ func newTestService(t *testing.T, dockerSnapshotter portainer.DockerSnapshotter,
 	t.Helper()
 
 	_, store := datastore.MustNewTestStore(t, true, false)
-	service, err := snapshot.NewService("", store, dockerSnapshotter, kubernetesSnapshotter, nil)
+	service, err := snapshot.NewService("", store, dockerSnapshotter, kubernetesSnapshotter)
 	require.NoError(t, err)
 
 	return service, store

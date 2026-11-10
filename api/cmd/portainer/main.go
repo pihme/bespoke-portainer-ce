@@ -35,9 +35,6 @@ import (
 	"github.com/portainer/portainer/api/kubernetes"
 	kubecli "github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/logs"
-	"github.com/portainer/portainer/api/pendingactions"
-	"github.com/portainer/portainer/api/pendingactions/actions"
-	"github.com/portainer/portainer/api/pendingactions/handlers"
 	"github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/api/scheduler"
 	"github.com/portainer/portainer/api/stacks/deployments"
@@ -189,12 +186,11 @@ func initSnapshotService(
 	dataStore dataservices.DataStore,
 	dockerClientFactory *dockerclient.ClientFactory,
 	kubernetesClientFactory *kubecli.ClientFactory,
-	pendingActionsService *pendingactions.PendingActionsService,
 ) (portainer.SnapshotService, error) {
 	dockerSnapshotter := docker.NewSnapshotter(dockerClientFactory)
 	kubernetesSnapshotter := kubernetes.NewSnapshotter(kubernetesClientFactory)
 
-	snapshotService, err := snapshot.NewService(snapshotIntervalFromFlag, dataStore, dockerSnapshotter, kubernetesSnapshotter, pendingActionsService)
+	snapshotService, err := snapshot.NewService(snapshotIntervalFromFlag, dataStore, dockerSnapshotter, kubernetesSnapshotter)
 	if err != nil {
 		return nil, err
 	}
@@ -402,11 +398,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	// Kubernetes deployer is removed (TAI-016).
 	var kubernetesDeployer portainer.KubernetesDeployer
 
-	pendingActionsService := pendingactions.NewService(dataStore, kubernetesClientFactory)
-	pendingActionsService.RegisterHandler(actions.CleanNAPWithOverridePolicies, handlers.NewHandlerCleanNAPWithOverridePolicies(authorizationService, dataStore))
-	pendingActionsService.RegisterHandler(actions.PostInitMigrateEnvironment, handlers.NewHandlerPostInitMigrateEnvironment(authorizationService, dataStore, kubernetesClientFactory, dockerClientFactory, *flags.Assets, kubernetesDeployer))
-
-	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, pendingActionsService)
+	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed initializing snapshot service")
 	}
@@ -505,7 +497,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		KubernetesClientFactory: kubernetesClientFactory,
 		SourceScheduler:         sourceScheduler,
 		StackDeployer:           stackDeployer,
-		PendingActionsService:   pendingActionsService,
 		PlatformService:         platformService,
 		TrustedOrigins:          trustedOrigins,
 	}

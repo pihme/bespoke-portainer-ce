@@ -263,22 +263,6 @@ func TestMigrate_MigrateDockerDesktopExtensionSetting_WithoutEnv(t *testing.T) {
 	assert.False(t, got.IsDockerDesktopExtension)
 }
 
-func TestMigrate_CleanPendingActionsForDeletedEndpoints(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-	require.NoError(t, s.endpointSvc.Create(&portainer.Endpoint{ID: 1, Name: "keep"}))
-	require.NoError(t, s.pendingActions.Create(&portainer.PendingAction{EndpointID: 1, Action: "keep-me"}))
-	require.NoError(t, s.pendingActions.Create(&portainer.PendingAction{EndpointID: 99, Action: "orphan"}))
-
-	m := s.newMigrator(nil)
-	require.NoError(t, m.cleanPendingActionsForDeletedEndpointsForDB111())
-
-	all, err := s.pendingActions.ReadAll()
-	require.NoError(t, err)
-	require.Len(t, all, 1)
-	assert.Equal(t, portainer.EndpointID(1), all[0].EndpointID)
-}
-
 func TestMigrate_UpdateUsersToDBVersion18_SetsAuthorizations(t *testing.T) {
 	t.Parallel()
 	s := openTestServices(t)

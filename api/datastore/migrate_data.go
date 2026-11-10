@@ -78,7 +78,6 @@ func (store *Store) newMigratorParameters(version *models.Version, flags *portai
 		FileService:            store.fileService,
 		AuthorizationService:   authorization.NewService(store),
 		EdgeStackService:       store.EdgeStackService,
-		PendingActionsService:  store.PendingActionsService,
 		CustomTemplateService:  store.CustomTemplateService,
 		SourceService:          store.SourceService,
 		WorkflowService:        store.WorkflowService,

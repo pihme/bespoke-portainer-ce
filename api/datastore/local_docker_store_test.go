@@ -33,7 +33,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Stack())
 	require.NotNil(t, store.Tag())
 	require.NotNil(t, store.Version())
-	require.NotNil(t, store.Webhook())
 	require.NotNil(t, store.Workflow())
 
 	// Deferred-feature getters stay wired on the store (observed wiring only).
@@ -112,9 +111,8 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.NotNil(t, tx.Tag())
 		require.NotNil(t, tx.Workflow())
 
-		// Observed StoreTx stubs for services without tx wrappers.
+		// Observed StoreTx stub for a service without a tx wrapper.
 		require.Nil(t, tx.Version())
-		require.Nil(t, tx.Webhook())
 
 		// Deferred-feature tx getters remain callable (wiring only).
 		require.NotNil(t, tx.EdgeStack())
@@ -299,14 +297,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	require.NoError(t, store.Workflow().Create(wf))
 	wfID := wf.ID
 
-	webhook := &portainer.Webhook{
-		Token:       "tok-export",
-		ResourceID:  "svc-1",
-		EndpointID:  endpointID,
-		WebhookType: 1,
-	}
-	require.NoError(t, store.Webhook().Create(webhook))
-	webhookID := webhook.ID
 
 	adminCtx := source.InsecureNewAdminContext()
 	src := &portainer.Source{
@@ -375,10 +365,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 	gotWF, err := store.Workflow().Read(wfID)
 	require.NoError(t, err)
 	require.Equal(t, "export-wf", gotWF.Name)
-
-	gotHook, err := store.Webhook().Read(webhookID)
-	require.NoError(t, err)
-	require.Equal(t, "tok-export", gotHook.Token)
 
 	gotSrc, err := store.Source().Read(adminCtx, src.ID)
 	require.NoError(t, err)

@@ -50,7 +50,6 @@ func (handler *Handler) recreate(w http.ResponseWriter, r *http.Request) *httper
 		return httperror.InternalServerError("Error recreating container", err)
 	}
 
-	handler.updateWebhook(containerID, newContainer.ID)
 	handler.createResourceControl(containerID, newContainer.ID)
 
 	go func() {
@@ -78,19 +77,5 @@ func (handler *Handler) createResourceControl(oldContainerId string, newContaine
 	resourceControl.ResourceID = newContainerId
 	if err := handler.dataStore.ResourceControl().Create(resourceControl); err != nil {
 		log.Error().Err(err).Str("containerId", newContainerId).Msg("Failed to create new resource control for container")
-	}
-}
-
-func (handler *Handler) updateWebhook(oldContainerId string, newContainerId string) {
-	webhook, err := handler.dataStore.Webhook().WebhookByResourceID(oldContainerId)
-	if err != nil {
-		log.Error().Err(err).Str("containerId", oldContainerId).Msg("cannot find webhook by containerId")
-
-		return
-	}
-
-	webhook.ResourceID = newContainerId
-	if err := handler.dataStore.Webhook().Update(webhook.ID, webhook); err != nil {
-		log.Error().Err(err).Int("webhookId", int(webhook.ID)).Msg("cannot update webhook")
 	}
 }

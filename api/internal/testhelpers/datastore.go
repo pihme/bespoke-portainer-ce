@@ -30,7 +30,6 @@ type testDatastore struct {
 	team                  dataservices.TeamService
 	user                  dataservices.UserService
 	version               dataservices.VersionService
-	webhook               dataservices.WebhookService
 	pendingActionsService dataservices.PendingActionsService
 	workflow              dataservices.WorkflowService
 	connection            portainer.Connection
@@ -66,7 +65,6 @@ func (d *testDatastore) TeamMembership() dataservices.TeamMembershipService { re
 func (d *testDatastore) Team() dataservices.TeamService                     { return d.team }
 func (d *testDatastore) User() dataservices.UserService                     { return d.user }
 func (d *testDatastore) Version() dataservices.VersionService               { return d.version }
-func (d *testDatastore) Webhook() dataservices.WebhookService               { return d.webhook }
 func (d *testDatastore) Workflow() dataservices.WorkflowService             { return d.workflow }
 
 func (d *testDatastore) PendingActions() dataservices.PendingActionsService {

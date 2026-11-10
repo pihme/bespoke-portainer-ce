@@ -101,3 +101,37 @@ func TestREQ_TAI_021_FreshStoreHasNoAllowList(t *testing.T) {
 	_, err = os.Stat(filepath.Join("..", "dataservices", "allowlist"))
 	require.True(t, os.IsNotExist(err), "api/dataservices/allowlist should be removed")
 }
+
+// tai023Collections are the remaining always-empty collections TAI-023
+// removes, with their data service folders.
+var tai023Collections = map[string]string{
+	"webhooks": "webhook",
+}
+
+// TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a
+// fresh store no longer creates the collections TAI-023 removes and that
+// their data services are gone, while the kept collections stay.
+func TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections(t *testing.T) {
+	_, store := MustNewTestStore(t, true, false)
+	require.NoError(t, store.connection.Close())
+
+	con, ok := store.connection.(*boltdb.DbConnection)
+	require.True(t, ok)
+
+	raw, err := con.ExportJSON(con.GetDatabaseFilePath(), false)
+	require.NoError(t, err)
+
+	buckets := map[string]json.RawMessage{}
+	require.NoError(t, json.Unmarshal(raw, &buckets))
+
+	for bucket, dir := range tai023Collections {
+		require.NotContainsf(t, buckets, bucket, "bucket %s should not be created", bucket)
+
+		_, err := os.Stat(filepath.Join("..", "dataservices", dir))
+		require.Truef(t, os.IsNotExist(err), "api/dataservices/%s should be removed", dir)
+	}
+
+	for _, name := range []string{"endpoint_groups", "resource_control", "endpoints", "settings", "stacks", "version"} {
+		require.Containsf(t, buckets, name, "bucket %s should still be created", name)
+	}
+}

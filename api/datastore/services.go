@@ -24,7 +24,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/teammembership"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
-	"github.com/portainer/portainer/api/dataservices/webhook"
 	"github.com/portainer/portainer/api/dataservices/workflow"
 
 	"github.com/rs/zerolog/log"
@@ -56,7 +55,6 @@ type Store struct {
 	TeamService            *team.Service
 	UserService            *user.Service
 	VersionService         *version.Service
-	WebhookService         *webhook.Service
 	WorkflowService        *workflow.Service
 	PendingActionsService  *pendingactions.Service
 }
@@ -158,12 +156,6 @@ func (store *Store) initServices() error {
 	}
 	store.VersionService = versionService
 
-	webhookService, err := webhook.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.WebhookService = webhookService
-
 	workflowService, err := workflow.NewService(store.connection)
 	if err != nil {
 		return err
@@ -263,11 +255,6 @@ func (store *Store) Version() dataservices.VersionService {
 	return store.VersionService
 }
 
-// Webhook gives access to the Webhook data management layer
-func (store *Store) Webhook() dataservices.WebhookService {
-	return store.WebhookService
-}
-
 // Workflow gives access to the Workflow data management layer
 func (store *Store) Workflow() dataservices.WorkflowService {
 	return store.WorkflowService
@@ -290,7 +277,6 @@ type storeExport struct {
 	Team            []portainer.Team            `json:"teams,omitempty"`
 	User            []portainer.User            `json:"users,omitempty"`
 	Version         models.Version              `json:"version,omitzero"`
-	Webhook         []portainer.Webhook         `json:"webhooks,omitempty"`
 	Workflow        []portainer.Workflow        `json:"workflows,omitempty"`
 	Metadata        map[string]any              `json:"metadata,omitempty"`
 }
@@ -416,14 +402,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.User = users
-	}
-
-	if webhooks, err := store.Webhook().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Webhooks")
-		}
-	} else {
-		backup.Webhook = webhooks
 	}
 
 	if w, err := store.Workflow().ReadAll(); err != nil {
@@ -561,12 +539,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, user := range backup.User {
 		if err := store.User().Update(user.ID, &user); err != nil {
 			log.Warn().Str("user", fmt.Sprintf("%+v", user)).Err(err).Msg("failed to update the user in the database")
-		}
-	}
-
-	for _, v := range backup.Webhook {
-		if err := store.Webhook().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the webhook in the database")
 		}
 	}
 

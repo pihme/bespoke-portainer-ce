@@ -79,7 +79,6 @@ func (tx *StoreTx) User() dataservices.UserService {
 }
 
 func (tx *StoreTx) Version() dataservices.VersionService { return nil }
-func (tx *StoreTx) Webhook() dataservices.WebhookService { return nil }
 
 func (tx *StoreTx) Workflow() dataservices.WorkflowService {
 	return tx.store.WorkflowService.Tx(tx.tx)

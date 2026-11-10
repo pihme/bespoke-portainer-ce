@@ -1467,24 +1467,6 @@ type (
 		Color string `json:"color" example:"dark" enums:"dark,light,highcontrast,auto,"`
 	}
 
-	// Webhook represents a url webhook that can be used to update a service
-	Webhook struct {
-		// Webhook Identifier
-		ID         WebhookID  `json:"Id" example:"1"`
-		Token      string     `json:"Token"`
-		ResourceID string     `json:"ResourceId"`
-		EndpointID EndpointID `json:"EndpointId"`
-		RegistryID RegistryID `json:"RegistryId"`
-		// Type of webhook (1 - service)
-		WebhookType WebhookType `json:"Type"`
-	}
-
-	// WebhookID represents a webhook identifier.
-	WebhookID int
-
-	// WebhookType represents the type of resource a webhook is related to
-	WebhookType int
-
 	// Artifact is one entry in a Workflow's artifact list, pairing target IDs with source files
 	Artifact struct {
 		StackID     StackID           `json:"stackId,omitempty"`
@@ -2253,12 +2235,6 @@ const (
 	AdministratorRole
 	// StandardUserRole represents a regular user role
 	StandardUserRole
-)
-
-const (
-	_ WebhookType = iota
-	// ServiceWebhook is a webhook for restarting a docker service
-	ServiceWebhook
 )
 
 const (

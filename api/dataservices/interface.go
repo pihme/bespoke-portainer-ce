@@ -26,7 +26,6 @@ type (
 		Team() TeamService
 		User() UserService
 		Version() VersionService
-		Webhook() WebhookService
 		Workflow() WorkflowService
 		PendingActions() PendingActionsService
 	}
@@ -190,13 +189,6 @@ type (
 		Edition() (portainer.SoftwareEdition, error)
 		Version() (*models.Version, error)
 		UpdateVersion(*models.Version) error
-	}
-
-	// WebhookService represents a service for managing webhook data.
-	WebhookService interface {
-		BaseCRUD[portainer.Webhook, portainer.WebhookID]
-		WebhookByResourceID(resourceID string) (*portainer.Webhook, error)
-		WebhookByToken(token string) (*portainer.Webhook, error)
 	}
 
 	// WorkflowService represents a service for managing GitOps workflow data

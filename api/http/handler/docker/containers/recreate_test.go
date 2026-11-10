@@ -205,7 +205,7 @@ func recreateDirectRouter(t *testing.T, h *Handler, store *datastore.Store) *mux
 	return root
 }
 
-func TestREQ_CTR_06_Recreate_SuccessWithoutWebhookOrResourceControl(t *testing.T) {
+func TestREQ_CTR_06_Recreate_SuccessWithoutResourceControl(t *testing.T) {
 	t.Parallel()
 
 	fx := &recreateDockerFixture{
@@ -231,32 +231,20 @@ func TestREQ_CTR_06_Recreate_SuccessWithoutWebhookOrResourceControl(t *testing.T
 	time.Sleep(50 * time.Millisecond)
 }
 
-func TestREQ_CTR_06_Recreate_PullImageUpdatesWebhookAndResourceControl(t *testing.T) {
+func TestREQ_CTR_06_Recreate_PullImageRetargetsResourceControl(t *testing.T) {
 	t.Parallel()
 
 	fx := &recreateDockerFixture{}
 	srv := newRecreateDockerServer(t, fx)
 	t.Cleanup(srv.Close)
 
-	root, _, store, endpoint := newHandlerUnderTest(t, nil, srv.URL, 0)
-
-	webhook := &portainer.Webhook{
-		Token:       "tok-old",
-		ResourceID:  fx.oldID,
-		EndpointID:  endpoint.ID,
-		WebhookType: portainer.ServiceWebhook,
-	}
-	require.NoError(t, store.Webhook().Create(webhook))
+	root, _, store, _ := newHandlerUnderTest(t, nil, srv.URL, 0)
 
 	rc := authorization.NewPublicResourceControl(fx.oldID, portainer.ContainerResourceControl)
 	require.NoError(t, store.ResourceControl().Create(rc))
 
 	rr := postRecreate(t, root, fx.oldID, RecreatePayload{PullImage: true}, nil)
 	require.Equal(t, http.StatusOK, rr.Code)
-
-	updated, err := store.Webhook().WebhookByResourceID(fx.newID)
-	require.NoError(t, err)
-	assert.Equal(t, fx.newID, updated.ResourceID)
 
 	controls, err := store.ResourceControl().ReadAll()
 	require.NoError(t, err)
@@ -397,37 +385,11 @@ func TestCreateResourceControl_CopiesExistingControlToNewID(t *testing.T) {
 	assert.True(t, found)
 }
 
-func TestUpdateWebhook_MissingWebhook_IsNoop(t *testing.T) {
-	t.Parallel()
-
-	_, h, _, _ := newHandlerUnderTest(t, nil, "", 0)
-	h.updateWebhook("no-such-container", "new-id")
-}
-
-func TestUpdateWebhook_RetargetsExistingWebhook(t *testing.T) {
-	t.Parallel()
-
-	_, h, store, endpoint := newHandlerUnderTest(t, nil, "", 0)
-	require.NoError(t, store.Webhook().Create(&portainer.Webhook{
-		Token:       "tok",
-		ResourceID:  "old-wh",
-		EndpointID:  endpoint.ID,
-		WebhookType: portainer.ServiceWebhook,
-	}))
-
-	h.updateWebhook("old-wh", "new-wh")
-
-	got, err := store.Webhook().WebhookByResourceID("new-wh")
-	require.NoError(t, err)
-	assert.Equal(t, "new-wh", got.ResourceID)
-}
-
-// storeOverride wraps a real DataStore but can replace ResourceControl / Webhook services
-// so datastore failure arms in createResourceControl / updateWebhook are reachable.
+// storeOverride wraps a real DataStore but can replace the ResourceControl service
+// so datastore failure arms in createResourceControl are reachable.
 type storeOverride struct {
 	dataservices.DataStore
 	rc dataservices.ResourceControlService
-	wh dataservices.WebhookService
 }
 
 func (s storeOverride) ResourceControl() dataservices.ResourceControlService {
@@ -435,13 +397,6 @@ func (s storeOverride) ResourceControl() dataservices.ResourceControlService {
 		return s.rc
 	}
 	return s.DataStore.ResourceControl()
-}
-
-func (s storeOverride) Webhook() dataservices.WebhookService {
-	if s.wh != nil {
-		return s.wh
-	}
-	return s.DataStore.Webhook()
 }
 
 type failReadAllRC struct {
@@ -465,23 +420,6 @@ func (failCreateRC) Create(_ *portainer.ResourceControl) error {
 	return errors.New("resource control create failed")
 }
 
-type failUpdateWebhook struct {
-	dataservices.WebhookService
-	webhook *portainer.Webhook
-}
-
-func (f failUpdateWebhook) WebhookByResourceID(resourceID string) (*portainer.Webhook, error) {
-	if f.webhook != nil && f.webhook.ResourceID == resourceID {
-		cp := *f.webhook
-		return &cp, nil
-	}
-	return nil, errors.New("not found")
-}
-
-func (failUpdateWebhook) Update(_ portainer.WebhookID, _ *portainer.Webhook) error {
-	return errors.New("webhook update failed")
-}
-
 func TestCreateResourceControl_ReadAllError_LogsAndReturns(t *testing.T) {
 	t.Parallel()
 
@@ -500,20 +438,4 @@ func TestCreateResourceControl_CreateError_LogsAndReturns(t *testing.T) {
 		rc:        failCreateRC{items: []portainer.ResourceControl{*existing}},
 	}
 	h.createResourceControl("old-fail", "new-fail")
-}
-
-func TestUpdateWebhook_UpdateError_LogsAndReturns(t *testing.T) {
-	t.Parallel()
-
-	_, h, store, _ := newHandlerUnderTest(t, nil, "", 0)
-	h.dataStore = storeOverride{
-		DataStore: store,
-		wh: failUpdateWebhook{webhook: &portainer.Webhook{
-			ID:          9,
-			Token:       "t",
-			ResourceID:  "old-upd",
-			WebhookType: portainer.ServiceWebhook,
-		}},
-	}
-	h.updateWebhook("old-upd", "new-upd")
 }

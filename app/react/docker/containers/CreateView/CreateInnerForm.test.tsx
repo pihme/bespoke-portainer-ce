@@ -35,7 +35,6 @@ vi.mock('@/react/docker/proxy/queries/useVersion', () => ({
 }));
 
 vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
   useIsStandalone: () => true,
   useSystemLimits: () => ({ maxCpu: 4, maxMemory: 8192 }),
   useIsWindows: () => false,

@@ -102,7 +102,6 @@ vi.mock('@/react/hooks/useDebouncedValue', () => ({
 vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
   useIsWindows: () => false,
   useSystemLimits: () => ({ maxCpu: 4, maxMemory: 8192 }),
-  useIsSwarm: () => false,
   useIsStandalone: () => true,
 }));
 

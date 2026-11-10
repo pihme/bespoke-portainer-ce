@@ -13,11 +13,6 @@ vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 1,
 }));
 
-const isSwarmMock = vi.fn(() => false);
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => isSwarmMock(),
-}));
-
 vi.mock('@@/Link', () => ({
   Link: ({
     children,
@@ -55,7 +50,6 @@ vi.mock('@/react/hooks/useUser', async (importOriginal: () => Promise<object>) =
 
 describe('REQ-VOL-01 volume table columns', () => {
   it('builds non-swarm columns including name stack driver mount created', () => {
-    isSwarmMock.mockReturnValue(false);
     const Wrapper = withTestQueryProvider(({ children }) =>
       createElement(Fragment, null, children)
     );
@@ -107,8 +101,7 @@ describe('REQ-VOL-01 volume table columns', () => {
     expect(stackCol.accessorFn?.({ StackName: 'web' })).toBe('web');
   });
 
-  it('includes Host column when swarm is enabled', () => {
-    isSwarmMock.mockReturnValue(true);
+  it('REQ-TAI-017 has no Swarm Host column', () => {
     const Wrapper = withTestQueryProvider(({ children }) =>
       createElement(Fragment, null, children)
     );
@@ -116,12 +109,7 @@ describe('REQ-VOL-01 volume table columns', () => {
     const headers = result.current.map((c) =>
       typeof c.header === 'string' ? c.header : (c as { id?: string }).id
     );
-    expect(headers).toContain('Host');
-    const hostCol = result.current.find((c) => c.header === 'Host') as {
-      accessorFn?: (item: { NodeName?: string }) => string;
-    };
-    expect(hostCol.accessorFn?.({})).toBe('-');
-    expect(hostCol.accessorFn?.({ NodeName: 'n1' })).toBe('n1');
+    expect(headers).not.toContain('Host');
   });
 
   it('filters used and unused volumes by dangling flag', () => {

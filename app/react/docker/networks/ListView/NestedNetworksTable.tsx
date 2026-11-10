@@ -1,8 +1,4 @@
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-
 import { NestedDatatable } from '@@/datatables/NestedDatatable';
-
-import { useIsSwarm } from '../../proxy/queries/useInfo';
 
 import { useColumns } from './columns';
 import { DecoratedNetwork } from './types';
@@ -12,10 +8,7 @@ export function NestedNetworksDatatable({
 }: {
   dataset: Array<DecoratedNetwork>;
 }) {
-  const environmentId = useEnvironmentId();
-  const isSwarm = useIsSwarm(environmentId);
-
-  const columns = useColumns(isSwarm);
+  const columns = useColumns();
   return (
     <NestedDatatable
       columns={columns}

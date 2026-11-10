@@ -13,8 +13,6 @@ import {
 import {
   useInfo,
   useIsStandalone,
-  useIsSwarm,
-  useIsSwarmManager,
   useIsWindows,
   useSystemLimits,
 } from './useInfo';
@@ -68,14 +66,14 @@ describe('useInfo helpers (backwards compatibility)', () => {
 
   it('REQ-TAI-003 treats a Swarm member as a standalone Docker engine', async () => {
     mockInfo({ Swarm: { NodeID: 'node-1', ControlAvailable: true } });
-    const { result } = wrapHook(() => ({
-      standalone: useIsStandalone(1),
-      swarm: useIsSwarm(1),
-      manager: useIsSwarmManager(1),
-    }));
-    await waitFor(() => expect(result.current.standalone).toBe(true));
-    expect(result.current.swarm).toBe(false);
-    expect(result.current.manager).toBe(false);
+    const { result } = wrapHook(() => useIsStandalone(1));
+    await waitFor(() => expect(result.current).toBe(true));
+  });
+
+  it('REQ-TAI-017 has no Swarm hooks', async () => {
+    const mod = await import('./useInfo');
+    expect(mod).not.toHaveProperty('useIsSwarm');
+    expect(mod).not.toHaveProperty('useIsSwarmManager');
   });
 
   it('useSystemLimits derives maxCpu and maxMemory from info with defaults', async () => {

@@ -60,10 +60,6 @@ vi.mock('./queries/useRemoveContainer', () => ({
   useRemoveContainer: () => ({ mutate: mockRemoveMutate, isLoading: false }),
 }));
 
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
-}));
-
 const mockConfirmContainerDeletion = vi.fn();
 vi.mock(
   '@/react/docker/containers/common/confirm-container-delete-modal',

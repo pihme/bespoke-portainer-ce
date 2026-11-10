@@ -14,10 +14,6 @@ vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 1,
 }));
 
-vi.mock('../../proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
-}));
-
 vi.mock('./useNetworksData', () => ({
   useNetworksData: () => ({
     data: [

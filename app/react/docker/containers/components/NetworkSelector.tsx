@@ -2,8 +2,6 @@ import { useMemo } from 'react';
 
 import { useNetworks } from '@/react/docker/networks/queries/useNetworks';
 import { DockerNetwork } from '@/react/docker/networks/types';
-import { useIsSwarm } from '@/react/docker/proxy/queries/useInfo';
-import { useApiVersion } from '@/react/docker/proxy/queries/useVersion';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useIsPodman } from '@/react/portainer/environments/queries/useIsPodman';
 
@@ -65,14 +63,10 @@ export function useNetworksForSelector<T = DockerNetwork[]>({
 } = {}) {
   const environmentId = useEnvironmentId();
 
-  const isSwarmQuery = useIsSwarm(environmentId);
-  const dockerApiVersion = useApiVersion(environmentId);
-
   return useNetworks(
     environmentId,
     {
       local: true,
-      swarmAttachable: isSwarmQuery && dockerApiVersion >= 1.25,
     },
     {
       select,

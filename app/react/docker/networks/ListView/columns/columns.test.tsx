@@ -51,8 +51,8 @@ describe('networks ListView columns', () => {
     expect(typeof columnHelper.accessor).toBe('function');
   });
 
-  it('builds local columns and omits Node when host column is hidden', () => {
-    const { result } = renderHook(() => useColumns(false));
+  it('builds local columns without a Node column', () => {
+    const { result } = renderHook(() => useColumns());
     const headers = result.current.map((c) =>
       typeof c.header === 'string' ? c.header : (c as { id?: string }).id
     );
@@ -74,16 +74,12 @@ describe('networks ListView columns', () => {
     expect(headers).not.toContain('Ownership');
   });
 
-  it('includes Node column when host column is visible', () => {
-    const { result } = renderHook(() => useColumns(true));
-    const headers = result.current.map((c) =>
-      typeof c.header === 'string' ? c.header : (c as { id?: string }).id
-    );
-    expect(headers).toContain('Node');
+  it('REQ-TAI-017 useColumns takes no Swarm host column switch', () => {
+    expect(useColumns.length).toBe(0);
   });
 
   it('formats stack and IPAM accessors with fallbacks', () => {
-    const { result } = renderHook(() => useColumns(false));
+    const { result } = renderHook(() => useColumns());
     const byHeader = (header: string) =>
       result.current.find((c) => c.header === header) as {
         accessorFn?: (item: DecoratedNetwork) => unknown;

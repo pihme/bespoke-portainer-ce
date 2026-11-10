@@ -8,7 +8,7 @@ import { DecoratedNetwork } from '../types';
 import { columnHelper } from './helper';
 import { name } from './name';
 
-export function useColumns(isHostColumnVisible?: boolean) {
+export function useColumns() {
   return useMemo(
     () =>
       _.compact([
@@ -50,11 +50,7 @@ export function useColumns(isHostColumnVisible?: boolean) {
             header: 'IPV6 IPAM Gateway',
           }
         ),
-        isHostColumnVisible &&
-          columnHelper.accessor('NodeName', {
-            header: 'Node',
-          }),
       ]),
-    [isHostColumnVisible]
+    []
   );
 }

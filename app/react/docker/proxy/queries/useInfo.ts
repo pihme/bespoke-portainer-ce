@@ -58,14 +58,6 @@ export function useIsStandalone(
   return !!query.data;
 }
 
-/** Docker Swarm is removed (TAI-003): always false. */
-export function useIsSwarm(
-  _environmentId?: EnvironmentId,
-  _options: { enabled?: boolean } = {}
-) {
-  return false;
-}
-
 export function useSystemLimits(environmentId: EnvironmentId) {
   const infoQuery = useInfo(environmentId);
 
@@ -75,12 +67,4 @@ export function useSystemLimits(environmentId: EnvironmentId) {
     : 32768;
 
   return { maxCpu, maxMemory };
-}
-
-/** Docker Swarm is removed (TAI-003): always false. */
-export function useIsSwarmManager(
-  _environmentId?: EnvironmentId,
-  _options: { enabled?: boolean } = {}
-) {
-  return false;
 }

@@ -31,10 +31,6 @@ vi.mock('@/react/hooks/useEnvironmentId', () => ({
   useEnvironmentId: () => 1,
 }));
 
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
-}));
-
 vi.mock('@@/ImageConfigFieldset', () => ({
   ImageConfigFieldset: function MockImageConfig({
     children,

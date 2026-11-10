@@ -1,7 +1,6 @@
 import { Network } from 'lucide-react';
 
 import { Authorized } from '@/react/hooks/useUser';
-import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 
 import { ExpandableDatatable } from '@@/datatables/ExpandableDatatable';
 import {
@@ -15,8 +14,6 @@ import { TableSettingsMenu } from '@@/datatables';
 import { TableSettingsMenuAutoRefresh } from '@@/datatables/TableSettingsMenuAutoRefresh';
 import { useTableState } from '@@/datatables/useTableState';
 import { DeleteButton } from '@@/buttons/DeleteButton';
-
-import { useIsSwarm } from '../../proxy/queries/useInfo';
 
 import { useColumns } from './columns';
 import { DecoratedNetwork } from './types';
@@ -44,11 +41,8 @@ interface Props {
 export function NetworksDatatable({ onRemove }: Props) {
   const settings = useTableState(settingsStore, storageKey);
 
-  const environmentId = useEnvironmentId();
-  const isSwarm = useIsSwarm(environmentId);
-
   const datasetQuery = useNetworksData(settings.autoRefreshRateMS);
-  const columns = useColumns(isSwarm);
+  const columns = useColumns();
 
   const dataset = datasetQuery.data;
 

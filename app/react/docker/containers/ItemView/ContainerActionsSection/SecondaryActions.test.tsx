@@ -46,10 +46,6 @@ vi.mock(
   }
 );
 
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
-}));
-
 const mockConfirmContainerRecreation = vi.fn();
 vi.mock('../ConfirmRecreationModal', () => ({
   confirmContainerRecreation: (cannotPullImage: boolean) =>

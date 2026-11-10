@@ -122,3 +122,20 @@ func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
 		require.NotContainsf(t, string(goMod), module+" ", "go.mod should not list %s", module)
 	}
 }
+
+// TestREQ_TAI_017_DeadEdgeHelpersAreGone proves that the Edge relation helpers
+// no kept path called are deleted; the Edge group match used by the
+// environment list search of leftover Edge records stays.
+func TestREQ_TAI_017_DeadEdgeHelpersAreGone(t *testing.T) {
+	for _, path := range []string{
+		"api/http/handler/endpoints/update_edge_relations.go",
+		"api/internal/edge/edgestack.go",
+		"api/internal/edge/endpoint.go",
+	} {
+		_, err := os.Stat(filepath.Join(repoRoot, path))
+		require.Truef(t, os.IsNotExist(err), "%s should be removed", path)
+	}
+
+	_, err := os.Stat(filepath.Join(repoRoot, "api/internal/edge/edgegroup.go"))
+	require.NoError(t, err)
+}

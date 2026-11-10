@@ -8,12 +8,6 @@ vi.mock('@/react/hooks/useEnvironmentId', () => ({
 vi.mock('@/react/portainer/environments/queries/useIsPodman', () => ({
   useIsPodman: () => false,
 }));
-vi.mock('@/react/docker/proxy/queries/useInfo', () => ({
-  useIsSwarm: () => false,
-}));
-vi.mock('@/react/docker/proxy/queries/useVersion', () => ({
-  useApiVersion: () => 1.41,
-}));
 vi.mock('@/react/docker/networks/queries/useNetworks', () => ({
   useNetworks: vi.fn(
     (
@@ -82,6 +76,15 @@ describe('NetworkSelector', () => {
     expect(useNetworks).toHaveBeenCalledWith(
       1,
       expect.objectContaining({ local: true }),
+      expect.any(Object)
+    );
+  });
+
+  it('REQ-TAI-017 useNetworksForSelector never asks for Swarm attachable networks', () => {
+    renderHook(() => useNetworksForSelector());
+    expect(useNetworks).toHaveBeenLastCalledWith(
+      1,
+      { local: true },
       expect.any(Object)
     );
   });

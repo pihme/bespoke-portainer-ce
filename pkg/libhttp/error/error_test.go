@@ -10,31 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHandlerErrorConstructors(t *testing.T) {
-	t.Parallel()
-	underlying := errors.New("boom")
-
-	cases := []struct {
-		err  *HandlerError
-		code int
-		msg  string
-	}{
-		{BadRequest("bad", underlying), http.StatusBadRequest, "bad"},
-		{NotFound("missing", underlying), http.StatusNotFound, "missing"},
-		{InternalServerError("oops", underlying), http.StatusInternalServerError, "oops"},
-		{Unauthorized("auth", underlying), http.StatusUnauthorized, "auth"},
-		{Forbidden("nope", underlying), http.StatusForbidden, "nope"},
-		{Conflict("clash", underlying), http.StatusConflict, "clash"},
-		{NewError(418, "teapot", underlying), 418, "teapot"},
-	}
-	for _, tc := range cases {
-		require.Equal(t, tc.code, tc.err.StatusCode)
-		require.Equal(t, tc.msg, tc.err.Message)
-		require.Equal(t, tc.msg, tc.err.Error())
-		require.Equal(t, underlying, tc.err.Err)
-	}
-}
-
 func TestLoggerHandlerWritesJSONError(t *testing.T) {
 	t.Parallel()
 	h := LoggerHandler(func(w http.ResponseWriter, r *http.Request) *HandlerError {

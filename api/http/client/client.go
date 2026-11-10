@@ -18,20 +18,6 @@ var errInvalidResponseStatus = errors.New("invalid response status (expecting 20
 
 const defaultHTTPTimeout = 5
 
-// HTTPClient represents a client to send HTTP requests.
-type HTTPClient struct {
-	*http.Client
-}
-
-// NewHTTPClient is used to build a new HTTPClient.
-func NewHTTPClient() *HTTPClient {
-	return &HTTPClient{
-		&http.Client{
-			Timeout: time.Second * time.Duration(defaultHTTPTimeout),
-		},
-	}
-}
-
 // Get executes a simple HTTP GET to the specified URL and returns
 // the content of the response body. Timeout can be specified via the timeout parameter,
 // will default to defaultHTTPTimeout if set to 0.

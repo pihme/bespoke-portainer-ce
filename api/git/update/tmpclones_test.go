@@ -7,84 +7,9 @@ import (
 	"time"
 
 	"github.com/portainer/portainer/api/filesystem"
-	gittypes "github.com/portainer/portainer/api/git/types"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestTmpClonesCommitID(t *testing.T) {
-	t.Parallel()
-
-	_, tc := WithTmpClones(t.Context())
-	defer tc.Close()
-
-	calls := 0
-	fetch := func() (string, error) {
-		calls++
-
-		return "abc", nil
-	}
-
-	f := func(req RepoRequest, wantCalls int) {
-		t.Helper()
-
-		hash, err := tc.CommitID(req, fetch)
-		require.NoError(t, err)
-		require.Equal(t, "abc", hash)
-		require.Equal(t, wantCalls, calls)
-	}
-
-	base := RepoRequest{URL: "https://example.com/r.git", ReferenceName: "refs/heads/main"}
-
-	// first request fetches
-	f(base, 1)
-
-	// identical request is served from memory
-	f(base, 1)
-
-	// different reference is a different entry
-	other := base
-	other.ReferenceName = "refs/heads/dev"
-	f(other, 2)
-
-	// different credentials never share an entry
-	authed := base
-	authed.Authentication = &gittypes.GitAuthentication{Username: "u", Password: "p"}
-	f(authed, 3)
-
-	// same credentials share
-	authedAgain := base
-	authedAgain.Authentication = &gittypes.GitAuthentication{Username: "u", Password: "p"}
-	f(authedAgain, 3)
-
-	// different password does not share
-	otherPassword := base
-	otherPassword.Authentication = &gittypes.GitAuthentication{Username: "u", Password: "q"}
-	f(otherPassword, 4)
-
-	// errors are remembered as well, so a failing source is not hammered
-	failing := base
-	failing.URL = "https://example.com/other.git"
-	failCalls := 0
-	failFetch := func() (string, error) {
-		failCalls++
-
-		return "", errors.New("boom")
-	}
-
-	_, err := tc.CommitID(failing, failFetch)
-	require.Error(t, err)
-
-	_, err = tc.CommitID(failing, failFetch)
-	require.Error(t, err)
-	require.Equal(t, 1, failCalls)
-
-	// nil TmpClones always fetches
-	var nilClones *TmpClones
-	_, err = nilClones.CommitID(base, fetch)
-	require.NoError(t, err)
-	require.Equal(t, 5, calls)
-}
 
 func TestTmpClonesClone(t *testing.T) {
 	t.Parallel()
@@ -211,12 +136,6 @@ func TestTmpClonesAfterClose(t *testing.T) {
 	_, tc := WithTmpClones(t.Context())
 
 	req := RepoRequest{URL: "https://example.com/r.git"}
-	commits := 0
-	fetch := func() (string, error) {
-		commits++
-
-		return "abc", nil
-	}
 	clones := 0
 	clone := func(dst string) error {
 		clones++
@@ -224,21 +143,13 @@ func TestTmpClonesAfterClose(t *testing.T) {
 		return os.WriteFile(filesystem.JoinPaths(dst, "compose.yml"), nil, 0o644)
 	}
 
-	_, err := tc.CommitID(req, fetch)
+	err := tc.Clone(req, "abc", root, filesystem.JoinPaths(root, "before"), clone)
 	require.NoError(t, err)
-
-	err = tc.Clone(req, "abc", root, filesystem.JoinPaths(root, "before"), clone)
-	require.NoError(t, err)
-	require.Equal(t, 1, commits)
 	require.Equal(t, 1, clones)
 
 	tc.Close()
 
 	// a deployment that outlives the poll does not reuse the removed checkout
-	_, err = tc.CommitID(req, fetch)
-	require.NoError(t, err)
-	require.Equal(t, 2, commits)
-
 	after := filesystem.JoinPaths(root, "after")
 	err = os.MkdirAll(after, 0o755)
 	require.NoError(t, err)

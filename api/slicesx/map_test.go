@@ -23,23 +23,3 @@ func Test_Map(t *testing.T) {
 		},
 	)
 }
-
-func Test_FlatMap(t *testing.T) {
-	t.Parallel()
-	test(t, slicesx.FlatMap, "Map integers to strings and flatten",
-		[]int{1, 2, 3, 4, 5},
-		[]string{"1", "1", "2", "2", "3", "3", "4", "4", "5", "5"},
-		func(i int) []string {
-			x := strconv.Itoa(i)
-			return []string{x, x}
-		},
-	)
-	test(t, slicesx.FlatMap, "Map strings to integers and flatten",
-		[]string{"1", "2", "3", "4", "5"},
-		[]int{1, 1, 2, 2, 3, 3, 4, 4, 5, 5},
-		func(s string) []int {
-			n, _ := strconv.Atoi(s)
-			return []int{n, n}
-		},
-	)
-}

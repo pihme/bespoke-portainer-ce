@@ -46,13 +46,6 @@ func IsEnabled(feat Feature) bool {
 	return featureFlags[feat]
 }
 
-// IsSupported returns true if the feature is supported
-func IsSupported(feat Feature) bool {
-	_, ok := featureFlags[feat]
-
-	return ok
-}
-
 // FeatureFlags returns a map of all feature flags.
 // this is useful in situations where you need to pass all feature flags to a REST handler
 // function

@@ -331,10 +331,3 @@ func TestREQ_USR_07_AuthorizedEndpointAccess_DeniedWhenNeitherAllows(t *testing.
 	ok := AuthorizedEndpointAccess(endpoint, group, 3, nil)
 	require.False(t, ok)
 }
-
-func TestAuthorizedIsAdmin(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, AuthorizedIsAdmin(&RestrictedRequestContext{IsAdmin: true}))
-	require.False(t, AuthorizedIsAdmin(&RestrictedRequestContext{IsAdmin: false}))
-}

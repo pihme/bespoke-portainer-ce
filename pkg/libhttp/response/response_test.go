@@ -89,55 +89,6 @@ func TestJSON(t *testing.T) {
 	}
 }
 
-func TestYAML(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name     string
-		data     any
-		expected string
-		invalid  bool
-	}{
-		{
-			name:     "Success",
-			data:     "key: value",
-			expected: "key: value",
-		},
-		{
-			name:     "Invalid Data",
-			data:     123,
-			expected: "",
-			invalid:  true,
-		},
-		{
-			name: "doesn't support an Object",
-			data: map[string]any{
-				"key": "value",
-			},
-			expected: "",
-			invalid:  true,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			recorder := httptest.NewRecorder()
-
-			httpErr := YAML(recorder, test.data)
-
-			if test.invalid {
-				assert.NotNil(t, httpErr)
-				assert.Equal(t, http.StatusInternalServerError, httpErr.StatusCode)
-				return
-			}
-
-			assert.Nil(t, httpErr)
-			assert.Equal(t, http.StatusOK, recorder.Code)
-			assert.Equal(t, "text/yaml", recorder.Header().Get("Content-Type"))
-			assert.Equal(t, test.expected, recorder.Body.String())
-		})
-	}
-}
-
 func TestEmpty(t *testing.T) {
 	t.Parallel()
 	recorder := httptest.NewRecorder()
@@ -169,11 +120,4 @@ func TestJSONWithStatus_EncodeError(t *testing.T) {
 	err := JSONWithStatus(&errWriter{}, make(chan int), http.StatusOK)
 	require.NotNil(t, err)
 	require.Equal(t, http.StatusInternalServerError, err.StatusCode)
-}
-
-func TestYAML_WriteErrorIsLogged(t *testing.T) {
-	t.Parallel()
-
-	err := YAML(&errWriter{}, "hello: world")
-	require.Nil(t, err)
 }

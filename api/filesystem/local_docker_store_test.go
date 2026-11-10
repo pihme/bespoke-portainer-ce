@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"encoding/base64"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,8 +25,6 @@ func TestREQ_STK_02_StoreAndUpdateStackFiles(t *testing.T) {
 	require.Equal(t, compose, content)
 
 	require.Equal(t, filepath.Join(svc.fileStorePath, ComposeStorePath, "stack-1"), svc.GetStackProjectPath("stack-1"))
-	require.Equal(t, filepath.Join(svc.fileStorePath, ComposeStorePath, "stack-1", "v2"), svc.GetStackProjectPathByVersion("stack-1", 2, ""))
-	require.Equal(t, filepath.Join(svc.fileStorePath, ComposeStorePath, "stack-1", "abc123"), svc.GetStackProjectPathByVersion("stack-1", 2, "abc123"))
 
 	updated := []byte("services:\n  web:\n    image: nginx:alpine\n")
 	_, err = svc.UpdateStoreStackFileFromBytes("stack-1", ComposeFileDefaultName, updated)
@@ -42,40 +39,6 @@ func TestREQ_STK_02_StoreAndUpdateStackFiles(t *testing.T) {
 	require.Equal(t, compose, content)
 
 	require.NoError(t, svc.RemoveStackFileBackup("stack-1", ComposeFileDefaultName))
-}
-
-func TestREQ_STK_02_StoreStackFileByVersionAndRollback(t *testing.T) {
-	t.Parallel()
-	svc := createService(t)
-
-	data := []byte("version: '3'\nservices: {}\n")
-	_, err := svc.StoreStackFileFromBytesByVersion("stack-v", "compose.yml", 3, data)
-	require.NoError(t, err)
-
-	updated := []byte("version: '3.8'\nservices: {}\n")
-	path, err := svc.UpdateStoreStackFileFromBytesByVersion("stack-v", "compose.yml", 3, "", updated)
-	require.NoError(t, err)
-
-	require.NoError(t, svc.RollbackStackFileByVersion("stack-v", 3, "compose.yml"))
-	content, err := svc.GetFileContent(path, "compose.yml")
-	require.NoError(t, err)
-	require.Equal(t, data, content)
-
-	require.NoError(t, svc.RemoveStackFileBackupByVersion("stack-v", 3, "compose.yml"))
-
-	// no backup → rollback is a no-op
-	require.NoError(t, svc.RollbackStackFileByVersion("stack-v", 3, "compose.yml"))
-	require.NoError(t, svc.RollbackStackFile("missing", "compose.yml"))
-}
-
-func TestREQ_STK_03_FormProjectPathByVersion(t *testing.T) {
-	t.Parallel()
-	svc := createService(t)
-
-	base := "/data/compose/app"
-	require.Equal(t, base, svc.FormProjectPathByVersion(base, 0, ""))
-	require.Equal(t, filepath.Join(base, "v4"), svc.FormProjectPathByVersion(base, 4, ""))
-	require.Equal(t, filepath.Join(base, "deadbeef"), svc.FormProjectPathByVersion(base, 4, "deadbeef"))
 }
 
 func TestREQ_SET_04_TLSFileStoreLifecycle(t *testing.T) {
@@ -149,15 +112,9 @@ func TestREQ_STK_04_CopyRenameWriteJSONAndCreateFile(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, exists)
 
-	jsonPath := filepath.Join(t.TempDir(), "meta.json")
-	require.NoError(t, svc.WriteJSONToFile(jsonPath, map[string]string{"k": "v"}))
-	raw, err := os.ReadFile(jsonPath)
-	require.NoError(t, err)
-	require.Contains(t, string(raw), `"k":"v"`)
-
 	created := filepath.Join(t.TempDir(), "created.bin")
 	require.NoError(t, CreateFile(created, strings.NewReader("payload")))
-	raw, err = os.ReadFile(created)
+	raw, err := os.ReadFile(created)
 	require.NoError(t, err)
 	require.Equal(t, "payload", string(raw))
 }
@@ -166,7 +123,6 @@ func TestREQ_STK_02_PathsHelpersAndDirectories(t *testing.T) {
 	t.Parallel()
 	svc := createService(t)
 
-	require.Equal(t, filepath.Join(svc.fileStorePath, BinaryStorePath), svc.GetBinaryFolder())
 	require.Equal(t, svc.dataStorePath, svc.GetDatastorePath())
 	tmp, err := svc.GetTemporaryPath()
 	require.NoError(t, err)
@@ -213,76 +169,6 @@ func TestREQ_SET_04_SSLCertPathsAndStore(t *testing.T) {
 	raw, err := os.ReadFile(certPath)
 	require.NoError(t, err)
 	require.Equal(t, []byte("cert-bytes"), raw)
-}
-
-func TestREQ_STK_03_SerializeLoadPersistFilter(t *testing.T) {
-	t.Parallel()
-
-	root := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(root, "sub"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "docker-compose.yml"), []byte("services: {}\n"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(root, ".env"), []byte("A=1\n"), 0600))
-	require.NoError(t, os.WriteFile(filepath.Join(root, "sub", "extra.yml"), []byte("x: 1\n"), 0600))
-
-	entries, err := LoadDir(root)
-	require.NoError(t, err)
-	require.NotEmpty(t, entries)
-
-	filtered := FilterDirForEntryFile(entries, "docker-compose.yml")
-	names := make([]string, 0, len(filtered))
-	for _, e := range filtered {
-		names = append(names, e.Name)
-	}
-	require.Contains(t, names, "docker-compose.yml")
-	require.Contains(t, names, ".env")
-
-	decoded := append([]DirEntry(nil), entries...)
-	require.NoError(t, DecodeDirEntries(decoded))
-	for _, e := range decoded {
-		if e.IsFile && e.Name == "docker-compose.yml" {
-			require.Equal(t, "services: {}\n", e.Content)
-		}
-	}
-
-	raw, err := DecodeFileContent(base64.StdEncoding.EncodeToString([]byte("hello")))
-	require.NoError(t, err)
-	require.Equal(t, "hello", raw)
-
-	content, err := FilterDirForCompatibility(entries, "docker-compose.yml", "2.18.0")
-	require.NoError(t, err)
-	require.Equal(t, "services: {}\n", content)
-	content, err = FilterDirForCompatibility(entries, "docker-compose.yml", "2.19.0")
-	require.NoError(t, err)
-	require.Equal(t, "", content)
-
-	out := t.TempDir()
-	// PersistDir writes Content as raw bytes (callers decode first).
-	toPersist := []DirEntry{
-		{Name: "a", IsFile: false, Permissions: 0755},
-		{Name: "a/file.yml", IsFile: true, Content: "ok\n", Permissions: 0600},
-	}
-	require.NoError(t, PersistDir(out, toPersist))
-	rawBytes, err := os.ReadFile(filepath.Join(out, "a", "file.yml"))
-	require.NoError(t, err)
-	require.Equal(t, "ok\n", string(rawBytes))
-}
-
-func TestREQ_STK_02_SafeMoveDirectory(t *testing.T) {
-	t.Parallel()
-	svc := createService(t)
-
-	src := filepath.Join(t.TempDir(), "project")
-	dst := filepath.Join(t.TempDir(), "project-v2")
-	require.NoError(t, os.MkdirAll(src, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(src, "docker-compose.yml"), []byte("services: {}\n"), 0600))
-
-	require.NoError(t, svc.SafeMoveDirectory(src, dst))
-	exists, err := FileExists(filepath.Join(dst, "docker-compose.yml"))
-	require.NoError(t, err)
-	require.True(t, exists)
-	exists, err = FileExists(src)
-	require.NoError(t, err)
-	require.False(t, exists)
 }
 
 func TestJoinPaths_EmptyTrustedRoot(t *testing.T) {

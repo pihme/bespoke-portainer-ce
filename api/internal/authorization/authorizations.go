@@ -136,23 +136,3 @@ func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, us
 func (service *Service) UpdateUsersAuthorizations() error {
 	return nil
 }
-
-func (service *Service) UserIsAdminOrAuthorized(tx dataservices.DataStoreTx, userID portainer.UserID, endpointID portainer.EndpointID, authorizations []portainer.Authorization) (bool, error) {
-	user, err := tx.User().Read(userID)
-	if err != nil {
-		return false, err
-	}
-
-	if user.Role == portainer.AdministratorRole {
-		return true, nil
-	}
-
-	for _, authorization := range authorizations {
-		_, authorized := user.EndpointAuthorizations[endpointID][authorization]
-		if authorized {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}

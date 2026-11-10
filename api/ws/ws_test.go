@@ -177,39 +177,6 @@ func TestStreamFromWebsocketToWriter_WriteError(t *testing.T) {
 	require.ErrorIs(t, err, expectedErr)
 }
 
-func TestStreamFromReaderToWebsocket_ForwardsData(t *testing.T) {
-	t.Parallel()
-
-	serverConn, clientConn := newTestWSPair(t)
-
-	reader := strings.NewReader("hello world")
-	errorChan := make(chan error, 1)
-
-	go StreamFromReaderToWebsocket(serverConn, reader, errorChan)
-
-	msgType, msg, err := clientConn.ReadMessage()
-	require.NoError(t, err)
-	require.Equal(t, websocket.TextMessage, msgType)
-	require.Equal(t, "hello world", string(msg))
-
-	err = <-errorChan
-	require.ErrorIs(t, err, io.EOF)
-}
-
-func TestStreamFromReaderToWebsocket_ReadError(t *testing.T) {
-	t.Parallel()
-
-	serverConn, _ := newTestWSPair(t)
-
-	expectedErr := errors.New("read error")
-	errorChan := make(chan error, 1)
-
-	go StreamFromReaderToWebsocket(serverConn, &failReader{err: expectedErr}, errorChan)
-
-	err := <-errorChan
-	require.ErrorIs(t, err, expectedErr)
-}
-
 func TestWriteReaderToWebSocket_ForwardsData(t *testing.T) {
 	t.Parallel()
 
@@ -286,29 +253,6 @@ type mockSizeQueue struct {
 	rows uint16
 }
 
-func (m *mockSizeQueue) Push(cols, rows uint16) {
-	m.cols = cols
-	m.rows = rows
-}
-
-func TestResizeHandler(t *testing.T) {
-	t.Parallel()
-
-	f := func(msgType int, data []byte, expectedHandled bool, expectedCols, expectedRows uint16) {
-		t.Helper()
-		q := &mockSizeQueue{}
-		handled := ResizeHandler(q)(msgType, data)
-		require.Equal(t, expectedHandled, handled)
-		require.Equal(t, expectedCols, q.cols)
-		require.Equal(t, expectedRows, q.rows)
-	}
-
-	f(websocket.BinaryMessage, []byte(`{"type":"resize","data":{"width":80,"height":24}}`), false, 0, 0)
-	f(websocket.TextMessage, []byte(`not json`), false, 0, 0)
-	f(websocket.TextMessage, []byte(`{"type":"other","data":{"width":80,"height":24}}`), false, 0, 0)
-	f(websocket.TextMessage, []byte(`{"type":"resize","data":{"width":80,"height":24}}`), true, 80, 24)
-}
-
 func TestWsPing_Success(t *testing.T) {
 	t.Parallel()
 
@@ -356,21 +300,6 @@ func TestWriteReaderToWebSocket_ClosedConnection(t *testing.T) {
 	var mu sync.Mutex
 	errorChan := make(chan error, 2)
 	go WriteReaderToWebSocket(serverConn, &mu, strings.NewReader("hello"), errorChan)
-
-	err = <-errorChan
-	require.Error(t, err)
-}
-
-func TestStreamFromReaderToWebsocket_ClosedConnection(t *testing.T) {
-	t.Parallel()
-
-	serverConn := newTestWSConn(t)
-
-	err := serverConn.Close()
-	require.NoError(t, err)
-
-	errorChan := make(chan error, 1)
-	go StreamFromReaderToWebsocket(serverConn, strings.NewReader("hello"), errorChan)
 
 	err = <-errorChan
 	require.Error(t, err)

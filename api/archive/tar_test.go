@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
-	"compress/gzip"
 	"io"
 	"os"
 	"path/filepath"
@@ -51,42 +50,6 @@ func TestTarFileInBufferBuilder(t *testing.T) {
 		names[hdr.Name] = string(body)
 	}
 	require.Equal(t, map[string]string{"a.txt": "a", "b.txt": "bb"}, names)
-}
-
-func TestExtractTarGz_DirectoryAndUnknownType(t *testing.T) {
-	t.Parallel()
-
-	var raw bytes.Buffer
-	gz := gzip.NewWriter(&raw)
-	tw := tar.NewWriter(gz)
-	require.NoError(t, tw.WriteHeader(&tar.Header{Name: "subdir/", Typeflag: tar.TypeDir, Mode: 0o755}))
-	content := []byte("ok")
-	require.NoError(t, tw.WriteHeader(&tar.Header{
-		Name: "subdir/f.txt", Typeflag: tar.TypeReg, Mode: 0o644, Size: int64(len(content)),
-	}))
-	_, err := tw.Write(content)
-	require.NoError(t, err)
-	require.NoError(t, tw.Close())
-	require.NoError(t, gz.Close())
-
-	out := t.TempDir()
-	require.NoError(t, ExtractTarGz(bytes.NewReader(raw.Bytes()), out))
-	require.FileExists(t, filepath.Join(out, "subdir", "f.txt"))
-
-	var evil bytes.Buffer
-	gz2 := gzip.NewWriter(&evil)
-	tw2 := tar.NewWriter(gz2)
-	require.NoError(t, tw2.WriteHeader(&tar.Header{Name: "link", Typeflag: tar.TypeSymlink, Linkname: "x", Mode: 0o644}))
-	require.NoError(t, tw2.Close())
-	require.NoError(t, gz2.Close())
-	err = ExtractTarGz(bytes.NewReader(evil.Bytes()), t.TempDir())
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "unknown type")
-}
-
-func TestExtractTarGz_BadGzip(t *testing.T) {
-	t.Parallel()
-	require.Error(t, ExtractTarGz(bytes.NewReader([]byte("not-gzip")), t.TempDir()))
 }
 
 func TestUnzipFile_MissingAndDirectoryEntry(t *testing.T) {

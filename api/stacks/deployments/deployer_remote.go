@@ -34,9 +34,9 @@ const (
 
 type RemoteStackDeployer interface {
 	// compose
-	DeployRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune bool, forcePullImage bool, forceRecreate bool) error
+	DeployRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, prune bool, forcePullImage bool, forceRecreate bool) error
 	UndeployRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
-	StartRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error
+	StartRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
 	StopRemoteComposeStack(ctx context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error
 }
 
@@ -46,7 +46,6 @@ func (d *stackDeployer) DeployRemoteComposeStack(
 	userId portainer.UserID,
 	stack *portainer.Stack,
 	endpoint *portainer.Endpoint,
-	registries []portainer.Registry,
 	prune bool,
 	forcePullImage bool,
 	forceRecreate bool,
@@ -54,7 +53,7 @@ func (d *stackDeployer) DeployRemoteComposeStack(
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	options := portainer.ComposeOptions{Registries: registries}
+	options := portainer.ComposeOptions{}
 
 	// --force-recreate doesn't pull updated images
 	if forcePullImage {
@@ -71,7 +70,6 @@ func (d *stackDeployer) DeployRemoteComposeStack(
 		OperationDeploy,
 		unpackerCmdBuilderOptions{
 			forceRecreate: forceRecreate,
-			registries:    registries,
 			prune:         prune,
 		},
 	)
@@ -96,7 +94,6 @@ func (d *stackDeployer) StartRemoteComposeStack(
 	userId portainer.UserID,
 	stack *portainer.Stack,
 	endpoint *portainer.Endpoint,
-	registries []portainer.Registry,
 ) error {
 	return d.remoteStack(
 		ctx,
@@ -104,9 +101,7 @@ func (d *stackDeployer) StartRemoteComposeStack(
 		stack,
 		endpoint,
 		OperationComposeStart,
-		unpackerCmdBuilderOptions{
-			registries: registries,
-		},
+		unpackerCmdBuilderOptions{},
 	)
 }
 

@@ -2,7 +2,6 @@ package compose
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -41,7 +40,7 @@ func (c *ComposeDeployer) withComposeService(
 	composeFn func(api.Compose, *types.Project) error,
 ) error {
 	return libstack.WithCli(ctx,
-		libstack.DockerCliOptions{Host: options.Host, Registries: options.Registries},
+		libstack.DockerCliOptions{Host: options.Host},
 		func(ctx context.Context, cli *command.DockerCli) error {
 			composeService := c.createComposeServiceFn(cli)
 
@@ -156,7 +155,7 @@ func (c *ComposeDeployer) Remove(ctx context.Context, projectName string, filePa
 	callerCtx := ctx
 
 	if err := libstack.WithCli(ctx,
-		libstack.DockerCliOptions{Host: options.Host, Registries: options.Registries},
+		libstack.DockerCliOptions{Host: options.Host},
 		func(_ context.Context, cli *command.DockerCli) error {
 			composeService := c.createComposeServiceFn(cli)
 
@@ -207,51 +206,6 @@ func (c *ComposeDeployer) Config(ctx context.Context, filePaths []string, option
 	}
 
 	return payload, nil
-}
-
-func (c *ComposeDeployer) GetExistingEdgeStacks(ctx context.Context) ([]libstack.EdgeStack, error) {
-	m := make(map[int]libstack.EdgeStack)
-
-	if err := c.withComposeService(ctx, nil, libstack.Options{}, func(composeService api.Compose, project *types.Project) error {
-		stacks, err := composeService.List(ctx, api.ListOptions{
-			All: true,
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, s := range stacks {
-			summary, err := composeService.Ps(ctx, s.Name, api.PsOptions{All: true})
-			if err != nil {
-				return err
-			}
-
-			for _, cs := range summary {
-				if sid, ok := cs.Labels[PortainerEdgeStackLabel]; ok {
-					id, err := strconv.Atoi(sid)
-					if err != nil {
-						return err
-					}
-
-					if cs.Labels[api.ProjectLabel] == "" {
-						return errors.New("invalid project label")
-					}
-
-					m[id] = libstack.EdgeStack{
-						ID:       id,
-						Name:     cs.Labels[api.ProjectLabel],
-						ExitCode: cs.ExitCode,
-					}
-				}
-			}
-		}
-
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return slices.Collect(maps.Values(m)), nil
 }
 
 func addServiceLabels(project *types.Project, oneOff bool, edgeStackID portainer.EdgeStackID) {

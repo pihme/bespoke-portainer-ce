@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/internal/registryutils"
 )
 
 type StackRemoteOperation string
@@ -28,11 +26,10 @@ type unpackerCmdBuilderOptions struct {
 	prune              bool
 	forceRecreate      bool
 	composeDestination string
-	registries         []portainer.Registry
 	gitConfig          *gittypes.RepoConfig
 }
 
-type buildCmdFunc func(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string
+type buildCmdFunc func(stack *portainer.Stack, opts unpackerCmdBuilderOptions, env []string) []string
 
 var funcmap = map[StackRemoteOperation]buildCmdFunc{
 	OperationDeploy:       buildDeployCmd,
@@ -48,14 +45,13 @@ func (d *stackDeployer) buildUnpackerCmdForStack(stack *portainer.Stack, operati
 		return nil, fmt.Errorf("unknown stack operation %s", operation)
 	}
 
-	registriesStrings := generateRegistriesStrings(opts.registries, d.dataStore)
 	envStrings := getEnv(stack.Env)
 
-	return fn(stack, opts, registriesStrings, envStrings), nil
+	return fn(stack, opts, envStrings), nil
 }
 
 // deploy [-u username -p password] [--skip-tls-verify] [--force-recreate] [-r] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <ref> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildDeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
+func buildDeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, env []string) []string {
 	cmd := []string{UnpackerCmdDeploy}
 	cmd = appendGitAuthIfNeeded(cmd, opts.gitConfig)
 	cmd = appendSkipTLSVerifyIfNeeded(cmd, opts.gitConfig)
@@ -66,7 +62,6 @@ func buildDeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, regi
 	}
 
 	cmd = append(cmd, env...)
-	cmd = append(cmd, registries...)
 	cmd = append(cmd,
 		opts.gitConfig.URL,
 		opts.gitConfig.ReferenceName,
@@ -79,7 +74,7 @@ func buildDeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, regi
 }
 
 // undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildUndeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
+func buildUndeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, env []string) []string {
 	cmd := []string{UnpackerCmdUndeploy}
 	cmd = appendGitAuthIfNeeded(cmd, opts.gitConfig)
 	cmd = append(cmd, opts.gitConfig.URL,
@@ -92,13 +87,12 @@ func buildUndeployCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, re
 }
 
 // deploy [-u username -p password] [--skip-tls-verify] [-k] [--env KEY1=VALUE1 --env KEY2=VALUE2] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildComposeStartCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
+func buildComposeStartCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, env []string) []string {
 	cmd := []string{UnpackerCmdDeploy}
 	cmd = appendGitAuthIfNeeded(cmd, opts.gitConfig)
 	cmd = appendSkipTLSVerifyIfNeeded(cmd, opts.gitConfig)
 	cmd = append(cmd, "-k")
 	cmd = append(cmd, env...)
-	cmd = append(cmd, registries...)
 	cmd = append(cmd, opts.gitConfig.URL,
 		opts.gitConfig.ReferenceName,
 		stack.Name,
@@ -110,7 +104,7 @@ func buildComposeStartCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions
 }
 
 // undeploy [-u username -p password] [-k] <git-repo-url> <project-name> <destination> <compose-file-path> [<more-file-paths>...]
-func buildComposeStopCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, registries []string, env []string) []string {
+func buildComposeStopCmd(stack *portainer.Stack, opts unpackerCmdBuilderOptions, env []string) []string {
 	cmd := []string{UnpackerCmdUndeploy}
 	cmd = appendGitAuthIfNeeded(cmd, opts.gitConfig)
 	cmd = append(cmd,
@@ -146,23 +140,6 @@ func appendForceRecreateIfNeeded(cmd []string, forceRecreate bool) []string {
 	}
 
 	return cmd
-}
-
-func generateRegistriesStrings(registries []portainer.Registry, dataStore dataservices.DataStore) []string {
-	cmds := []string{}
-
-	for _, registry := range registries {
-		if registry.Authentication {
-			username, password, err := registryutils.GetRegEffectiveCredential(&registry)
-			if err != nil {
-				continue
-			}
-
-			cmds = append(cmds, fmt.Sprintf("--registry=%s:%s:%s", username, password, registry.URL))
-		}
-	}
-
-	return cmds
 }
 
 func getEnv(env []portainer.Pair) []string {

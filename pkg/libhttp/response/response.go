@@ -2,12 +2,9 @@
 package response
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
-	"github.com/rs/zerolog/log"
 
 	"github.com/segmentio/encoding/json"
 )
@@ -31,23 +28,6 @@ func JSONWithStatus(rw http.ResponseWriter, data any, status int) *httperror.Han
 	err := enc.Encode(data)
 	if err != nil {
 		return httperror.InternalServerError("Unable to write JSON response", err)
-	}
-
-	return nil
-}
-
-// JSON encodes data to rw in YAML format. Returns a pointer to a
-// HandlerError if encoding fails.
-func YAML(rw http.ResponseWriter, data any) *httperror.HandlerError {
-	rw.Header().Set("Content-Type", "text/yaml")
-
-	strData, ok := data.(string)
-	if !ok {
-		return httperror.InternalServerError("Unable to write YAML response", errors.New("failed to convert input to string"))
-	}
-
-	if _, err := fmt.Fprint(rw, strData); err != nil {
-		log.Warn().Err(err).Msg("failed to write YAML response")
 	}
 
 	return nil

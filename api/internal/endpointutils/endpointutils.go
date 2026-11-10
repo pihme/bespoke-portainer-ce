@@ -13,7 +13,6 @@ var (
 	IsDockerEndpoint     = endpoints.IsDockerEndpoint
 	IsEdgeEndpoint       = endpoints.IsEdgeEndpoint
 	IsAgentEndpoint      = endpoints.IsAgentEndpoint
-	EndpointSet          = endpoints.EndpointSet
 )
 
 // EndpointPlatformType returns the type of the endpoint based on the environment and container engine
@@ -30,28 +29,6 @@ func EndpointPlatformType(endpoint *portainer.Endpoint) portainer.PlatformType {
 		return portainer.AzurePlatformType
 	}
 	return portainer.UnknownPlatformType
-}
-
-// FilterByExcludeIDs receives an environment(endpoint) array and returns a filtered array using an excludeIds param
-func FilterByExcludeIDs(endpoints []portainer.Endpoint, excludeIds []portainer.EndpointID) []portainer.Endpoint {
-	if len(excludeIds) == 0 {
-		return endpoints
-	}
-
-	filteredEndpoints := make([]portainer.Endpoint, 0)
-
-	idsSet := make(map[portainer.EndpointID]bool)
-	for _, id := range excludeIds {
-		idsSet[id] = true
-	}
-
-	for _, endpoint := range endpoints {
-		if !idsSet[endpoint.ID] {
-			filteredEndpoints = append(filteredEndpoints, endpoint)
-		}
-	}
-
-	return filteredEndpoints
 }
 
 func UpdateEdgeEndpointHeartbeat(endpoint *portainer.Endpoint, settings *portainer.Settings) {

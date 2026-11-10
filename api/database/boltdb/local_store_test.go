@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"math"
 	"os"
-	"path/filepath"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
@@ -24,33 +23,6 @@ func openTestDB(t *testing.T) *DbConnection {
 		_ = conn.Close()
 	})
 	return conn
-}
-
-func TestGetStorePathAndDatabaseFileHelpers(t *testing.T) {
-	t.Parallel()
-
-	dir := t.TempDir()
-	conn := &DbConnection{Path: dir}
-
-	require.Equal(t, dir, conn.GetStorePath())
-	require.Equal(t, DatabaseFileName, conn.GetDatabaseFileName())
-	require.Equal(t, filesystem.JoinPaths(dir, DatabaseFileName), conn.GetDatabaseFilePath())
-
-	_, err := conn.GetDatabaseFileSize()
-	require.Error(t, err)
-
-	require.NoError(t, conn.Open())
-	t.Cleanup(func() { _ = conn.Close() })
-
-	size, err := conn.GetDatabaseFileSize()
-	require.NoError(t, err)
-	require.Greater(t, size, int64(0))
-
-	key := secretToEncryptionKey(passphrase)
-	enc := &DbConnection{Path: dir, EncryptionKey: key}
-	require.NoError(t, enc.SetEncrypted(true))
-	require.Equal(t, EncryptedDatabaseFileName, enc.GetDatabaseFileName())
-	require.Equal(t, filesystem.JoinPaths(dir, EncryptedDatabaseFileName), enc.GetDatabaseFilePath())
 }
 
 func TestClose_NilDBIsSafe(t *testing.T) {
@@ -133,28 +105,6 @@ func TestConnectionCRUD_LocalRoundTrip(t *testing.T) {
 	exists, err = conn.KeyExists(bucket, conn.ConvertToKey(10))
 	require.NoError(t, err)
 	require.False(t, exists)
-}
-
-func TestUpdateObjectFunc_AppliesMutation(t *testing.T) {
-	t.Parallel()
-	conn := openTestDB(t)
-
-	const bucket = "mutate"
-	require.NoError(t, conn.SetServiceName(bucket))
-	require.NoError(t, conn.CreateObjectWithId(bucket, 7, testStruct{Key: "k", Value: "v1"}))
-
-	var current testStruct
-	require.NoError(t, conn.UpdateObjectFunc(bucket, conn.ConvertToKey(7), &current, func() {
-		current.Value = "v2"
-	}))
-	require.Equal(t, "v2", current.Value)
-
-	var got testStruct
-	require.NoError(t, conn.GetObject(bucket, conn.ConvertToKey(7), &got))
-	require.Equal(t, "v2", got.Value)
-
-	err := conn.UpdateObjectFunc(bucket, conn.ConvertToKey(404), &current, func() {})
-	require.True(t, dataservices.IsErrObjectNotFound(err))
 }
 
 func TestTx_GetRawBytesKeyExistsCreateDeleteGetAll(t *testing.T) {
@@ -256,47 +206,6 @@ func TestBackupAndRestoreMetadata(t *testing.T) {
 	require.Equal(t, 3, meta2["another-bucket"])
 }
 
-func TestExportJSONAndExportRaw(t *testing.T) {
-	t.Parallel()
-	conn := openTestDB(t)
-
-	require.NoError(t, conn.SetServiceName("items"))
-	require.NoError(t, conn.CreateObjectWithId("items", 1, testStruct{Key: "k", Value: "v"}))
-
-	require.NoError(t, conn.SetServiceName("version"))
-	require.NoError(t, conn.CreateObjectWithStringId("version", []byte("DB_VERSION"), "45"))
-
-	require.NoError(t, conn.SetServiceName("settings"))
-	require.NoError(t, conn.CreateObjectWithId("settings", 1, map[string]any{"LogoURL": "x"}))
-
-	require.NoError(t, conn.SetServiceName("ssl"))
-	require.NoError(t, conn.CreateObjectWithId("ssl", 1, map[string]any{"cert": "c"}))
-
-	dbPath := conn.GetDatabaseFilePath()
-	require.NoError(t, conn.Close())
-
-	exported, err := conn.ExportJSON(dbPath, true)
-	require.NoError(t, err)
-	require.Contains(t, string(exported), "__metadata")
-	require.Contains(t, string(exported), "items")
-	require.Contains(t, string(exported), "DB_VERSION")
-	require.Contains(t, string(exported), "LogoURL")
-
-	exportedNoMeta, err := conn.ExportJSON(dbPath, false)
-	require.NoError(t, err)
-	require.NotContains(t, string(exportedNoMeta), "__metadata")
-
-	out := filepath.Join(t.TempDir(), "export.json")
-	require.NoError(t, conn.ExportRaw(out))
-	data, err := os.ReadFile(out)
-	require.NoError(t, err)
-	require.Contains(t, string(data), "items")
-
-	missing := &DbConnection{Path: t.TempDir()}
-	err = missing.ExportRaw(filepath.Join(t.TempDir(), "nope.json"))
-	require.Error(t, err)
-}
-
 func TestREQ_SRV_07_EncryptedStoreCRUD(t *testing.T) {
 	t.Parallel()
 
@@ -366,4 +275,24 @@ func TestUnmarshalObject_NonStringJSONFailure(t *testing.T) {
 	err := conn.UnmarshalObject([]byte("not-json"), &n)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Failed unmarshalling object")
+}
+
+func TestGetStorePathAndDatabaseFileHelpers(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	conn := &DbConnection{Path: dir}
+
+	require.Equal(t, dir, conn.GetStorePath())
+	require.Equal(t, DatabaseFileName, conn.GetDatabaseFileName())
+	require.Equal(t, filesystem.JoinPaths(dir, DatabaseFileName), conn.GetDatabaseFilePath())
+
+	require.NoError(t, conn.Open())
+	t.Cleanup(func() { _ = conn.Close() })
+
+	key := secretToEncryptionKey(passphrase)
+	enc := &DbConnection{Path: dir, EncryptionKey: key}
+	require.NoError(t, enc.SetEncrypted(true))
+	require.Equal(t, EncryptedDatabaseFileName, enc.GetDatabaseFileName())
+	require.Equal(t, filesystem.JoinPaths(dir, EncryptedDatabaseFileName), enc.GetDatabaseFilePath())
 }

@@ -179,18 +179,15 @@ func (handler *Handler) startStack(
 		return fmt.Errorf("unable to load user information from the database: %w", err)
 	}
 
-	// There are no stored registries (TAI-023).
-	var filteredRegistries []portainer.Registry
-
 	switch stack.Type {
 	case portainer.DockerComposeStack:
 		stack.Name = handler.ComposeStackManager.NormalizeStackName(stack.Name)
 
 		if stackutils.IsRelativePathStack(stack) {
-			return handler.StackDeployer.StartRemoteComposeStack(ctx, userID, stack, endpoint, filteredRegistries)
+			return handler.StackDeployer.StartRemoteComposeStack(ctx, userID, stack, endpoint)
 		}
 
-		return handler.StackDeployer.DeployComposeStack(ctx, stack, endpoint, filteredRegistries, false, false, false)
+		return handler.StackDeployer.DeployComposeStack(ctx, stack, endpoint, false, false, false)
 	}
 
 	return nil

@@ -75,8 +75,8 @@ func jsonRequest(t *testing.T, method, path string, payload any) *http.Request {
 }
 
 func stringPtr(v string) *string { return &v }
-func intPtr(v int) *int          { return &v }
-func boolPtr(v bool) *bool       { return &v }
+
+func boolPtr(v bool) *bool { return &v }
 
 func seedSettingsSecrets(t *testing.T, store *datastore.Store) {
 	t.Helper()

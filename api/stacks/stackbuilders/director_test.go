@@ -169,63 +169,6 @@ func TestBuildAndAsyncDeploy_SpawnAsync_PostDeployHook_NotCalledOnDeployFailure(
 	require.False(t, builder.hookCalled.Load(), "post-deploy hook should not be called after a failed deployment")
 }
 
-func TestBuildAndDeploy_DeployFailure_ReturnsErrorWithoutPersistingStack(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-	stack := &portainer.Stack{ID: 1}
-	deployErr := errors.New("failed to apply resources")
-	builder := &stubBuilder{store: store, savedStack: stack, deployErr: deployErr}
-
-	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
-
-	require.NotNil(t, herr)
-	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
-
-	_, err := store.Stack().Read(stack.ID)
-	require.Error(t, err, "a stack that failed to deploy should never be persisted")
-}
-
-func TestBuildAndDeploy_DeploySuccess_PersistsActiveStatusSynchronously(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-	stack := &portainer.Stack{ID: 1}
-	builder := &stubBuilder{store: store, savedStack: stack}
-
-	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
-	require.Nil(t, herr)
-
-	updated, err := store.Stack().Read(stack.ID)
-	require.NoError(t, err)
-	assert.Equal(t, portainer.StackStatusActive, updated.Status)
-	require.Len(t, updated.DeploymentStatus, 2)
-	assert.Equal(t, portainer.StackStatusDeploying, updated.DeploymentStatus[0].Status)
-	assert.Equal(t, portainer.StackStatusActive, updated.DeploymentStatus[1].Status)
-}
-
-func TestBuildAndDeploy_PostDeployHook_CalledOnSuccess(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-	stack := &portainer.Stack{ID: 1}
-	builder := &stubBuilder{store: store, savedStack: stack}
-
-	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
-	require.Nil(t, herr)
-
-	assert.True(t, builder.hookCalled.Load(), "post-deploy hook should be called after a successful deployment")
-}
-
-func TestBuildAndDeploy_PostDeployHook_NotCalledOnDeployFailure(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-	stack := &portainer.Stack{ID: 1}
-	builder := &stubBuilder{store: store, savedStack: stack, deployErr: errors.New("failed to deploy")}
-
-	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
-	require.NotNil(t, herr)
-
-	assert.False(t, builder.hookCalled.Load(), "post-deploy hook should not be called after a failed deployment")
-}
-
 func TestBuildAndAsyncDeploy_PrepareError_ReturnsInternalServerError(t *testing.T) {
 	t.Parallel()
 	builder := &stubBuilder{prepareErr: errors.New("prepare failed")}
@@ -235,49 +178,4 @@ func TestBuildAndAsyncDeploy_PrepareError_ReturnsInternalServerError(t *testing.
 	require.NotNil(t, herr)
 	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
 	assert.Contains(t, herr.Message, "Failed to prepare stack")
-}
-
-func TestBuildAndDeploy_PrepareError_ReturnsInternalServerError(t *testing.T) {
-	t.Parallel()
-	builder := &stubBuilder{prepareErr: errors.New("prepare failed")}
-
-	_, herr := BuildAndDeploy(t.Context(), nil, builder, &StackPayload{}, &portainer.Endpoint{}, 0)
-
-	require.NotNil(t, herr)
-	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
-	assert.Contains(t, herr.Message, "Failed to prepare stack")
-}
-
-func TestBuildAndDeploy_SaveErrorAfterDeploy_ReturnsInternalServerError(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-	builder := &stubBuilder{
-		store:      store,
-		savedStack: &portainer.Stack{ID: 1, Name: "s", EndpointID: 1},
-		saveErr:    errors.New("db write failed"),
-	}
-
-	_, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{ID: 1}, 0)
-
-	require.NotNil(t, herr)
-	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
-	assert.Contains(t, herr.Message, "Failed to save stack")
-}
-
-func TestBuildAndDeploy_PostDeployError_ReturnsInternalServerError(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-	builder := &stubBuilder{
-		store:      store,
-		savedStack: &portainer.Stack{ID: 3, Name: "s", EndpointID: 1, Status: portainer.StackStatusDeploying},
-		postErr:    errors.New("hook failed"),
-	}
-
-	stack, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{}, &portainer.Endpoint{ID: 1}, 0)
-
-	require.NotNil(t, stack)
-	require.NotNil(t, herr)
-	assert.Equal(t, http.StatusInternalServerError, herr.StatusCode)
-	assert.Contains(t, herr.Message, "Failed to run post-deployment hook")
-	assert.True(t, builder.hookCalled.Load())
 }

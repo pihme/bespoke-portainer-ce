@@ -14,15 +14,6 @@ import (
 	"github.com/portainer/portainer/api/stacks/stackutils"
 )
 
-// HasAccessibleSource reports whether any of the artifact's files has a source visible in
-// sourceMap.
-func HasAccessibleSource(files []portainer.ArtifactFile, sourceMap map[portainer.SourceID]portainer.Source) bool {
-	return slicesx.Some(files, func(f portainer.ArtifactFile) bool {
-		_, ok := sourceMap[f.SourceID]
-		return ok
-	})
-}
-
 // ArtifactBackingExists reports whether the artifact's target stack still exists, using the
 // caller-supplied existence check. An artifact without a StackID has no backing target: Edge
 // stack artifacts never have one since the edge_stack collection is gone (TAI-023).

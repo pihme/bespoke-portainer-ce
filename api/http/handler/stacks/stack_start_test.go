@@ -38,7 +38,7 @@ func (s *stubStackDeployer) GetDockerClientFactory() *dockerclient.ClientFactory
 	return nil
 }
 
-func (s *stubStackDeployer) DeployComposeStack(_ context.Context, _ *portainer.Stack, _ *portainer.Endpoint, _ []portainer.Registry, _, _, _ bool) error {
+func (s *stubStackDeployer) DeployComposeStack(_ context.Context, _ *portainer.Stack, _ *portainer.Endpoint, _, _, _ bool) error {
 	s.composeDeployed = true
 
 	return s.deployErr

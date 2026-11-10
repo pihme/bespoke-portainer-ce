@@ -5,10 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/hex"
-
-	"github.com/portainer/portainer/pkg/libcrypto"
 )
 
 const (
@@ -36,13 +33,6 @@ func NewECDSAService(secret string) *ECDSAService {
 	return &ECDSAService{
 		secret: secret,
 	}
-}
-
-// EncodedPublicKey returns the encoded version of the public that can be used
-// to be shared with other services. It's the hexadecimal encoding of the public key
-// content.
-func (service *ECDSAService) EncodedPublicKey() string {
-	return service.encodedPubKey
 }
 
 // PEMHeaders returns the ECDSA PEM headers.
@@ -99,37 +89,4 @@ func (service *ECDSAService) GenerateKeyPair() ([]byte, []byte, error) {
 	service.encodedPubKey = encodedKey
 
 	return private, public, nil
-}
-
-// CreateSignature creates a digital signature.
-// It automatically hash a specific message using MD5 and creates a signature from
-// that hash.
-// If a secret is associated to the service, it will be used instead of the specified
-// message.
-// It then encodes the generated signature in base64.
-func (service *ECDSAService) CreateSignature(message string) (string, error) {
-	if service.secret != "" {
-		message = service.secret
-	}
-
-	hash := libcrypto.InsecureHashFromBytes([]byte(message))
-
-	r, s, err := ecdsa.Sign(rand.Reader, service.privateKey, hash)
-	if err != nil {
-		return "", err
-	}
-
-	keyBytes := service.privateKey.Params().BitSize / 8
-
-	rBytes := r.Bytes()
-	rBytesPadded := make([]byte, keyBytes)
-	copy(rBytesPadded[keyBytes-len(rBytes):], rBytes)
-
-	sBytes := s.Bytes()
-	sBytesPadded := make([]byte, keyBytes)
-	copy(sBytesPadded[keyBytes-len(sBytes):], sBytes)
-
-	signature := append(rBytesPadded, sBytesPadded...)
-
-	return base64.RawStdEncoding.EncodeToString(signature), nil
 }

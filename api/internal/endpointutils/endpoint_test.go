@@ -122,64 +122,6 @@ func TestREQ_ENV_07_EndpointPlatformType(t *testing.T) {
 	}
 }
 
-func Test_FilterByExcludeIDs(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name            string
-		inputArray      []portainer.Endpoint
-		inputExcludeIDs []portainer.EndpointID
-		asserts         func(*testing.T, []portainer.Endpoint)
-	}{
-		{
-			name: "filter endpoints",
-			inputArray: []portainer.Endpoint{
-				{ID: portainer.EndpointID(1)},
-				{ID: portainer.EndpointID(2)},
-				{ID: portainer.EndpointID(3)},
-				{ID: portainer.EndpointID(4)},
-			},
-			inputExcludeIDs: []portainer.EndpointID{
-				portainer.EndpointID(2),
-				portainer.EndpointID(3),
-			},
-			asserts: func(t *testing.T, output []portainer.Endpoint) {
-				assert.Contains(t, output, portainer.Endpoint{ID: portainer.EndpointID(1)})
-				assert.NotContains(t, output, portainer.Endpoint{ID: portainer.EndpointID(2)})
-				assert.NotContains(t, output, portainer.Endpoint{ID: portainer.EndpointID(3)})
-				assert.Contains(t, output, portainer.Endpoint{ID: portainer.EndpointID(4)})
-			},
-		},
-		{
-			name:       "empty input",
-			inputArray: []portainer.Endpoint{},
-			inputExcludeIDs: []portainer.EndpointID{
-				portainer.EndpointID(2),
-			},
-			asserts: func(t *testing.T, output []portainer.Endpoint) {
-				assert.Empty(t, output)
-			},
-		},
-		{
-			name: "no filter",
-			inputArray: []portainer.Endpoint{
-				{ID: portainer.EndpointID(1)},
-				{ID: portainer.EndpointID(2)},
-			},
-			inputExcludeIDs: []portainer.EndpointID{},
-			asserts: func(t *testing.T, output []portainer.Endpoint) {
-				assert.Len(t, output, 2)
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			output := FilterByExcludeIDs(tt.inputArray, tt.inputExcludeIDs)
-			tt.asserts(t, output)
-		})
-	}
-}
-
 func TestUpdateEdgeEndpointHeartbeat(t *testing.T) {
 	t.Parallel()
 	endpoint := &portainer.Endpoint{
@@ -265,33 +207,13 @@ func TestGetEndpointCheckinInterval(t *testing.T) {
 	})
 }
 
-func TestEndpointSet(t *testing.T) {
-	t.Parallel()
-	got := EndpointSet([]portainer.EndpointID{1, 2, 2, 3})
-	assert.True(t, got[1])
-	assert.True(t, got[2])
-	assert.True(t, got[3])
-	assert.False(t, got[4])
-}
-
 type updatingEndpointService struct {
 	dataservices.EndpointService
 	updated []*portainer.Endpoint
 	err     error
 }
 
-func (s *updatingEndpointService) UpdateEndpoint(id portainer.EndpointID, endpoint *portainer.Endpoint) error {
-	if s.err != nil {
-		return s.err
-	}
-	cp := *endpoint
-	s.updated = append(s.updated, &cp)
-	return nil
-}
-
 type updatingStore struct {
 	dataservices.DataStoreTx
 	endpoint dataservices.EndpointService
 }
-
-func (s *updatingStore) Endpoint() dataservices.EndpointService { return s.endpoint }

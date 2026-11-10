@@ -58,40 +58,6 @@ func WithTmpClones(ctx context.Context) (context.Context, *TmpClones) {
 	return context.WithValue(ctx, tmpClonesCtxKey{}, t), t
 }
 
-// TmpClonesFromContext returns the TmpClones carried by ctx, or nil. A nil TmpClones is valid and
-// makes every call go straight to the network
-func TmpClonesFromContext(ctx context.Context) *TmpClones {
-	t, _ := ctx.Value(tmpClonesCtxKey{}).(*TmpClones)
-
-	return t
-}
-
-// CommitID returns the result of fetch, running it at most once per distinct request
-func (t *TmpClones) CommitID(req RepoRequest, fetch func() (string, error)) (string, error) {
-	if t == nil {
-		return fetch()
-	}
-
-	key := newTmpClonesKey(req, "")
-
-	t.mu.Lock()
-	if t.closed {
-		t.mu.Unlock()
-
-		return fetch()
-	}
-	defer t.mu.Unlock()
-
-	if o, ok := t.commits[key]; ok {
-		return o.val, o.err
-	}
-
-	hash, err := fetch()
-	t.commits[key] = outcome{hash, err}
-
-	return hash, err
-}
-
 // Clone puts a checkout of the request at the given commit in toDir, running clone at most once
 // per distinct request and commit. The shared checkout lives in a temporary directory inside
 // tmpParent and every caller gets its own copy of the files

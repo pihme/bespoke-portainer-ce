@@ -55,23 +55,21 @@ func TestREQ_STK_02_DeployComposeStack(t *testing.T) {
 
 	stack := &portainer.Stack{Name: "web", Type: portainer.DockerComposeStack}
 	endpoint := &portainer.Endpoint{ID: 1}
-	registries := []portainer.Registry{{Name: "r1"}}
 
-	require.NoError(t, deployer.DeployComposeStack(t.Context(), stack, endpoint, registries, true, false, true))
+	require.NoError(t, deployer.DeployComposeStack(t.Context(), stack, endpoint, true, false, true))
 	assert.Equal(t, int32(0), manager.pullCalls.Load(), "pull must be skipped when forcePullImage is false")
 	assert.Equal(t, int32(1), manager.upCalls.Load())
 	assert.True(t, manager.lastUp.ForceRecreate)
 	assert.True(t, manager.lastUp.Prune)
-	assert.Equal(t, registries, manager.lastUp.Registries)
 
-	require.NoError(t, deployer.DeployComposeStack(t.Context(), stack, endpoint, registries, false, true, false))
+	require.NoError(t, deployer.DeployComposeStack(t.Context(), stack, endpoint, false, true, false))
 	assert.Equal(t, int32(1), manager.pullCalls.Load())
 	assert.Equal(t, int32(2), manager.upCalls.Load())
 	assert.False(t, manager.lastUp.ForceRecreate)
 	assert.False(t, manager.lastUp.Prune)
 
 	manager.pullErr = errors.New("pull failed")
-	err := deployer.DeployComposeStack(t.Context(), stack, endpoint, registries, false, true, false)
+	err := deployer.DeployComposeStack(t.Context(), stack, endpoint, false, true, false)
 	require.ErrorContains(t, err, "pull failed")
 	assert.Equal(t, int32(2), manager.pullCalls.Load())
 	assert.Equal(t, int32(2), manager.upCalls.Load(), "Up must not run after Pull fails")

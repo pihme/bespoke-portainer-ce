@@ -7,14 +7,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/image"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
 	"go.podman.io/image/v5/docker/reference"
 )
-
-type ImageID string
 
 // Image holds information about an image.
 type Image struct {
@@ -76,17 +72,6 @@ func (i *Image) WithTag(tag string) (err error) {
 	i.named, err = reference.WithTag(i.named, tag)
 
 	return err
-}
-
-func (i *Image) TrimDigest() error {
-	i.Digest = ""
-	named, err := ParseImage(ParseImageOptions{Name: i.FullName()})
-	if err != nil {
-		return err
-	}
-	i.named = &named
-
-	return nil
 }
 
 // ParseImage returns an Image struct with all the values filled in for a given image.
@@ -169,21 +154,4 @@ func (i *Image) hubLink() (string, error) {
 	default:
 		return "", nil
 	}
-}
-
-// IsLocalImage checks if the image has been built locally
-func IsLocalImage(image types.ImageInspect) bool {
-	return len(image.RepoDigests) == 0
-}
-
-// IsDanglingImage returns whether the given image is "dangling" which means
-// that there are no repository references to the given image and it has no
-// child images
-func IsDanglingImage(image image.InspectResponse) bool {
-	return len(image.RepoTags) == 1 && image.RepoTags[0] == "<none>:<none>" && len(image.RepoDigests) == 1 && image.RepoDigests[0] == "<none>@<none>"
-}
-
-// IsNoTagImage returns whether the given image is damaged, has no tags
-func IsNoTagImage(image image.InspectResponse) bool {
-	return len(image.RepoTags) == 0
 }

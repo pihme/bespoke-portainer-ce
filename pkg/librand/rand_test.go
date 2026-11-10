@@ -3,7 +3,6 @@ package librand
 import (
 	"crypto/rand"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/portainer/portainer/pkg/fips"
@@ -49,57 +48,6 @@ func TestInternalIntn(t *testing.T) {
 
 			if i >= tc.max || i < 0 {
 				t.Fatalf("random number %d wasn't within interval", i)
-			}
-		})
-	}
-}
-
-func TestString(t *testing.T) {
-
-	const iterations = 1000
-
-	seen := make(map[string]bool, iterations)
-	for range iterations {
-		s := String(16)
-
-		require.Len(t, s, 16)
-		require.Empty(t, strings.Trim(s, alphanumericChars))
-		require.False(t, seen[s])
-
-		seen[s] = true
-	}
-}
-
-func TestFloat64(t *testing.T) {
-	t.Parallel()
-	f := Float64()
-
-	if f >= 1 || f < 0 {
-		t.Fatalf("random float %v wasn't within interval", f)
-	}
-}
-
-func TestInternalFloat64(t *testing.T) {
-	t.Parallel()
-	testCases := []struct {
-		name string
-		fips bool
-	}{
-		{
-			name: "non-fips mode",
-			fips: false,
-		},
-		{
-			name: "fips mode",
-			fips: true,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			f := randomFloat64(tc.fips)
-			if f >= 1 || f < 0 {
-				t.Fatalf("random float %v wasn't within interval", f)
 			}
 		})
 	}

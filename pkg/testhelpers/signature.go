@@ -2,10 +2,8 @@ package testhelpers
 
 import (
 	"errors"
-	"testing"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/crypto"
 )
 
 // Fixed values the stub signature service signs with, so tests can assert which
@@ -17,19 +15,6 @@ const (
 
 // ErrSignatureFailure is what the failing signature service returns.
 var ErrSignatureFailure = errors.New("signature failure")
-
-// NewSignatureService returns a signature service backed by a freshly generated
-// ECDSA key pair.
-func NewSignatureService(t *testing.T) portainer.DigitalSignatureService {
-	t.Helper()
-
-	sigService := crypto.NewECDSAService("")
-	if _, _, err := sigService.GenerateKeyPair(); err != nil {
-		t.Fatalf("failed to generate a signature key pair: %s", err)
-	}
-
-	return sigService
-}
 
 type stubSignatureService struct {
 	portainer.DigitalSignatureService

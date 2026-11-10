@@ -3244,11 +3244,9 @@ definitions:
   workflows.Type:
     enum:
     - stack
-    - edgeStack
     type: string
     x-enum-varnames:
     - TypeStack
-    - TypeEdgeStack
   workflows.WorkflowPhaseStatus:
     properties:
       error:

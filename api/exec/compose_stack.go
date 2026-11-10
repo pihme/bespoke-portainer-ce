@@ -57,7 +57,6 @@ func (manager *ComposeStackManager) Up(ctx context.Context, stack *portainer.Sta
 			EnvFilePath: envFilePath,
 			Host:        url,
 			ProjectName: stack.Name,
-			Registries:  portainerRegistriesToAuthConfigs(options.Registries),
 		},
 		ForceRecreate:        options.ForceRecreate,
 		AbortOnContainerExit: options.AbortOnContainerExit,
@@ -91,7 +90,6 @@ func (manager *ComposeStackManager) Run(ctx context.Context, stack *portainer.St
 			EnvFilePath: envFilePath,
 			Host:        url,
 			ProjectName: stack.Name,
-			Registries:  portainerRegistriesToAuthConfigs(options.Registries),
 		},
 		Remove:   options.Remove,
 		Args:     options.Args,
@@ -143,7 +141,6 @@ func (manager *ComposeStackManager) Pull(ctx context.Context, stack *portainer.S
 		EnvFilePath: envFilePath,
 		Host:        url,
 		ProjectName: stack.Name,
-		Registries:  portainerRegistriesToAuthConfigs(options.Registries),
 	}); err != nil {
 		return fmt.Errorf("failed to pull images of the stack: %w", err)
 	}

@@ -1461,42 +1461,6 @@ func Test_CredentialsStore_Behavior(t *testing.T) {
 		require.Empty(t, capturedAuthConfigs,
 			"no registry credentials should be configured in AuthConfigs")
 	})
-
-	t.Run("withCli clears credsStore when registries provided", func(t *testing.T) {
-		// Set the Docker config directory to the temp dir
-		config.SetDir(tmpDir)
-
-		// Test with registries provided
-		registries := []configtypes.AuthConfig{
-			{
-				Username:      "testuser",
-				Password:      "testpass",
-				ServerAddress: "registry.example.com",
-			},
-		}
-		var capturedCredsStore string
-		var capturedAuthConfigs map[string]configtypes.AuthConfig
-
-		err = libstack.WithCli(t.Context(),
-			libstack.DockerCliOptions{Registries: registries},
-			func(ctx context.Context, cli *command.DockerCli) error {
-				// Capture the state after WithCli sets up credentials
-				capturedCredsStore = cli.ConfigFile().CredentialsStore
-				capturedAuthConfigs = cli.ConfigFile().AuthConfigs
-				return nil
-			})
-		require.NoError(t, err)
-
-		// Verify the fix: credsStore should be empty when registries are provided
-		require.Empty(t, capturedCredsStore,
-			"credsStore should be cleared when registries are provided to force Docker to use inline credentials")
-
-		// Verify registry credentials were set
-		require.Contains(t, capturedAuthConfigs, "registry.example.com",
-			"custom registry credentials should be configured in AuthConfigs")
-		require.Equal(t, "testuser", capturedAuthConfigs["registry.example.com"].Username,
-			"custom registry username should match")
-	})
 }
 
 func createMockComposeService(command.Cli, ...compose.Option) api.Compose {

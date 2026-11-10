@@ -3,8 +3,6 @@ package images
 import (
 	"testing"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/image"
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,23 +98,4 @@ func TestREQ_IMG_02_ParseImage_InvalidName(t *testing.T) {
 
 	_, err := ParseImage(ParseImageOptions{Name: "INVALID@@"})
 	require.Error(t, err)
-}
-
-func TestREQ_IMG_06_IsLocalDanglingNoTagImage(t *testing.T) {
-	t.Parallel()
-
-	require.True(t, IsLocalImage(types.ImageInspect{RepoDigests: nil}))
-	require.False(t, IsLocalImage(types.ImageInspect{RepoDigests: []string{"repo@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1"}}))
-
-	require.True(t, IsDanglingImage(image.InspectResponse{
-		RepoTags:    []string{"<none>:<none>"},
-		RepoDigests: []string{"<none>@<none>"},
-	}))
-	require.False(t, IsDanglingImage(image.InspectResponse{
-		RepoTags:    []string{"nginx:latest"},
-		RepoDigests: []string{"nginx@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1"},
-	}))
-
-	require.True(t, IsNoTagImage(image.InspectResponse{RepoTags: nil}))
-	require.False(t, IsNoTagImage(image.InspectResponse{RepoTags: []string{"nginx:latest"}}))
 }

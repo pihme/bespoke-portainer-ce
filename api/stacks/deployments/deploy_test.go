@@ -92,7 +92,7 @@ func (s noopDeployer) GetDockerClientFactory() *dockerclient.ClientFactory {
 
 // without unpacker
 
-func (s noopDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (s noopDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	return nil
 }
 
@@ -105,13 +105,13 @@ func (s noopDeployer) DeployKubernetesStack(_ context.Context, stack *portainer.
 }
 
 // with unpacker
-func (s noopDeployer) DeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (s noopDeployer) DeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	return nil
 }
 func (s noopDeployer) UndeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
 	return nil
 }
-func (s noopDeployer) StartRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error {
+func (s noopDeployer) StartRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
 	return nil
 }
 func (s noopDeployer) StopRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
@@ -425,10 +425,10 @@ type recordingDeployer struct {
 	composeDeployed atomic.Bool
 }
 
-func (r *recordingDeployer) DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (r *recordingDeployer) DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	r.composeDeployed.Store(true)
 
-	return r.noopDeployer.DeployComposeStack(ctx, stack, endpoint, registries, prune, forcePullImage, forceRecreate)
+	return r.noopDeployer.DeployComposeStack(ctx, stack, endpoint, prune, forcePullImage, forceRecreate)
 }
 
 func Test_redeployWhenChanged_NonAdminRestrictedComposeIsNotDeployed(t *testing.T) {

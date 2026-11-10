@@ -2,8 +2,6 @@ package stackutils
 
 import (
 	"fmt"
-	"regexp"
-	"strings"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/filesystem"
@@ -34,13 +32,6 @@ func GetStackFilePaths(stack *portainer.Stack, absolute bool) []string {
 // ResourceControlID returns the stack resource control id
 func ResourceControlID(endpointID portainer.EndpointID, name string) string {
 	return fmt.Sprintf("%d_%s", endpointID, name)
-}
-
-// convert string to valid kubernetes label by replacing invalid characters with periods and removing any periods at the beginning or end of the string
-func SanitizeLabel(value string) string {
-	re := regexp.MustCompile(`[^A-Za-z0-9\.\-\_]+`)
-	onlyAllowedCharacterString := re.ReplaceAllString(value, ".")
-	return strings.Trim(onlyAllowedCharacterString, ".-_")
 }
 
 // IsRelativePathStack checks if the stack is a git stack or not

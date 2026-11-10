@@ -293,7 +293,6 @@ func TestMigrate_NeedsMigration_AndCoreHelpers(t *testing.T) {
 	old := &models.Version{SchemaVersion: "2.0.0", Edition: int(portainer.PortainerCE), MigratorCount: 0}
 	m := s.newMigrator(old)
 	assert.True(t, m.NeedsMigration())
-	assert.Equal(t, "2.0.0", m.CurrentDBVersion())
 	assert.Equal(t, portainer.PortainerCE, m.CurrentDBEdition())
 	assert.NotNil(t, m.LatestMigrations().Version)
 	require.NoError(t, m.Always())

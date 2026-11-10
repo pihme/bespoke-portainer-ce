@@ -120,36 +120,3 @@ func TestService_GetPlatform(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, PlatformKubernetes, platform)
 }
-
-func TestService_GetLocalEnvironment(t *testing.T) {
-	t.Setenv(KubernetesServiceHost, "10.96.0.1")
-	t.Setenv(PodmanMode, "")
-
-	kube := portainer.Endpoint{ID: 1, Type: portainer.KubernetesLocalEnvironment}
-	ds := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portainer.Endpoint{kube}))
-
-	svc := NewService(ds)
-
-	env, err := svc.GetLocalEnvironment()
-	require.NoError(t, err)
-	require.NotNil(t, env)
-	require.Equal(t, portainer.EndpointID(1), env.ID)
-}
-
-func TestService_CachesLoadedEnvironment(t *testing.T) {
-	t.Setenv(KubernetesServiceHost, "10.96.0.1")
-	t.Setenv(PodmanMode, "")
-
-	kube := portainer.Endpoint{ID: 1, Type: portainer.KubernetesLocalEnvironment}
-	ds := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portainer.Endpoint{kube}))
-
-	svc := NewService(ds)
-
-	env1, err := svc.GetLocalEnvironment()
-	require.NoError(t, err)
-
-	env2, err := svc.GetLocalEnvironment()
-	require.NoError(t, err)
-
-	require.Same(t, env1, env2)
-}

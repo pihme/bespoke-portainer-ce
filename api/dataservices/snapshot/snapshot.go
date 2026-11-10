@@ -64,7 +64,3 @@ func (service *Service) ReadRawMessage(ID portainer.EndpointID) (*portainer.Snap
 
 	return snapshot, err
 }
-
-func (service *Service) CreateRawMessage(snapshot *portainer.SnapshotRawMessage) error {
-	return service.Connection.CreateObjectWithId(BucketName, int(snapshot.EndpointID), snapshot)
-}

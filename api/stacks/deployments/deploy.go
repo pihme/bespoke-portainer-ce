@@ -191,9 +191,6 @@ func redeployWhenChangedSecondStage(
 		SourceID:        gitSrc.ID,
 	}
 
-	// There are no stored registries (TAI-023).
-	var registries []portainer.Registry
-
 	redeployStack := func(stack *portainer.Stack) error {
 		var err error
 
@@ -203,9 +200,9 @@ func redeployWhenChangedSecondStage(
 		switch stack.Type {
 		case portainer.DockerComposeStack:
 			if stackutils.IsRelativePathStack(stack) {
-				err = deployer.DeployRemoteComposeStack(ctx, user.ID, stack, endpoint, registries, true, true, false)
+				err = deployer.DeployRemoteComposeStack(ctx, user.ID, stack, endpoint, true, true, false)
 			} else {
-				err = deployer.DeployComposeStack(ctx, stack, endpoint, registries, true, true, false)
+				err = deployer.DeployComposeStack(ctx, stack, endpoint, true, true, false)
 			}
 
 			if err != nil {

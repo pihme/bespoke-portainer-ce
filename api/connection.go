@@ -32,19 +32,13 @@ type Connection interface {
 	Close() error
 
 	UpdateTx(fn func(Transaction) error) error
-	UpdateTxBatch(fn func(Transaction) error) error
-	BatchingEnabled() bool
 	ViewTx(fn func(Transaction) error) error
-
-	// write the db contents to filename as json (the schema needs defining)
-	ExportRaw(filename string) error
 
 	// TODO: this one is very database specific atm
 	BackupTo(w io.Writer) error
 	GetDatabaseFileName() string
 	GetDatabaseFilePath() string
 	GetStorePath() string
-	GetDatabaseFileSize() (int64, error)
 
 	IsEncryptedStore() bool
 	NeedsEncryptionMigration() (bool, error)
@@ -53,6 +47,5 @@ type Connection interface {
 	BackupMetadata() (map[string]any, error)
 	RestoreMetadata(s map[string]any) error
 
-	UpdateObjectFunc(bucketName string, key []byte, object any, updateFn func()) error
 	ConvertToKey(v int) []byte
 }

@@ -13,9 +13,8 @@ func TestSettingsReadUpdateAndTx(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
 
-	svc, err := settings.NewService(store.Connection())
+	_, err := settings.NewService(store.Connection())
 	require.NoError(t, err)
-	require.Equal(t, settings.BucketName, svc.BucketName())
 
 	got, err := store.Settings().Settings()
 	require.NoError(t, err)
@@ -37,7 +36,6 @@ func TestSettingsReadUpdateAndTx(t *testing.T) {
 		}
 		require.Equal(t, "7m", s.SnapshotInterval)
 		s.TemplatesURL = "https://example.test/templates.json"
-		require.Equal(t, settings.BucketName, tx.Settings().BucketName())
 		return tx.Settings().UpdateSettings(s)
 	}))
 

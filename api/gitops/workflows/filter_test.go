@@ -136,18 +136,6 @@ func TestFilterK8SStacks_DockerStacksPassThrough(t *testing.T) {
 	assert.Equal(t, "docker-stack", result[0].Name)
 }
 
-func TestREQ_GIT_01_HasAccessibleSource(t *testing.T) {
-	t.Parallel()
-
-	sourceMap := map[portainer.SourceID]portainer.Source{
-		1: {ID: 1},
-	}
-
-	assert.False(t, HasAccessibleSource(nil, sourceMap))
-	assert.False(t, HasAccessibleSource([]portainer.ArtifactFile{{SourceID: 99}}, sourceMap))
-	assert.True(t, HasAccessibleSource([]portainer.ArtifactFile{{SourceID: 99}, {SourceID: 1}}, sourceMap))
-}
-
 func TestREQ_GIT_01_EndpointMatchesStackType_LocalCompose(t *testing.T) {
 	t.Parallel()
 

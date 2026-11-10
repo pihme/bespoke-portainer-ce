@@ -10,7 +10,7 @@ import (
 )
 
 type BaseStackDeployer interface {
-	DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error
+	DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error
 	UndeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint) error
 	GetDockerClientFactory() *dockerclient.ClientFactory
 }
@@ -43,11 +43,11 @@ func (d *stackDeployer) GetDockerClientFactory() *dockerclient.ClientFactory {
 	return d.ClientFactory
 }
 
-func (d *stackDeployer) DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (d *stackDeployer) DeployComposeStack(ctx context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 
-	options := portainer.ComposeOptions{Registries: registries}
+	options := portainer.ComposeOptions{}
 
 	// --force-recreate doesn't pull updated images
 	if forcePullImage {

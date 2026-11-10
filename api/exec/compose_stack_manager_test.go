@@ -107,11 +107,6 @@ func TestREQ_STK_02_ComposeStackManager_UpLocalDocker(t *testing.T) {
 	endpoint := localUnixEndpoint()
 
 	err := manager.Up(t.Context(), stack, endpoint, portainer.ComposeUpOptions{
-		ComposeOptions: portainer.ComposeOptions{
-			Registries: []portainer.Registry{
-				{URL: "registry.example.com", Username: "u", Password: "p", Authentication: false},
-			},
-		},
 		ForceRecreate:        true,
 		AbortOnContainerExit: true,
 		Prune:                true,
@@ -126,8 +121,6 @@ func TestREQ_STK_02_ComposeStackManager_UpLocalDocker(t *testing.T) {
 	assert.True(t, deployer.lastDeployOpts.RemoveOrphans)
 	assert.NotEmpty(t, deployer.lastDeployOpts.EnvFilePath)
 	assert.FileExists(t, deployer.lastDeployOpts.EnvFilePath)
-	require.Len(t, deployer.lastDeployOpts.Registries, 1)
-	assert.Equal(t, "registry.example.com", deployer.lastDeployOpts.Registries[0].ServerAddress)
 	require.Len(t, deployer.lastFilePaths, 1)
 	assert.Contains(t, deployer.lastFilePaths[0], "docker-compose.yml")
 }
@@ -176,11 +169,6 @@ func TestREQ_STK_02_ComposeStackManager_RunLocalDocker(t *testing.T) {
 	stack := testComposeStack(t, nil)
 
 	err := manager.Run(t.Context(), stack, localUnixEndpoint(), "web", portainer.ComposeRunOptions{
-		ComposeOptions: portainer.ComposeOptions{
-			Registries: []portainer.Registry{
-				{URL: "reg.local", Authentication: false},
-			},
-		},
 		Remove:   true,
 		Args:     []string{"echo", "hi"},
 		Detached: true,
@@ -192,7 +180,6 @@ func TestREQ_STK_02_ComposeStackManager_RunLocalDocker(t *testing.T) {
 	assert.True(t, deployer.lastRunOpts.Remove)
 	assert.True(t, deployer.lastRunOpts.Detached)
 	assert.Equal(t, []string{"echo", "hi"}, deployer.lastRunOpts.Args)
-	require.Len(t, deployer.lastRunOpts.Registries, 1)
 }
 
 func TestREQ_STK_02_ComposeStackManager_RunDeployError(t *testing.T) {
@@ -221,15 +208,12 @@ func TestREQ_STK_02_ComposeStackManager_PullLocalDocker(t *testing.T) {
 	manager := NewComposeStackManager(deployer, nil)
 	stack := testComposeStack(t, []portainer.Pair{{Name: "TAG", Value: "1"}})
 
-	err := manager.Pull(t.Context(), stack, localUnixEndpoint(), portainer.ComposeOptions{
-		Registries: []portainer.Registry{{URL: "hub.example", Authentication: false}},
-	})
+	err := manager.Pull(t.Context(), stack, localUnixEndpoint(), portainer.ComposeOptions{})
 	require.NoError(t, err)
 	assert.Equal(t, 1, deployer.pullCalls)
 	assert.Equal(t, stack.Name, deployer.lastPullOpts.ProjectName)
 	assert.Equal(t, stack.ProjectPath, deployer.lastPullOpts.WorkingDir)
 	assert.NotEmpty(t, deployer.lastPullOpts.EnvFilePath)
-	require.Len(t, deployer.lastPullOpts.Registries, 1)
 }
 
 func TestREQ_STK_02_ComposeStackManager_PullError(t *testing.T) {

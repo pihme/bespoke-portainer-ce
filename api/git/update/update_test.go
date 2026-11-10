@@ -141,15 +141,6 @@ func TestREQ_STK_03_UpdateGitObject_CloneErrorWithoutVersionFolder(t *testing.T)
 	require.False(t, changed)
 }
 
-func TestTmpClonesFromContext(t *testing.T) {
-	t.Parallel()
-	require.Nil(t, TmpClonesFromContext(t.Context()))
-
-	ctx, tc := WithTmpClones(t.Context())
-	defer tc.Close()
-	require.Same(t, tc, TmpClonesFromContext(ctx))
-}
-
 func TestTmpClonesCloseNil(t *testing.T) {
 	t.Parallel()
 	var nilClones *TmpClones

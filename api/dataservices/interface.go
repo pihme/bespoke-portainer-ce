@@ -25,7 +25,6 @@ type (
 	}
 
 	DataStore interface {
-		Connection() portainer.Connection
 		Open() (newStore bool, err error)
 		Init() error
 		Close() error
@@ -53,16 +52,12 @@ type (
 		ReadAll(predicates ...func(endpoint portainer.Endpoint) bool) ([]portainer.Endpoint, error)
 
 		Endpoint(ID portainer.EndpointID) (*portainer.Endpoint, error)
-		EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool)
-		EndpointsByTeamID(teamID portainer.TeamID) ([]portainer.Endpoint, error)
 		Heartbeat(endpointID portainer.EndpointID) (int64, bool)
-		UpdateHeartbeat(endpointID portainer.EndpointID)
 		Endpoints() ([]portainer.Endpoint, error)
 		Create(endpoint *portainer.Endpoint) error
 		UpdateEndpoint(ID portainer.EndpointID, endpoint *portainer.Endpoint) error
 		DeleteEndpoint(ID portainer.EndpointID) error
 		GetNextIdentifier() int
-		BucketName() string
 	}
 
 	// EndpointGroupService represents a service for managing environment(endpoint) group data
@@ -80,7 +75,6 @@ type (
 	SettingsService interface {
 		Settings() (*portainer.Settings, error)
 		UpdateSettings(settings *portainer.Settings) error
-		BucketName() string
 	}
 
 	SnapshotService interface {
@@ -92,7 +86,6 @@ type (
 	SSLSettingsService interface {
 		Settings() (*portainer.SSLSettings, error)
 		UpdateSettings(settings *portainer.SSLSettings) error
-		BucketName() string
 	}
 
 	SourceServiceUserContext interface {
@@ -133,7 +126,6 @@ type (
 	// VersionService represents a service for managing version data
 	VersionService interface {
 		InstanceID() (string, error)
-		UpdateInstanceID(ID string) error
 		Edition() (portainer.SoftwareEdition, error)
 		Version() (*models.Version, error)
 		UpdateVersion(*models.Version) error

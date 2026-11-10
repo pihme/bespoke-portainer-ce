@@ -19,7 +19,6 @@ var (
 )
 
 type Service interface {
-	GetLocalEnvironment() (*portainer.Endpoint, error)
 	GetPlatform() (ContainerPlatform, error)
 }
 
@@ -48,17 +47,6 @@ func (service *service) loadEnvAndPlatform() error {
 	service.platform = platform
 
 	return nil
-}
-
-func (service *service) GetLocalEnvironment() (*portainer.Endpoint, error) {
-	service.mu.Lock()
-	defer service.mu.Unlock()
-
-	if err := service.loadEnvAndPlatform(); err != nil {
-		return nil, err
-	}
-
-	return service.environment, nil
 }
 
 func (service *service) GetPlatform() (ContainerPlatform, error) {

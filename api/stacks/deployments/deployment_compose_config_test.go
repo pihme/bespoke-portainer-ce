@@ -26,7 +26,7 @@ type composeConfigRecordingDeployer struct {
 	undeployErr          error
 }
 
-func (d *composeConfigRecordingDeployer) DeployComposeStack(_ context.Context, _ *portainer.Stack, _ *portainer.Endpoint, _ []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (d *composeConfigRecordingDeployer) DeployComposeStack(_ context.Context, _ *portainer.Stack, _ *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	d.deployComposeCalls.Add(1)
 	d.lastPrune.Store(prune)
 	d.lastForcePull.Store(forcePullImage)
@@ -72,8 +72,6 @@ func TestREQ_STK_02_CreateComposeStackDeploymentConfigTx(t *testing.T) {
 	assert.True(t, config.prune)
 	assert.True(t, config.forcePullImage)
 	assert.True(t, config.ForceCreate)
-	// REQ-TAI-023: there are no stored registries.
-	assert.Empty(t, config.registries)
 	assert.Same(t, fileService, config.FileService)
 	assert.Same(t, deployer, config.StackDeployer)
 }
@@ -171,7 +169,6 @@ func TestREQ_STK_08_ComposeStackDeploymentConfig_Undeploy(t *testing.T) {
 
 func Test_ComposeStackDeploymentConfig_GetResponse(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, "", (&ComposeStackDeploymentConfig{}).GetResponse())
 }
 
 func TestREQ_STK_02_ComposeStackDeploymentConfig_Deploy_ValidationAndNilEndpoint(t *testing.T) {

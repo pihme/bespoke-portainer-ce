@@ -3,8 +3,6 @@ package scheduling
 import (
 	"context"
 	"errors"
-	"os"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -14,9 +12,7 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/datastore"
-	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/git/update"
 	"github.com/portainer/portainer/api/scheduler"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 
@@ -424,122 +420,6 @@ func TestSourceScheduler_ReconcileSkipsUnreferencedSource(t *testing.T) {
 
 	_, ok := poller.jobs[src.ID]
 	require.False(t, ok)
-}
-
-// A tick hands every artifact of the source the same TmpClones, so git work done through them is
-// shared, and no temporary clone is left behind once the tick ends.
-func TestSourceScheduler_TickSharesTmpClonesBetweenArtifacts(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	sysCtx := source.InsecureNewAdminContext()
-
-	src := &portainer.Source{
-		Name: "shared",
-		Type: portainer.SourceTypeGit,
-		Git:  &gittypes.GitSource{URL: "https://example.com/repo.git"},
-	}
-	err := store.Source().Create(sysCtx, src)
-	require.NoError(t, err)
-
-	err = store.Workflow().Create(&portainer.Workflow{
-		Name: "wf",
-		Artifacts: []portainer.Artifact{
-			{StackID: 11, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-			{StackID: 22, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-			{StackID: 33, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-		},
-	})
-	require.NoError(t, err)
-
-	root := t.TempDir()
-	req := update.RepoRequest{URL: "https://example.com/repo.git", ReferenceName: "refs/heads/main"}
-	commits, clones := 0, 0
-
-	sched := scheduler.NewScheduler(t.Context())
-	poller := NewSourceScheduler(sched, store, Deployers{
-		Stack: func(ctx context.Context, id portainer.StackID) error {
-			tmpClones := update.TmpClonesFromContext(ctx)
-			require.NotNil(t, tmpClones)
-
-			hash, err := tmpClones.CommitID(req, func() (string, error) {
-				commits++
-
-				return "abc123", nil
-			})
-			require.NoError(t, err)
-
-			toDir := filesystem.JoinPaths(root, strconv.Itoa(int(id)))
-			err = tmpClones.Clone(req, hash, root, toDir, func(dst string) error {
-				clones++
-
-				return os.WriteFile(filesystem.JoinPaths(dst, "compose.yml"), []byte("services: {}"), 0o644)
-			})
-			require.NoError(t, err)
-
-			return nil
-		},
-	})
-
-	err = poller.tick(t.Context(), src.ID)
-	require.NoError(t, err)
-
-	require.Equal(t, 1, commits)
-	require.Equal(t, 1, clones)
-
-	for _, id := range []string{"11", "22", "33"} {
-		require.FileExists(t, filesystem.JoinPaths(root, id, "compose.yml"))
-	}
-
-	entries, err := os.ReadDir(root)
-	require.NoError(t, err)
-
-	for _, e := range entries {
-		require.NotContains(t, e.Name(), ".gitops-clone-")
-	}
-}
-
-// A source with a single artifact has nothing to share, so its tick does not set up TmpClones and
-// the artifact clones straight into its own folder.
-func TestSourceScheduler_TickSkipsTmpClonesForSingleArtifact(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	sysCtx := source.InsecureNewAdminContext()
-
-	src := &portainer.Source{
-		Name: "single",
-		Type: portainer.SourceTypeGit,
-		Git:  &gittypes.GitSource{URL: "https://example.com/repo.git"},
-	}
-	err := store.Source().Create(sysCtx, src)
-	require.NoError(t, err)
-
-	err = store.Workflow().Create(&portainer.Workflow{
-		Name: "wf",
-		Artifacts: []portainer.Artifact{
-			{StackID: 11, Files: []portainer.ArtifactFile{{SourceID: src.ID}}},
-		},
-	})
-	require.NoError(t, err)
-
-	deployed := 0
-
-	sched := scheduler.NewScheduler(t.Context())
-	poller := NewSourceScheduler(sched, store, Deployers{
-		Stack: func(ctx context.Context, _ portainer.StackID) error {
-			deployed++
-			require.Nil(t, update.TmpClonesFromContext(ctx))
-
-			return nil
-		},
-	})
-
-	err = poller.tick(t.Context(), src.ID)
-	require.NoError(t, err)
-	require.Equal(t, 1, deployed)
 }
 
 // TestSourceScheduler_ScheduledPollSkipsWhileRunning drives the real cron callback: a tick that is

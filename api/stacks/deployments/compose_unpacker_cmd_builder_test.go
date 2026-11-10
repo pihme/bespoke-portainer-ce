@@ -47,12 +47,10 @@ func TestREQ_STK_02_BuildDeployCmd_ComposeFlagsAndArgs(t *testing.T) {
 		forceRecreate:      true,
 		prune:              true,
 		composeDestination: "/data/compose",
-		registries:         nil,
 	}
-	registries := []string{"--registry=u:p:reg.example"}
 	env := getEnv(stack.Env)
 
-	cmd := buildDeployCmd(stack, opts, registries, env)
+	cmd := buildDeployCmd(stack, opts, env)
 
 	assert.Equal(t, UnpackerCmdDeploy, cmd[0])
 	assert.Contains(t, cmd, "-u")
@@ -63,7 +61,6 @@ func TestREQ_STK_02_BuildDeployCmd_ComposeFlagsAndArgs(t *testing.T) {
 	assert.Contains(t, cmd, "--force-recreate")
 	assert.Contains(t, cmd, "-r")
 	assert.Contains(t, cmd, "--env=FOO=bar")
-	assert.Contains(t, cmd, "--registry=u:p:reg.example")
 	assert.Contains(t, cmd, opts.gitConfig.URL)
 	assert.Contains(t, cmd, opts.gitConfig.ReferenceName)
 	assert.Contains(t, cmd, stack.Name)
@@ -81,7 +78,7 @@ func TestREQ_STK_08_BuildUndeployCmd_ComposeArgs(t *testing.T) {
 		composeDestination: "/data/compose",
 	}
 
-	cmd := buildUndeployCmd(stack, opts, nil, nil)
+	cmd := buildUndeployCmd(stack, opts, nil)
 
 	assert.Equal(t, UnpackerCmdUndeploy, cmd[0])
 	assert.NotContains(t, cmd, "-u")
@@ -102,15 +99,14 @@ func TestREQ_STK_05_BuildComposeStartAndStopCmd(t *testing.T) {
 	}
 	env := getEnv(stack.Env)
 
-	start := buildComposeStartCmd(stack, opts, []string{"--registry=a:b:c"}, env)
+	start := buildComposeStartCmd(stack, opts, env)
 	assert.Equal(t, UnpackerCmdDeploy, start[0])
 	assert.Contains(t, start, "-k")
 	assert.Contains(t, start, "--skip-tls-verify")
 	assert.Contains(t, start, "--env=FOO=bar")
-	assert.Contains(t, start, "--registry=a:b:c")
 	assert.Contains(t, start, opts.gitConfig.ReferenceName)
 
-	stop := buildComposeStopCmd(stack, opts, nil, nil)
+	stop := buildComposeStopCmd(stack, opts, nil)
 	assert.Equal(t, UnpackerCmdUndeploy, stop[0])
 	assert.Contains(t, stop, "-k")
 	assert.Contains(t, stop, opts.gitConfig.URL)
@@ -201,29 +197,4 @@ func Test_getEnv(t *testing.T) {
 		{Name: "A", Value: "1"},
 		{Name: "B", Value: "2"},
 	}))
-}
-
-func TestREQ_STK_02_GenerateRegistriesStrings(t *testing.T) {
-	t.Parallel()
-
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	assert.Empty(t, generateRegistriesStrings(nil, store))
-	assert.Empty(t, generateRegistriesStrings([]portainer.Registry{
-		{Name: "anon", Authentication: false, URL: "reg.example"},
-	}, store))
-
-	authed := []portainer.Registry{
-		{
-			Name:           "private",
-			Type:           portainer.CustomRegistry,
-			Authentication: true,
-			Username:       "user",
-			Password:       "secret",
-			URL:            "reg.example",
-		},
-	}
-	got := generateRegistriesStrings(authed, store)
-	require.Len(t, got, 1)
-	assert.Equal(t, "--registry=user:secret:reg.example", got[0])
 }

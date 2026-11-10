@@ -13,9 +13,8 @@ func TestSSLSettingsReadUpdateAndTx(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, true, false)
 
-	svc, err := ssl.NewService(store.Connection())
+	_, err := ssl.NewService(store.Connection())
 	require.NoError(t, err)
-	require.Equal(t, ssl.BucketName, svc.BucketName())
 
 	got, err := store.SSLSettings().Settings()
 	require.NoError(t, err)
@@ -37,7 +36,6 @@ func TestSSLSettingsReadUpdateAndTx(t *testing.T) {
 			return err
 		}
 		require.True(t, s.HTTPEnabled)
-		require.Equal(t, ssl.BucketName, tx.SSLSettings().BucketName())
 		s.HTTPEnabled = false
 		return tx.SSLSettings().UpdateSettings(s)
 	}))

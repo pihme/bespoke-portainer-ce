@@ -54,37 +54,6 @@ func createTLSConfiguration(fipsEnabled bool, insecureSkipVerify bool) *tls.Conf
 	}
 }
 
-// CreateTLSConfigurationFromBytes initializes a tls.Config using a CA certificate, a certificate and a key
-// loaded from memory.
-func CreateTLSConfigurationFromBytes(useTLS bool, caCert, cert, key []byte, skipClientVerification, skipServerVerification bool) (*tls.Config, error) { //nolint:forbidigo
-	return createTLSConfigurationFromBytes(fips.FIPSMode(), useTLS, caCert, cert, key, skipClientVerification, skipServerVerification)
-}
-
-func createTLSConfigurationFromBytes(fipsEnabled, useTLS bool, caCert, cert, key []byte, skipClientVerification, skipServerVerification bool) (*tls.Config, error) { //nolint:forbidigo
-	if !useTLS {
-		return nil, nil
-	}
-
-	config := createTLSConfiguration(fipsEnabled, skipServerVerification)
-
-	if !skipClientVerification || fipsEnabled {
-		certificate, err := tls.X509KeyPair(cert, key)
-		if err != nil {
-			return nil, err
-		}
-
-		config.Certificates = []tls.Certificate{certificate}
-	}
-
-	if !skipServerVerification || fipsEnabled {
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		config.RootCAs = caCertPool
-	}
-
-	return config, nil
-}
-
 // CreateTLSConfigurationFromDisk initializes a tls.Config using a CA certificate, a certificate and a key
 // loaded from disk.
 func CreateTLSConfigurationFromDisk(config portainer.TLSConfiguration) (*tls.Config, error) { //nolint:forbidigo

@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
@@ -68,67 +67,6 @@ func writeTLSFiles(t *testing.T, caPEM, certPEM, keyPEM []byte) (caPath, certPat
 	require.NoError(t, os.WriteFile(certPath, certPEM, 0o600))
 	require.NoError(t, os.WriteFile(keyPath, keyPEM, 0o600))
 	return caPath, certPath, keyPath
-}
-
-func TestREQ_SRV_05_CreateTLSConfigurationFromBytes_WithCerts(t *testing.T) {
-	t.Parallel()
-
-	caPEM, certPEM, keyPEM := generateTestTLSMaterial(t)
-
-	cfg, err := CreateTLSConfigurationFromBytes(true, caPEM, certPEM, keyPEM, false, false)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	require.Len(t, cfg.Certificates, 1)
-	require.NotNil(t, cfg.RootCAs)
-	require.False(t, cfg.InsecureSkipVerify) //nolint:forbidigo
-	require.Equal(t, uint16(tls.VersionTLS12), cfg.MinVersion)
-}
-
-func TestREQ_SRV_05_CreateTLSConfigurationFromBytes_SkipServerKeepsClientCert(t *testing.T) {
-	t.Parallel()
-
-	caPEM, certPEM, keyPEM := generateTestTLSMaterial(t)
-
-	// skipServerVerification=true, skipClientVerification=false → certs loaded, no RootCAs
-	cfg, err := CreateTLSConfigurationFromBytes(true, caPEM, certPEM, keyPEM, false, true)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	require.Len(t, cfg.Certificates, 1)
-	require.Nil(t, cfg.RootCAs)
-	require.True(t, cfg.InsecureSkipVerify) //nolint:forbidigo
-}
-
-func TestREQ_SRV_05_CreateTLSConfigurationFromBytes_SkipClientKeepsCA(t *testing.T) {
-	t.Parallel()
-
-	caPEM, certPEM, keyPEM := generateTestTLSMaterial(t)
-
-	cfg, err := CreateTLSConfigurationFromBytes(true, caPEM, certPEM, keyPEM, true, false)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	require.Empty(t, cfg.Certificates)
-	require.NotNil(t, cfg.RootCAs)
-}
-
-func TestREQ_SRV_05_CreateTLSConfigurationFromBytes_FIPSLoadsBoth(t *testing.T) {
-	t.Parallel()
-
-	caPEM, certPEM, keyPEM := generateTestTLSMaterial(t)
-
-	cfg, err := createTLSConfigurationFromBytes(true, true, caPEM, certPEM, keyPEM, true, true)
-	require.NoError(t, err)
-	require.NotNil(t, cfg)
-	// FIPS forces client cert + RootCAs even when skip flags are set.
-	require.Len(t, cfg.Certificates, 1)
-	require.NotNil(t, cfg.RootCAs)
-	require.Equal(t, uint16(tls.VersionTLS13), cfg.MaxVersion)
-}
-
-func TestREQ_SRV_05_CreateTLSConfigurationFromBytes_InvalidKeyPair(t *testing.T) {
-	t.Parallel()
-
-	_, err := CreateTLSConfigurationFromBytes(true, nil, []byte("bad"), []byte("bad"), false, false)
-	require.Error(t, err)
 }
 
 func TestREQ_ENV_11_CreateTLSConfigurationFromDisk_WithCertAndCA(t *testing.T) {

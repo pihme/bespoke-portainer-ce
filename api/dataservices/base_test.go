@@ -142,13 +142,6 @@ func TestReadAll(t *testing.T) {
 	require.ElementsMatch(t, expected, result)
 }
 
-func TestBucketName(t *testing.T) {
-	t.Parallel()
-	service := newService(nil)
-	require.Equal(t, "testBucket", service.BucketName())
-	require.Equal(t, "testBucket", service.Tx(mockConnection{store: make(map[int]testObject)}).BucketName())
-}
-
 func TestRead(t *testing.T) {
 	t.Parallel()
 	store := map[int]testObject{7: {ID: 7, Value: 70}}
@@ -204,17 +197,6 @@ func TestDelete(t *testing.T) {
 		Connection: mockConnection{store: map[int]testObject{1: {ID: 1}}, deleteErr: errors.New("delete boom")},
 	}
 	require.EqualError(t, failing.Delete(1), "delete boom")
-}
-
-func TestReadGeneric(t *testing.T) {
-	t.Parallel()
-	conn := mockConnection{store: map[int]testObject{2: {ID: 2, Value: 20}}}
-	got, err := Read[testObject](conn, "testBucket", conn.ConvertToKey(2))
-	require.NoError(t, err)
-	require.Equal(t, &testObject{ID: 2, Value: 20}, got)
-
-	_, err = Read[testObject](conn, "testBucket", conn.ConvertToKey(404))
-	require.ErrorIs(t, err, dserrors.ErrObjectNotFound)
 }
 
 func TestIsErrObjectNotFound(t *testing.T) {

@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	ErrStackAlreadyExists     = errors.New("A stack already exists with this name")
 	ErrWebhookIDAlreadyExists = errors.New("A webhook ID already exists")
 )
 

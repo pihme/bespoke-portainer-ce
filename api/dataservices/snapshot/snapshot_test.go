@@ -1,12 +1,10 @@
 package snapshot_test
 
 import (
-	"encoding/json"
 	"testing"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/dataservices/snapshot"
 	"github.com/portainer/portainer/api/datastore"
 
 	"github.com/docker/docker/api/types/system"
@@ -141,35 +139,6 @@ func TestREQ_ENV_12_ReadWithoutSnapshotRawNilDocker(t *testing.T) {
 	require.Nil(t, got.Docker)
 }
 
-// TestREQ_ENV_12_CreateAndReadRawMessage round-trips a SnapshotRawMessage for
-// a local Docker environment through CreateRawMessage/ReadRawMessage.
-func TestREQ_ENV_12_CreateAndReadRawMessage(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	rawDocker, err := json.Marshal(map[string]any{
-		"DockerVersion":     "27.1.0",
-		"TotalCPU":          3,
-		"DockerSnapshotRaw": map[string]any{"Info": map[string]any{"ID": "raw-1"}},
-	})
-	require.NoError(t, err)
-
-	msg := &portainer.SnapshotRawMessage{
-		EndpointID: 21,
-		Docker:     rawDocker,
-	}
-	require.NoError(t, store.SnapshotService.CreateRawMessage(msg))
-
-	got, err := store.SnapshotService.ReadRawMessage(21)
-	require.NoError(t, err)
-	require.Equal(t, portainer.EndpointID(21), got.EndpointID)
-	require.JSONEq(t, string(rawDocker), string(got.Docker))
-
-	_, err = store.SnapshotService.ReadRawMessage(404)
-	require.Error(t, err)
-	require.True(t, dataservices.IsErrObjectNotFound(err))
-}
-
 // TestREQ_ENV_12_TxCreateAndReadLocalDockerSnapshot covers the transactional
 // Create path used when persisting a local Docker snapshot inside UpdateTx.
 func TestREQ_ENV_12_TxCreateAndReadLocalDockerSnapshot(t *testing.T) {
@@ -192,49 +161,4 @@ func TestREQ_ENV_12_TxCreateAndReadLocalDockerSnapshot(t *testing.T) {
 	got, err := store.Snapshot().Read(31)
 	require.NoError(t, err)
 	require.Equal(t, 1, got.Docker.TotalCPU)
-}
-
-// TestREQ_ENV_12_TxCreateRawMessageAndRead covers ServiceTx CreateRawMessage
-// and ReadRawMessage against the same BoltDB transaction.
-func TestREQ_ENV_12_TxCreateRawMessageAndRead(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	rawDocker := json.RawMessage(`{"TotalCPU":12,"DockerVersion":"27.2.0"}`)
-
-	require.NoError(t, store.Connection().UpdateTx(func(tx portainer.Transaction) error {
-		svcTx := store.SnapshotService.Tx(tx)
-		if err := svcTx.CreateRawMessage(&portainer.SnapshotRawMessage{
-			EndpointID: 41,
-			Docker:     rawDocker,
-		}); err != nil {
-			return err
-		}
-		got, err := svcTx.ReadRawMessage(41)
-		if err != nil {
-			return err
-		}
-		require.Equal(t, portainer.EndpointID(41), got.EndpointID)
-		require.JSONEq(t, string(rawDocker), string(got.Docker))
-
-		gotSnap, err := svcTx.ReadWithoutSnapshotRaw(41)
-		if err != nil {
-			return err
-		}
-		require.NotNil(t, gotSnap.Docker)
-		require.Equal(t, 12, gotSnap.Docker.TotalCPU)
-		return nil
-	}))
-}
-
-// TestREQ_ENV_12_NewServiceAndBucketName constructs the snapshot service on an
-// initialized connection and reports the snapshots bucket name.
-func TestREQ_ENV_12_NewServiceAndBucketName(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	svc, err := snapshot.NewService(store.Connection())
-	require.NoError(t, err)
-	require.Equal(t, snapshot.BucketName, svc.BucketName())
-	require.Equal(t, "snapshots", store.SnapshotService.BucketName())
 }

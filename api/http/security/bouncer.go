@@ -8,8 +8,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/pkg/featureflags"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
-
-	"github.com/pkg/errors"
 )
 
 type (
@@ -21,11 +19,8 @@ type (
 		AdminAccess(http.Handler) http.Handler
 		RestrictedAccess(http.Handler) http.Handler
 		AuthenticatedAccess(http.Handler) http.Handler
-		EdgeComputeOperation(http.Handler) http.Handler
 
 		AuthorizedEndpointOperation(*http.Request, *portainer.Endpoint) error
-		AuthorizedEdgeEndpointOperation(*http.Request, *portainer.Endpoint) error
-		TrustedEdgeEnvironmentAccess(dataservices.DataStoreTx, *portainer.Endpoint) error
 		DisableCSP()
 	}
 
@@ -87,43 +82,6 @@ func (bouncer *RequestBouncer) AuthorizedEndpointOperation(r *http.Request, endp
 	return nil
 }
 
-// AuthorizedEdgeEndpointOperation verifies that the request was received from a valid Edge environment(endpoint)
-func (bouncer *RequestBouncer) AuthorizedEdgeEndpointOperation(r *http.Request, endpoint *portainer.Endpoint) error {
-	if endpoint.Type != portainer.EdgeAgentOnKubernetesEnvironment && endpoint.Type != portainer.EdgeAgentOnDockerEnvironment {
-		return errors.New("Invalid environment type")
-	}
-
-	edgeIdentifier := r.Header.Get(portainer.PortainerAgentEdgeIDHeader)
-	if edgeIdentifier == "" {
-		return errors.New("missing Edge identifier")
-	}
-
-	if endpoint.EdgeID != "" && endpoint.EdgeID != edgeIdentifier {
-		return errors.New("invalid Edge identifier")
-	}
-
-	return nil
-}
-
-// TrustedEdgeEnvironmentAccess defines a security check for Edge environments, checks if
-// the request is coming from a trusted Edge environment
-func (bouncer *RequestBouncer) TrustedEdgeEnvironmentAccess(tx dataservices.DataStoreTx, endpoint *portainer.Endpoint) error {
-	if endpoint.UserTrusted {
-		return nil
-	}
-
-	settings, err := tx.Settings().Settings()
-	if err != nil {
-		return errors.WithMessage(err, "could not retrieve the settings")
-	}
-
-	if !settings.TrustOnFirstConnect {
-		return errors.New("the device has not been trusted yet")
-	}
-
-	return nil
-}
-
 // mwLocalOperator adds the secure headers and stores the local operator in the
 // request context. Credentials sent with the request are ignored.
 func (bouncer *RequestBouncer) mwLocalOperator(next http.Handler) http.Handler {
@@ -166,27 +124,6 @@ func MWSecureHeaders(next http.Handler, hsts, csp bool) http.Handler {
 		}
 
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		next.ServeHTTP(w, r)
-	})
-}
-
-// EdgeComputeOperation defines a restricted edge compute operation.
-// Use of this operation will only be authorized if edgeCompute is enabled in settings
-func (bouncer *RequestBouncer) EdgeComputeOperation(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		settings, err := bouncer.dataStore.Settings().Settings()
-		if err != nil {
-			httperror.WriteError(w, http.StatusServiceUnavailable, "Unable to retrieve settings", err)
-
-			return
-		}
-
-		if !settings.EnableEdgeComputeFeatures {
-			httperror.WriteError(w, http.StatusServiceUnavailable, "Edge compute features are disabled", errors.New("Edge compute features are disabled"))
-
-			return
-		}
-
 		next.ServeHTTP(w, r)
 	})
 }

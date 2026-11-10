@@ -56,23 +56,6 @@ func TestDetectLocalEnvironment_EndpointsError(t *testing.T) {
 	require.ErrorIs(t, err, wantErr)
 }
 
-func TestService_GetLocalEnvironmentAndPlatformErrors(t *testing.T) {
-	t.Setenv(KubernetesServiceHost, "10.96.0.1")
-	t.Setenv(PodmanMode, "")
-
-	ds := testhelpers.NewDatastore(testhelpers.WithEndpoints([]portainer.Endpoint{
-		{ID: 1, Type: portainer.DockerEnvironment, URL: "tcp://192.168.1.100:2376"},
-	}))
-	svc := NewService(ds)
-
-	_, err := svc.GetLocalEnvironment()
-	require.ErrorIs(t, err, ErrNoLocalEnvironment)
-
-	svc2 := NewService(ds)
-	_, err = svc2.GetPlatform()
-	require.ErrorIs(t, err, ErrNoLocalEnvironment)
-}
-
 func TestService_GetPlatformCachesAfterLoad(t *testing.T) {
 	t.Setenv(KubernetesServiceHost, "10.96.0.1")
 	t.Setenv(PodmanMode, "")

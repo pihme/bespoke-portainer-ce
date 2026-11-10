@@ -1,19 +1,14 @@
 package snapshot
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/docker/consts"
 	"github.com/portainer/portainer/api/docker/stats"
-	"github.com/portainer/portainer/api/logs"
-	edgeutils "github.com/portainer/portainer/pkg/edge"
-	networkingutils "github.com/portainer/portainer/pkg/networking"
 
 	"github.com/docker/docker/api/types"
 	dockercontainer "github.com/docker/docker/api/types/container"
@@ -21,9 +16,7 @@ import (
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/zerolog/log"
-	"github.com/segmentio/encoding/json"
 )
 
 func CreateDockerSnapshot(cli *client.Client) (*portainer.DockerSnapshot, error) {
@@ -271,69 +264,6 @@ func dockerSnapshotVersion(snapshot *portainer.DockerSnapshot, cli *client.Clien
 
 	snapshot.SnapshotRaw.Version = version
 	snapshot.IsPodman = isPodman(version)
-
-	return nil
-}
-
-// DockerSnapshotDiagnostics returns the diagnostics data for the agent
-func DockerSnapshotDiagnostics(cli *client.Client, edgeKey string) (*portainer.DiagnosticsData, error) {
-	containerID := os.Getenv("HOSTNAME")
-	snapshot := &portainer.DockerSnapshot{
-		DiagnosticsData: &portainer.DiagnosticsData{
-			DNS:    make(map[string]string),
-			Telnet: make(map[string]string),
-		},
-	}
-
-	if err := dockerSnapshotContainerErrorLogs(snapshot, cli, containerID); err != nil {
-		return nil, err
-	}
-
-	if edgeKey == "" {
-		return snapshot.DiagnosticsData, nil
-	}
-
-	url, err := edgeutils.GetPortainerURLFromEdgeKey(edgeKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get portainer URL from edge key: %w", err)
-	}
-
-	snapshot.DiagnosticsData.DNS["edge-to-portainer"] = networkingutils.ProbeDNSConnection(url)
-	snapshot.DiagnosticsData.Telnet["edge-to-portainer"] = networkingutils.ProbeTelnetConnection(url)
-
-	return snapshot.DiagnosticsData, nil
-}
-
-// DockerSnapshotContainerErrorLogs returns the 5 most recent error logs of the agent container
-// this will primarily be used for agent snapshot
-func dockerSnapshotContainerErrorLogs(snapshot *portainer.DockerSnapshot, cli *client.Client, containerId string) error {
-	if containerId == "" {
-		return nil
-	}
-
-	rd, err := cli.ContainerLogs(context.Background(), containerId, dockercontainer.LogsOptions{
-		ShowStdout: false,
-		ShowStderr: true,
-		Tail:       "5",
-		Timestamps: true,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get container logs: %w", err)
-	}
-	defer logs.CloseAndLogErr(rd)
-
-	var stdOut, stdErr bytes.Buffer
-	if _, err := stdcopy.StdCopy(&stdErr, &stdOut, rd); err != nil {
-		return fmt.Errorf("failed to copy error logs: %w", err)
-	}
-
-	var logs []map[string]string
-	jsonLogs, err := json.Marshal(logs)
-	if err != nil {
-		return fmt.Errorf("failed to marshal logs to JSON: %w", err)
-	}
-
-	snapshot.DiagnosticsData.Log = string(jsonLogs)
 
 	return nil
 }

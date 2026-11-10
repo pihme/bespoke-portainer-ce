@@ -399,135 +399,6 @@ type (
 		// Deprecated in DBVersion == 22
 		Tags []string `json:"Tags,omitempty" swaggerignore:"true"`
 	}
-
-	PolicyChartSummary struct {
-		ChartName   string   `json:"ChartName"`
-		Fingerprint string   `json:"Fingerprint"`
-		PolicyID    PolicyID `json:"PolicyID,omitempty"` // 0 when server hasn't populated the field
-	}
-
-	PolicyChartStatus struct {
-		// EnvironmentID is the endpoint this status belongs to.
-		// Stored so that ReadAll can group statuses by endpoint without parsing keys.
-		EnvironmentID EndpointID        `json:"environmentID,omitempty"`
-		ChartName     string            `json:"chartName"`
-		Fingerprint   string            `json:"fingerprint"`
-		Status        HelmInstallStatus `json:"status"`
-		Message       string            `json:"message"`
-		Namespace     string            `json:"namespace"`
-		// Unix timestamp
-		LastAttemptTime int64 `json:"lastAttemptTime"`
-	}
-
-	ImageBundle struct {
-		FileName     string `json:"FileName"`
-		EncodedTarGz string `json:"EncodedTarGz"`
-	}
-
-	PolicyChartBundle struct {
-		PolicyChartSummary `mapstructure:",squash"`
-		EncodedTgz         string `json:"EncodedTgz"`
-		Namespace          string `json:"Namespace"`
-		ReleaseName        string `json:"ReleaseName,omitempty"`
-		// Base64 YAML kubectl-applied by the agent before Helm install when set (e.g. Gatekeeper gatekeeper-system namespace + PSA labels).
-		PreReleaseManifest  string             `json:"PreReleaseManifest,omitempty"`
-		EncodedValues       string             `json:"EncodedValues"`
-		PreInstallDeletions []ResourceDeletion `json:"PreInstallDeletions,omitempty"`
-		PreInstallAdoptions []ResourceAdoption `json:"PreInstallAdoptions,omitempty"`
-		// WaitForCRDs lists CRD names that must be registered in API discovery after
-		// this chart installs before the agent proceeds to the next chart.
-		WaitForCRDs []string `json:"WaitForCRDs,omitempty"`
-		// NoWait disables waiting for pods to be ready after install.
-		NoWait bool `json:"NoWait,omitempty"`
-	}
-
-	// ResourceDeletion identifies an existing Kubernetes resource to delete before policy install
-	ResourceDeletion struct {
-		APIVersion string `json:"apiVersion" example:"v1" yaml:"apiVersion"`
-		Kind       string `json:"kind" example:"Secret" yaml:"kind"`
-		Name       string `json:"name" example:"registry-1" yaml:"name"`
-		Namespace  string `json:"namespace,omitempty" example:"default" yaml:"namespace,omitempty"`
-	}
-
-	// ResourceAdoption identifies an existing Kubernetes resource to adopt into a Helm release
-	ResourceAdoption struct {
-		APIVersion string `json:"apiVersion" example:"v1" yaml:"apiVersion"`
-		Kind       string `json:"kind" example:"Secret" yaml:"kind"`
-		Name       string `json:"name" example:"registry-1" yaml:"name"`
-		Namespace  string `json:"namespace,omitempty" example:"default" yaml:"namespace,omitempty"`
-	}
-
-	// RestoreSettings contains instructions for restoring environment-level settings
-	RestoreSettings struct {
-		Manifest string `json:"manifest,omitempty"` // Base64-encoded Kubernetes YAML manifest
-	}
-
-	// RestoreSettingsBundle maps restore type to restoration instructions
-	RestoreSettingsBundle map[PolicyType]RestoreSettings
-
-	PolicyID int
-
-	// PolicyDesiredState is the per-policy desired state sent from server to agent
-	// in PollStatusResponse.PolicyStates (per-policy payload format).
-	PolicyDesiredState struct {
-		PolicyID    PolicyID `json:"policyID"`
-		Type        string   `json:"type"`        // e.g. "helm-k8s"
-		Fingerprint string   `json:"fingerprint"` // install-affecting only; restore manifest excluded
-		Config      []byte   `json:"config"`      // handler-specific config blob (e.g. HelmPolicyConfig JSON)
-	}
-
-	// PolicyStatesAsyncPayload is the value of an async "policyStates" command.
-	// States carries per-policy desired state; ChartBundles carries helm chart tarballs
-	// for policies that need installing (emitted only on mutation, never idle polls).
-	PolicyStatesAsyncPayload struct {
-		States        []PolicyDesiredState  `json:"states"`
-		ChartBundles  []PolicyChartBundle   `json:"chartBundles,omitempty"`
-		RestoreBundle RestoreSettingsBundle `json:"restoreBundle,omitempty"`
-	}
-
-	// PolicyActualState is the per-policy actual state reported by the agent
-	// via PUT /endpoints/{id}/edge/policies/statuses.
-	PolicyActualState struct {
-		PolicyID    PolicyID `json:"policyID"`
-		Type        string   `json:"type"`
-		Fingerprint string   `json:"fingerprint"`
-		Status      string   `json:"status"` // applying|applied|failed|removing
-		Message     string   `json:"message,omitempty"`
-	}
-
-	// HelmPolicyConfig is the Config payload for "helm-k8s" PolicyDesiredState entries.
-	// Bundles are not included in the poll response Config — they travel separately
-	// (sync: on-demand GetCharts; async: PolicyStatesCommandPayload.ChartBundles).
-	// RestoreSettings is helm-internal metadata and is intentionally NOT part of the
-	// fingerprint — see Fingerprint contract in reconcile-refactor-plan.md.
-	HelmPolicyConfig struct {
-		Charts          []PolicyChartSummary `json:"charts"`
-		Bundles         []PolicyChartBundle  `json:"bundles,omitempty"`
-		RestoreSettings *RestoreSettings     `json:"restoreSettings,omitempty"`
-	}
-
-	// ResourcePatchConfig is the Config payload for resource-patch-k8s PolicyDesiredState entries:
-	// a policy-agnostic set of field patches the agent applies authoritatively and reverses on detach.
-	ResourcePatchConfig struct {
-		Patches []ResourcePatchOperation `json:"patches"`
-	}
-
-	// ResourcePatchOperation is the patcher operation details for the agent to apply.
-	ResourcePatchOperation struct {
-		APIVersion       string                     `json:"apiVersion"`
-		Kind             string                     `json:"kind"`
-		Resource         string                     `json:"resource"`
-		Name             string                     `json:"name"`
-		Namespace        string                     `json:"namespace,omitempty"`
-		FieldPath        []string                   `json:"fieldPath"`
-		Values           map[string]json.RawMessage `json:"values"`
-		OwnedKeyPrefixes []string                   `json:"ownedKeyPrefixes"`
-		Exclusive        bool                       `json:"exclusive,omitempty"`
-		CreateIfMissing  bool                       `json:"createIfMissing,omitempty"`
-	}
-
-	// PolicyType represents the type of policy
-	PolicyType string
 )
 
 type (
@@ -539,10 +410,6 @@ type (
 
 	// EndpointStatus represents the status of an environment(endpoint)
 	EndpointStatus int
-
-	// EndpointSyncJob represents a scheduled job that synchronize environments(endpoints) based on an external file
-	// Deprecated
-	EndpointSyncJob struct{}
 
 	// EndpointSecuritySettings represents settings for an environment(endpoint)
 	EndpointSecuritySettings struct {
@@ -706,12 +573,6 @@ type (
 		GroupSearchSettings []LDAPGroupSearchSettings `json:"GroupSearchSettings"`
 		// Automatically provision users and assign them to matching LDAP group names
 		AutoCreateUsers bool `json:"AutoCreateUsers" example:"true"`
-	}
-
-	// LDAPUser represents a LDAP user
-	LDAPUser struct {
-		Name   string
-		Groups []string
 	}
 
 	// MembershipRole represents the role of a user within a team
@@ -928,9 +789,6 @@ type (
 		ForceSecureCookies bool `json:"ForceSecureCookies" example:"false"`
 	}
 
-	// SnapshotJob represents a scheduled job that can create environment(endpoint) snapshots
-	SnapshotJob struct{}
-
 	// SoftwareEdition represents an edition of Portainer
 	SoftwareEdition int
 
@@ -1077,16 +935,6 @@ type (
 
 	// TagID represents a tag identifier
 	TagID int
-
-	// Team represents a list of user accounts
-	Team struct {
-		// Team Identifier
-		ID TeamID `json:"Id" example:"1"`
-		// Team name
-		Name string `json:"Name" example:"developers"`
-		// Whether members of this team are denied access to Portainer itself (EE only)
-		DenyPortainerAccess bool `json:"DenyPortainerAccess" example:"false"`
-	}
 
 	// TeamAccessPolicies represent the association of an access policy and a team
 	TeamAccessPolicies map[TeamID]AccessPolicy
@@ -1260,29 +1108,6 @@ type (
 		Token               string
 	}
 
-	// TokenScope is the API surface a token is allowed to reach.
-	TokenScope string
-
-	// ScopedTokenData is the identity a token carries, together with the
-	// restrictions the token itself places on where that identity may be used.
-	ScopedTokenData struct {
-		*TokenData
-
-		Scope TokenScope
-		// EndpointID is the single environment a kubeconfig-scoped token may reach.
-		// UnscopedToken means unrestricted.
-		EndpointID EndpointID
-	}
-
-	// TunnelDetails represents information associated to a tunnel
-	TunnelDetails struct {
-		Status       string
-		LastActivity time.Time
-		Port         int
-		Credentials  string
-		HasSnapshot  bool
-	}
-
 	// User represents a user account
 	User struct {
 		// User Identifier
@@ -1370,15 +1195,7 @@ type (
 		Kubernetes json.RawMessage `json:"Kubernetes"`
 	}
 
-	// CLIService represents a service for managing CLI
-	CLIService interface {
-		ParseFlags(version string) (*CLIFlags, error)
-		ValidateFlags(flags *CLIFlags) error
-	}
-
-	ComposeOptions struct {
-		Registries []Registry
-	}
+	ComposeOptions struct{}
 
 	ComposeUpOptions struct {
 		ComposeOptions
@@ -1391,13 +1208,6 @@ type (
 		// When this is set, docker compose will output its logs to stdout
 		AbortOnContainerExit bool
 		Prune                bool
-	}
-
-	ComposeDownOptions struct {
-		// RemoveVolumes will remove the named volumes declared in the compose file
-		// and anonymous volumes attached to the stack's containers
-		// Drives `docker compose down --volumes`
-		RemoveVolumes bool
 	}
 
 	ComposeRunOptions struct {
@@ -1424,16 +1234,13 @@ type (
 	// CryptoService represents a service for encrypting/hashing data
 	CryptoService interface {
 		Hash(data string) (string, error)
-		CompareHashAndData(hash string, data string) error
 	}
 
 	// DigitalSignatureService represents a service to manage digital signatures
 	DigitalSignatureService interface {
 		ParseKeyPair(private, public []byte) error
 		GenerateKeyPair() ([]byte, []byte, error)
-		EncodedPublicKey() string
 		PEMHeaders() (string, string)
-		CreateSignature(message string) (string, error)
 	}
 
 	// DockerSnapshotter represents a service used to create Docker environment(endpoint) snapshots
@@ -1452,38 +1259,20 @@ type (
 		DeleteTLSFile(folder string, fileType TLSFileType) error
 		DeleteTLSFiles(folder string) error
 		GetStackProjectPath(stackIdentifier string) string
-		GetStackProjectPathByVersion(stackIdentifier string, version int, commitHash string) string
 		StoreStackFileFromBytes(stackIdentifier, fileName string, data []byte) (string, error)
-		StoreStackFileFromBytesByVersion(stackIdentifier, fileName string, version int, data []byte) (string, error)
 		UpdateStoreStackFileFromBytes(stackIdentifier, fileName string, data []byte) (string, error)
-		UpdateStoreStackFileFromBytesByVersion(stackIdentifier, fileName string, version int, commitHash string, data []byte) (string, error)
 		RemoveStackFileBackup(stackIdentifier, fileName string) error
-		RemoveStackFileBackupByVersion(stackIdentifier string, version int, fileName string) error
 		RollbackStackFile(stackIdentifier, fileName string) error
-		RollbackStackFileByVersion(stackIdentifier string, version int, fileName string) error
-		GetEdgeStackProjectPath(edgeStackIdentifier string) string
-		StoreEdgeStackFileFromBytes(edgeStackIdentifier, fileName string, data []byte) (string, error)
-		GetEdgeStackProjectPathByVersion(edgeStackIdentifier string, version int, commitHash string) string
-		StoreEdgeStackFileFromBytesByVersion(edgeStackIdentifier, fileName string, version int, data []byte) (string, error)
-		FormProjectPathByVersion(projectPath string, version int, commitHash string) string
-		SafeMoveDirectory(src, dst string) error
-		StoreRegistryManagementFileFromBytes(folder, fileName string, data []byte) (string, error)
 		KeyPairFilesExist() (bool, error)
 		StoreKeyPair(private, public []byte, privatePEMHeader, publicPEMHeader string) error
 		LoadKeyPair() ([]byte, []byte, error)
-		WriteJSONToFile(path string, content any) error
 		FileExists(path string) (bool, error)
-		GetBinaryFolder() string
 		StoreCustomTemplateFileFromBytes(identifier, fileName string, data []byte) (string, error)
 		GetCustomTemplateProjectPath(identifier string) string
 		GetTemporaryPath() (string, error)
-		GetDatastorePath() string
 		GetDefaultSSLCertsPath() (string, string)
 		StoreSSLCertPair(cert, key []byte) (string, string, error)
 		CopySSLCertPair(certPath, keyPath string) (string, string, error)
-		CopySSLCACert(caCertPath string) (string, error)
-		StoreMTLSCertificates(caCert, cert, key []byte) (string, string, string, error)
-		GetMTLSCertificates() (string, string, string, error)
 	}
 
 	// GitService represents a service for managing Git
@@ -1526,20 +1315,6 @@ type (
 		) ([]string, error)
 	}
 
-	// LDAPService represents a service used to authenticate users against a LDAP/AD
-	LDAPService interface {
-		AuthenticateUser(username, password string, settings *LDAPSettings) error
-		TestConnectivity(settings *LDAPSettings) error
-		GetUserGroups(username string, settings *LDAPSettings) ([]string, error)
-		SearchGroups(settings *LDAPSettings) ([]LDAPUser, error)
-		SearchUsers(settings *LDAPSettings) ([]string, error)
-	}
-
-	// OAuthService represents a service used to authenticate users using OAuth
-	OAuthService interface {
-		Authenticate(ctx context.Context, code string, configuration *OAuthSettings) (string, error)
-	}
-
 	// Server defines the interface to serve the API
 	Server interface {
 		Start(ctx context.Context) error
@@ -1553,14 +1328,6 @@ type (
 		FillSnapshotData(endpoint *Endpoint, includeRaw bool) error
 	}
 )
-
-const (
-	DefaultTokenScope    TokenScope = "default"
-	KubeconfigTokenScope TokenScope = "kubeconfig"
-)
-
-// UnscopedToken marks a token that is not confined to a single environment.
-const UnscopedToken = 0
 
 const (
 	// APIVersion is the version number of the Portainer API
@@ -1587,15 +1354,7 @@ const (
 	PortainerAgentSignatureHeader = "X-PortainerAgent-Signature"
 	// PortainerAgentPublicKeyHeader represent the name of the header containing the public key
 	PortainerAgentPublicKeyHeader = "X-PortainerAgent-PublicKey"
-	// PortainerAgentKubernetesSATokenHeader represent the name of the header containing a Kubernetes SA token
-	PortainerAgentKubernetesSATokenHeader = "X-PortainerAgent-SA-Token"
-	// HTTPAlertStateHeaderName is the name of the header used to transmit edge alert evaluation state
-	HTTPAlertStateHeaderName = "X-PortainerAgent-AlertState"
-	// HTTPResponseAgentGPUOperator represents the name of the header indicating whether the GPU operator is enabled on the agent
-	HTTPResponseAgentGPUOperator = "Portainer-Agent-GPU-Operator"
-	// PortainerAgentSignatureMessage represents the message used to create a digital signature
-	// to be used when communicating with an agent
-	PortainerAgentSignatureMessage = "Portainer-App"
+
 	// DefaultSnapshotInterval represents the default interval between each environment snapshot job
 	DefaultSnapshotInterval = "5m"
 	// DefaultEdgeAgentCheckinIntervalInSeconds represents the default interval (in seconds) used by Edge agents to checkin with the Portainer instance
@@ -1612,23 +1371,17 @@ const (
 	DefaultKubectlShellImage = "portainer/kubectl-shell:" + APIVersion
 	// DefaultSecretsDir is the directory a relative --secret-key-name is resolved against
 	DefaultSecretsDir = "/run/secrets"
-	// WebSocketKeepAlive web socket keep alive for edge environments
-	WebSocketKeepAlive = 1 * time.Hour
+
 	// AuthCookieName is the name of the cookie used to store the JWT token
 	AuthCookieKey = "portainer_api_key"
-	// PortainerCacheHeader is used to enabled FE caching for Kubernetes resources
-	PortainerCacheHeader = "X-Portainer-Cache"
+
 	// APIKeyHeader is the name of the header used for API key authentication
 	APIKeyHeader = "X-API-KEY"
 	// KubectlShellImageEnvVar is the environment variable used to override the default kubectl shell image
 	KubectlShellImageEnvVar = "KUBECTL_SHELL_IMAGE"
 	// FeatureFlagEnvVar is the environment variable used to set the list of enabled feature flags
 	FeatureFlagEnvVar = "FEATURE_FLAG"
-	// LicenseServerBaseURL represents the base URL of the API used to validate
-	// an extension license.
-	LicenseServerBaseURL = "https://api.portainer.io"
-	// URL to validate licenses along with system metadata.
-	LicenseCheckInURL = LicenseServerBaseURL + "/licenses/checkin"
+
 	// TrustedOriginsEnvVar is the environment variable used to set the trusted origins for CSRF protection
 	TrustedOriginsEnvVar = "TRUSTED_ORIGINS"
 	// CSPEnvVar is the environment variable used to enable/disable the Content Security Policy
@@ -1830,229 +1583,37 @@ const (
 	StandardUserRole
 )
 
-const (
-	// EdgeAgentIdle represents an idle state for a tunnel connected to an Edge environment(endpoint).
-	EdgeAgentIdle string = "IDLE"
-	// EdgeAgentManagementRequired represents a required state for a tunnel connected to an Edge environment(endpoint)
-	EdgeAgentManagementRequired string = "REQUIRED"
-)
-
 // represents an authorization type
 const (
-	OperationDockerContainerArchiveInfo         Authorization = "DockerContainerArchiveInfo"
-	OperationDockerContainerList                Authorization = "DockerContainerList"
-	OperationDockerContainerExport              Authorization = "DockerContainerExport"
-	OperationDockerContainerChanges             Authorization = "DockerContainerChanges"
-	OperationDockerContainerInspect             Authorization = "DockerContainerInspect"
-	OperationDockerContainerTop                 Authorization = "DockerContainerTop"
-	OperationDockerContainerLogs                Authorization = "DockerContainerLogs"
-	OperationDockerContainerStats               Authorization = "DockerContainerStats"
-	OperationDockerContainerAttachWebsocket     Authorization = "DockerContainerAttachWebsocket"
-	OperationDockerContainerArchive             Authorization = "DockerContainerArchive"
-	OperationDockerContainerCreate              Authorization = "DockerContainerCreate"
-	OperationDockerContainerPrune               Authorization = "DockerContainerPrune"
-	OperationDockerContainerKill                Authorization = "DockerContainerKill"
-	OperationDockerContainerPause               Authorization = "DockerContainerPause"
-	OperationDockerContainerUnpause             Authorization = "DockerContainerUnpause"
-	OperationDockerContainerRestart             Authorization = "DockerContainerRestart"
-	OperationDockerContainerStart               Authorization = "DockerContainerStart"
-	OperationDockerContainerStop                Authorization = "DockerContainerStop"
-	OperationDockerContainerWait                Authorization = "DockerContainerWait"
-	OperationDockerContainerResize              Authorization = "DockerContainerResize"
-	OperationDockerContainerAttach              Authorization = "DockerContainerAttach"
-	OperationDockerContainerExec                Authorization = "DockerContainerExec"
-	OperationDockerContainerRename              Authorization = "DockerContainerRename"
-	OperationDockerContainerUpdate              Authorization = "DockerContainerUpdate"
-	OperationDockerContainerPutContainerArchive Authorization = "DockerContainerPutContainerArchive"
-	OperationDockerContainerDelete              Authorization = "DockerContainerDelete"
-	OperationDockerImageList                    Authorization = "DockerImageList"
-	OperationDockerImageSearch                  Authorization = "DockerImageSearch"
-	OperationDockerImageGetAll                  Authorization = "DockerImageGetAll"
-	OperationDockerImageGet                     Authorization = "DockerImageGet"
-	OperationDockerImageHistory                 Authorization = "DockerImageHistory"
-	OperationDockerImageInspect                 Authorization = "DockerImageInspect"
-	OperationDockerImageLoad                    Authorization = "DockerImageLoad"
-	OperationDockerImageCreate                  Authorization = "DockerImageCreate"
-	OperationDockerImagePrune                   Authorization = "DockerImagePrune"
-	OperationDockerImagePush                    Authorization = "DockerImagePush"
-	OperationDockerImageTag                     Authorization = "DockerImageTag"
-	OperationDockerImageDelete                  Authorization = "DockerImageDelete"
-	OperationDockerImageCommit                  Authorization = "DockerImageCommit"
-	OperationDockerImageBuild                   Authorization = "DockerImageBuild"
-	OperationDockerNetworkList                  Authorization = "DockerNetworkList"
-	OperationDockerNetworkInspect               Authorization = "DockerNetworkInspect"
-	OperationDockerNetworkCreate                Authorization = "DockerNetworkCreate"
-	OperationDockerNetworkConnect               Authorization = "DockerNetworkConnect"
-	OperationDockerNetworkDisconnect            Authorization = "DockerNetworkDisconnect"
-	OperationDockerNetworkPrune                 Authorization = "DockerNetworkPrune"
-	OperationDockerNetworkDelete                Authorization = "DockerNetworkDelete"
-	OperationDockerVolumeList                   Authorization = "DockerVolumeList"
-	OperationDockerVolumeInspect                Authorization = "DockerVolumeInspect"
-	OperationDockerVolumeCreate                 Authorization = "DockerVolumeCreate"
-	OperationDockerVolumePrune                  Authorization = "DockerVolumePrune"
-	OperationDockerVolumeDelete                 Authorization = "DockerVolumeDelete"
-	OperationDockerExecInspect                  Authorization = "DockerExecInspect"
-	OperationDockerExecStart                    Authorization = "DockerExecStart"
-	OperationDockerExecResize                   Authorization = "DockerExecResize"
-	OperationDockerSwarmInspect                 Authorization = "DockerSwarmInspect"
-	OperationDockerSwarmUnlockKey               Authorization = "DockerSwarmUnlockKey"
-	OperationDockerSwarmInit                    Authorization = "DockerSwarmInit"
-	OperationDockerSwarmJoin                    Authorization = "DockerSwarmJoin"
-	OperationDockerSwarmLeave                   Authorization = "DockerSwarmLeave"
-	OperationDockerSwarmUpdate                  Authorization = "DockerSwarmUpdate"
-	OperationDockerSwarmUnlock                  Authorization = "DockerSwarmUnlock"
-	OperationDockerNodeList                     Authorization = "DockerNodeList"
-	OperationDockerNodeInspect                  Authorization = "DockerNodeInspect"
-	OperationDockerNodeUpdate                   Authorization = "DockerNodeUpdate"
-	OperationDockerNodeDelete                   Authorization = "DockerNodeDelete"
-	OperationDockerServiceList                  Authorization = "DockerServiceList"
-	OperationDockerServiceInspect               Authorization = "DockerServiceInspect"
-	OperationDockerServiceLogs                  Authorization = "DockerServiceLogs"
-	OperationDockerServiceCreate                Authorization = "DockerServiceCreate"
-	OperationDockerServiceUpdate                Authorization = "DockerServiceUpdate"
-	OperationDockerServiceDelete                Authorization = "DockerServiceDelete"
-	OperationDockerSecretList                   Authorization = "DockerSecretList"
-	OperationDockerSecretInspect                Authorization = "DockerSecretInspect"
-	OperationDockerSecretCreate                 Authorization = "DockerSecretCreate"
-	OperationDockerSecretUpdate                 Authorization = "DockerSecretUpdate"
-	OperationDockerSecretDelete                 Authorization = "DockerSecretDelete"
-	OperationDockerConfigList                   Authorization = "DockerConfigList"
-	OperationDockerConfigInspect                Authorization = "DockerConfigInspect"
-	OperationDockerConfigCreate                 Authorization = "DockerConfigCreate"
-	OperationDockerConfigUpdate                 Authorization = "DockerConfigUpdate"
-	OperationDockerConfigDelete                 Authorization = "DockerConfigDelete"
-	OperationDockerTaskList                     Authorization = "DockerTaskList"
-	OperationDockerTaskInspect                  Authorization = "DockerTaskInspect"
-	OperationDockerTaskLogs                     Authorization = "DockerTaskLogs"
-	OperationDockerPluginList                   Authorization = "DockerPluginList"
-	OperationDockerPluginPrivileges             Authorization = "DockerPluginPrivileges"
-	OperationDockerPluginInspect                Authorization = "DockerPluginInspect"
-	OperationDockerPluginPull                   Authorization = "DockerPluginPull"
-	OperationDockerPluginCreate                 Authorization = "DockerPluginCreate"
-	OperationDockerPluginEnable                 Authorization = "DockerPluginEnable"
-	OperationDockerPluginDisable                Authorization = "DockerPluginDisable"
-	OperationDockerPluginPush                   Authorization = "DockerPluginPush"
-	OperationDockerPluginUpgrade                Authorization = "DockerPluginUpgrade"
-	OperationDockerPluginSet                    Authorization = "DockerPluginSet"
-	OperationDockerPluginDelete                 Authorization = "DockerPluginDelete"
-	OperationDockerSessionStart                 Authorization = "DockerSessionStart"
-	OperationDockerDistributionInspect          Authorization = "DockerDistributionInspect"
-	OperationDockerBuildPrune                   Authorization = "DockerBuildPrune"
-	OperationDockerBuildCancel                  Authorization = "DockerBuildCancel"
-	OperationDockerPing                         Authorization = "DockerPing"
-	OperationDockerInfo                         Authorization = "DockerInfo"
-	OperationDockerEvents                       Authorization = "DockerEvents"
-	OperationDockerSystem                       Authorization = "DockerSystem"
-	OperationDockerVersion                      Authorization = "DockerVersion"
+	OperationPortainerDockerHubInspect Authorization = "PortainerDockerHubInspect"
 
-	OperationDockerAgentPing         Authorization = "DockerAgentPing"
-	OperationDockerAgentList         Authorization = "DockerAgentList"
-	OperationDockerAgentHostInfo     Authorization = "DockerAgentHostInfo"
-	OperationDockerAgentBrowseDelete Authorization = "DockerAgentBrowseDelete"
-	OperationDockerAgentBrowseGet    Authorization = "DockerAgentBrowseGet"
-	OperationDockerAgentBrowseList   Authorization = "DockerAgentBrowseList"
-	OperationDockerAgentBrowsePut    Authorization = "DockerAgentBrowsePut"
-	OperationDockerAgentBrowseRename Authorization = "DockerAgentBrowseRename"
+	OperationPortainerEndpointGroupList Authorization = "PortainerEndpointGroupList"
 
-	OperationPortainerDockerHubInspect      Authorization = "PortainerDockerHubInspect"
-	OperationPortainerDockerHubUpdate       Authorization = "PortainerDockerHubUpdate"
-	OperationPortainerEndpointGroupCreate   Authorization = "PortainerEndpointGroupCreate"
-	OperationPortainerEndpointGroupList     Authorization = "PortainerEndpointGroupList"
-	OperationPortainerEndpointGroupDelete   Authorization = "PortainerEndpointGroupDelete"
-	OperationPortainerEndpointGroupInspect  Authorization = "PortainerEndpointGroupInspect"
-	OperationPortainerEndpointGroupUpdate   Authorization = "PortainerEndpointGroupEdit"
-	OperationPortainerEndpointGroupAccess   Authorization = "PortainerEndpointGroupAccess "
-	OperationPortainerEndpointList          Authorization = "PortainerEndpointList"
-	OperationPortainerEndpointInspect       Authorization = "PortainerEndpointInspect"
-	OperationPortainerEndpointCreate        Authorization = "PortainerEndpointCreate"
-	OperationPortainerEndpointJob           Authorization = "PortainerEndpointJob"
-	OperationPortainerEndpointSnapshots     Authorization = "PortainerEndpointSnapshots"
-	OperationPortainerEndpointSnapshot      Authorization = "PortainerEndpointSnapshot"
-	OperationPortainerEndpointUpdate        Authorization = "PortainerEndpointUpdate"
-	OperationPortainerEndpointUpdateAccess  Authorization = "PortainerEndpointUpdateAccess"
-	OperationPortainerEndpointDelete        Authorization = "PortainerEndpointDelete"
-	OperationPortainerExtensionList         Authorization = "PortainerExtensionList"
-	OperationPortainerExtensionInspect      Authorization = "PortainerExtensionInspect"
-	OperationPortainerExtensionCreate       Authorization = "PortainerExtensionCreate"
-	OperationPortainerExtensionUpdate       Authorization = "PortainerExtensionUpdate"
-	OperationPortainerExtensionDelete       Authorization = "PortainerExtensionDelete"
-	OperationPortainerMOTD                  Authorization = "PortainerMOTD"
-	OperationPortainerRegistryList          Authorization = "PortainerRegistryList"
-	OperationPortainerRegistryInspect       Authorization = "PortainerRegistryInspect"
-	OperationPortainerRegistryCreate        Authorization = "PortainerRegistryCreate"
-	OperationPortainerRegistryConfigure     Authorization = "PortainerRegistryConfigure"
-	OperationPortainerRegistryUpdate        Authorization = "PortainerRegistryUpdate"
-	OperationPortainerRegistryUpdateAccess  Authorization = "PortainerRegistryUpdateAccess"
-	OperationPortainerRegistryDelete        Authorization = "PortainerRegistryDelete"
-	OperationPortainerResourceControlCreate Authorization = "PortainerResourceControlCreate"
-	OperationPortainerResourceControlUpdate Authorization = "PortainerResourceControlUpdate"
-	OperationPortainerResourceControlDelete Authorization = "PortainerResourceControlDelete"
-	OperationPortainerRoleList              Authorization = "PortainerRoleList"
-	OperationPortainerRoleInspect           Authorization = "PortainerRoleInspect"
-	OperationPortainerRoleCreate            Authorization = "PortainerRoleCreate"
-	OperationPortainerRoleUpdate            Authorization = "PortainerRoleUpdate"
-	OperationPortainerRoleDelete            Authorization = "PortainerRoleDelete"
-	OperationPortainerScheduleList          Authorization = "PortainerScheduleList"
-	OperationPortainerScheduleInspect       Authorization = "PortainerScheduleInspect"
-	OperationPortainerScheduleFile          Authorization = "PortainerScheduleFile"
-	OperationPortainerScheduleTasks         Authorization = "PortainerScheduleTasks"
-	OperationPortainerScheduleCreate        Authorization = "PortainerScheduleCreate"
-	OperationPortainerScheduleUpdate        Authorization = "PortainerScheduleUpdate"
-	OperationPortainerScheduleDelete        Authorization = "PortainerScheduleDelete"
-	OperationPortainerSettingsInspect       Authorization = "PortainerSettingsInspect"
-	OperationPortainerSettingsUpdate        Authorization = "PortainerSettingsUpdate"
-	OperationPortainerSettingsLDAPCheck     Authorization = "PortainerSettingsLDAPCheck"
-	OperationPortainerStackList             Authorization = "PortainerStackList"
-	OperationPortainerStackInspect          Authorization = "PortainerStackInspect"
-	OperationPortainerStackFile             Authorization = "PortainerStackFile"
-	OperationPortainerStackCreate           Authorization = "PortainerStackCreate"
-	OperationPortainerStackMigrate          Authorization = "PortainerStackMigrate"
-	OperationPortainerStackUpdate           Authorization = "PortainerStackUpdate"
-	OperationPortainerStackDelete           Authorization = "PortainerStackDelete"
-	OperationPortainerTagList               Authorization = "PortainerTagList"
-	OperationPortainerTagCreate             Authorization = "PortainerTagCreate"
-	OperationPortainerTagDelete             Authorization = "PortainerTagDelete"
-	OperationPortainerTeamMembershipList    Authorization = "PortainerTeamMembershipList"
-	OperationPortainerTeamMembershipCreate  Authorization = "PortainerTeamMembershipCreate"
-	OperationPortainerTeamMembershipUpdate  Authorization = "PortainerTeamMembershipUpdate"
-	OperationPortainerTeamMembershipDelete  Authorization = "PortainerTeamMembershipDelete"
-	OperationPortainerTeamList              Authorization = "PortainerTeamList"
-	OperationPortainerTeamInspect           Authorization = "PortainerTeamInspect"
-	OperationPortainerTeamMemberships       Authorization = "PortainerTeamMemberships"
-	OperationPortainerTeamCreate            Authorization = "PortainerTeamCreate"
-	OperationPortainerTeamUpdate            Authorization = "PortainerTeamUpdate"
-	OperationPortainerTeamDelete            Authorization = "PortainerTeamDelete"
-	OperationPortainerTemplateList          Authorization = "PortainerTemplateList"
-	OperationPortainerTemplateInspect       Authorization = "PortainerTemplateInspect"
-	OperationPortainerTemplateCreate        Authorization = "PortainerTemplateCreate"
-	OperationPortainerTemplateUpdate        Authorization = "PortainerTemplateUpdate"
-	OperationPortainerTemplateDelete        Authorization = "PortainerTemplateDelete"
-	OperationPortainerUploadTLS             Authorization = "PortainerUploadTLS"
-	OperationPortainerUserList              Authorization = "PortainerUserList"
-	OperationPortainerUserInspect           Authorization = "PortainerUserInspect"
-	OperationPortainerUserMemberships       Authorization = "PortainerUserMemberships"
-	OperationPortainerUserCreate            Authorization = "PortainerUserCreate"
-	OperationPortainerUserListToken         Authorization = "PortainerUserListToken"
-	OperationPortainerUserCreateToken       Authorization = "PortainerUserCreateToken"
-	OperationPortainerUserRevokeToken       Authorization = "PortainerUserRevokeToken"
-	OperationPortainerUserUpdate            Authorization = "PortainerUserUpdate"
-	OperationPortainerUserUpdatePassword    Authorization = "PortainerUserUpdatePassword"
-	OperationPortainerUserDelete            Authorization = "PortainerUserDelete"
-	OperationPortainerWebsocketExec         Authorization = "PortainerWebsocketExec"
-	OperationPortainerWebhookList           Authorization = "PortainerWebhookList"
-	OperationPortainerWebhookCreate         Authorization = "PortainerWebhookCreate"
-	OperationPortainerWebhookDelete         Authorization = "PortainerWebhookDelete"
+	OperationPortainerEndpointList    Authorization = "PortainerEndpointList"
+	OperationPortainerEndpointInspect Authorization = "PortainerEndpointInspect"
 
-	OperationDockerUndefined      Authorization = "DockerUndefined"
-	OperationDockerAgentUndefined Authorization = "DockerAgentUndefined"
-	OperationPortainerUndefined   Authorization = "PortainerUndefined"
+	OperationPortainerExtensionList Authorization = "PortainerExtensionList"
 
-	EndpointResourcesAccess Authorization = "EndpointResourcesAccess"
+	OperationPortainerMOTD            Authorization = "PortainerMOTD"
+	OperationPortainerRegistryList    Authorization = "PortainerRegistryList"
+	OperationPortainerRegistryInspect Authorization = "PortainerRegistryInspect"
+
+	OperationPortainerTeamList Authorization = "PortainerTeamList"
+
+	OperationPortainerTemplateList    Authorization = "PortainerTemplateList"
+	OperationPortainerTemplateInspect Authorization = "PortainerTemplateInspect"
+
+	OperationPortainerUserList        Authorization = "PortainerUserList"
+	OperationPortainerUserInspect     Authorization = "PortainerUserInspect"
+	OperationPortainerUserMemberships Authorization = "PortainerUserMemberships"
+
+	OperationPortainerUserListToken   Authorization = "PortainerUserListToken"
+	OperationPortainerUserCreateToken Authorization = "PortainerUserCreateToken"
+	OperationPortainerUserRevokeToken Authorization = "PortainerUserRevokeToken"
 
 	// Deprecated operations
 	OperationPortainerEndpointExtensionAdd    Authorization = "PortainerEndpointExtensionAdd"
 	OperationPortainerEndpointExtensionRemove Authorization = "PortainerEndpointExtensionRemove"
-	OperationIntegrationStoridgeAdmin         Authorization = "IntegrationStoridgeAdmin"
 )
 
 // GetEditionLabel returns the portainer edition label
@@ -2069,45 +1630,9 @@ func (e SoftwareEdition) GetEditionLabel() string {
 	return "CE"
 }
 
-type PerDevConfigsFilterType string
-
-const (
-	PerDevConfigsTypeFile PerDevConfigsFilterType = "file"
-	PerDevConfigsTypeDir  PerDevConfigsFilterType = "dir"
-)
-
 const (
 	ContainerEngineDocker = "docker"
 	ContainerEnginePodman = "podman"
-)
-
-const (
-	// PolicyType constants
-	RbacK8s                 PolicyType = "rbac-k8s"
-	SecurityK8s             PolicyType = "security-k8s"
-	SetupK8s                PolicyType = "setup-k8s"
-	RegistryK8s             PolicyType = "registry-k8s"
-	RbacDocker              PolicyType = "rbac-docker"
-	SecurityDocker          PolicyType = "security-docker"
-	SetupDocker             PolicyType = "setup-docker"
-	RegistryDocker          PolicyType = "registry-docker"
-	ChangeConfirmation      PolicyType = "change-confirmation"
-	CleanupDocker           PolicyType = "cleanup-docker"
-	ObservabilityK8s        PolicyType = "observability-k8s"
-	PodSecurityStandardsK8s PolicyType = "pod-security-standards-k8s"
-	NetworkSecurityK8s      PolicyType = "network-security-k8s"
-)
-
-const ResourcePatchAgentType = "resource-patch-k8s"
-
-type HelmInstallStatus string
-
-const (
-	HelmInstallStatusInstalling   HelmInstallStatus = "installing"
-	HelmInstallStatusInstalled    HelmInstallStatus = "installed"
-	HelmInstallStatusFailed       HelmInstallStatus = "failed"
-	HelmInstallStatusUninstalling HelmInstallStatus = "uninstalling"
-	HelmInstallStatusConflict     HelmInstallStatus = "conflict"
 )
 
 func DefaultEndpointSecuritySettings() EndpointSecuritySettings {

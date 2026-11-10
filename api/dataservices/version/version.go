@@ -43,25 +43,6 @@ func (service *Service) Tx(tx portainer.Transaction) ServiceTx {
 	}
 }
 
-func (service *Service) SchemaVersion() (string, error) {
-	v, err := service.Version()
-	if err != nil {
-		return "", err
-	}
-
-	return v.SchemaVersion, nil
-}
-
-func (service *Service) UpdateSchemaVersion(version string) error {
-	v, err := service.Version()
-	if err != nil {
-		return err
-	}
-
-	v.SchemaVersion = version
-	return service.UpdateVersion(v)
-}
-
 func (service *Service) Edition() (portainer.SoftwareEdition, error) {
 	v, err := service.Version()
 	if err != nil {
@@ -98,21 +79,6 @@ func (service *Service) InstanceID() (string, error) {
 	}
 
 	return v.InstanceID, nil
-}
-
-// StoreInstanceID store the instance ID.
-func (service *Service) UpdateInstanceID(id string) error {
-	v, err := service.Version()
-	if err != nil {
-		if !dataservices.IsErrObjectNotFound(err) {
-			return err
-		}
-
-		v = &models.Version{}
-	}
-
-	v.InstanceID = id
-	return service.UpdateVersion(v)
 }
 
 // Version retrieve the version object.

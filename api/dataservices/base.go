@@ -20,10 +20,6 @@ type BaseDataService[T any, I constraints.Integer] struct {
 	Connection portainer.Connection
 }
 
-func (s *BaseDataService[T, I]) BucketName() string {
-	return s.Bucket
-}
-
 func (service *BaseDataService[T, I]) Tx(tx portainer.Transaction) BaseDataServiceTx[T, I] {
 	return BaseDataServiceTx[T, I]{
 		Bucket:     service.Bucket,

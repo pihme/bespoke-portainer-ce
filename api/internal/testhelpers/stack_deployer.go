@@ -20,7 +20,7 @@ func (d *TestStackDeployer) GetDockerClientFactory() *dockerclient.ClientFactory
 	return nil
 }
 
-func (d *TestStackDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (d *TestStackDeployer) DeployComposeStack(_ context.Context, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	d.DeployComposeCallCount++
 	d.LastPrune = prune
 	return nil
@@ -30,7 +30,7 @@ func (d *TestStackDeployer) UndeployComposeStack(ctx context.Context, stack *por
 	return nil
 }
 
-func (d *TestStackDeployer) DeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry, prune, forcePullImage, forceRecreate bool) error {
+func (d *TestStackDeployer) DeployRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, prune, forcePullImage, forceRecreate bool) error {
 	return nil
 }
 
@@ -38,7 +38,7 @@ func (d *TestStackDeployer) UndeployRemoteComposeStack(_ context.Context, userId
 	return nil
 }
 
-func (d *TestStackDeployer) StartRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint, registries []portainer.Registry) error {
+func (d *TestStackDeployer) StartRemoteComposeStack(_ context.Context, userId portainer.UserID, stack *portainer.Stack, endpoint *portainer.Endpoint) error {
 	return nil
 }
 

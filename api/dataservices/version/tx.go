@@ -19,21 +19,6 @@ func (tx ServiceTx) InstanceID() (string, error) {
 	return v.InstanceID, nil
 }
 
-func (tx ServiceTx) UpdateInstanceID(ID string) error {
-	v, err := tx.Version()
-	if err != nil {
-		if !dataservices.IsErrObjectNotFound(err) {
-			return err
-		}
-
-		v = &models.Version{}
-	}
-
-	v.InstanceID = ID
-
-	return tx.UpdateVersion(v)
-}
-
 func (tx ServiceTx) Edition() (portainer.SoftwareEdition, error) {
 	v, err := tx.Version()
 	if err != nil {
@@ -56,15 +41,4 @@ func (tx ServiceTx) Version() (*models.Version, error) {
 
 func (tx ServiceTx) UpdateVersion(version *models.Version) error {
 	return tx.Tx.UpdateObject(BucketName, []byte(versionKey), version)
-}
-
-func (tx ServiceTx) SchemaVersion() (string, error) {
-	var v models.Version
-
-	err := tx.Tx.GetObject(BucketName, []byte(versionKey), &v)
-	if err != nil {
-		return "", err
-	}
-
-	return v.SchemaVersion, nil
 }

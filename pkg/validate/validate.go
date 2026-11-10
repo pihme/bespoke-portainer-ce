@@ -1,18 +1,15 @@
 package validate
 
 import (
-	"net"
 	"net/url"
 	"regexp"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
 
 var (
 	hexadecimalRegex = regexp.MustCompile(`^[0-9a-fA-F]+$`)
-	dnsNameRegex     = regexp.MustCompile(`^([a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*[\._]?$`)
 )
 
 func IsURL(urlString string) bool {
@@ -37,48 +34,6 @@ func IsUUID(uuidString string) bool {
 
 func IsHexadecimal(hexString string) bool {
 	return hexadecimalRegex.MatchString(hexString)
-}
-
-func HasWhitespaceOnly(s string) bool {
-	return len(s) > 0 && strings.TrimSpace(s) == ""
-}
-
-func MinStringLength(s string, len int) bool {
-	return utf8.RuneCountInString(s) >= len
-}
-
-func Matches(s, pattern string) bool {
-	match, err := regexp.MatchString(pattern, s)
-	return err == nil && match
-}
-
-func IsNonPositive(f float64) bool {
-	return f <= 0
-}
-
-func InRange(val, left, right float64) bool {
-	if left > right {
-		left, right = right, left
-	}
-
-	return val >= left && val <= right
-}
-
-func IsHost(s string) bool {
-	return IsIP(s) || IsDNSName(s)
-}
-
-func IsIP(s string) bool {
-	return net.ParseIP(s) != nil
-}
-
-func IsDNSName(s string) bool {
-	if s == "" || len(strings.ReplaceAll(s, ".", "")) > 255 {
-		// constraints already violated
-		return false
-	}
-
-	return !IsIP(s) && dnsNameRegex.MatchString(s)
 }
 
 func IsTrustedOrigin(s string) bool {

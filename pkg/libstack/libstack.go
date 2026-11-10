@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	portainer "github.com/portainer/portainer/api"
-
-	configtypes "github.com/docker/cli/cli/config/types"
 )
 
 const PortainerEnvVarsPrefix = "PORTAINER_"
@@ -59,8 +57,6 @@ type Deployer interface {
 	Run(ctx context.Context, filePaths []string, serviceName string, options RunOptions) error
 	Validate(ctx context.Context, filePaths []string, options Options) error
 	WaitForStatus(ctx context.Context, name string, status Status) WaitResult
-	Config(ctx context.Context, filePaths []string, options Options) ([]byte, error)
-	GetExistingEdgeStacks(ctx context.Context) ([]EdgeStack, error)
 }
 
 type Status string
@@ -96,7 +92,6 @@ type Options struct {
 	ProjectDir string
 	// ConfigOptions is a list of options to pass to the docker-compose config command
 	ConfigOptions []string
-	Registries    []configtypes.AuthConfig
 	// BindMountHashEnabled controls whether bind mount hash labels are set for services.
 	// This option is primarily used by libstack internals and advanced callers that need
 	// to manage bind mount hash behavior explicitly. This is not an option that users can set.

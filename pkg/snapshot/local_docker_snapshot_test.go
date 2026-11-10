@@ -1,7 +1,6 @@
 package snapshot
 
 import (
-	"encoding/binary"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -20,14 +19,6 @@ import (
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/require"
 )
-
-// dockerMultiplexFrame builds a Docker multiplexed stream frame (stdout=1, stderr=2).
-func dockerMultiplexFrame(stream byte, payload []byte) []byte {
-	header := make([]byte, 8)
-	header[0] = stream
-	binary.BigEndian.PutUint32(header[4:], uint32(len(payload)))
-	return append(header, payload...)
-}
 
 type localDockerSnapshotFixture struct {
 	containers []dockercontainer.Summary
@@ -461,64 +452,6 @@ func TestREQ_ENV_07_DockerSnapshotVersion_DetectsPodman(t *testing.T) {
 	require.Equal(t, "4.9.0", snap.SnapshotRaw.Version.Version)
 }
 
-func TestREQ_ENV_12_DockerSnapshotDiagnostics_EmptyEdgeKeyNoHostname(t *testing.T) {
-
-	t.Setenv("HOSTNAME", "")
-
-	srv := newLocalDockerSnapshotServer(t, localDockerSnapshotFixture{})
-	defer srv.Close()
-	cli := newDockerClientForServer(t, srv)
-
-	diag, err := DockerSnapshotDiagnostics(cli, "")
-	require.NoError(t, err)
-	require.NotNil(t, diag)
-	require.Empty(t, diag.Log)
-	require.Empty(t, diag.DNS)
-	require.Empty(t, diag.Telnet)
-}
-
-func TestREQ_ENV_12_DockerSnapshotDiagnostics_ContainerErrorLogs(t *testing.T) {
-
-	agentID := "agent-container-abc"
-	t.Setenv("HOSTNAME", agentID)
-
-	stderrPayload := dockerMultiplexFrame(2, []byte("2024-01-02T03:04:05Z level=error boom\n"))
-	fx := localDockerSnapshotFixture{
-		logsByID: map[string][]byte{agentID: stderrPayload},
-	}
-	srv := newLocalDockerSnapshotServer(t, fx)
-	defer srv.Close()
-	cli := newDockerClientForServer(t, srv)
-
-	diag, err := DockerSnapshotDiagnostics(cli, "")
-	require.NoError(t, err)
-	require.NotNil(t, diag)
-	// Implementation currently marshals a nil log slice (JSON null) after reading stderr.
-	require.Equal(t, "null", diag.Log)
-}
-
-func TestREQ_ENV_12_DockerSnapshotContainerErrorLogs_FetchFailure(t *testing.T) {
-	t.Parallel()
-
-	agentID := "missing-agent"
-	fx := localDockerSnapshotFixture{
-		logStatus: map[string]int{agentID: http.StatusNotFound},
-	}
-	srv := newLocalDockerSnapshotServer(t, fx)
-	defer srv.Close()
-	cli := newDockerClientForServer(t, srv)
-
-	snap := &portainer.DockerSnapshot{
-		DiagnosticsData: &portainer.DiagnosticsData{
-			DNS:    make(map[string]string),
-			Telnet: make(map[string]string),
-		},
-	}
-	err := dockerSnapshotContainerErrorLogs(snap, cli, agentID)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to get container logs")
-}
-
 func TestREQ_ENV_12_DockerSnapshotImagesVolumesNetworks_Direct(t *testing.T) {
 	t.Parallel()
 
@@ -627,19 +560,4 @@ func TestREQ_ENV_12_CreateDockerSnapshot_WarnsOnImagesVolumesNetworksVersion(t *
 			require.Equal(t, 1, snap.NodeCount)
 		})
 	}
-}
-
-func TestREQ_ENV_12_DockerSnapshotDiagnostics_LogFetchError(t *testing.T) {
-	agentID := "agent-logs-fail"
-	t.Setenv("HOSTNAME", agentID)
-
-	srv := newLocalDockerSnapshotServer(t, localDockerSnapshotFixture{
-		logStatus: map[string]int{agentID: http.StatusInternalServerError},
-	})
-	defer srv.Close()
-	cli := newDockerClientForServer(t, srv)
-
-	diag, err := DockerSnapshotDiagnostics(cli, "")
-	require.Error(t, err)
-	require.Nil(t, diag)
 }

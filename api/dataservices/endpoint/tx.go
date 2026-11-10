@@ -13,10 +13,6 @@ type ServiceTx struct {
 	tx      portainer.Transaction
 }
 
-func (service ServiceTx) BucketName() string {
-	return BucketName
-}
-
 // Endpoint returns an environment(endpoint) by ID.
 func (service ServiceTx) Endpoint(ID portainer.EndpointID) (*portainer.Endpoint, error) {
 	var endpoint portainer.Endpoint
@@ -94,20 +90,10 @@ func (service ServiceTx) ReadAll(predicates ...func(endpoint portainer.Endpoint)
 	return dataservices.BaseDataServiceTx[portainer.Endpoint, portainer.EndpointID]{Bucket: BucketName, Connection: service.service.connection, Tx: service.tx}.ReadAll(predicates...)
 }
 
-func (service ServiceTx) EndpointIDByEdgeID(edgeID string) (portainer.EndpointID, bool) {
-	log.Error().Str("func", "EndpointIDByEdgeID").Msg("cannot be called inside a transaction")
-
-	return 0, false
-}
-
 func (service ServiceTx) Heartbeat(endpointID portainer.EndpointID) (int64, bool) {
 	log.Error().Str("func", "Heartbeat").Msg("cannot be called inside a transaction")
 
 	return 0, false
-}
-
-func (service ServiceTx) UpdateHeartbeat(endpointID portainer.EndpointID) {
-	log.Error().Str("func", "UpdateHeartbeat").Msg("cannot be called inside a transaction")
 }
 
 // CreateEndpoint assign an ID to a new environment(endpoint) and saves it.
@@ -125,24 +111,6 @@ func (service ServiceTx) Create(endpoint *portainer.Endpoint) error {
 	service.service.mu.Unlock()
 
 	return nil
-}
-
-func (service ServiceTx) EndpointsByTeamID(teamID portainer.TeamID) ([]portainer.Endpoint, error) {
-	var endpoints = make([]portainer.Endpoint, 0)
-
-	return endpoints, service.tx.GetAll(
-		BucketName,
-		&portainer.Endpoint{},
-		dataservices.FilterFn(&endpoints, func(e portainer.Endpoint) bool {
-			for t := range e.TeamAccessPolicies {
-				if t == teamID {
-					return true
-				}
-			}
-
-			return false
-		}),
-	)
 }
 
 // GetNextIdentifier returns the next identifier for an environment(endpoint).

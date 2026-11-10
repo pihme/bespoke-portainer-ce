@@ -43,24 +43,6 @@ func TestCreateTLSConfigurationFIPS(t *testing.T) {
 	require.False(t, config.InsecureSkipVerify)                     //nolint:forbidigo
 }
 
-func TestCreateTLSConfigurationFromBytes(t *testing.T) {
-	t.Parallel()
-	// No TLS
-	config, err := CreateTLSConfigurationFromBytes(false, nil, nil, nil, false, false)
-	require.NoError(t, err)
-	require.Nil(t, config)
-
-	// Skip TLS client/server verifications
-	config, err = CreateTLSConfigurationFromBytes(true, nil, nil, nil, true, true)
-	require.NoError(t, err)
-	require.NotNil(t, config)
-
-	// Empty TLS
-	config, err = CreateTLSConfigurationFromBytes(true, nil, nil, nil, false, false)
-	require.Error(t, err)
-	require.Nil(t, config)
-}
-
 func TestCreateTLSConfigurationFromDisk(t *testing.T) {
 	t.Parallel()
 	// No TLS

@@ -129,29 +129,6 @@ func TestREQ_STK_03_ComposeStackGitBuilder_deploy_UsesLocalComposeDeployer(t *te
 	assert.Equal(t, 1, deployer.DeployComposeCallCount)
 }
 
-func TestREQ_STK_03_ComposeStackGitBuilder_BuildAndDeploy_RunsPostDeploy(t *testing.T) {
-	t.Parallel()
-
-	builder, store, deployer, admin := newComposeGitBuilderFixture(t, "posthash")
-	endpoint := &portainer.Endpoint{ID: 5}
-
-	stack, herr := BuildAndDeploy(t.Context(), store, builder, &StackPayload{
-		Name:        "sync-git-compose",
-		ComposeFile: filesystem.ComposeFileDefaultName,
-		RepositoryConfigPayload: RepositoryConfigPayload{
-			URL:           "https://github.com/org/sync-repo",
-			ReferenceName: "refs/heads/main",
-		},
-	}, endpoint, admin.ID)
-	require.Nil(t, herr)
-	require.NotNil(t, stack)
-	assert.Equal(t, "sync-git-compose", stack.Name)
-	assert.Equal(t, portainer.DockerComposeStack, stack.Type)
-	assert.Equal(t, portainer.StackStatusActive, stack.Status)
-	assert.Equal(t, 1, deployer.DeployComposeCallCount)
-	assert.NotZero(t, builder.resolvedSourceID)
-}
-
 func TestREQ_STK_03_ComposeStackGitBuilder_prepare_ExistingSource(t *testing.T) {
 	t.Parallel()
 

@@ -89,54 +89,6 @@ func TestREQ_ENV_01_TxEndpointsAndReadAll(t *testing.T) {
 	require.Equal(t, "tx-a", filtered[0].Name)
 }
 
-func TestREQ_ENV_03_TxEndpointsByTeamID(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	teamID := portainer.TeamID(3)
-	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		id := portainer.EndpointID(tx.Endpoint().GetNextIdentifier())
-		ep := localDockerEndpoint(id, "team-ep", "unix:///var/run/docker.sock")
-		ep.TeamAccessPolicies = portainer.TeamAccessPolicies{
-			teamID: {RoleID: 1},
-		}
-		if err := tx.Endpoint().Create(ep); err != nil {
-			return err
-		}
-		other := portainer.EndpointID(tx.Endpoint().GetNextIdentifier())
-		return tx.Endpoint().Create(localDockerEndpoint(other, "no-team", "tcp://127.0.0.1:2375"))
-	}))
-
-	var matched []portainer.Endpoint
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		matched, err = tx.Endpoint().EndpointsByTeamID(teamID)
-		return err
-	}))
-	require.Len(t, matched, 1)
-	require.Equal(t, "team-ep", matched[0].Name)
-}
-
-func TestREQ_ENV_03_TxBucketNameAndStubs(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	require.NoError(t, store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		require.Equal(t, "endpoints", tx.Endpoint().BucketName())
-
-		id, ok := tx.Endpoint().EndpointIDByEdgeID("any")
-		require.False(t, ok)
-		require.Equal(t, portainer.EndpointID(0), id)
-
-		ts, ok := tx.Endpoint().Heartbeat(1)
-		require.False(t, ok)
-		require.Equal(t, int64(0), ts)
-
-		tx.Endpoint().UpdateHeartbeat(1)
-		return nil
-	}))
-}
-
 func TestREQ_ENV_03_TxEndpointMissingReturnsError(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)

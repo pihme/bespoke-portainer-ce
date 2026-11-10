@@ -28,11 +28,6 @@ func (s Set[T]) Len() int {
 	return len(s)
 }
 
-// IsEmpty returns true if the set is empty.
-func (s Set[T]) IsEmpty() bool {
-	return len(s) == 0
-}
-
 // Clear removes all keys from the set.
 func (s Set[T]) Keys() []T {
 	keys := make([]T, s.Len())
@@ -55,30 +50,6 @@ func (s Set[T]) Copy() Set[T] {
 	}
 
 	return c
-}
-
-// Difference returns a new set containing the keys that are in the first set but not in the second set.
-func (s Set[T]) Difference(second Set[T]) Set[T] {
-	difference := s.Copy()
-
-	for key := range second {
-		difference.Remove(key)
-	}
-
-	return difference
-}
-
-// Union returns a new set containing the keys that are in either set.
-func Union[T SetKey](sets ...Set[T]) Set[T] {
-	union := make(Set[T])
-
-	for _, set := range sets {
-		for key := range set {
-			union.Add(key)
-		}
-	}
-
-	return union
 }
 
 // Intersection returns a new set containing the keys that are in all sets.

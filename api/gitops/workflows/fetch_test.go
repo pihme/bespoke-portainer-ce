@@ -21,26 +21,6 @@ func adminContext() *security.RestrictedRequestContext {
 	}
 }
 
-func mustCreateGitWorkflow(t *testing.T, tx dataservices.DataStoreTx, stack *portainer.Stack) {
-	t.Helper()
-
-	cfg := stack.GitConfig
-
-	src := &portainer.Source{Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: cfg.URL, Authentication: cfg.Authentication, TLSSkipVerify: cfg.TLSSkipVerify}}
-	require.NoError(t, tx.Source().Create(adminUserContext, src))
-
-	wf := &portainer.Workflow{Name: stack.Name, Artifacts: []portainer.Artifact{{
-		StackID: stack.ID,
-		Files:   []portainer.ArtifactFile{{SourceID: src.ID}},
-	}}}
-	require.NoError(t, tx.Workflow().Create(wf))
-
-	stack.WorkflowID = wf.ID
-	stack.GitConfig = nil
-
-	require.NoError(t, tx.Stack().Create(stack))
-}
-
 func TestAddSourceStats_NoOp(t *testing.T) {
 	t.Parallel()
 

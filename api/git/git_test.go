@@ -1,11 +1,9 @@
 package git
 
 import (
-	"os"
 	"testing"
 	"time"
 
-	"github.com/portainer/portainer/api/archive"
 	"github.com/portainer/portainer/api/filesystem"
 	gittypes "github.com/portainer/portainer/api/git/types"
 
@@ -19,22 +17,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func setup(t *testing.T) string {
-	dir := t.TempDir()
-	bareRepoDir := filesystem.JoinPaths(dir, "test-clone.git")
-
-	file, err := os.OpenFile("./testdata/test-clone-git-repo.tar.gz", os.O_RDONLY, 0o755)
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "failed to open an archive"))
-	}
-
-	if err := archive.ExtractTarGz(file, dir); err != nil {
-		t.Fatal(errors.Wrapf(err, "failed to extract file from the archive to a folder %s", dir))
-	}
-
-	return bareRepoDir
-}
 
 func Test_checkGitError(t *testing.T) {
 	t.Parallel()
@@ -71,115 +53,6 @@ func Test_checkGitError(t *testing.T) {
 		err := errors.New("some other git error")
 		assert.EqualError(t, checkGitError(err), "some other git error")
 	})
-}
-
-func Test_ClonePublicRepository_Shallow(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)} // no need for http client since the test access the repo via file system.
-	repositoryURL := setup(t)
-	referenceName := "refs/heads/main"
-
-	dir := t.TempDir()
-	t.Logf("Cloning into %s", dir)
-	err := service.CloneRepository(t.Context(), dir, repositoryURL, referenceName, "", "", false)
-	require.NoError(t, err)
-	assert.Equal(t, 1, getCommitHistoryLength(t, dir), "cloned repo has incorrect depth")
-}
-
-func Test_ClonePublicRepository_NoGitDirectory(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(false)} // no need for http client since the test access the repo via file system.
-	repositoryURL := setup(t)
-	referenceName := "refs/heads/main"
-
-	dir := t.TempDir()
-	t.Logf("Cloning into %s", dir)
-	err := service.CloneRepository(t.Context(), dir, repositoryURL, referenceName, "", "", false)
-	require.NoError(t, err)
-	assert.NoDirExists(t, filesystem.JoinPaths(dir, ".git"))
-}
-
-func Test_ClonePublicRepository_NonExistentDst(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(false)}
-	repositoryURL := setup(t)
-	referenceName := "refs/heads/main"
-
-	dir := filesystem.JoinPaths(t.TempDir(), "sub", "dir")
-	err := service.CloneRepository(t.Context(), dir, repositoryURL, referenceName, "", "", false)
-	require.NoError(t, err)
-	assert.DirExists(t, dir)
-	assert.NoDirExists(t, filesystem.JoinPaths(dir, ".git"))
-}
-
-func Test_latestCommitID(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)} // no need for http client since the test access the repo via file system.
-
-	repositoryURL := setup(t)
-	referenceName := "refs/heads/main"
-
-	id, err := service.LatestCommitID(t.Context(), repositoryURL, referenceName, "", "", false)
-
-	require.NoError(t, err)
-	assert.Equal(t, "68dcaa7bd452494043c64252ab90db0f98ecf8d2", id)
-}
-
-func Test_ListRefs(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)}
-
-	repositoryURL := setup(t)
-
-	fs, err := service.ListRefs(t.Context(), repositoryURL, "", "", false, false)
-
-	require.NoError(t, err)
-	assert.Equal(t, []string{"refs/heads/main"}, fs)
-}
-
-func Test_ListFiles(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)}
-
-	repositoryURL := setup(t)
-	referenceName := "refs/heads/main"
-
-	fs, err := service.ListFiles(
-		t.Context(),
-		repositoryURL,
-		referenceName,
-		"",
-		"",
-		false,
-		false,
-		[]string{".yml"},
-		false,
-	)
-
-	require.NoError(t, err)
-	assert.Equal(t, []string{"docker-compose.yml"}, fs)
-}
-
-func getCommitHistoryLength(t *testing.T, dir string) int {
-	repo, err := git.PlainOpen(dir)
-	if err != nil {
-		t.Fatalf("can't open a git repo at %s with error %v", dir, err)
-	}
-
-	iter, err := repo.Log(&git.LogOptions{All: true})
-	if err != nil {
-		t.Fatalf("can't get a commit history iterator with error %v", err)
-	}
-
-	count := 0
-	if err := iter.ForEach(func(_ *object.Commit) error {
-		count++
-		return nil
-	}); err != nil {
-		t.Fatalf("can't iterate over the commit history with error %v", err)
-	}
-
-	return count
 }
 
 func Test_noSymlinkFS_Symlink(t *testing.T) {
@@ -560,53 +433,4 @@ func createBareRepoWithBranch(t *testing.T, branch string) string {
 	require.NoError(t, storer.SetReference(plumbing.NewHashReference(refName, commitHash)))
 	require.NoError(t, storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, refName)))
 	return bareDir
-}
-
-func TestREQ_STK_03_LatestCommitID_UnknownRef(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)}
-	repositoryURL := setup(t)
-
-	_, err := service.LatestCommitID(t.Context(), repositoryURL, "refs/heads/does-not-exist", "", "", false)
-	require.Error(t, err)
-	require.ErrorContains(t, err, "could not find ref")
-}
-
-func TestREQ_STK_03_ListFiles_DirOnly(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)}
-	repositoryURL := setup(t)
-
-	dirs, err := service.ListFiles(t.Context(), repositoryURL, "refs/heads/main", "", "", true, false, nil, false)
-	require.NoError(t, err)
-	// bare fixture has only files at root; directory listing may be empty or contain paths
-	for _, d := range dirs {
-		require.NotContains(t, d, ".")
-	}
-}
-
-func TestREQ_STK_03_CloneRepository_TLSSkipVerify_LocalRepo(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(false)}
-	repositoryURL := setup(t)
-
-	dir := t.TempDir()
-	err := service.CloneRepository(t.Context(), dir, repositoryURL, "refs/heads/main", "", "", true)
-	require.NoError(t, err)
-	require.FileExists(t, filesystem.JoinPaths(dir, "docker-compose.yml"))
-	require.NoDirExists(t, filesystem.JoinPaths(dir, ".git"))
-}
-
-func TestREQ_STK_03_ListRefs_And_ListComposeFiles(t *testing.T) {
-	t.Parallel()
-	service := Service{git: NewGitClient(true)}
-	repositoryURL := setup(t)
-
-	refs, err := service.ListRefs(t.Context(), repositoryURL, "", "", false, true)
-	require.NoError(t, err)
-	require.Contains(t, refs, "refs/heads/main")
-
-	files, err := service.ListFiles(t.Context(), repositoryURL, "refs/heads/main", "", "", false, false, []string{".yml", ".yaml"}, true)
-	require.NoError(t, err)
-	require.Contains(t, files, "docker-compose.yml")
 }

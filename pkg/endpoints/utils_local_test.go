@@ -40,19 +40,3 @@ func TestIsAgentEndpoint(t *testing.T) {
 	require.True(t, IsAgentEndpoint(&portainer.Endpoint{Type: portainer.EdgeAgentOnKubernetesEnvironment}))
 	require.False(t, IsAgentEndpoint(&portainer.Endpoint{Type: portainer.DockerEnvironment}))
 }
-
-func TestEndpointSet(t *testing.T) {
-	t.Parallel()
-	set := EndpointSet([]portainer.EndpointID{1, 2, 2, 3})
-	require.True(t, set[1])
-	require.True(t, set[2])
-	require.True(t, set[3])
-	require.False(t, set[4])
-	require.Empty(t, EndpointSet(nil))
-}
-
-func TestIsNewerThan225_InvalidVersion(t *testing.T) {
-	t.Parallel()
-	require.False(t, IsNewerThan225(""))
-	require.False(t, IsNewerThan225("not-a-version"))
-}

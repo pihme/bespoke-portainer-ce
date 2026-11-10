@@ -11,14 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewHTTPClient(t *testing.T) {
-	t.Parallel()
-	c := NewHTTPClient()
-	require.NotNil(t, c)
-	require.NotNil(t, c.Client)
-	require.Equal(t, defaultHTTPTimeout, int(c.Timeout.Seconds()))
-}
-
 func TestGet_SuccessAndErrors(t *testing.T) {
 	t.Parallel()
 

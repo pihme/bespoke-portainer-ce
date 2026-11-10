@@ -5,20 +5,10 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/datastore"
 
 	"github.com/stretchr/testify/require"
 )
-
-func TestNewServiceAndBucketName(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	svc, err := resourcecontrol.NewService(store.Connection())
-	require.NoError(t, err)
-	require.Equal(t, resourcecontrol.BucketName, svc.BucketName())
-}
 
 func TestCreateReadUpdateDeleteResourceControl(t *testing.T) {
 	t.Parallel()

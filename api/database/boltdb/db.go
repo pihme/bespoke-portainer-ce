@@ -13,7 +13,6 @@ import (
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/filesystem"
 
 	"github.com/rs/zerolog/log"
@@ -68,15 +67,6 @@ func (connection *DbConnection) GetDatabaseFilePath() string {
 // GetStorePath get the filename and path for the database file
 func (connection *DbConnection) GetStorePath() string {
 	return connection.Path
-}
-
-func (connection *DbConnection) GetDatabaseFileSize() (int64, error) {
-	file, err := os.Stat(connection.GetDatabaseFilePath())
-	if err != nil {
-		return 0, fmt.Errorf("Failed to stat database file path: %s err: %w", connection.GetDatabaseFilePath(), err)
-	}
-
-	return file.Size(), nil
 }
 
 func (connection *DbConnection) SetEncrypted(flag bool) error {
@@ -216,24 +206,6 @@ func (connection *DbConnection) UpdateTx(fn func(portainer.Transaction) error) e
 	return connection.Update(connection.txFn(fn))
 }
 
-// UpdateTxBatch executes the given function inside a read-write transaction, coalescing
-// concurrent callers into a single physical commit when batching is configured
-// (MaxBatchSize/MaxBatchDelay). Falls back to a plain UpdateTx when it isn't.
-func (connection *DbConnection) UpdateTxBatch(fn func(portainer.Transaction) error) error {
-	if connection.BatchingEnabled() {
-		return connection.Batch(connection.txFn(fn))
-	}
-
-	return connection.Update(connection.txFn(fn))
-}
-
-// BatchingEnabled reports whether MaxBatchSize/MaxBatchDelay are configured, i.e.
-// whether UpdateTxBatch will coalesce concurrent callers instead of falling back to a
-// plain Update per call.
-func (connection *DbConnection) BatchingEnabled() bool {
-	return connection.MaxBatchDelay > 0 && connection.MaxBatchSize > 1
-}
-
 // ViewTx executes the given function inside a read-only transaction
 func (connection *DbConnection) ViewTx(fn func(portainer.Transaction) error) error {
 	return connection.View(connection.txFn(fn))
@@ -247,20 +219,6 @@ func (connection *DbConnection) BackupTo(w io.Writer) error {
 
 		return err
 	})
-}
-
-func (connection *DbConnection) ExportRaw(filename string) error {
-	databasePath := connection.GetDatabaseFilePath()
-	if _, err := os.Stat(databasePath); err != nil {
-		return fmt.Errorf("stat on %s failed, error: %w", databasePath, err)
-	}
-
-	b, err := connection.ExportJSON(databasePath, true)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(filename, b, 0600)
 }
 
 // ConvertToKey returns an 8-byte big endian representation of v.
@@ -339,32 +297,6 @@ func (connection *DbConnection) getEncryptionKey() []byte {
 func (connection *DbConnection) UpdateObject(bucketName string, key []byte, object any) error {
 	return connection.UpdateTx(func(tx portainer.Transaction) error {
 		return tx.UpdateObject(bucketName, key, object)
-	})
-}
-
-// UpdateObjectFunc is a generic function used to update an object safely without race conditions.
-func (connection *DbConnection) UpdateObjectFunc(bucketName string, key []byte, object any, updateFn func()) error {
-	return connection.Batch(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-
-		data := bucket.Get(key)
-		if data == nil {
-			return fmt.Errorf("%w (bucket=%s, key=%s)", dserrors.ErrObjectNotFound, bucketName, keyToString(key))
-		}
-
-		err := connection.UnmarshalObject(data, object)
-		if err != nil {
-			return err
-		}
-
-		updateFn()
-
-		data, err = connection.MarshalObject(object)
-		if err != nil {
-			return err
-		}
-
-		return bucket.Put(key, data)
 	})
 }
 

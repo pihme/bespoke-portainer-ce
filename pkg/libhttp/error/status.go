@@ -33,10 +33,6 @@ func InternalServerError(message string, err error) *HandlerError {
 	return NewError(http.StatusInternalServerError, message, err)
 }
 
-func Unauthorized(message string, err error) *HandlerError {
-	return NewError(http.StatusUnauthorized, message, err)
-}
-
 func Forbidden(message string, err error) *HandlerError {
 	return NewError(http.StatusForbidden, message, err)
 }

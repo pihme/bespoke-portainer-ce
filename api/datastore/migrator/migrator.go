@@ -93,10 +93,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 	return migrator
 }
 
-func (m *Migrator) CurrentDBVersion() string {
-	return m.currentDBVersion.SchemaVersion
-}
-
 func (m *Migrator) CurrentDBEdition() portainer.SoftwareEdition {
 	return portainer.SoftwareEdition(m.currentDBVersion.Edition)
 }

@@ -15,10 +15,6 @@ type Service struct {
 	connection portainer.Connection
 }
 
-func (service *Service) BucketName() string {
-	return BucketName
-}
-
 // NewService creates a new instance of a service.
 func NewService(connection portainer.Connection) (*Service, error) {
 	err := connection.SetServiceName(BucketName)

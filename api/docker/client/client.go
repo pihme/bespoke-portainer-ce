@@ -14,7 +14,6 @@ import (
 
 const (
 	defaultDockerRequestTimeout = 60 * time.Second
-	dockerClientVersion         = "1.37"
 )
 
 // ClientFactory is used to create Docker clients

@@ -21,17 +21,6 @@ func TestGetJSONObject(t *testing.T) {
 	require.Nil(t, GetJSONObject(map[string]any{}, "nested"))
 }
 
-func TestGetArrayObject(t *testing.T) {
-	t.Parallel()
-
-	arr := []any{"a", float64(2)}
-	obj := map[string]any{"items": arr}
-
-	require.Equal(t, arr, GetArrayObject(obj, "items"))
-	require.Nil(t, GetArrayObject(obj, "missing"))
-	require.Nil(t, GetArrayObject(map[string]any{}, "items"))
-}
-
 func TestMarshal(t *testing.T) {
 	t.Parallel()
 

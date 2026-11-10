@@ -314,52 +314,6 @@ func TestSummaryCountsHealthBreakdown(t *testing.T) {
 	}, counts.ByHealth)
 }
 
-func TestSummaryCountsHeartbeatRefreshedFromInMemoryMap(t *testing.T) {
-	_, store := datastore.MustNewTestStore(t, true, true)
-
-	endpoint := &portainer.Endpoint{
-		ID:              1,
-		Name:            "stale-edge",
-		Type:            portainer.EdgeAgentOnDockerEnvironment,
-		GroupID:         2,
-		UserTrusted:     true,
-		LastCheckInDate: time.Now().Add(-1 * time.Hour).Unix(),
-	}
-	endpoint.Agent.Version = portainer.APIVersion
-	require.NoError(t, store.Endpoint().Create(endpoint))
-
-	store.Endpoint().UpdateHeartbeat(1)
-
-	err := store.User().Create(&portainer.User{Username: "admin", Role: portainer.AdministratorRole})
-	require.NoError(t, err)
-
-	bouncer := testhelpers.NewTestRequestBouncer()
-	handler := NewHandler(bouncer)
-	handler.DataStore = store
-
-	req := httptest.NewRequest(http.MethodGet, "/endpoints/summary", nil)
-	ctx := security.StoreTokenData(req, &portainer.TokenData{ID: 1, Username: "admin", Role: 1})
-	req = req.WithContext(ctx)
-	restrictedCtx := security.StoreRestrictedRequestContext(req, &security.RestrictedRequestContext{UserID: 1, IsAdmin: true})
-	req = req.WithContext(restrictedCtx)
-	testhelpers.AddTestSecurityCookie(req, "Bearer dummytoken")
-
-	rr := httptest.NewRecorder()
-	handler.ServeHTTP(rr, req)
-	require.Equal(t, http.StatusOK, rr.Code)
-
-	body, err := io.ReadAll(rr.Body)
-	require.NoError(t, err)
-
-	var counts EnvironmentSummaryCountsResponse
-	require.NoError(t, json.Unmarshal(body, &counts))
-
-	assert.Equal(t, 1, counts.Total)
-	assert.Equal(t, 1, counts.Up, "in-memory heartbeat should override stale DB LastCheckInDate")
-	assert.Equal(t, 0, counts.Down)
-	assert.Equal(t, healthCounts{Up: 1, Heartbeat: 1}, counts.ByHealth)
-}
-
 func TestResolveEndpointStatus(t *testing.T) {
 	settings := &portainer.Settings{EdgeAgentCheckinInterval: 60}
 

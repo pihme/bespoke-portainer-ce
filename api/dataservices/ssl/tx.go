@@ -9,10 +9,6 @@ type ServiceTx struct {
 	tx      portainer.Transaction
 }
 
-func (service ServiceTx) BucketName() string {
-	return BucketName
-}
-
 // Settings retrieve the settings object.
 func (service ServiceTx) Settings() (*portainer.SSLSettings, error) {
 	var settings portainer.SSLSettings

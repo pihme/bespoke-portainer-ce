@@ -32,28 +32,3 @@ func int64n(max int64, fips bool) int64 {
 
 	return i.Int64()
 }
-
-const alphanumericChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-// String returns a random alphanumeric string of length n.
-func String(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = alphanumericChars[int64n(int64(len(alphanumericChars)), true)]
-	}
-
-	return string(b)
-}
-
-func Float64() float64 {
-	return randomFloat64(fips.FIPSMode())
-}
-
-func randomFloat64(fips bool) float64 {
-	if !fips {
-		return mrand.Float64()
-	}
-
-	// This is based of this comment https://cs.opensource.google/go/go/+/refs/tags/go1.24.5:src/math/rand/v2/rand.go;l=209
-	return float64(int64n(1<<53, fips) / (1 << 53))
-}

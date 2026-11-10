@@ -15,7 +15,6 @@ export default class DockerFeaturesConfigurationController {
     this.limitedFeatureUpToDateImage = FeatureId.IMAGE_UP_TO_DATE_INDICATOR;
 
     this.formValues = {
-      enableHostManagementFeatures: false,
       allowVolumeBrowserForRegularUsers: false,
       disableBindMountsForRegularUsers: false,
       disablePrivilegedModeForRegularUsers: false,
@@ -40,7 +39,6 @@ export default class DockerFeaturesConfigurationController {
     this.onToggleAutoUpdate = this.onToggleAutoUpdate.bind(this);
     this.onToggleGPUManagement = this.onToggleGPUManagement.bind(this);
     this.onGpusChange = this.onGpusChange.bind(this);
-    this.onChangeEnableHostManagementFeatures = this.onChangeField('enableHostManagementFeatures');
     this.onChangeAllowVolumeBrowserForRegularUsers = this.onChangeField('allowVolumeBrowserForRegularUsers');
     this.onChangeDisableBindMountsForRegularUsers = this.onChangeField('disableBindMountsForRegularUsers');
     this.onChangeDisablePrivilegedModeForRegularUsers = this.onChangeField('disablePrivilegedModeForRegularUsers');
@@ -117,7 +115,6 @@ export default class DockerFeaturesConfigurationController {
         const gpus = this.state.enableGPUManagement ? validGpus : [];
 
         const settings = {
-          enableHostManagementFeatures: this.formValues.enableHostManagementFeatures,
           allowBindMountsForRegularUsers: !this.formValues.disableBindMountsForRegularUsers,
           allowPrivilegedModeForRegularUsers: !this.formValues.disablePrivilegedModeForRegularUsers,
           allowVolumeBrowserForRegularUsers: this.formValues.allowVolumeBrowserForRegularUsers,
@@ -155,7 +152,6 @@ export default class DockerFeaturesConfigurationController {
     this.isDockerStandaloneEnv = applicationState.endpoint.mode.provider === 'DOCKER_STANDALONE';
 
     this.formValues = {
-      enableHostManagementFeatures: this.isAgent && securitySettings.enableHostManagementFeatures,
       allowVolumeBrowserForRegularUsers: this.isAgent && securitySettings.allowVolumeBrowserForRegularUsers,
       disableBindMountsForRegularUsers: !securitySettings.allowBindMountsForRegularUsers,
       disablePrivilegedModeForRegularUsers: !securitySettings.allowPrivilegedModeForRegularUsers,

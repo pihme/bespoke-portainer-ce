@@ -109,9 +109,9 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## HOST – Docker environment dashboard, host and events
 
 - **REQ-HOST-01 Docker dashboard.** Environment info and summary tiles (stacks, containers, images, volumes, networks, GPUs, Swarm services) with links into the lists. Entry: UI `#!/{envId}/docker/dashboard`; API `GET /docker/{environmentId}/dashboard`. docs: user/docker/dashboard *TAI-003: no Swarm services tile and no Swarm cluster info panels; the GPU tile shows on standalone engines.*
-- **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details *TAI-007: no PCI devices, physical disks or Agent disk usage.*
-- **REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem) *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-009.*
-- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.*
+- **REQ-HOST-02 Host details.** Host and Docker engine details, and with the Agent, PCI devices and physical disks. Entry: UI `#!/{envId}/docker/host`. docs: user/docker/host/details *TAI-007: no PCI devices, physical disks or Agent disk usage.* *TAI-009: no Browse button.*
+- ~~**REQ-HOST-03 Browse the host filesystem.** With the Agent and host management features enabled. Entry: UI `#!/{envId}/docker/host/browser`. docs: user/docker/host/setup (Host and Filesystem) *TAI-007: without Agent environments the browser is no longer reachable; it is removed by TAI-009.*~~ REMOVED (TAI-009)
+- **REQ-HOST-04 Environment setup (feature configuration).** Per-environment toggles: host management features, change window for GitOps updates, Docker security settings restricting non-admins (bind mounts, privileged mode, host namespaces, device mapping, sysctl, capabilities, container stop for non-admins), GPU display and GPU list, image up-to-date indicator (BE). Entry: UI `#!/{envId}/docker/host/feat-config` (Swarm: `#!/{envId}/docker/swarm/feat-config`); API `PUT /endpoints/{id}/settings`. docs: user/docker/host/setup, user/docker/swarm/setup *TAI-003: no Swarm variant (`#!/{envId}/docker/swarm/feat-config`); every Docker engine uses the host page.* *TAI-009: no host management features toggle (it only enabled the host filesystem browser and the Agent host details).*
 - **REQ-HOST-05 Docker events.** List engine events for the environment. Entry: UI `#!/{envId}/docker/events`. docs: user/docker/events
 
 ## CTR – Docker containers
@@ -376,6 +376,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (c) A leftover Azure environment record stays in the database and can be listed, edited (name, group, tags) and removed; the proxy factory and the Docker client factory refuse it with "Azure environments are no longer supported"; snapshots skip it.
   - (d) The UI has no ACI option in the environment wizard, no Azure dashboard, container instance views or Azure sidebar; a leftover Azure environment opens its details page.
   - (e) Git repositories hosted on Azure DevOps (stack Git deploy) are unchanged.
+- **REQ-TAI-009 No host filesystem browser.** Added by TAI-009 (2026-11-10).
+  - (a) The UI route `#!/{envId}/docker/host/browser` is gone; the host page has no Browse button.
+  - (b) A Docker proxy browse request without a volume (`/endpoints/{id}/docker/v2/browse/…` with no `volumeID`) answers 404 and never reaches the engine.
+  - (c) The Docker features configuration page has no host management features toggle; `PUT /endpoints/{id}/settings` still accepts `enableHostManagementFeatures` and stores it, without effect.
+  - (d) Host and engine details (REQ-HOST-02), the dashboard, events and the other feature toggles are unchanged.
 
 ## Not covered as requirements
 

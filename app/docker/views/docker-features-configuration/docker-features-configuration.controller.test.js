@@ -118,7 +118,6 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     expect(StateManager.getState).toHaveBeenCalled();
     expect(ctrl.isAgent).toBe(false);
     expect(ctrl.isDockerStandaloneEnv).toBe(true);
-    expect(ctrl.formValues.enableHostManagementFeatures).toBe(false);
     expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(false);
     expect(ctrl.formValues.disableBindMountsForRegularUsers).toBe(true);
     expect(ctrl.formValues.disablePrivilegedModeForRegularUsers).toBe(true);
@@ -146,7 +145,8 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.$onInit();
 
     expect(ctrl.isAgent).toBe(true);
-    expect(ctrl.formValues.enableHostManagementFeatures).toBe(true);
+    // REQ-TAI-009: no host management features toggle
+    expect(ctrl.formValues).not.toHaveProperty('enableHostManagementFeatures');
     expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(true);
     expect(ctrl.state.enableGPUManagement).toBe(true);
     expect(ctrl.initialGPUs).toEqual([{ name: 'nvidia0', value: 'gpu=0' }]);
@@ -184,8 +184,7 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.onChangeAllowVolumeBrowserForRegularUsers(true);
     expect(ctrl.formValues.allowVolumeBrowserForRegularUsers).toBe(true);
 
-    ctrl.onChangeEnableHostManagementFeatures(true);
-    expect(ctrl.formValues.enableHostManagementFeatures).toBe(true);
+    expect(ctrl).not.toHaveProperty('onChangeEnableHostManagementFeatures');
 
     ctrl.onChangeDisablePrivilegedModeForRegularUsers(true);
     ctrl.onChangeDisableHostNamespaceForRegularUsers(true);
@@ -241,7 +240,6 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     ctrl.formValues.disableContainerCapabilitiesForRegularUsers = true;
     ctrl.formValues.disableSysctlSettingForRegularUsers = true;
     ctrl.formValues.disableSecurityOptForRegularUsers = true;
-    ctrl.formValues.enableHostManagementFeatures = true;
     ctrl.formValues.allowVolumeBrowserForRegularUsers = true;
 
     const savePromise = ctrl.save();
@@ -251,7 +249,6 @@ describe('REQ-HOST-04 DockerFeaturesConfigurationController local Docker feature
     await savePromise;
 
     expect(EndpointService.updateSecuritySettings).toHaveBeenCalledWith(5, {
-      enableHostManagementFeatures: true,
       allowBindMountsForRegularUsers: false,
       allowPrivilegedModeForRegularUsers: false,
       allowVolumeBrowserForRegularUsers: true,

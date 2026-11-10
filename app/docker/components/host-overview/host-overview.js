@@ -3,12 +3,7 @@ angular.module('portainer.docker').component('hostOverview', {
   bindings: {
     hostDetails: '<',
     engineDetails: '<',
-    isAgent: '<',
-    agentApiVersion: '<',
     refreshUrl: '@',
-    browseUrl: '@',
-    hostFeaturesEnabled: '<',
-    isAdmin: '<',
   },
   transclude: true,
 });

@@ -180,10 +180,11 @@ func (transport *Transport) proxyAgentRequest(r *http.Request, unversionedPath s
 
 	switch {
 	case strings.HasPrefix(requestPath, "/browse"):
-		// Host file browser request
+		// The host filesystem browser is removed (TAI-009): a browse request
+		// without a volume never reaches the daemon.
 		volumeIDParameter, found := r.URL.Query()["volumeID"]
 		if !found || len(volumeIDParameter) < 1 {
-			return transport.administratorOperation(r)
+			return utils.WriteNotFoundResponse("Host filesystem browser is not supported")
 		}
 
 		volumeName := volumeIDParameter[0]

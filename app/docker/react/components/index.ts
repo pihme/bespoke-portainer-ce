@@ -7,7 +7,6 @@ import { withReactQuery } from '@/react-tools/withReactQuery';
 import { withUIRouter } from '@/react-tools/withUIRouter';
 import { DockerfileDetails } from '@/react/docker/images/ItemView/DockerfileDetails';
 import { GpusList } from '@/react/docker/host/SetupView/GpusList';
-import { AgentHostBrowser } from '@/react/docker/host/BrowseView/AgentHostBrowser';
 import { AgentVolumeBrowser } from '@/react/docker/volumes/BrowseView/AgentVolumeBrowser';
 import { ProcessesDatatable } from '@/react/docker/containers/StatsView/ProcessesDatatable';
 import { StacksDatatable } from '@/react/docker/stacks/ListView/StacksDatatable';
@@ -27,20 +26,6 @@ const ngModule = angular
   .component(
     'gpusList',
     r2a(withControlledInput(GpusList), ['value', 'onChange'])
-  )
-  .component(
-    'agentHostBrowserReact',
-    r2a(withUIRouter(withCurrentUser(AgentHostBrowser)), [
-      'dataset',
-      'isRoot',
-      'onBrowse',
-      'onDelete',
-      'onDownload',
-      'onFileSelectedForUpload',
-      'onGoToParent',
-      'onRename',
-      'relativePath',
-    ])
   )
   .component(
     'agentVolumeBrowserReact',
@@ -72,10 +57,6 @@ const ngModule = angular
   )
   .component(
     'hostDetailsPanel',
-    r2a(withUIRouter(withReactQuery(HostDetailsPanel)), [
-      'host',
-      'isBrowseEnabled',
-      'browseUrl',
-    ])
+    r2a(withUIRouter(withReactQuery(HostDetailsPanel)), ['host'])
   );
 export const componentsModule = ngModule.name;

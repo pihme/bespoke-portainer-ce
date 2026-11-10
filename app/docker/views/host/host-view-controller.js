@@ -2,29 +2,17 @@ angular.module('portainer.docker').controller('HostViewController', [
   '$q',
   'SystemService',
   'Notifications',
-  'StateManager',
-  'Authentication',
-  function HostViewController($q, SystemService, Notifications, StateManager, Authentication) {
+  function HostViewController($q, SystemService, Notifications) {
     var ctrl = this;
 
     this.$onInit = initView;
-
-    ctrl.state = {
-      isAgent: false,
-      isAdmin: false,
-    };
 
     this.engineDetails = {};
     this.hostDetails = {};
 
     function initView() {
-      var applicationState = StateManager.getState();
-      ctrl.state.isAgent = applicationState.endpoint.mode.agentProxy;
-      ctrl.state.isAdmin = Authentication.isAdmin();
-      var agentApiVersion = applicationState.endpoint.agentApiVersion;
-      ctrl.state.agentApiVersion = agentApiVersion;
-      ctrl.state.enableHostManagementFeatures = ctrl.endpoint.SecuritySettings.enableHostManagementFeatures;
-
+      // The host filesystem browser is removed (TAI-009): the host view only
+      // reads engine and host details.
       $q.all({
         version: SystemService.version(),
         info: SystemService.info(),

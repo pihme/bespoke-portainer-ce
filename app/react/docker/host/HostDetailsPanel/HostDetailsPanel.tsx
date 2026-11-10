@@ -1,5 +1,3 @@
-import { useRouter } from '@uirouter/react';
-
 import { humanize } from '@/portainer/filters/filters';
 
 import { Widget } from '@@/Widget/Widget';
@@ -23,17 +21,10 @@ type HostInfo = {
 
 type Props = {
   host: HostInfo;
-  isBrowseEnabled: boolean;
-  browseUrl: string;
 };
 
-export function HostDetailsPanel({
-  host,
-  isBrowseEnabled,
-  browseUrl,
-}: Props) {
-  const router = useRouter();
-
+// The host filesystem browser (and its Browse button) is removed (TAI-009).
+export function HostDetailsPanel({ host }: Props) {
   return (
     <div className="row">
       <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -67,20 +58,6 @@ export function HostDetailsPanel({
                 <td>Total memory</td>
                 <td>{humanize(host.totalMemory)}</td>
               </tr>
-              {isBrowseEnabled && (
-                <tr>
-                  <td colSpan={2}>
-                    <button
-                      type="button"
-                      className="btn btn-primary btn-sm"
-                      title="Browse"
-                      onClick={() => router.stateService.go(browseUrl)}
-                    >
-                      Browse
-                    </button>
-                  </td>
-                </tr>
-              )}
             </DetailsTable>
           </WidgetBody>
         </Widget>

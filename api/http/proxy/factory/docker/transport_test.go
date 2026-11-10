@@ -1051,3 +1051,38 @@ func TestREQ_TAI_003_ProxyDockerRequest_SwarmPathsAreGone(t *testing.T) {
 
 	assert.Empty(t, reached, "no Swarm request may reach the Docker daemon")
 }
+
+// REQ-TAI-009: the host filesystem browser is removed; a browse request
+// without a volume answers 404 and never reaches the daemon.
+func TestREQ_TAI_009_ProxyDockerRequest_HostBrowseIsGone(t *testing.T) {
+	t.Parallel()
+
+	var reached []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reached = append(reached, r.URL.Path)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	transport := &Transport{
+		endpoint:      &portainer.Endpoint{URL: srv.URL},
+		HTTPTransport: &http.Transport{},
+	}
+
+	for _, route := range []struct{ method, path string }{
+		{http.MethodGet, "/v2/browse/ls?path=/"},
+		{http.MethodGet, "/v2/browse/get?path=/etc/hostname"},
+		{http.MethodDelete, "/v2/browse/delete?path=/tmp/x"},
+		{http.MethodPut, "/v2/browse/rename"},
+		{http.MethodPost, "/v2/browse/put"},
+	} {
+		req := httptest.NewRequest(route.method, srv.URL+route.path, nil)
+		r, err := transport.ProxyDockerRequest(req)
+		require.NoError(t, err)
+		require.NotNil(t, r)
+		assert.Equal(t, http.StatusNotFound, r.StatusCode, "%s %s", route.method, route.path)
+		require.NoError(t, r.Body.Close())
+	}
+
+	assert.Empty(t, reached, "no host browse request may reach the Docker daemon")
+}

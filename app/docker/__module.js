@@ -124,16 +124,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
       },
     };
 
-    var hostBrowser = {
-      name: 'docker.host.browser',
-      url: '/browser',
-      views: {
-        'content@': {
-          component: 'hostBrowserView',
-        },
-      },
-    };
-
     var events = {
       name: 'docker.events',
       url: '/events',
@@ -363,7 +353,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
     $stateRegistryProvider.register(docker);
     $stateRegistryProvider.register(dashboard);
     $stateRegistryProvider.register(host);
-    $stateRegistryProvider.register(hostBrowser);
     $stateRegistryProvider.register(events);
     $stateRegistryProvider.register(images);
     $stateRegistryProvider.register(image);

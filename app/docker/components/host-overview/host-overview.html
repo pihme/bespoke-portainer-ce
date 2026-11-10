@@ -1,10 +1,6 @@
 <page-header title="'Host overview'" breadcrumbs="['Docker']" reload="true"> </page-header>
 
-<host-details-panel
-  host="$ctrl.hostDetails"
-  is-browse-enabled="$ctrl.isAdmin && $ctrl.isAgent && $ctrl.agentApiVersion > 1 && $ctrl.hostFeaturesEnabled"
-  browse-url="$ctrl.browseUrl"
-></host-details-panel>
+<host-details-panel host="$ctrl.hostDetails"></host-details-panel>
 
 <engine-details-panel engine="$ctrl.engineDetails"></engine-details-panel>
 

@@ -29,12 +29,9 @@ describe('hostOverview component registration', () => {
     expect(config.bindings).toEqual({
       hostDetails: '<',
       engineDetails: '<',
-      isAgent: '<',
-      agentApiVersion: '<',
       refreshUrl: '@',
-      browseUrl: '@',
-      hostFeaturesEnabled: '<',
-      isAdmin: '<',
     });
+    // REQ-TAI-009: no browse link inputs
+    expect(config.bindings).not.toHaveProperty('browseUrl');
   });
 });

@@ -1,6 +1,5 @@
 import { ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { UIRouterContext, UIRouterReact } from '@uirouter/react';
 import { vi } from 'vitest';
 
@@ -22,8 +21,6 @@ function renderPanel(
       totalCPU: 4,
       totalMemory: 1073741824, // 1 GB
     },
-    isBrowseEnabled: false,
-    browseUrl: 'docker.host.browse',
   };
 
   return render(
@@ -109,24 +106,11 @@ describe('HostDetailsPanel', () => {
     expect(screen.queryByText('Disk usage')).not.toBeInTheDocument();
   });
 
-  describe('Browse button', () => {
-    it('renders the Browse button when isBrowseEnabled is true', () => {
-      renderPanel({ isBrowseEnabled: true });
-      expect(screen.getByRole('button', { name: 'Browse' })).toBeVisible();
-    });
-
-    it('hides the Browse button when isBrowseEnabled is false', () => {
-      renderPanel({ isBrowseEnabled: false });
-      expect(
-        screen.queryByRole('button', { name: 'Browse' })
-      ).not.toBeInTheDocument();
-    });
-
-    it('navigates to browseUrl when Browse is clicked', async () => {
-      const user = userEvent.setup();
-      renderPanel({ isBrowseEnabled: true, browseUrl: 'docker.host.browse' });
-      await user.click(screen.getByRole('button', { name: 'Browse' }));
-      expect(mockGo).toHaveBeenCalledWith('docker.host.browse');
-    });
+  it('REQ-TAI-009 shows no host filesystem Browse button', () => {
+    renderPanel();
+    expect(
+      screen.queryByRole('button', { name: 'Browse' })
+    ).not.toBeInTheDocument();
+    expect(mockGo).not.toHaveBeenCalled();
   });
 });

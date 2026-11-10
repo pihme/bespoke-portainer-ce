@@ -26,13 +26,7 @@ function deferred() {
 }
 function flush() { return Promise.resolve().then(() => Promise.resolve()).then(() => Promise.resolve()); }
 
-function buildController({
-  agentProxy = false,
-  agentApiVersion = 1,
-  enableHostManagementFeatures = false,
-  isAdmin = true,
-  versionError = null,
-} = {}) {
+function buildController({ enableHostManagementFeatures = false, versionError = null } = {}) {
   const ctrl = {
     endpoint: { Id: 3, SecuritySettings: { enableHostManagementFeatures } },
   };
@@ -46,14 +40,7 @@ function buildController({
     info: vi.fn(() => infoPromise),
   };
   const Notifications = { error: vi.fn() };
-  const StateManager = {
-    getState: () => ({
-      endpoint: { mode: { agentProxy }, agentApiVersion },
-    }),
-  };
-  const Authentication = { isAdmin: vi.fn(() => isAdmin) };
-
-  controllerState.ctor.call(ctrl, $q, SystemService, Notifications, StateManager, Authentication);
+  controllerState.ctor.call(ctrl, $q, SystemService, Notifications);
 
   async function settle({
     version = { Version: '24.0', ApiVersion: '1.43' },
@@ -97,15 +84,20 @@ describe('REQ-HOST local host view controller', () => {
     expect(ctx.ctrl.engineDetails.releaseVersion).toBe('24.0');
     expect(ctx.ctrl.hostDetails.name).toBe('docker-host');
     expect(ctx.ctrl.hostDetails.totalCPU).toBe(4);
-    expect(ctx.ctrl.state.isAgent).toBe(false);
   });
 
   it('REQ-TAI-007 loads no agent host info (devices, disks) even with host management features on', async () => {
-    const ctx = buildController({ agentProxy: true, agentApiVersion: 2, enableHostManagementFeatures: true });
+    const ctx = buildController({ enableHostManagementFeatures: true });
     await ctx.settle();
     expect(ctx.ctrl.hostDetails.name).toBe('docker-host');
     expect(ctx.ctrl).not.toHaveProperty('devices');
     expect(ctx.ctrl).not.toHaveProperty('disks');
+  });
+
+  it('REQ-TAI-009 keeps no host browser state even with host management features on', async () => {
+    const ctx = buildController({ enableHostManagementFeatures: true });
+    await ctx.settle();
+    expect(ctx.ctrl).not.toHaveProperty('state');
   });
 
   it('notifies when system details fail', async () => {

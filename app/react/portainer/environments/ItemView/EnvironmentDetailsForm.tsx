@@ -3,9 +3,7 @@ import { useCurrentStateAndParams, useRouter } from '@uirouter/react';
 import { notifySuccess } from '@/portainer/services/notifications';
 
 import { Environment } from '../types';
-import { isAzureEnvironment } from '../utils';
 
-import { AzureEnvironmentForm } from './AzureEnvironmentForm/AzureEnvironmentForm';
 import { GeneralEnvironmentForm } from './GeneralEnvironmentForm/GeneralEnvironmentForm';
 
 export function EnvironmentDetailsForm({
@@ -17,17 +15,8 @@ export function EnvironmentDetailsForm({
   const {
     params: { redirectTo = '' },
   } = useCurrentStateAndParams();
-  const isAzure = isAzureEnvironment(environment.Type);
-
-  if (isAzure) {
-    return (
-      <AzureEnvironmentForm
-        environment={environment}
-        onSuccess={handleSuccess}
-      />
-    );
-  }
-
+  // Azure Container Instances are removed (TAI-008): a leftover Azure
+  // environment is edited with the general form (name, group, tags).
   return (
     <GeneralEnvironmentForm
       environment={environment}

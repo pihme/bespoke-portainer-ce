@@ -11,8 +11,6 @@ import (
 	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
-const azureAPIBaseURL = "https://management.azure.com"
-
 type (
 	// ProxyFactory is a factory to create reverse proxies
 	ProxyFactory struct {
@@ -45,7 +43,7 @@ func NewProxyFactory(dataStore dataservices.DataStore, signatureService portaine
 func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (http.Handler, error) {
 	switch endpoint.Type {
 	case portainer.AzureEnvironment:
-		return newAzureProxy(endpoint, factory.dataStore)
+		return nil, portainer.ErrAzureEnvironmentNotSupported
 	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:
 		return nil, portainer.ErrEdgeEnvironmentNotSupported
 	case portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment:

@@ -23,3 +23,7 @@ func IsLocalSocketURL(url string) bool {
 func IsAgentEnvironmentType(t EndpointType) bool {
 	return t == AgentOnDockerEnvironment || t == AgentOnKubernetesEnvironment
 }
+
+// ErrAzureEnvironmentNotSupported is returned for Azure Container Instances
+// environments, which are removed (TAI-008).
+var ErrAzureEnvironmentNotSupported = errors.New("Azure environments are no longer supported")

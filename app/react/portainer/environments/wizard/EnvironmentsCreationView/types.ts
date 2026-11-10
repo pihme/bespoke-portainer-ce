@@ -1,6 +1,5 @@
 export interface AnalyticsState {
   podmanLocalEnvironment: number; // podman socket
-  aciApi: number;
   localEndpoint: number; // docker socket
 }
 

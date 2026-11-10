@@ -22,8 +22,8 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		Router:         mux.NewRouter(),
 		requestBouncer: bouncer,
 	}
-	h.PathPrefix("/{id}/azure").Handler(
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToAzureAPI)))
+	// The Azure API proxy (/{id}/azure) is removed with Azure Container
+	// Instances (TAI-008).
 	h.PathPrefix("/{id}/docker").Handler(
 		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.proxyRequestsToDockerAPI)))
 	// The Portainer Agent routes (/{id}/agent/docker, /{id}/agent/host) are

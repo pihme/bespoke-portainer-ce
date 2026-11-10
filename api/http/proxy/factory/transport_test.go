@@ -140,3 +140,12 @@ func TestREQ_TAI_007_AgentEnvironmentsGetNoProxy(t *testing.T) {
 		require.ErrorIs(t, err, portainer.ErrAgentEnvironmentNotSupported)
 	}
 }
+
+// REQ-TAI-008: a leftover Azure environment record gets no proxy; there is no
+// Azure API proxy any more.
+func TestREQ_TAI_008_AzureEnvironmentGetsNoProxy(t *testing.T) {
+	f := &ProxyFactory{}
+
+	_, err := f.NewEndpointProxy(&portainer.Endpoint{Type: portainer.AzureEnvironment, URL: "https://management.azure.com"})
+	require.ErrorIs(t, err, portainer.ErrAzureEnvironmentNotSupported)
+}

@@ -48,9 +48,6 @@ vi.mock('./DockerSidebar', () => ({
   ),
 }));
 
-vi.mock('./AzureSidebar', () => ({
-  AzureSidebar: () => <div data-cy="stub-azure-sidebar">Azure</div>,
-}));
 
 function renderEnvSidebar(sidebarState = { isOpen: true, toggle: vi.fn() }) {
   const Wrapped = withUserProvider(

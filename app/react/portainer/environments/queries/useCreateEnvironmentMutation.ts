@@ -4,14 +4,7 @@ import {
   MutationFunction,
 } from '@tanstack/react-query';
 
-import {
-  createLocalDockerEnvironment,
-  createAzureEnvironment,
-} from '../environment.service/create';
-
-export function useCreateAzureEnvironmentMutation() {
-  return useGenericCreationMutation(createAzureEnvironment);
-}
+import { createLocalDockerEnvironment } from '../environment.service/create';
 
 export function useCreateLocalDockerEnvironmentMutation() {
   return useGenericCreationMutation(createLocalDockerEnvironment);

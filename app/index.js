@@ -9,7 +9,6 @@ import { Edition } from '@/react/portainer/feature-flags/enums';
 import { init as initFeatureService } from '@/react/portainer/feature-flags/feature-flags.service';
 
 import './agent';
-import { azureModule } from './azure';
 import './docker/__module';
 import './portainer/__module';
 
@@ -58,7 +57,6 @@ angular
     'luegg.directives',
     'portainer.app',
     'portainer.agent',
-    azureModule,
     'portainer.docker',
     'rzModule',
     constantsModule,

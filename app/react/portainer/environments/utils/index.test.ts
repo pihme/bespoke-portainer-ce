@@ -74,3 +74,14 @@ describe('REQ-TAI-002 Kubernetes dashboard is gone', () => {
     });
   });
 });
+
+describe('REQ-TAI-008 Azure dashboard is gone', () => {
+  it('routes a leftover Azure environment to its details page', () => {
+    expect(
+      getDashboardRoute(dockerEnv({ Id: 4, Type: EnvironmentType.Azure }))
+    ).toEqual({
+      to: 'portainer.endpoints.endpoint',
+      params: { id: 4 },
+    });
+  });
+});

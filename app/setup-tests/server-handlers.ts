@@ -10,7 +10,6 @@ import { Tag } from '@/portainer/tags/types';
 import { StatusResponse } from '@/react/portainer/system/useSystemStatus';
 import { VersionResponse } from '@/react/portainer/system/useSystemVersion';
 
-import { azureHandlers } from './setup-handlers/azure';
 import { dockerHandlers } from './setup-handlers/docker';
 import { endpointsHandlers } from './setup-handlers/endpoints';
 import { settingsHandlers } from './setup-handlers/settings';
@@ -39,7 +38,6 @@ export const handlers = [
   ...endpointsHandlers,
   ...settingsHandlers,
   ...templatesHandlers,
-  ...azureHandlers,
   ...dockerHandlers,
   ...gitopsHandlers,
   http.get('/api/stacks', () => HttpResponse.json([])),

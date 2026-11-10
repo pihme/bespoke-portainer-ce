@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -12,8 +11,6 @@ import (
 
 	"github.com/docker/docker/client"
 )
-
-var errUnsupportedEnvironmentType = errors.New("environment not supported")
 
 const (
 	defaultDockerRequestTimeout = 60 * time.Second
@@ -39,7 +36,7 @@ func NewClientFactory(signatureService portainer.DigitalSignatureService) *Clien
 func (factory *ClientFactory) CreateClient(endpoint *portainer.Endpoint, timeout *time.Duration) (*client.Client, error) {
 	switch endpoint.Type {
 	case portainer.AzureEnvironment:
-		return nil, errUnsupportedEnvironmentType
+		return nil, portainer.ErrAzureEnvironmentNotSupported
 	case portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment:
 		return nil, portainer.ErrAgentEnvironmentNotSupported
 	case portainer.EdgeAgentOnDockerEnvironment, portainer.EdgeAgentOnKubernetesEnvironment:

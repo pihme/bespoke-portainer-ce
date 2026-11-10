@@ -24,10 +24,6 @@ vi.mock('./WizardDocker', () => ({
   WizardDocker: () => <div data-cy="wizard-docker">docker wizard</div>,
 }));
 
-vi.mock('./WizardAzure', () => ({
-  WizardAzure: () => <div>azure</div>,
-}));
-
 vi.mock('./WizardPodman', () => ({
   WizardPodman: () => <div>podman</div>,
 }));

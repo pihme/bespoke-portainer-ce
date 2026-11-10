@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { azureHandlers } from './azure';
 import { dockerHandlers } from './docker';
 import { endpointsHandlers } from './endpoints';
 import { gitopsHandlers } from './gitops';
@@ -17,7 +16,6 @@ async function get(path: string) {
 
 describe('shared frontend setup HTTP handlers', () => {
   it('exports handler arrays used by the suite', () => {
-    expect(azureHandlers.length).toBeGreaterThan(0);
     expect(dockerHandlers.length).toBeGreaterThan(0);
     expect(endpointsHandlers.length).toBeGreaterThan(0);
     expect(gitopsHandlers.length).toBeGreaterThan(0);
@@ -84,30 +82,9 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/gitops/sources/7/workflows')).resolves.toEqual([]);
   });
 
-  it('serves azure stubs used by the suite', async () => {
-    const subs = await get('/api/endpoints/1/azure/subscriptions');
-    expect(subs.value[0].subscriptionId).toBe('sub1');
-
-    const provider = await get(
-      '/api/endpoints/1/azure/subscriptions/sub1/providers/Microsoft.ContainerInstance'
-    );
-    expect(provider.namespace).toBe('Microsoft.ContainerInstance');
-
-    await expect(
-      get(
-        '/api/endpoints/1/azure/subscriptions/sub1/providers/Microsoft.ContainerInstance/containerGroups'
-      )
-    ).resolves.toEqual({ value: [] });
-    await expect(
-      get(
-        '/api/endpoints/1/azure/subscriptions/sub1/providers/Microsoft.Network/virtualNetworks'
-      )
-    ).resolves.toEqual({ value: [] });
-    const rgs = await get(
-      '/api/endpoints/1/azure/subscriptions/sub1/resourcegroups'
-    );
-    expect(rgs.value).toHaveLength(2);
-
+  it('REQ-TAI-008 serves no Azure stubs', () => {
+    const paths = serverHandlers.map((h) => String(h.info.path));
+    expect(paths.filter((p) => /azure/i.test(p))).toEqual([]);
   });
 
   it('REQ-TAI-005 serves no environment registry stubs', () => {

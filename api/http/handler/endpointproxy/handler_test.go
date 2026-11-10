@@ -33,7 +33,6 @@ func TestProxyRoutes_AreSessionGuarded(t *testing.T) {
 
 	for _, path := range []string{
 		"/1/docker/containers/json",
-		"/1/azure/subscriptions",
 	} {
 		t.Run(path, func(t *testing.T) {
 			rw := httptest.NewRecorder()
@@ -85,4 +84,16 @@ func TestREQ_TAI_007_AgentProxyRoutesAreGone(t *testing.T) {
 			assert.Equal(t, http.StatusNotFound, rw.Code)
 		})
 	}
+}
+
+// REQ-TAI-008: the Azure API proxy is removed with Azure Container Instances.
+func TestREQ_TAI_008_AzureProxyRouteIsGone(t *testing.T) {
+	t.Parallel()
+
+	h := NewHandler(routeTaggingBouncer{})
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, httptest.NewRequest(http.MethodGet, "/1/azure/subscriptions", nil))
+
+	assert.Equal(t, http.StatusNotFound, rw.Code)
 }

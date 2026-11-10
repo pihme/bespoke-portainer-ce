@@ -9,7 +9,6 @@ function FileUploadFactory($q, Upload) {
     // createCustomTemplate, // custom template service
     // configureRegistry, // registry service
     // createEndpoint, // endpoint service
-    // createAzureEndpoint, // endpoint service
     // uploadLDAPTLSFiles, // auth settings controller
     // uploadTLSFilesForEndpoint, // endpoint service
     // uploadOwnershipVoucher, // import device controller
@@ -71,22 +70,6 @@ function FileUploadFactory($q, Upload) {
         TLSCertFile: TLSCertFile,
         TLSKeyFile: TLSKeyFile,
         CheckinInterval: checkinInterval,
-      },
-      ignoreLoadingBar: true,
-    });
-  };
-
-  service.createAzureEndpoint = function (name, applicationId, tenantId, authenticationKey, groupId, tagIds) {
-    return Upload.upload({
-      url: 'api/endpoints',
-      data: {
-        Name: name,
-        EndpointCreationType: PortainerEndpointCreationTypes.AzureEnvironment,
-        GroupID: groupId,
-        TagIds: Upload.json(tagIds),
-        AzureApplicationID: applicationId,
-        AzureTenantID: tenantId,
-        AzureAuthenticationKey: authenticationKey,
       },
       ignoreLoadingBar: true,
     });

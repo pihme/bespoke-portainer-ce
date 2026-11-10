@@ -7,7 +7,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -15,17 +14,14 @@ import (
 )
 
 type endpointCreatePayload struct {
-	Name                   string
-	URL                    string
-	EndpointCreationType   endpointCreationEnum
-	PublicURL              string
-	Gpus                   []portainer.Pair
-	GroupID                int
-	AzureApplicationID     string
-	AzureTenantID          string
-	AzureAuthenticationKey string
-	TagIDs                 []portainer.TagID
-	ContainerEngine        string
+	Name                 string
+	URL                  string
+	EndpointCreationType endpointCreationEnum
+	PublicURL            string
+	Gpus                 []portainer.Pair
+	GroupID              int
+	TagIDs               []portainer.TagID
+	ContainerEngine      string
 }
 
 type endpointCreationEnum int
@@ -33,8 +29,8 @@ type endpointCreationEnum int
 const (
 	_ endpointCreationEnum = iota
 	localDockerEnvironment
-	_ // 2 was the Agent environment, removed with the Portainer Agent (TAI-007).
-	azureEnvironment
+	// 2 was the Agent environment, removed with the Portainer Agent (TAI-007).
+	// 3 was the Azure environment, removed with Azure Container Instances (TAI-008).
 	// 4 was the Edge Agent environment, removed with Edge (TAI-004).
 	// 5 was the local Kubernetes environment, removed with Kubernetes (TAI-002).
 )
@@ -55,8 +51,12 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		return portainer.ErrAgentEnvironmentNotSupported
 	}
 
-	if err != nil || endpointCreationType < int(localDockerEnvironment) || endpointCreationType > int(azureEnvironment) {
-		return errors.New("invalid environment type value. Value must be one of: 1 (Docker environment) or 3 (Azure environment)")
+	if err == nil && endpointCreationType == 3 {
+		return portainer.ErrAzureEnvironmentNotSupported
+	}
+
+	if err != nil || endpointCreationType != int(localDockerEnvironment) {
+		return errors.New("invalid environment type value. Value must be 1 (Docker environment)")
 	}
 	payload.EndpointCreationType = endpointCreationEnum(endpointCreationType)
 
@@ -85,42 +85,19 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 		return portainer.ErrRemoteEnvironmentNotSupported
 	}
 
-	switch payload.EndpointCreationType {
-	case azureEnvironment:
-		azureApplicationID, err := request.RetrieveMultiPartFormValue(r, "AzureApplicationID", false)
-		if err != nil {
-			return errors.New("invalid Azure application ID")
-		}
-
-		payload.AzureApplicationID = azureApplicationID
-
-		azureTenantID, err := request.RetrieveMultiPartFormValue(r, "AzureTenantID", false)
-		if err != nil {
-			return errors.New("invalid Azure tenant ID")
-		}
-		payload.AzureTenantID = azureTenantID
-
-		azureAuthenticationKey, err := request.RetrieveMultiPartFormValue(r, "AzureAuthenticationKey", false)
-		if err != nil {
-			return errors.New("invalid Azure authentication key")
-		}
-		payload.AzureAuthenticationKey = azureAuthenticationKey
-
-	default:
-		endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", true)
-		if err != nil {
-			return errors.New("invalid environment URL")
-		}
-
-		// Only the local Docker or Podman socket can be added (TAI-007).
-		if !portainer.IsLocalSocketURL(endpointURL) {
-			return portainer.ErrRemoteEnvironmentNotSupported
-		}
-		payload.URL = endpointURL
-
-		publicURL, _ := request.RetrieveMultiPartFormValue(r, "PublicURL", true)
-		payload.PublicURL = publicURL
+	endpointURL, err := request.RetrieveMultiPartFormValue(r, "URL", true)
+	if err != nil {
+		return errors.New("invalid environment URL")
 	}
+
+	// Only the local Docker or Podman socket can be added (TAI-007).
+	if !portainer.IsLocalSocketURL(endpointURL) {
+		return portainer.ErrRemoteEnvironmentNotSupported
+	}
+	payload.URL = endpointURL
+
+	publicURL, _ := request.RetrieveMultiPartFormValue(r, "PublicURL", true)
+	payload.PublicURL = publicURL
 
 	gpus := make([]portainer.Pair, 0)
 	if err := request.RetrieveMultiPartFormJSONValue(r, "Gpus", &gpus, true); err != nil {
@@ -140,14 +117,11 @@ func (payload *endpointCreatePayload) Validate(r *http.Request) error {
 // @accept multipart/form-data
 // @produce json
 // @param Name formData string true "Name that will be used to identify this environment(endpoint) (example: my-environment)"
-// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be one of: 1 (Local Docker environment), 3 (Azure environment)" Enum(1,3)
+// @param EndpointCreationType formData endpointCreationEnum true "Environment(Endpoint) type. Value must be 1 (Local Docker environment)" Enum(1)
 // @param ContainerEngine formData string false "Container engine used by the environment(endpoint). Value must be one of: 'docker' or 'podman'"
 // @param URL formData string false "Local Docker or Podman socket (unix:// or npipe://). Defaults to local if not specified (Linux: /var/run/docker.sock, Windows: //./pipe/docker_engine)."
 // @param PublicURL formData string false "URL or IP address where exposed containers will be reachable. Defaults to URL if not specified (example: docker.mydomain.tld:2375)"
 // @param GroupID formData int false "Environment(Endpoint) group identifier. If not specified will default to 1 (unassigned)."
-// @param AzureApplicationID formData string false "Azure application ID. Required if environment(endpoint) type is set to 3"
-// @param AzureTenantID formData string false "Azure tenant ID. Required if environment(endpoint) type is set to 3"
-// @param AzureAuthenticationKey formData string false "Azure authentication key. Required if environment(endpoint) type is set to 3"
 // @param TagIds formData string false "JSON-parsable array of tag identifiers to which this environment(endpoint) is associated"
 // @param Gpus formData string false "List of GPUs - json stringified array of {name, value} structs"
 // @success 200 {object} portainer.Endpoint "Success"
@@ -192,49 +166,7 @@ func (handler *Handler) endpointCreate(w http.ResponseWriter, r *http.Request) *
 }
 
 func (handler *Handler) createEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {
-	switch payload.EndpointCreationType {
-	case azureEnvironment:
-		return handler.createAzureEndpoint(tx, payload)
-	}
-
 	return handler.createUnsecuredEndpoint(tx, payload)
-}
-
-func (handler *Handler) createAzureEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {
-	credentials := portainer.AzureCredentials{
-		ApplicationID:     payload.AzureApplicationID,
-		TenantID:          payload.AzureTenantID,
-		AuthenticationKey: payload.AzureAuthenticationKey,
-	}
-
-	httpClient := client.NewHTTPClient()
-	if _, err := httpClient.ExecuteAzureAuthenticationRequest(&credentials); err != nil {
-		return nil, httperror.InternalServerError("Unable to authenticate against Azure", err)
-	}
-
-	endpointID := tx.Endpoint().GetNextIdentifier()
-	endpoint := &portainer.Endpoint{
-		ID:                 portainer.EndpointID(endpointID),
-		Name:               payload.Name,
-		URL:                "https://management.azure.com",
-		Type:               portainer.AzureEnvironment,
-		GroupID:            portainer.EndpointGroupID(payload.GroupID),
-		PublicURL:          payload.PublicURL,
-		Gpus:               payload.Gpus,
-		UserAccessPolicies: portainer.UserAccessPolicies{},
-		TeamAccessPolicies: portainer.TeamAccessPolicies{},
-		AzureCredentials:   credentials,
-		TagIDs:             payload.TagIDs,
-		Status:             portainer.EndpointStatusUp,
-		Snapshots:          []portainer.DockerSnapshot{},
-		Kubernetes:         portainer.KubernetesDefault(),
-	}
-
-	if err := handler.saveEndpointAndUpdateAuthorizations(tx, endpoint); err != nil {
-		return nil, httperror.InternalServerError("An error occurred while trying to create the environment", err)
-	}
-
-	return endpoint, nil
 }
 
 func (handler *Handler) createUnsecuredEndpoint(tx dataservices.DataStoreTx, payload *endpointCreatePayload) (*portainer.Endpoint, *httperror.HandlerError) {

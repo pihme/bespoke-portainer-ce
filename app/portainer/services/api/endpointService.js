@@ -119,20 +119,6 @@ angular.module('portainer.app').factory('EndpointService', [
       return deferred.promise;
     };
 
-    service.createAzureEndpoint = function (name, applicationId, tenantId, authenticationKey, groupId, tagIds) {
-      var deferred = $q.defer();
-
-      FileUploadService.createAzureEndpoint(name, applicationId, tenantId, authenticationKey, groupId, tagIds)
-        .then(function success(response) {
-          deferred.resolve(response.data);
-        })
-        .catch(function error(err) {
-          deferred.reject({ msg: 'Unable to connect to Azure', err: err });
-        });
-
-      return deferred.promise;
-    };
-
     service.trust = function (id) {
       Endpoints.updateEndpoint({ id }, { UserTrusted: true }).$promise;
     };

@@ -2,10 +2,8 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -14,7 +12,6 @@ import (
 	"github.com/portainer/portainer/pkg/libhttp/ssrf"
 
 	"github.com/rs/zerolog/log"
-	"github.com/segmentio/encoding/json"
 )
 
 var errInvalidResponseStatus = errors.New("invalid response status (expecting 200)")
@@ -33,46 +30,6 @@ func NewHTTPClient() *HTTPClient {
 			Timeout: time.Second * time.Duration(defaultHTTPTimeout),
 		},
 	}
-}
-
-// AzureAuthenticationResponse represents an Azure API authentication response.
-type AzureAuthenticationResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresOn   string `json:"expires_on"`
-}
-
-// ExecuteAzureAuthenticationRequest is used to execute an authentication request
-// against the Azure API. It re-uses the same http.Client.
-func (client *HTTPClient) ExecuteAzureAuthenticationRequest(credentials *portainer.AzureCredentials) (*AzureAuthenticationResponse, error) {
-	loginURL := fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/token", credentials.TenantID)
-	params := url.Values{
-		"grant_type":    {"client_credentials"},
-		"client_id":     {credentials.ApplicationID},
-		"client_secret": {credentials.AuthenticationKey},
-		"resource":      {"https://management.azure.com/"},
-	}
-
-	resp, err := client.PostForm(loginURL, params)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Warn().Err(err).Msg("failed to close response body")
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("invalid Azure credentials")
-	}
-
-	var token AzureAuthenticationResponse
-	err = json.NewDecoder(resp.Body).Decode(&token)
-	if err != nil {
-		return nil, err
-	}
-
-	return &token, nil
 }
 
 // Get executes a simple HTTP GET to the specified URL and returns

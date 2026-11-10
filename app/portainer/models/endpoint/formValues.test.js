@@ -16,9 +16,8 @@ describe('REQ-ENV-11 PortainerEndpointInitFormValues defaults', () => {
     expect(form.TLSCACert).toBeNull();
     expect(form.TLSCert).toBeNull();
     expect(form.TLSKey).toBeNull();
-    expect(form.AzureApplicationId).toBe('');
-    expect(form.AzureTenantId).toBe('');
-    expect(form.AzureAuthenticationKey).toBe('');
+    // REQ-TAI-008: no Azure credentials
+    expect(form).not.toHaveProperty('AzureApplicationId');
   });
 
   it('keeps DOCKER_LOCAL assignable for a local Docker init path', () => {

@@ -9,7 +9,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/http/client"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
 	"github.com/portainer/portainer/pkg/libhttp/request"
@@ -38,12 +37,6 @@ type endpointUpdatePayload struct {
 	TLSSkipClientVerify *bool `example:"false"`
 	// The status of the environment(endpoint) (1 - up, 2 - down)
 	Status *int `example:"1"`
-	// Azure application ID
-	AzureApplicationID *string `example:"eag7cdo9-o09l-9i83-9dO9-f0b23oe78db4"`
-	// Azure tenant ID
-	AzureTenantID *string `example:"34ddc78d-4fel-2358-8cc1-df84c8o839f5"`
-	// Azure authentication key
-	AzureAuthenticationKey *string `example:"cOrXoK/1D35w8YQ8nH1/8ZGwzz45JIYD5jxHKXEQknk="`
 	// List of tag identifiers to which this environment(endpoint) is associated
 	TagIDs             []portainer.TagID `example:"1,2"`
 	UserAccessPolicies portainer.UserAccessPolicies
@@ -159,29 +152,6 @@ func (handler *Handler) endpointUpdate(w http.ResponseWriter, r *http.Request) *
 		case 2:
 			endpoint.Status = portainer.EndpointStatusDown
 		}
-	}
-
-	if endpoint.Type == portainer.AzureEnvironment {
-		updateEndpointProxy = true
-
-		credentials := endpoint.AzureCredentials
-		if payload.AzureApplicationID != nil {
-			credentials.ApplicationID = *payload.AzureApplicationID
-		}
-
-		if payload.AzureTenantID != nil {
-			credentials.TenantID = *payload.AzureTenantID
-		}
-
-		if payload.AzureAuthenticationKey != nil {
-			credentials.AuthenticationKey = *payload.AzureAuthenticationKey
-		}
-
-		httpClient := client.NewHTTPClient()
-		if _, err := httpClient.ExecuteAzureAuthenticationRequest(&credentials); err != nil {
-			return httperror.InternalServerError("Unable to authenticate against Azure", err)
-		}
-		endpoint.AzureCredentials = credentials
 	}
 
 	if payload.TLS != nil {

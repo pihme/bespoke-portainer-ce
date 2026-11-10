@@ -74,11 +74,12 @@ func TestCreateClient_LocalUnixAndTCP(t *testing.T) {
 	require.NoError(t, tlsCli.Close())
 }
 
-func TestCreateClient_AzureUnsupported(t *testing.T) {
+// REQ-TAI-008: a leftover Azure environment record gets no Docker client.
+func TestREQ_TAI_008_CreateClient_RefusesAzureEnvironments(t *testing.T) {
 	t.Parallel()
 	f := NewClientFactory(nil)
 	cli, err := f.CreateClient(&portainer.Endpoint{Type: portainer.AzureEnvironment}, nil)
-	require.ErrorIs(t, err, errUnsupportedEnvironmentType)
+	require.ErrorIs(t, err, portainer.ErrAzureEnvironmentNotSupported)
 	require.Nil(t, cli)
 }
 

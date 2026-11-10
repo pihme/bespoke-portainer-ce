@@ -99,9 +99,6 @@ export function isDockerAPIEnvironment(environment: Environment) {
   );
 }
 
-export function isAzureEnvironment(envType: EnvironmentType) {
-  return envType === EnvironmentType.Azure;
-}
 
 export function getDashboardRoute(environment: Environment) {
   if (isEdgeEnvironment(environment.Type)) {
@@ -120,9 +117,14 @@ export function getDashboardRoute(environment: Environment) {
     }
   }
 
-  if (getPlatformType(environment.Type) === PlatformType.Kubernetes) {
-    // Kubernetes management is removed (TAI-002): leftover Kubernetes
-    // environments open their details page instead of a dashboard.
+  const platformType = getPlatformType(environment.Type);
+  if (
+    platformType === PlatformType.Kubernetes ||
+    platformType === PlatformType.Azure
+  ) {
+    // Kubernetes management (TAI-002) and Azure Container Instances (TAI-008)
+    // are removed: leftover environments open their details page instead of a
+    // dashboard.
     return {
       to: 'portainer.endpoints.endpoint',
       params: { id: environment.Id },
@@ -137,8 +139,6 @@ export function getDashboardRoute(environment: Environment) {
   function getPlatformRoute() {
     const platform = getPlatformType(environment.Type);
     switch (platform) {
-      case PlatformType.Azure:
-        return 'azure.dashboard';
       case PlatformType.Docker:
         return 'docker.dashboard';
       default:

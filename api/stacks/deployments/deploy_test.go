@@ -581,7 +581,8 @@ func Test_ValidateStackForUser_DockerClientCreationFails(t *testing.T) {
 	endpoint := &portainer.Endpoint{ID: 1, Type: portainer.AzureEnvironment}
 	user := &portainer.User{ID: 2, Role: portainer.StandardUserRole}
 
-	// A failure to create the Docker client must fail closed
+	// A failure to create the Docker client must fail closed (a leftover Azure
+	// environment is refused since TAI-008)
 	err = ValidateStackForUser(stack, endpoint, user, factoryDeployer{}, fileService)
-	require.ErrorContains(t, err, "environment not supported")
+	require.ErrorIs(t, err, portainer.ErrAzureEnvironmentNotSupported)
 }

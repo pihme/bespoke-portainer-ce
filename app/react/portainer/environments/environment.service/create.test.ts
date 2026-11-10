@@ -15,7 +15,7 @@ vi.mock('@api/sdk.gen', () => ({
 
 import * as createModule from './create';
 
-const { createAzureEnvironment, createLocalDockerEnvironment } = createModule;
+const { createLocalDockerEnvironment } = createModule;
 
 function createdEndpoint(overrides: Record<string, unknown> = {}) {
   return {
@@ -85,17 +85,12 @@ describe('create local Docker environments (backwards compatibility)', () => {
     ).rejects.toBeTruthy();
   });
 
-  it('includes azure fields and never TLS fields', async () => {
-    await createAzureEnvironment({
-      name: 'aci',
-      azure: {
-        applicationId: 'app',
-        tenantId: 'tenant',
-        authenticationKey: 'key',
-      },
-    });
+  it('REQ-TAI-008 offers no Azure creation helper and sends no Azure or TLS fields', async () => {
+    expect(createModule).not.toHaveProperty('createAzureEnvironment');
+
+    await createLocalDockerEnvironment({ name: 'local' });
     const body = endpointCreate.mock.calls[0][0].body;
-    expect(body.AzureApplicationID).toBe('app');
+    expect(body).not.toHaveProperty('AzureApplicationID');
     expect(body).not.toHaveProperty('TLS');
     expect(body).not.toHaveProperty('TLSCACertFile');
     // REQ-TAI-004: no Edge check-in interval is sent

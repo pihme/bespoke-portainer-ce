@@ -23,7 +23,6 @@ import {
 } from '../EnvironmentTypeSelectView/environment-types';
 
 import { WizardDocker } from './WizardDocker';
-import { WizardAzure } from './WizardAzure';
 import { AnalyticsState, AnalyticsStateKey } from './types';
 import styles from './EnvironmentsCreationView.module.css';
 import { WizardEndpointsList } from './WizardEndpointsList';
@@ -186,8 +185,6 @@ function getComponent(id: EnvironmentOptionValue) {
       return WizardDocker;
     case 'podman':
       return WizardPodman;
-    case 'aci':
-      return WizardAzure;
     default:
       throw new Error(`Unknown environment type ${id}`);
   }
@@ -196,7 +193,6 @@ function getComponent(id: EnvironmentOptionValue) {
 function useAnalyticsState() {
   const [analytics, setAnalyticsState] = useState<AnalyticsState>({
     podmanLocalEnvironment: 0,
-    aciApi: 0,
     localEndpoint: 0,
   });
 

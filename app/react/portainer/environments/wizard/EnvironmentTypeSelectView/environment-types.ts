@@ -1,13 +1,11 @@
 import Docker from '@/assets/ico/vendor/docker.svg?c';
 import Podman from '@/assets/ico/vendor/podman.svg?c';
-import Azure from '@/assets/ico/vendor/azure.svg?c';
 
 import { BoxSelectorOption } from '@@/BoxSelector';
 
 export type EnvironmentOptionValue =
   | 'dockerStandalone'
-  | 'podman'
-  | 'aci';
+  | 'podman';
 
 export interface EnvironmentOption extends BoxSelectorOption<EnvironmentOptionValue> {
   id: EnvironmentOptionValue;
@@ -30,17 +28,10 @@ export const existingEnvironmentTypes: EnvironmentOption[] = [
     iconType: 'logo',
     description: 'Connect to Podman via URL/IP or Socket',
   },
-  {
-    id: 'aci',
-    value: 'aci',
-    label: 'ACI',
-    description: 'Connect to ACI environment via API',
-    iconType: 'logo',
-    icon: Azure,
-  },
 ];
 
-// KubeSolo (Edge) went with Kubernetes and Edge (TAI-002, TAI-004).
+// KubeSolo (Edge) went with Kubernetes and Edge (TAI-002, TAI-004); ACI
+// went with Azure Container Instances (TAI-008).
 export const environmentTypes: EnvironmentOption[] = [
   ...existingEnvironmentTypes,
 ];
@@ -48,5 +39,4 @@ export const environmentTypes: EnvironmentOption[] = [
 export const formTitles: Record<EnvironmentOptionValue, string> = {
   dockerStandalone: 'Connect to your Docker Standalone environment',
   podman: 'Connect to your Podman environment',
-  aci: 'Connect to your ACI environment',
 };

@@ -260,3 +260,30 @@ func TestREQ_TAI_007_CreateRefusesAgentAndRemoteDocker(t *testing.T) {
 	err = p.Validate(&http.Request{Form: map[string][]string{"Name": {"a"}, "EndpointCreationType": {"1"}, "URL": {"tcp://docker.example:2375"}}})
 	require.ErrorIs(t, err, portainer.ErrRemoteEnvironmentNotSupported)
 }
+
+// REQ-TAI-008: Azure Container Instances are removed. Azure creation (type 3)
+// is refused with 400 before any call to Azure, and nothing is stored.
+func TestREQ_TAI_008_CreateRefusesAzure(t *testing.T) {
+	t.Parallel()
+
+	h, store := newCreateDockerHandler(t)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, multipartCreateRequest(t, map[string]string{
+		"Name":                   "aci",
+		"EndpointCreationType":   "3",
+		"AzureApplicationID":     "app",
+		"AzureTenantID":          "tenant",
+		"AzureAuthenticationKey": "key",
+	}, nil))
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	require.Contains(t, w.Body.String(), portainer.ErrAzureEnvironmentNotSupported.Error())
+
+	endpoints, err := store.Endpoint().Endpoints()
+	require.NoError(t, err)
+	require.Empty(t, endpoints)
+
+	p := &endpointCreatePayload{}
+	err = p.Validate(&http.Request{Form: map[string][]string{"Name": {"a"}, "EndpointCreationType": {"3"}}})
+	require.ErrorIs(t, err, portainer.ErrAzureEnvironmentNotSupported)
+}

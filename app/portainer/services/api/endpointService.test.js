@@ -47,7 +47,6 @@ function buildService({ endpoints = {}, uploads = {} } = {}) {
   const FileUploadService = {
     uploadTLSFilesForEndpoint: vi.fn(() => Promise.resolve()),
     createEndpoint: vi.fn(() => Promise.resolve({ data: { Id: 7, Name: 'local' } })),
-    createAzureEndpoint: vi.fn(() => Promise.resolve({ data: { Id: 8 } })),
     ...uploads,
   };
   const service = factoryState.factory($q, Endpoints, FileUploadService);

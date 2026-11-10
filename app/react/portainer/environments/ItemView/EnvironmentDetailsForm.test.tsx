@@ -11,23 +11,6 @@ import { createMockEnvironment } from '@/react-tools/test-mocks';
 import { EnvironmentDetailsForm } from './EnvironmentDetailsForm';
 
 // Mock child form components
-vi.mock('./AzureEnvironmentForm/AzureEnvironmentForm', () => ({
-  AzureEnvironmentForm: ({
-    environment,
-    onSuccess,
-  }: {
-    environment: Environment;
-    onSuccess: () => void;
-  }) => (
-    <div data-cy="azure-environment-form">
-      AzureEnvironmentForm: {environment.Name}
-      <button type="button" onClick={onSuccess}>
-        Submit Azure
-      </button>
-    </div>
-  ),
-}));
-
 vi.mock('./GeneralEnvironmentForm/GeneralEnvironmentForm', () => ({
   GeneralEnvironmentForm: ({
     environment,
@@ -77,7 +60,7 @@ describe('EnvironmentDetailsForm', () => {
     vi.clearAllMocks();
   });
 
-  it('should render AzureEnvironmentForm for Azure environment', async () => {
+  it('REQ-TAI-008 renders the general form for a leftover Azure environment', async () => {
     const environment = createMockEnvironment({
       Type: EnvironmentType.Azure,
       Name: 'Azure Test',
@@ -86,18 +69,10 @@ describe('EnvironmentDetailsForm', () => {
     renderComponent({ environment });
 
     await waitFor(() => {
-      const azureForm = screen.getByTestId('azure-environment-form');
-      expect(azureForm).toBeVisible();
-      expect(azureForm).toHaveTextContent('Azure Test');
+      const generalForm = screen.getByTestId('general-environment-form');
+      expect(generalForm).toBeVisible();
+      expect(generalForm).toHaveTextContent('Azure Test');
     });
-
-    // Should not render other forms
-    expect(
-      screen.queryByTestId('edge-environment-form')
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId('general-environment-form')
-    ).not.toBeInTheDocument();
   });
 
   it('should render GeneralEnvironmentForm for Docker environment', async () => {
@@ -115,9 +90,6 @@ describe('EnvironmentDetailsForm', () => {
     });
 
     // Should not render other forms
-    expect(
-      screen.queryByTestId('azure-environment-form')
-    ).not.toBeInTheDocument();
     expect(
       screen.queryByTestId('edge-environment-form')
     ).not.toBeInTheDocument();

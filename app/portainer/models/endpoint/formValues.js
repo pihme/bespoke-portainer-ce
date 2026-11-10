@@ -11,8 +11,5 @@ export class PortainerEndpointInitFormValues {
     this.TLSCACert = null;
     this.TLSCert = null;
     this.TLSKey = null;
-    this.AzureApplicationId = '';
-    this.AzureTenantId = '';
-    this.AzureAuthenticationKey = '';
   }
 }

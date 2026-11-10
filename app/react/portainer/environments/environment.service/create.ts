@@ -59,39 +59,16 @@ export async function createLocalDockerEnvironment({
   }
 }
 
-interface AzureSettings {
-  applicationId: string;
-  tenantId: string;
-  authenticationKey: string;
-}
-
-interface CreateAzureEnvironment {
-  name: string;
-  azure: AzureSettings;
-  meta?: EnvironmentMetadata;
-}
-
-export async function createAzureEnvironment({
-  name,
-  azure,
-  meta = { tagIds: [] },
-}: CreateAzureEnvironment) {
-  return createEnvironment(name, EnvironmentCreationTypes.AzureEnvironment, {
-    meta,
-    azure,
-  });
-}
-
 export interface EnvironmentOptions {
   url?: string;
   publicUrl?: string;
   meta?: EnvironmentMetadata;
-  azure?: AzureSettings;
   containerEngine?: ContainerEngine;
 }
 
 // Portainer Agent and remote Docker API environments are removed (TAI-007):
-// only local sockets (and Azure until TAI-008) can be created.
+// Azure Container Instances are removed (TAI-008): only local sockets can be
+// created.
 async function createEnvironment(
   name: string,
   creationType: EnvironmentCreationTypes,
@@ -107,7 +84,7 @@ async function createEnvironment(
   };
 
   if (options) {
-    const { azure, meta, containerEngine } = options;
+    const { meta, containerEngine } = options;
     const { groupId, tagIds = [] } = meta || {};
 
     payload = {
@@ -118,15 +95,6 @@ async function createEnvironment(
       TagIds: arrayToJson(tagIds),
       ContainerEngine: containerEngine,
     };
-
-    if (azure) {
-      payload = {
-        ...payload,
-        AzureApplicationID: azure.applicationId,
-        AzureTenantID: azure.tenantId,
-        AzureAuthenticationKey: azure.authenticationKey,
-      };
-    }
   }
 
   try {

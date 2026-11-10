@@ -665,3 +665,43 @@ func TestREQ_TAI_007_Start_AgentRoutesAreGone(t *testing.T) {
 		t.Fatal("Start did not return after cancel")
 	}
 }
+
+// REQ-TAI-008: the Azure API proxy route is removed with Azure Container
+// Instances and answers 404.
+func TestREQ_TAI_008_Start_AzureRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	for _, path := range []string{
+		"/api/endpoints/1/azure/subscriptions",
+		"/api/endpoints/1/azure/subscriptions/s1/providers/Microsoft.ContainerInstance/containerGroups",
+	} {
+		req, err := http.NewRequest(http.MethodGet, base+path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, path)
+	}
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}

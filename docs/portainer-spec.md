@@ -233,8 +233,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## ACI – Azure Container Instances
 
-- **REQ-ACI-01 Add an ACI environment.** Experimental. docs: admin/environments/add/aci
-- **REQ-ACI-02 ACI dashboard and container instances.** List, add, view and remove container instances. Entry: UI `#!/{envId}/azure/dashboard`, `#!/{envId}/azure/containerinstances`, `…/new`, `…/{id}`; API proxy `/endpoints/{id}/azure`. docs: user/aci and sub-pages
+- ~~**REQ-ACI-01 Add an ACI environment.** Experimental. docs: admin/environments/add/aci~~ REMOVED (TAI-008)
+- ~~**REQ-ACI-02 ACI dashboard and container instances.** List, add, view and remove container instances. Entry: UI `#!/{envId}/azure/dashboard`, `#!/{envId}/azure/containerinstances`, `…/new`, `…/{id}`; API proxy `/endpoints/{id}/azure`. docs: user/aci and sub-pages~~ REMOVED (TAI-008)
 
 ## EDGE – Edge Compute
 
@@ -370,6 +370,12 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (e) The environment wizard offers only the local socket for Docker and for Podman (no Agent or API tab).
   - (f) The UI has no per-node targeting (node selector, host columns, agent target header), no Agent version filter or badge on the home page, no PCI devices, physical disks or disk usage on the host page, and the stack duplication form offers Rename and Duplicate only.
   - (g) The local Docker socket, `--host` (including `tcp://`), Compose stacks and stack Git deploy are unchanged.
+- **REQ-TAI-008 No Azure Container Instances.** Added by TAI-008 (2026-11-10).
+  - (a) The Azure API proxy `/endpoints/{id}/azure/…` answers 404.
+  - (b) `POST /endpoints` rejects `EndpointCreationType` 3 (Azure) with "Azure environments are no longer supported"; the create and update payloads have no Azure credential fields.
+  - (c) A leftover Azure environment record stays in the database and can be listed, edited (name, group, tags) and removed; the proxy factory and the Docker client factory refuse it with "Azure environments are no longer supported"; snapshots skip it.
+  - (d) The UI has no ACI option in the environment wizard, no Azure dashboard, container instance views or Azure sidebar; a leftover Azure environment opens its details page.
+  - (e) Git repositories hosted on Azure DevOps (stack Git deploy) are unchanged.
 
 ## Not covered as requirements
 

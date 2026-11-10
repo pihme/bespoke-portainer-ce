@@ -2710,11 +2710,6 @@ func (e SoftwareEdition) GetEditionLabel() string {
 	return "CE"
 }
 
-const (
-	AzurePathContainerGroups = "/subscriptions/*/providers/Microsoft.ContainerInstance/containerGroups"
-	AzurePathContainerGroup  = "/subscriptions/*/resourceGroups/*/providers/Microsoft.ContainerInstance/containerGroups/*"
-)
-
 type PerDevConfigsFilterType string
 
 const (

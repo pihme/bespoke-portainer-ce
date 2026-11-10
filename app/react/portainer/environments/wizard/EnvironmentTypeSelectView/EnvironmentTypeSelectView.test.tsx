@@ -150,3 +150,17 @@ describe('REQ-TAI-004 no Edge environment creation', () => {
     expect(screen.queryByText(/KubeSolo/)).not.toBeInTheDocument();
   });
 });
+
+describe('REQ-TAI-008 no Azure Container Instances environment creation', () => {
+  it('offers no ACI option or form title', () => {
+    const values = environmentTypes.map((t) => t.value as string);
+    expect(values).not.toContain('aci');
+    expect(Object.keys(formTitles)).not.toContain('aci');
+  });
+
+  it('renders no ACI box', () => {
+    renderView();
+
+    expect(screen.queryByText('ACI')).not.toBeInTheDocument();
+  });
+});

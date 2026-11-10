@@ -49,3 +49,34 @@ func TestREQ_TAI_020_DeadDataServicesAreGone(t *testing.T) {
 		require.Truef(t, os.IsNotExist(err), "api/dataservices/%s should be removed", dir)
 	}
 }
+
+// TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections proves that a fresh
+// store no longer creates the always-empty Edge group, Edge job, Edge stack
+// status and endpoint relation collections. The edge_stack collection stays
+// because the Git source scheduler and source delete still read it.
+func TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections(t *testing.T) {
+	_, store := MustNewTestStore(t, true, false)
+	require.NoError(t, store.connection.Close())
+
+	con, ok := store.connection.(*boltdb.DbConnection)
+	require.True(t, ok)
+
+	raw, err := con.ExportJSON(con.GetDatabaseFilePath(), false)
+	require.NoError(t, err)
+
+	buckets := map[string]json.RawMessage{}
+	require.NoError(t, json.Unmarshal(raw, &buckets))
+
+	for _, name := range []string{"edgegroups", "edgejobs", "edge_stack_status", "endpoint_relations"} {
+		require.NotContainsf(t, buckets, name, "bucket %s should not be created", name)
+	}
+
+	for _, name := range []string{"edge_stack", "endpoint_groups", "resource_control"} {
+		require.Containsf(t, buckets, name, "bucket %s should still be created", name)
+	}
+
+	for _, dir := range []string{"edgegroup", "edgejob", "edgestackstatus", "endpointrelation"} {
+		_, err := os.Stat(filepath.Join("..", "dataservices", dir))
+		require.Truef(t, os.IsNotExist(err), "api/dataservices/%s should be removed", dir)
+	}
+}

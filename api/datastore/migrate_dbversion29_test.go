@@ -49,20 +49,19 @@ func TestMigrateSettings(t *testing.T) {
 	}
 
 	m := migrator.NewMigrator(&migrator.MigratorParameters{
-		Flags:                   store.flags,
-		EndpointGroupService:    store.EndpointGroupService,
-		EndpointService:         store.EndpointService,
-		EndpointRelationService: store.EndpointRelationService,
-		RegistryService:         store.RegistryService,
-		ResourceControlService:  store.ResourceControlService,
-		SettingsService:         store.SettingsService,
-		StackService:            store.StackService,
-		TagService:              store.TagService,
-		TeamMembershipService:   store.TeamMembershipService,
-		UserService:             store.UserService,
-		VersionService:          store.VersionService,
-		FileService:             store.fileService,
-		AuthorizationService:    authorization.NewService(store),
+		Flags:                  store.flags,
+		EndpointGroupService:   store.EndpointGroupService,
+		EndpointService:        store.EndpointService,
+		RegistryService:        store.RegistryService,
+		ResourceControlService: store.ResourceControlService,
+		SettingsService:        store.SettingsService,
+		StackService:           store.StackService,
+		TagService:             store.TagService,
+		TeamMembershipService:  store.TeamMembershipService,
+		UserService:            store.UserService,
+		VersionService:         store.VersionService,
+		FileService:            store.fileService,
+		AuthorizationService:   authorization.NewService(store),
 	})
 
 	if err := m.MigrateSettingsToDB30(); err != nil {

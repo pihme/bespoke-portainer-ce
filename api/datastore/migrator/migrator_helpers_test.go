@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
@@ -27,7 +26,6 @@ type testServices struct {
 	conn           *boltdb.DbConnection
 	endpointSvc    *endpoint.Service
 	endpointGroup  *endpointgroup.Service
-	endpointRel    *endpointrelation.Service
 	settingsSvc    *settings.Service
 	stackSvc       *stack.Service
 	userSvc        *user.Service
@@ -48,8 +46,6 @@ func openTestServices(t *testing.T) *testServices {
 	endpointSvc, err := endpoint.NewService(conn)
 	require.NoError(t, err)
 	endpointGroupSvc, err := endpointgroup.NewService(conn)
-	require.NoError(t, err)
-	endpointRel, err := endpointrelation.NewService(conn)
 	require.NoError(t, err)
 	settingsSvc, err := settings.NewService(conn)
 	require.NoError(t, err)
@@ -74,7 +70,6 @@ func openTestServices(t *testing.T) *testServices {
 		conn:           conn,
 		endpointSvc:    endpointSvc,
 		endpointGroup:  endpointGroupSvc,
-		endpointRel:    endpointRel,
 		settingsSvc:    settingsSvc,
 		stackSvc:       stackSvc,
 		userSvc:        userSvc,
@@ -93,19 +88,18 @@ func (s *testServices) newMigrator(current *models.Version) *Migrator {
 		v = &models.Version{SchemaVersion: "1.0.0", Edition: int(portainer.PortainerCE)}
 	}
 	return NewMigrator(&MigratorParameters{
-		CurrentDBVersion:        v,
-		EndpointService:         s.endpointSvc,
-		EndpointGroupService:    s.endpointGroup,
-		EndpointRelationService: s.endpointRel,
-		SettingsService:         s.settingsSvc,
-		StackService:            s.stackSvc,
-		UserService:             s.userSvc,
-		VersionService:          s.versionSvc,
-		ResourceControlService:  s.resourceCtrl,
-		PendingActionsService:   s.pendingActions,
-		TagService:              s.tagSvc,
-		FileService:             s.fileSvc,
-		AuthorizationService:    s.authSvc,
+		CurrentDBVersion:       v,
+		EndpointService:        s.endpointSvc,
+		EndpointGroupService:   s.endpointGroup,
+		SettingsService:        s.settingsSvc,
+		StackService:           s.stackSvc,
+		UserService:            s.userSvc,
+		VersionService:         s.versionSvc,
+		ResourceControlService: s.resourceCtrl,
+		PendingActionsService:  s.pendingActions,
+		TagService:             s.tagSvc,
+		FileService:            s.fileSvc,
+		AuthorizationService:   s.authSvc,
 	})
 }
 

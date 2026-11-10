@@ -47,14 +47,11 @@ func TestStoreFull(t *testing.T) {
 }
 
 func (store *Store) testEnvironments(t *testing.T) {
-	id := store.CreateEndpoint(t, "local", portainer.KubernetesLocalEnvironment, "", true)
-	store.CreateEndpointRelation(t, id)
+	store.CreateEndpoint(t, "local", portainer.KubernetesLocalEnvironment, "", true)
 
-	id = store.CreateEndpoint(t, "agent", portainer.AgentOnDockerEnvironment, agentOnDockerEnvironmentUrl, true)
-	store.CreateEndpointRelation(t, id)
+	store.CreateEndpoint(t, "agent", portainer.AgentOnDockerEnvironment, agentOnDockerEnvironmentUrl, true)
 
-	id = store.CreateEndpoint(t, "edge", portainer.EdgeAgentOnKubernetesEnvironment, edgeAgentOnKubernetesEnvironmentUrl, true)
-	store.CreateEndpointRelation(t, id)
+	store.CreateEndpoint(t, "edge", portainer.EdgeAgentOnKubernetesEnvironment, edgeAgentOnKubernetesEnvironmentUrl, true)
 }
 
 func newEndpoint(endpointType portainer.EndpointType, id portainer.EndpointID, name, URL string, TLS bool) *portainer.Endpoint {
@@ -140,16 +137,6 @@ func (store *Store) CreateEndpoint(t *testing.T, name string, endpointType porta
 	is.Equal(expectedEndpoint, endpoint, "endpoint should be the same")
 
 	return endpoint.ID
-}
-
-func (store *Store) CreateEndpointRelation(t *testing.T, id portainer.EndpointID) {
-	relation := &portainer.EndpointRelation{
-		EndpointID: id,
-		EdgeStacks: map[portainer.EdgeStackID]bool{},
-	}
-
-	err := store.EndpointRelation().Create(relation)
-	require.NoError(t, err)
 }
 
 func (store *Store) testSSLSettings(t *testing.T) {

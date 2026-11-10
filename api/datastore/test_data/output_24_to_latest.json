@@ -2,9 +2,6 @@
   "allowlist": null,
   "customtemplates": null,
   "edge_stack": null,
-  "edge_stack_status": null,
-  "edgegroups": null,
-  "edgejobs": null,
   "endpoint_groups": [
     {
       "AuthorizedTeams": null,
@@ -17,12 +14,6 @@
       "Tags": null,
       "TeamAccessPolicies": {},
       "UserAccessPolicies": {}
-    }
-  ],
-  "endpoint_relations": [
-    {
-      "EdgeStacks": {},
-      "EndpointID": 1
     }
   ],
   "endpoints": [

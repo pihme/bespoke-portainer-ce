@@ -16,13 +16,9 @@ var _ dataservices.DataStore = &testDatastore{}
 type testDatastore struct {
 	allowList             dataservices.AllowListService
 	customTemplate        dataservices.CustomTemplateService
-	edgeGroup             dataservices.EdgeGroupService
-	edgeJob               dataservices.EdgeJobService
 	edgeStack             dataservices.EdgeStackService
-	edgeStackStatus       dataservices.EdgeStackStatusService
 	endpoint              dataservices.EndpointService
 	endpointGroup         dataservices.EndpointGroupService
-	endpointRelation      dataservices.EndpointRelationService
 	registry              dataservices.RegistryService
 	resourceControl       dataservices.ResourceControlService
 	source                dataservices.SourceService
@@ -54,18 +50,9 @@ func (d *testDatastore) MigrateData() error                                 { re
 func (d *testDatastore) Rollback(force bool) error                          { return nil }
 func (d *testDatastore) AllowList() dataservices.AllowListService           { return d.allowList }
 func (d *testDatastore) CustomTemplate() dataservices.CustomTemplateService { return d.customTemplate }
-func (d *testDatastore) EdgeGroup() dataservices.EdgeGroupService           { return d.edgeGroup }
-func (d *testDatastore) EdgeJob() dataservices.EdgeJobService               { return d.edgeJob }
 func (d *testDatastore) EdgeStack() dataservices.EdgeStackService           { return d.edgeStack }
-func (d *testDatastore) EdgeStackStatus() dataservices.EdgeStackStatusService {
-	return d.edgeStackStatus
-}
-func (d *testDatastore) Endpoint() dataservices.EndpointService           { return d.endpoint }
-func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService { return d.endpointGroup }
-
-func (d *testDatastore) EndpointRelation() dataservices.EndpointRelationService {
-	return d.endpointRelation
-}
+func (d *testDatastore) Endpoint() dataservices.EndpointService             { return d.endpoint }
+func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService   { return d.endpointGroup }
 
 func (d *testDatastore) Registry() dataservices.RegistryService { return d.registry }
 func (d *testDatastore) ResourceControl() dataservices.ResourceControlService {
@@ -189,92 +176,6 @@ func (s *stubUserService) UsersByRole(role portainer.UserRole) ([]portainer.User
 func WithUsers(us []portainer.User) datastoreOption {
 	return func(d *testDatastore) {
 		d.user = &stubUserService{users: us}
-	}
-}
-
-type stubEdgeJobService struct {
-	dataservices.EdgeJobService
-
-	jobs []portainer.EdgeJob
-}
-
-func (s *stubEdgeJobService) BucketName() string { return "edgejobs" }
-func (s *stubEdgeJobService) ReadAll(predicates ...func(portainer.EdgeJob) bool) ([]portainer.EdgeJob, error) {
-	filtered := s.jobs
-
-	for _, p := range predicates {
-		filtered = slicesx.Filter(filtered, p)
-	}
-
-	return filtered, nil
-}
-
-// WithEdgeJobs option will instruct testDatastore to return provided jobs
-func WithEdgeJobs(js []portainer.EdgeJob) datastoreOption {
-	return func(d *testDatastore) {
-		d.edgeJob = &stubEdgeJobService{jobs: js}
-	}
-}
-
-type stubEndpointRelationService struct {
-	dataservices.EndpointRelationService
-
-	relations []portainer.EndpointRelation
-}
-
-func (s *stubEndpointRelationService) BucketName() string { return "endpoint_relation" }
-func (s *stubEndpointRelationService) EndpointRelations() ([]portainer.EndpointRelation, error) {
-	return s.relations, nil
-}
-
-func (s *stubEndpointRelationService) EndpointRelation(ID portainer.EndpointID) (*portainer.EndpointRelation, error) {
-	for _, relation := range s.relations {
-		if relation.EndpointID == ID {
-			return &relation, nil
-		}
-	}
-
-	return nil, errors.ErrObjectNotFound
-}
-
-func (s *stubEndpointRelationService) UpdateEndpointRelation(ID portainer.EndpointID, relation *portainer.EndpointRelation) error {
-	for i, r := range s.relations {
-		if r.EndpointID == ID {
-			s.relations[i] = *relation
-		}
-	}
-
-	return nil
-}
-
-func (s *stubEndpointRelationService) AddEndpointRelationsForEdgeStack(endpointIDs []portainer.EndpointID, edgeStack *portainer.EdgeStack) error {
-	for _, endpointID := range endpointIDs {
-		for i, r := range s.relations {
-			if r.EndpointID == endpointID {
-				s.relations[i].EdgeStacks[edgeStack.ID] = true
-			}
-		}
-	}
-
-	return nil
-}
-
-func (s *stubEndpointRelationService) RemoveEndpointRelationsForEdgeStack(endpointIDs []portainer.EndpointID, edgeStackID portainer.EdgeStackID) error {
-	for _, endpointID := range endpointIDs {
-		for i, r := range s.relations {
-			if r.EndpointID == endpointID {
-				delete(s.relations[i].EdgeStacks, edgeStackID)
-			}
-		}
-	}
-
-	return nil
-}
-
-// WithEndpointRelations option will instruct testDatastore to return provided jobs
-func WithEndpointRelations(relations []portainer.EndpointRelation) datastoreOption {
-	return func(d *testDatastore) {
-		d.endpointRelation = &stubEndpointRelationService{relations: relations}
 	}
 }
 

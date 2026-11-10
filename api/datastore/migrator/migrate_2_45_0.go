@@ -27,16 +27,6 @@ func (migrator *Migrator) cleanOrphanedWorkflowReferences_2_45_0() error {
 		validEndpoints[endpoint.ID] = struct{}{}
 	}
 
-	edgeGroups, err := migrator.edgeGroupService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	validEdgeGroups := make(map[portainer.EdgeGroupID]struct{}, len(edgeGroups))
-	for _, edgeGroup := range edgeGroups {
-		validEdgeGroups[edgeGroup.ID] = struct{}{}
-	}
-
 	for i := range workflows {
 		workflow := &workflows[i]
 		changed := false
@@ -54,15 +44,12 @@ func (migrator *Migrator) cleanOrphanedWorkflowReferences_2_45_0() error {
 			}
 			artifact.EnvIDs = filteredEnvIDs
 
-			filteredEdgeGroups := artifact.EdgeGroups[:0]
-			for _, id := range artifact.EdgeGroups {
-				if _, ok := validEdgeGroups[id]; ok {
-					filteredEdgeGroups = append(filteredEdgeGroups, id)
-				} else {
-					changed = true
-				}
+			// The edgegroups collection is gone (TAI-021), so every Edge group
+			// reference is orphaned.
+			if len(artifact.EdgeGroups) > 0 {
+				changed = true
 			}
-			artifact.EdgeGroups = filteredEdgeGroups
+			artifact.EdgeGroups = artifact.EdgeGroups[:0]
 		}
 
 		if changed {

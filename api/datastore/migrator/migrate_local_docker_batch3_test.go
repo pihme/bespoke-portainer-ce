@@ -6,7 +6,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/models"
-	"github.com/portainer/portainer/api/dataservices/edgegroup"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/workflow"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -268,8 +267,6 @@ func TestMigrate_CleanOrphanedWorkflowEnvIDs_2_45_0_LocalEndpoints(t *testing.T)
 	s := openTestServices(t)
 	workflowSvc, err := workflow.NewService(s.conn)
 	require.NoError(t, err)
-	edgeGroupSvc, err := edgegroup.NewService(s.conn)
-	require.NoError(t, err)
 
 	require.NoError(t, s.endpointSvc.Create(&portainer.Endpoint{ID: 1, Name: "keep", Type: portainer.DockerEnvironment}))
 	require.NoError(t, workflowSvc.Create(&portainer.Workflow{
@@ -281,10 +278,9 @@ func TestMigrate_CleanOrphanedWorkflowEnvIDs_2_45_0_LocalEndpoints(t *testing.T)
 	}))
 
 	m := NewMigrator(&MigratorParameters{
-		EndpointService:  s.endpointSvc,
-		WorkflowService:  workflowSvc,
-		EdgeGroupService: edgeGroupSvc,
-		StackService:     s.stackSvc,
+		EndpointService: s.endpointSvc,
+		WorkflowService: workflowSvc,
+		StackService:    s.stackSvc,
 	})
 	require.NoError(t, m.cleanOrphanedWorkflowReferences_2_45_0())
 

@@ -9,13 +9,9 @@ import (
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/allowlist"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/edgegroup"
-	"github.com/portainer/portainer/api/dataservices/edgejob"
 	"github.com/portainer/portainer/api/dataservices/edgestack"
-	"github.com/portainer/portainer/api/dataservices/edgestackstatus"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
@@ -44,31 +40,27 @@ type Store struct {
 	flags      *portainer.CLIFlags
 	connection portainer.Connection
 
-	fileService             portainer.FileService
-	AllowListService        *allowlist.Service
-	CustomTemplateService   *customtemplate.Service
-	EdgeGroupService        *edgegroup.Service
-	EdgeJobService          *edgejob.Service
-	EdgeStackService        *edgestack.Service
-	EdgeStackStatusService  *edgestackstatus.Service
-	EndpointGroupService    *endpointgroup.Service
-	EndpointService         *endpoint.Service
-	EndpointRelationService *endpointrelation.Service
-	RegistryService         *registry.Service
-	ResourceControlService  *resourcecontrol.Service
-	SettingsService         *settings.Service
-	SnapshotService         *snapshot.Service
-	SourceService           *source.Service
-	SSLSettingsService      *ssl.Service
-	StackService            *stack.Service
-	TagService              *tag.Service
-	TeamMembershipService   *teammembership.Service
-	TeamService             *team.Service
-	UserService             *user.Service
-	VersionService          *version.Service
-	WebhookService          *webhook.Service
-	WorkflowService         *workflow.Service
-	PendingActionsService   *pendingactions.Service
+	fileService            portainer.FileService
+	AllowListService       *allowlist.Service
+	CustomTemplateService  *customtemplate.Service
+	EdgeStackService       *edgestack.Service
+	EndpointGroupService   *endpointgroup.Service
+	EndpointService        *endpoint.Service
+	RegistryService        *registry.Service
+	ResourceControlService *resourcecontrol.Service
+	SettingsService        *settings.Service
+	SnapshotService        *snapshot.Service
+	SourceService          *source.Service
+	SSLSettingsService     *ssl.Service
+	StackService           *stack.Service
+	TagService             *tag.Service
+	TeamMembershipService  *teammembership.Service
+	TeamService            *team.Service
+	UserService            *user.Service
+	VersionService         *version.Service
+	WebhookService         *webhook.Service
+	WorkflowService        *workflow.Service
+	PendingActionsService  *pendingactions.Service
 }
 
 func (store *Store) initServices() error {
@@ -84,38 +76,11 @@ func (store *Store) initServices() error {
 	}
 	store.CustomTemplateService = customTemplateService
 
-	endpointRelationService, err := endpointrelation.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.EndpointRelationService = endpointRelationService
-
-	edgeStackService, err := edgestack.NewService(store.connection, func(tx portainer.Transaction, ID portainer.EdgeStackID) {
-		endpointRelationService.Tx(tx).InvalidateEdgeCacheForEdgeStack(ID)
-	})
+	edgeStackService, err := edgestack.NewService(store.connection, nil)
 	if err != nil {
 		return err
 	}
 	store.EdgeStackService = edgeStackService
-	endpointRelationService.RegisterUpdateStackFunction(edgeStackService.UpdateEdgeStackFuncTx)
-
-	edgeStackStatusService, err := edgestackstatus.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.EdgeStackStatusService = edgeStackStatusService
-
-	edgeGroupService, err := edgegroup.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.EdgeGroupService = edgeGroupService
-
-	edgeJobService, err := edgejob.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.EdgeJobService = edgeJobService
 
 	endpointgroupService, err := endpointgroup.NewService(store.connection)
 	if err != nil {
@@ -237,23 +202,9 @@ func (store *Store) CustomTemplate() dataservices.CustomTemplateService {
 	return store.CustomTemplateService
 }
 
-// EdgeGroup gives access to the EdgeGroup data management layer
-func (store *Store) EdgeGroup() dataservices.EdgeGroupService {
-	return store.EdgeGroupService
-}
-
-// EdgeJob gives access to the EdgeJob data management layer
-func (store *Store) EdgeJob() dataservices.EdgeJobService {
-	return store.EdgeJobService
-}
-
 // EdgeStack gives access to the EdgeStack data management layer
 func (store *Store) EdgeStack() dataservices.EdgeStackService {
 	return store.EdgeStackService
-}
-
-func (store *Store) EdgeStackStatus() dataservices.EdgeStackStatusService {
-	return store.EdgeStackStatusService
 }
 
 // Environment(Endpoint) gives access to the Environment(Endpoint) data management layer
@@ -264,11 +215,6 @@ func (store *Store) Endpoint() dataservices.EndpointService {
 // EndpointGroup gives access to the EndpointGroup data management layer
 func (store *Store) EndpointGroup() dataservices.EndpointGroupService {
 	return store.EndpointGroupService
-}
-
-// EndpointRelation gives access to the EndpointRelation data management layer
-func (store *Store) EndpointRelation() dataservices.EndpointRelationService {
-	return store.EndpointRelationService
 }
 
 // Registry gives access to the Registry data management layer
@@ -341,28 +287,25 @@ func (store *Store) Workflow() dataservices.WorkflowService {
 }
 
 type storeExport struct {
-	CustomTemplate   []portainer.CustomTemplate   `json:"customtemplates,omitempty"`
-	EdgeGroup        []portainer.EdgeGroup        `json:"edgegroups,omitempty"`
-	EdgeJob          []portainer.EdgeJob          `json:"edgejobs,omitempty"`
-	EdgeStack        []portainer.EdgeStack        `json:"edge_stack,omitempty"`
-	Endpoint         []portainer.Endpoint         `json:"endpoints,omitempty"`
-	EndpointGroup    []portainer.EndpointGroup    `json:"endpoint_groups,omitempty"`
-	EndpointRelation []portainer.EndpointRelation `json:"endpoint_relations,omitempty"`
-	Registry         []portainer.Registry         `json:"registries,omitempty"`
-	ResourceControl  []portainer.ResourceControl  `json:"resource_control,omitempty"`
-	Settings         portainer.Settings           `json:"settings,omitzero"`
-	Snapshot         []portainer.Snapshot         `json:"snapshots,omitempty"`
-	SSLSettings      portainer.SSLSettings        `json:"ssl,omitzero"`
-	Source           []portainer.Source           `json:"sources,omitempty"`
-	Stack            []portainer.Stack            `json:"stacks,omitempty"`
-	Tag              []portainer.Tag              `json:"tags,omitempty"`
-	TeamMembership   []portainer.TeamMembership   `json:"team_membership,omitempty"`
-	Team             []portainer.Team             `json:"teams,omitempty"`
-	User             []portainer.User             `json:"users,omitempty"`
-	Version          models.Version               `json:"version,omitzero"`
-	Webhook          []portainer.Webhook          `json:"webhooks,omitempty"`
-	Workflow         []portainer.Workflow         `json:"workflows,omitempty"`
-	Metadata         map[string]any               `json:"metadata,omitempty"`
+	CustomTemplate  []portainer.CustomTemplate  `json:"customtemplates,omitempty"`
+	EdgeStack       []portainer.EdgeStack       `json:"edge_stack,omitempty"`
+	Endpoint        []portainer.Endpoint        `json:"endpoints,omitempty"`
+	EndpointGroup   []portainer.EndpointGroup   `json:"endpoint_groups,omitempty"`
+	Registry        []portainer.Registry        `json:"registries,omitempty"`
+	ResourceControl []portainer.ResourceControl `json:"resource_control,omitempty"`
+	Settings        portainer.Settings          `json:"settings,omitzero"`
+	Snapshot        []portainer.Snapshot        `json:"snapshots,omitempty"`
+	SSLSettings     portainer.SSLSettings       `json:"ssl,omitzero"`
+	Source          []portainer.Source          `json:"sources,omitempty"`
+	Stack           []portainer.Stack           `json:"stacks,omitempty"`
+	Tag             []portainer.Tag             `json:"tags,omitempty"`
+	TeamMembership  []portainer.TeamMembership  `json:"team_membership,omitempty"`
+	Team            []portainer.Team            `json:"teams,omitempty"`
+	User            []portainer.User            `json:"users,omitempty"`
+	Version         models.Version              `json:"version,omitzero"`
+	Webhook         []portainer.Webhook         `json:"webhooks,omitempty"`
+	Workflow        []portainer.Workflow        `json:"workflows,omitempty"`
+	Metadata        map[string]any              `json:"metadata,omitempty"`
 }
 
 func (store *Store) Export(filename string) (err error) {
@@ -374,22 +317,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.CustomTemplate = c
-	}
-
-	if e, err := store.EdgeGroup().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Edge Groups")
-		}
-	} else {
-		backup.EdgeGroup = e
-	}
-
-	if e, err := store.EdgeJob().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Edge Jobs")
-		}
-	} else {
-		backup.EdgeJob = e
 	}
 
 	if e, err := store.EdgeStack().EdgeStacks(); err != nil {
@@ -414,14 +341,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.EndpointGroup = e
-	}
-
-	if r, err := store.EndpointRelation().EndpointRelations(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Endpoint Relations")
-		}
-	} else {
-		backup.EndpointRelation = r
 	}
 
 	if r, err := store.Registry().ReadAll(); err != nil {
@@ -572,18 +491,6 @@ func (store *Store) Import(filename string) (err error) {
 		}
 	}
 
-	for _, v := range backup.EdgeGroup {
-		if err := store.EdgeGroup().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the edge group in the database")
-		}
-	}
-
-	for _, v := range backup.EdgeJob {
-		if err := store.EdgeJob().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the edge job in the database")
-		}
-	}
-
 	for _, v := range backup.EdgeStack {
 		if err := store.EdgeStack().UpdateEdgeStack(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the edge stack in the database")
@@ -599,12 +506,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.EndpointGroup {
 		if err := store.EndpointGroup().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the endpoint group in the database")
-		}
-	}
-
-	for _, v := range backup.EndpointRelation {
-		if err := store.EndpointRelation().UpdateEndpointRelation(v.EndpointID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the endpoint relation in the database")
 		}
 	}
 

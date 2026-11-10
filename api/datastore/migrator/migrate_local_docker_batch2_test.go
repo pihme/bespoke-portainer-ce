@@ -132,11 +132,6 @@ func TestMigrate_UpdateEndpointsAndEndpointGroupsToDBVersion23_ConvertsTagNames(
 	require.NoError(t, err)
 	assert.Equal(t, []portainer.TagID{tagID}, ep.TagIDs)
 
-	rel, err := s.endpointRel.EndpointRelation(1)
-	require.NoError(t, err)
-	assert.Equal(t, portainer.EndpointID(1), rel.EndpointID)
-	require.NotNil(t, rel.EdgeStacks)
-
 	groups, err := s.endpointGroup.ReadAll()
 	require.NoError(t, err)
 	require.Len(t, groups, 1)

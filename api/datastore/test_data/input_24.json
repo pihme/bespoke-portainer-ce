@@ -13,12 +13,6 @@
       "UserAccessPolicies": {}
     }
   ],
-  "endpoint_relations": [
-    {
-      "EdgeStacks": {},
-      "EndpointID": 1
-    }
-  ],
   "endpoints": [
     {
       "AuthorizedTeams": null,

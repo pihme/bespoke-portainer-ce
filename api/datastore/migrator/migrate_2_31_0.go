@@ -1,7 +1,8 @@
 package migrator
 
-import portainer "github.com/portainer/portainer/api"
-
+// migrateEdgeStacksStatuses_2_31_0 clears the legacy per-environment status
+// map on Edge stacks. Copying it into the edge_stack_status collection was
+// dropped with that collection (TAI-021, TAI-022).
 func (m *Migrator) migrateEdgeStacksStatuses_2_31_0() error {
 	edgeStacks, err := m.edgeStackService.EdgeStacks()
 	if err != nil {
@@ -9,17 +10,6 @@ func (m *Migrator) migrateEdgeStacksStatuses_2_31_0() error {
 	}
 
 	for _, edgeStack := range edgeStacks {
-		for envID, status := range edgeStack.Status {
-			if err := m.edgeStackStatusService.Create(edgeStack.ID, envID, &portainer.EdgeStackStatusForEnv{
-				EndpointID:       envID,
-				Status:           status.Status,
-				DeploymentInfo:   status.DeploymentInfo,
-				ReadyRePullImage: status.ReadyRePullImage,
-			}); err != nil {
-				return err
-			}
-		}
-
 		edgeStack.Status = nil
 
 		if err := m.edgeStackService.UpdateEdgeStack(edgeStack.ID, &edgeStack); err != nil {

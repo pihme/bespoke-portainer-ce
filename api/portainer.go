@@ -239,35 +239,6 @@ type (
 	// EdgeGroupID represents an Edge group identifier
 	EdgeGroupID int
 
-	// EdgeJob represents a job that can run on Edge environments(endpoints).
-	EdgeJob struct {
-		// EdgeJob Identifier
-		ID             EdgeJobID                          `json:"Id" example:"1"`
-		Created        int64                              `json:"Created"`
-		CronExpression string                             `json:"CronExpression"`
-		Endpoints      map[EndpointID]EdgeJobEndpointMeta `json:"Endpoints"`
-		EdgeGroups     []EdgeGroupID                      `json:"EdgeGroups"`
-		Name           string                             `json:"Name"`
-		ScriptPath     string                             `json:"ScriptPath"`
-		Recurring      bool                               `json:"Recurring"`
-		Version        int                                `json:"Version"`
-
-		// Field used for log collection of Endpoints belonging to EdgeGroups
-		GroupLogsCollection map[EndpointID]EdgeJobEndpointMeta
-	}
-
-	// EdgeJobEndpointMeta represents a meta data object for an Edge job and Environment(Endpoint) relation
-	EdgeJobEndpointMeta struct {
-		LogsStatus  EdgeJobLogsStatus
-		CollectLogs bool
-	}
-
-	// EdgeJobID represents an Edge job identifier
-	EdgeJobID int
-
-	// EdgeJobLogsStatus represent status of logs collection job
-	EdgeJobLogsStatus int
-
 	// StackDeploymentStatus records one status transition in the current deployment lifecycle.
 	// The slice is reset at the start of each new deployment, so it represents the
 	// progression of the most recent deployment only (e.g. Deploying -> Active).
@@ -709,12 +680,6 @@ type (
 
 	// PlatformType represents the platform that an agent is running on
 	PlatformType int
-
-	// EndpointRelation represents a environment(endpoint) relation object
-	EndpointRelation struct {
-		EndpointID EndpointID
-		EdgeStacks map[EdgeStackID]bool
-	}
 
 	// EndpointPostInitMigrations
 	EndpointPostInitMigrations struct {
@@ -1673,11 +1638,6 @@ type (
 		LoadKeyPair() ([]byte, []byte, error)
 		WriteJSONToFile(path string, content any) error
 		FileExists(path string) (bool, error)
-		StoreEdgeJobFileFromBytes(identifier string, data []byte) (string, error)
-		GetEdgeJobFolder(identifier string) string
-		ClearEdgeJobTaskLogs(edgeJobID, taskID string) error
-		GetEdgeJobTaskLogFileContent(edgeJobID, taskID string) (string, error)
-		StoreEdgeJobTaskLogFileFromBytes(edgeJobID, taskID string, data []byte) error
 		GetBinaryFolder() string
 		StoreCustomTemplateFileFromBytes(identifier, fileName string, data []byte) (string, error)
 		GetCustomTemplateProjectPath(identifier string) string
@@ -2068,16 +2028,6 @@ const (
 	AgentPlatformDocker
 	// AgentPlatformKubernetes represent the Kubernetes platform
 	AgentPlatformKubernetes
-)
-
-const (
-	_ EdgeJobLogsStatus = iota
-	// EdgeJobLogsStatusIdle represents an idle log collection job
-	EdgeJobLogsStatusIdle
-	// EdgeJobLogsStatusPending represents a pending log collection job
-	EdgeJobLogsStatusPending
-	// EdgeJobLogsStatusCollected represents a completed log collection job
-	EdgeJobLogsStatusCollected
 )
 
 const (

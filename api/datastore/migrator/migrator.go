@@ -6,13 +6,9 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/edgegroup"
-	"github.com/portainer/portainer/api/dataservices/edgejob"
 	"github.com/portainer/portainer/api/dataservices/edgestack"
-	"github.com/portainer/portainer/api/dataservices/edgestackstatus"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/endpointrelation"
 	"github.com/portainer/portainer/api/dataservices/pendingactions"
 	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
@@ -38,86 +34,74 @@ type (
 		currentDBVersion *models.Version
 		migrations       []Migrations
 
-		endpointGroupService    *endpointgroup.Service
-		endpointService         *endpoint.Service
-		endpointRelationService *endpointrelation.Service
-		registryService         *registry.Service
-		resourceControlService  *resourcecontrol.Service
-		settingsService         *settings.Service
-		snapshotService         *snapshot.Service
-		stackService            *stack.Service
-		tagService              *tag.Service
-		teamMembershipService   *teammembership.Service
-		userService             *user.Service
-		versionService          *version.Service
-		fileService             portainer.FileService
-		authorizationService    *authorization.Service
-		edgeStackService        *edgestack.Service
-		edgeStackStatusService  *edgestackstatus.Service
-		edgeJobService          *edgejob.Service
-		edgeGroupService        *edgegroup.Service
-		pendingActionsService   *pendingactions.Service
-		customTemplateService   *customtemplate.Service
-		sourceService           *source.Service
-		workflowService         *workflow.Service
+		endpointGroupService   *endpointgroup.Service
+		endpointService        *endpoint.Service
+		registryService        *registry.Service
+		resourceControlService *resourcecontrol.Service
+		settingsService        *settings.Service
+		snapshotService        *snapshot.Service
+		stackService           *stack.Service
+		tagService             *tag.Service
+		teamMembershipService  *teammembership.Service
+		userService            *user.Service
+		versionService         *version.Service
+		fileService            portainer.FileService
+		authorizationService   *authorization.Service
+		edgeStackService       *edgestack.Service
+		pendingActionsService  *pendingactions.Service
+		customTemplateService  *customtemplate.Service
+		sourceService          *source.Service
+		workflowService        *workflow.Service
 	}
 
 	// MigratorParameters represents the required parameters to create a new Migrator instance.
 	MigratorParameters struct {
-		Flags                   *portainer.CLIFlags
-		CurrentDBVersion        *models.Version
-		EndpointGroupService    *endpointgroup.Service
-		EndpointService         *endpoint.Service
-		EndpointRelationService *endpointrelation.Service
-		RegistryService         *registry.Service
-		ResourceControlService  *resourcecontrol.Service
-		SettingsService         *settings.Service
-		SnapshotService         *snapshot.Service
-		StackService            *stack.Service
-		TagService              *tag.Service
-		TeamMembershipService   *teammembership.Service
-		UserService             *user.Service
-		VersionService          *version.Service
-		FileService             portainer.FileService
-		AuthorizationService    *authorization.Service
-		EdgeStackService        *edgestack.Service
-		EdgeStackStatusService  *edgestackstatus.Service
-		EdgeJobService          *edgejob.Service
-		EdgeGroupService        *edgegroup.Service
-		PendingActionsService   *pendingactions.Service
-		CustomTemplateService   *customtemplate.Service
-		SourceService           *source.Service
-		WorkflowService         *workflow.Service
+		Flags                  *portainer.CLIFlags
+		CurrentDBVersion       *models.Version
+		EndpointGroupService   *endpointgroup.Service
+		EndpointService        *endpoint.Service
+		RegistryService        *registry.Service
+		ResourceControlService *resourcecontrol.Service
+		SettingsService        *settings.Service
+		SnapshotService        *snapshot.Service
+		StackService           *stack.Service
+		TagService             *tag.Service
+		TeamMembershipService  *teammembership.Service
+		UserService            *user.Service
+		VersionService         *version.Service
+		FileService            portainer.FileService
+		AuthorizationService   *authorization.Service
+		EdgeStackService       *edgestack.Service
+		PendingActionsService  *pendingactions.Service
+		CustomTemplateService  *customtemplate.Service
+		SourceService          *source.Service
+		WorkflowService        *workflow.Service
 	}
 )
 
 // NewMigrator creates a new Migrator.
 func NewMigrator(parameters *MigratorParameters) *Migrator {
 	migrator := &Migrator{
-		flags:                   parameters.Flags,
-		currentDBVersion:        parameters.CurrentDBVersion,
-		endpointGroupService:    parameters.EndpointGroupService,
-		endpointService:         parameters.EndpointService,
-		endpointRelationService: parameters.EndpointRelationService,
-		registryService:         parameters.RegistryService,
-		resourceControlService:  parameters.ResourceControlService,
-		settingsService:         parameters.SettingsService,
-		snapshotService:         parameters.SnapshotService,
-		tagService:              parameters.TagService,
-		teamMembershipService:   parameters.TeamMembershipService,
-		stackService:            parameters.StackService,
-		userService:             parameters.UserService,
-		versionService:          parameters.VersionService,
-		fileService:             parameters.FileService,
-		authorizationService:    parameters.AuthorizationService,
-		edgeStackService:        parameters.EdgeStackService,
-		edgeStackStatusService:  parameters.EdgeStackStatusService,
-		edgeJobService:          parameters.EdgeJobService,
-		edgeGroupService:        parameters.EdgeGroupService,
-		pendingActionsService:   parameters.PendingActionsService,
-		customTemplateService:   parameters.CustomTemplateService,
-		sourceService:           parameters.SourceService,
-		workflowService:         parameters.WorkflowService,
+		flags:                  parameters.Flags,
+		currentDBVersion:       parameters.CurrentDBVersion,
+		endpointGroupService:   parameters.EndpointGroupService,
+		endpointService:        parameters.EndpointService,
+		registryService:        parameters.RegistryService,
+		resourceControlService: parameters.ResourceControlService,
+		settingsService:        parameters.SettingsService,
+		snapshotService:        parameters.SnapshotService,
+		tagService:             parameters.TagService,
+		teamMembershipService:  parameters.TeamMembershipService,
+		stackService:           parameters.StackService,
+		userService:            parameters.UserService,
+		versionService:         parameters.VersionService,
+		fileService:            parameters.FileService,
+		authorizationService:   parameters.AuthorizationService,
+		edgeStackService:       parameters.EdgeStackService,
+		pendingActionsService:  parameters.PendingActionsService,
+		customTemplateService:  parameters.CustomTemplateService,
+		sourceService:          parameters.SourceService,
+		workflowService:        parameters.WorkflowService,
 	}
 
 	migrator.initMigrations()
@@ -242,10 +226,6 @@ func (m *Migrator) initMigrations() {
 	)
 
 	m.addMigrations("2.31.0", m.migrateEdgeStacksStatuses_2_31_0)
-
-	m.addMigrations("2.32.0", m.addEndpointRelationForEdgeAgents_2_32_0)
-
-	m.addMigrations("2.33.1", m.migrateEdgeGroupEndpointsToRoars_2_33_0)
 
 	m.addMigrations("2.40.0", m.migrateRegistryAccessSASecrets_2_40_0)
 

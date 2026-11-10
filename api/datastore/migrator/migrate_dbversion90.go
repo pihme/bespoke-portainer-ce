@@ -4,7 +4,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
 )
 
 func (m *Migrator) migrateDBVersionToDB90() error {
@@ -12,36 +11,7 @@ func (m *Migrator) migrateDBVersionToDB90() error {
 		return err
 	}
 
-	if err := m.updateEnableGpuManagementFeatures(); err != nil {
-		return err
-	}
-
-	return m.updateEdgeStackStatusForDB90()
-}
-
-func (m *Migrator) updateEdgeStackStatusForDB90() error {
-	log.Info().Msg("clean up deleted endpoints from edge jobs")
-
-	edgeJobs, err := m.edgeJobService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	for _, edgeJob := range edgeJobs {
-		for endpointId := range edgeJob.Endpoints {
-			_, err := m.endpointService.Endpoint(endpointId)
-			if dataservices.IsErrObjectNotFound(err) {
-				delete(edgeJob.Endpoints, endpointId)
-
-				err = m.edgeJobService.Update(edgeJob.ID, &edgeJob)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
+	return m.updateEnableGpuManagementFeatures()
 }
 
 func (m *Migrator) updateUserThemeForDB90() error {

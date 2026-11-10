@@ -28,34 +28,28 @@ func TestSaveEndpointAndUpdateAuthorizations(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name           string
-		endpointType   portainer.EndpointType
-		expectRelation bool
+		name         string
+		endpointType portainer.EndpointType
 	}{
 		{
-			name:           "create azure environment, expect no relation to be created",
-			endpointType:   portainer.AzureEnvironment,
-			expectRelation: false,
+			name:         "create azure environment",
+			endpointType: portainer.AzureEnvironment,
 		},
 		{
-			name:           "create kubernetes environment, expect no relation to be created",
-			endpointType:   portainer.KubernetesLocalEnvironment,
-			expectRelation: false,
+			name:         "create kubernetes environment",
+			endpointType: portainer.KubernetesLocalEnvironment,
 		},
 		{
-			name:           "create kubeconfig environment, expect no relation to be created",
-			endpointType:   portainer.AgentOnKubernetesEnvironment,
-			expectRelation: false,
+			name:         "create kubeconfig environment",
+			endpointType: portainer.AgentOnKubernetesEnvironment,
 		},
 		{
-			name:           "create agent docker environment, expect no relation to be created",
-			endpointType:   portainer.AgentOnDockerEnvironment,
-			expectRelation: false,
+			name:         "create agent docker environment",
+			endpointType: portainer.AgentOnDockerEnvironment,
 		},
 		{
-			name:           "create unsecured environment, expect no relation to be created",
-			endpointType:   portainer.DockerEnvironment,
-			expectRelation: false,
+			name:         "create unsecured environment",
+			endpointType: portainer.DockerEnvironment,
 		},
 	}
 
@@ -70,15 +64,9 @@ func TestSaveEndpointAndUpdateAuthorizations(t *testing.T) {
 			err := h.saveEndpointAndUpdateAuthorizations(store, endpoint)
 			require.NoError(t, err)
 
-			relation, relationErr := store.EndpointRelation().EndpointRelation(endpoint.ID)
-			if testCase.expectRelation {
-				require.NoError(t, relationErr)
-				require.NotNil(t, relation)
-			} else {
-				require.Error(t, relationErr)
-				require.True(t, store.IsErrObjectNotFound(relationErr))
-				require.Nil(t, relation)
-			}
+			stored, err := store.Endpoint().Endpoint(endpoint.ID)
+			require.NoError(t, err)
+			require.Equal(t, testCase.endpointType, stored.Type)
 		})
 	}
 }

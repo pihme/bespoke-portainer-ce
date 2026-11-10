@@ -44,8 +44,6 @@ const (
 	PublicKeyFile = "portainer.pub"
 	// BinaryStorePath represents the subfolder where binaries are stored in the file store folder.
 	BinaryStorePath = "bin"
-	// EdgeJobStorePath represents the subfolder where schedule files are stored.
-	EdgeJobStorePath = "edge_jobs"
 	// ExtensionRegistryManagementStorePath represents the subfolder where files related to the
 	// registry management extension are stored.
 	ExtensionRegistryManagementStorePath = "extensions"
@@ -727,70 +725,6 @@ func (service *Service) StoreCustomTemplateFileFromBytes(identifier, fileName st
 	}
 
 	return service.wrapFileStore(customTemplateStorePath), nil
-}
-
-// GetEdgeJobFolder returns the absolute path on the filesystem for an Edge job based
-// on its identifier.
-func (service *Service) GetEdgeJobFolder(identifier string) string {
-	return JoinPaths(service.wrapFileStore(EdgeJobStorePath), identifier)
-}
-
-// StoreEdgeJobFileFromBytes creates a subfolder in the EdgeJobStorePath and stores a new file from bytes.
-// It returns the path to the folder where the file is stored.
-func (service *Service) StoreEdgeJobFileFromBytes(identifier string, data []byte) (string, error) {
-	edgeJobStorePath := JoinPaths(EdgeJobStorePath, identifier)
-	err := service.createDirectoryInStore(edgeJobStorePath)
-	if err != nil {
-		return "", err
-	}
-
-	filePath := JoinPaths(edgeJobStorePath, createEdgeJobFileName(identifier))
-	r := bytes.NewReader(data)
-	err = service.createFileInStore(filePath, r)
-	if err != nil {
-		return "", err
-	}
-
-	return service.wrapFileStore(filePath), nil
-}
-
-func createEdgeJobFileName(identifier string) string {
-	return "job_" + identifier + ".sh"
-}
-
-// ClearEdgeJobTaskLogs clears the Edge job task logs
-func (service *Service) ClearEdgeJobTaskLogs(edgeJobID string, taskID string) error {
-	path := service.getEdgeJobTaskLogPath(edgeJobID, taskID)
-	return os.Remove(path)
-}
-
-// GetEdgeJobTaskLogFileContent fetches the Edge job task logs
-func (service *Service) GetEdgeJobTaskLogFileContent(edgeJobID string, taskID string) (string, error) {
-	path := service.getEdgeJobTaskLogPath(edgeJobID, taskID)
-
-	fileContent, err := os.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-
-	return string(fileContent), nil
-}
-
-// StoreEdgeJobTaskLogFileFromBytes stores the log file
-func (service *Service) StoreEdgeJobTaskLogFileFromBytes(edgeJobID, taskID string, data []byte) error {
-	edgeJobStorePath := JoinPaths(EdgeJobStorePath, edgeJobID)
-	err := service.createDirectoryInStore(edgeJobStorePath)
-	if err != nil {
-		return err
-	}
-
-	filePath := JoinPaths(edgeJobStorePath, "logs_"+taskID)
-	r := bytes.NewReader(data)
-	return service.createFileInStore(filePath, r)
-}
-
-func (service *Service) getEdgeJobTaskLogPath(edgeJobID string, taskID string) string {
-	return fmt.Sprintf("%s/logs_%s", service.GetEdgeJobFolder(edgeJobID), taskID)
 }
 
 // GetTemporaryPath returns a temp folder

@@ -26,20 +26,8 @@ func (tx *StoreTx) PendingActions() dataservices.PendingActionsService {
 	return tx.store.PendingActionsService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) EdgeGroup() dataservices.EdgeGroupService {
-	return tx.store.EdgeGroupService.Tx(tx.tx)
-}
-
-func (tx *StoreTx) EdgeJob() dataservices.EdgeJobService {
-	return tx.store.EdgeJobService.Tx(tx.tx)
-}
-
 func (tx *StoreTx) EdgeStack() dataservices.EdgeStackService {
 	return tx.store.EdgeStackService.Tx(tx.tx)
-}
-
-func (tx *StoreTx) EdgeStackStatus() dataservices.EdgeStackStatusService {
-	return tx.store.EdgeStackStatusService.Tx(tx.tx)
 }
 
 func (tx *StoreTx) Endpoint() dataservices.EndpointService {
@@ -48,10 +36,6 @@ func (tx *StoreTx) Endpoint() dataservices.EndpointService {
 
 func (tx *StoreTx) EndpointGroup() dataservices.EndpointGroupService {
 	return tx.store.EndpointGroupService.Tx(tx.tx)
-}
-
-func (tx *StoreTx) EndpointRelation() dataservices.EndpointRelationService {
-	return tx.store.EndpointRelationService.Tx(tx.tx)
 }
 
 func (tx *StoreTx) Registry() dataservices.RegistryService {

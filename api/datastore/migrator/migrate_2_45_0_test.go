@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/boltdb"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/dataservices/edgegroup"
 	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/stack"
@@ -26,21 +25,15 @@ func TestCleanOrphanedWorkflowReferences_2_45_0(t *testing.T) {
 
 	endpointSvc, err := endpoint.NewService(conn)
 	require.NoError(t, err)
-	edgeGroupSvc, err := edgegroup.NewService(conn)
-	require.NoError(t, err)
 	workflowSvc, err := workflow.NewService(conn)
 	require.NoError(t, err)
 
 	m := NewMigrator(&MigratorParameters{
-		EndpointService:  endpointSvc,
-		EdgeGroupService: edgeGroupSvc,
-		WorkflowService:  workflowSvc,
+		EndpointService: endpointSvc,
+		WorkflowService: workflowSvc,
 	})
 
 	err = endpointSvc.Create(&portainer.Endpoint{ID: 1, Name: "env-1"})
-	require.NoError(t, err)
-
-	err = edgeGroupSvc.Create(&portainer.EdgeGroup{ID: 1, Name: "edgegroup-1"})
 	require.NoError(t, err)
 
 	wf := &portainer.Workflow{
@@ -53,14 +46,14 @@ func TestCleanOrphanedWorkflowReferences_2_45_0(t *testing.T) {
 	err = workflowSvc.Create(wf)
 	require.NoError(t, err)
 
-	untouchedWf := &portainer.Workflow{
-		Name: "Untouched Workflow",
+	envOnlyWf := &portainer.Workflow{
+		Name: "Env-only Workflow",
 		Artifacts: []portainer.Artifact{{
 			EnvIDs:     []portainer.EndpointID{1},
 			EdgeGroups: []portainer.EdgeGroupID{1},
 		}},
 	}
-	err = workflowSvc.Create(untouchedWf)
+	err = workflowSvc.Create(envOnlyWf)
 	require.NoError(t, err)
 
 	err = m.cleanOrphanedWorkflowReferences_2_45_0()
@@ -70,12 +63,14 @@ func TestCleanOrphanedWorkflowReferences_2_45_0(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, updatedWf.Artifacts, 1)
 	require.Equal(t, []portainer.EndpointID{1}, updatedWf.Artifacts[0].EnvIDs)
-	require.Equal(t, []portainer.EdgeGroupID{1}, updatedWf.Artifacts[0].EdgeGroups)
+	// REQ-TAI-021: the edgegroups collection is gone, so every Edge group
+	// reference is orphaned and stripped.
+	require.Empty(t, updatedWf.Artifacts[0].EdgeGroups)
 
-	updatedUntouchedWf, err := workflowSvc.Read(untouchedWf.ID)
+	updatedEnvOnlyWf, err := workflowSvc.Read(envOnlyWf.ID)
 	require.NoError(t, err)
-	require.Equal(t, []portainer.EndpointID{1}, updatedUntouchedWf.Artifacts[0].EnvIDs)
-	require.Equal(t, []portainer.EdgeGroupID{1}, updatedUntouchedWf.Artifacts[0].EdgeGroups)
+	require.Equal(t, []portainer.EndpointID{1}, updatedEnvOnlyWf.Artifacts[0].EnvIDs)
+	require.Empty(t, updatedEnvOnlyWf.Artifacts[0].EdgeGroups)
 }
 
 func TestPruneOrphanedStackArtifacts_2_45_0(t *testing.T) {

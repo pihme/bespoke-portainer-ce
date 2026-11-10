@@ -25,7 +25,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.CustomTemplate())
 	require.NotNil(t, store.Endpoint())
 	require.NotNil(t, store.EndpointGroup())
-	require.NotNil(t, store.EndpointRelation())
 	require.NotNil(t, store.PendingActions())
 	require.NotNil(t, store.ResourceControl())
 	require.NotNil(t, store.Settings())
@@ -39,10 +38,7 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Workflow())
 
 	// Deferred-feature getters stay wired on the store (observed wiring only).
-	require.NotNil(t, store.EdgeGroup())
-	require.NotNil(t, store.EdgeJob())
 	require.NotNil(t, store.EdgeStack())
-	require.NotNil(t, store.EdgeStackStatus())
 	require.NotNil(t, store.Registry())
 	require.NotNil(t, store.Team())
 	require.NotNil(t, store.TeamMembership())
@@ -109,7 +105,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.NotNil(t, tx.PendingActions())
 		require.NotNil(t, tx.Endpoint())
 		require.NotNil(t, tx.EndpointGroup())
-		require.NotNil(t, tx.EndpointRelation())
 		require.NotNil(t, tx.ResourceControl())
 		require.NotNil(t, tx.Settings())
 		require.NotNil(t, tx.Snapshot())
@@ -124,22 +119,13 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.Nil(t, tx.Webhook())
 
 		// Deferred-feature tx getters remain callable (wiring only).
-		require.NotNil(t, tx.EdgeGroup())
-		require.NotNil(t, tx.EdgeJob())
 		require.NotNil(t, tx.EdgeStack())
-		require.NotNil(t, tx.EdgeStackStatus())
 		require.NotNil(t, tx.Registry())
 		require.NotNil(t, tx.Team())
 		require.NotNil(t, tx.TeamMembership())
 		require.NotNil(t, tx.User())
 
 		if err := tx.Endpoint().Create(endpoint); err != nil {
-			return err
-		}
-		if err := tx.EndpointRelation().Create(&portainer.EndpointRelation{
-			EndpointID: endpointID,
-			EdgeStacks: map[portainer.EdgeStackID]bool{},
-		}); err != nil {
 			return err
 		}
 		if err := tx.Stack().Create(stack); err != nil {
@@ -262,10 +248,6 @@ func TestStore_ExportImport_LocalDockerRoundTrip(t *testing.T) {
 		Type:    portainer.DockerEnvironment,
 		GroupID: 1,
 		Status:  portainer.EndpointStatusUp,
-	}))
-	require.NoError(t, store.EndpointRelation().Create(&portainer.EndpointRelation{
-		EndpointID: endpointID,
-		EdgeStacks: map[portainer.EdgeStackID]bool{},
 	}))
 
 	stackID := portainer.StackID(store.Stack().GetNextIdentifier())

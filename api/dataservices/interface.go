@@ -12,13 +12,9 @@ type (
 		IsErrObjectNotFound(err error) bool
 		AllowList() AllowListService
 		CustomTemplate() CustomTemplateService
-		EdgeGroup() EdgeGroupService
-		EdgeJob() EdgeJobService
 		EdgeStack() EdgeStackService
-		EdgeStackStatus() EdgeStackStatusService
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
-		EndpointRelation() EndpointRelationService
 		Registry() RegistryService
 		ResourceControl() ResourceControlService
 		Settings() SettingsService
@@ -68,20 +64,6 @@ type (
 		GetNextIdentifier() int
 	}
 
-	// EdgeGroupService represents a service to manage Edge groups
-	EdgeGroupService interface {
-		BaseCRUD[portainer.EdgeGroup, portainer.EdgeGroupID]
-		UpdateEdgeGroupFunc(ID portainer.EdgeGroupID, updateFunc func(group *portainer.EdgeGroup)) error
-	}
-
-	// EdgeJobService represents a service to manage Edge jobs
-	EdgeJobService interface {
-		BaseCRUD[portainer.EdgeJob, portainer.EdgeJobID]
-		CreateWithID(ID portainer.EdgeJobID, edgeJob *portainer.EdgeJob) error
-		UpdateEdgeJobFunc(ID portainer.EdgeJobID, updateFunc func(edgeJob *portainer.EdgeJob)) error
-		GetNextIdentifier() int
-	}
-
 	PendingActionsService interface {
 		BaseCRUD[portainer.PendingAction, portainer.PendingActionID]
 		GetNextIdentifier() int
@@ -99,16 +81,6 @@ type (
 		DeleteEdgeStack(ID portainer.EdgeStackID) error
 		GetNextIdentifier() int
 		BucketName() string
-	}
-
-	EdgeStackStatusService interface {
-		Create(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID, status *portainer.EdgeStackStatusForEnv) error
-		Read(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) (*portainer.EdgeStackStatusForEnv, error)
-		ReadAll(edgeStackID portainer.EdgeStackID) ([]portainer.EdgeStackStatusForEnv, error)
-		Update(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID, status *portainer.EdgeStackStatusForEnv) error
-		Delete(edgeStackID portainer.EdgeStackID, endpointID portainer.EndpointID) error
-		DeleteAll(edgeStackID portainer.EdgeStackID) error
-		Clear(edgeStackID portainer.EdgeStackID, relatedEnvironmentsIDs []portainer.EndpointID) error
 	}
 
 	// EndpointService represents a service for managing environment(endpoint) data
@@ -132,18 +104,6 @@ type (
 	// EndpointGroupService represents a service for managing environment(endpoint) group data
 	EndpointGroupService interface {
 		BaseCRUD[portainer.EndpointGroup, portainer.EndpointGroupID]
-	}
-
-	// EndpointRelationService represents a service for managing environment(endpoint) relations data
-	EndpointRelationService interface {
-		EndpointRelations() ([]portainer.EndpointRelation, error)
-		EndpointRelation(EndpointID portainer.EndpointID) (*portainer.EndpointRelation, error)
-		Create(endpointRelation *portainer.EndpointRelation) error
-		UpdateEndpointRelation(EndpointID portainer.EndpointID, endpointRelation *portainer.EndpointRelation) error
-		AddEndpointRelationsForEdgeStack(endpointIDs []portainer.EndpointID, edgeStack *portainer.EdgeStack) error
-		RemoveEndpointRelationsForEdgeStack(endpointIDs []portainer.EndpointID, edgeStackID portainer.EdgeStackID) error
-		DeleteEndpointRelation(EndpointID portainer.EndpointID) error
-		BucketName() string
 	}
 
 	// RegistryService represents a service for managing registry data

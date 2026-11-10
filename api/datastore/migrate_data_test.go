@@ -473,18 +473,8 @@ func importJSON(t *testing.T, r io.Reader, store *Store) error {
 				if !ok {
 					t.Logf("failed to cast %v to map[string]any", obj)
 				} else {
-					var ok bool
-					var id any
-					switch k {
-					case "endpoint_relations":
-						// TODO: need to make into an int, then do that weird
-						// stringification
-						id, ok = value["EndpointID"]
-					default:
-						id, ok = value["Id"]
-					}
+					id, ok := value["Id"]
 					if !ok {
-						// endpoint_relations: EndpointID
 						t.Logf("missing Id field: %s", k)
 						id = "error"
 					}

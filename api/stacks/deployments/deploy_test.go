@@ -408,14 +408,6 @@ func Test_getUserRegistries(t *testing.T) {
 
 	team := portainer.Team{ID: 1}
 
-	err = store.TeamMembership().Create(&portainer.TeamMembership{
-		ID:     1,
-		UserID: user.ID,
-		TeamID: team.ID,
-		Role:   portainer.TeamMember,
-	})
-	require.NoError(t, err)
-
 	registryReachableByUser := portainer.Registry{
 		ID:   1,
 		Name: "registryReachableByUser",
@@ -464,10 +456,10 @@ func Test_getUserRegistries(t *testing.T) {
 		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser, registryReachableByTeam, registryRestricted}, registries)
 	})
 
-	t.Run("regular user has access to registries allowed to him and/or his team", func(t *testing.T) {
+	t.Run("regular user has access to registries allowed to him; there are no teams (TAI-023)", func(t *testing.T) {
 		registries, err := getUserRegistries(store, user, portainer.EndpointID(endpointID))
 		require.NoError(t, err)
-		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser, registryReachableByTeam}, registries)
+		assert.ElementsMatch(t, []portainer.Registry{registryReachableByUser}, registries)
 	})
 }
 

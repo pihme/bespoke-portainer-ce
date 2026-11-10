@@ -24,8 +24,6 @@ type testDatastore struct {
 	settings        dataservices.SettingsService
 	snapshot        dataservices.SnapshotService
 	stack           dataservices.StackService
-	teamMembership  dataservices.TeamMembershipService
-	team            dataservices.TeamService
 	user            dataservices.UserService
 	version         dataservices.VersionService
 	workflow        dataservices.WorkflowService
@@ -51,16 +49,14 @@ func (d *testDatastore) Registry() dataservices.RegistryService { return d.regis
 func (d *testDatastore) ResourceControl() dataservices.ResourceControlService {
 	return d.resourceControl
 }
-func (d *testDatastore) Source() dataservices.SourceService                 { return d.source }
-func (d *testDatastore) Settings() dataservices.SettingsService             { return d.settings }
-func (d *testDatastore) Snapshot() dataservices.SnapshotService             { return d.snapshot }
-func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService       { return d.sslSettings }
-func (d *testDatastore) Stack() dataservices.StackService                   { return d.stack }
-func (d *testDatastore) TeamMembership() dataservices.TeamMembershipService { return d.teamMembership }
-func (d *testDatastore) Team() dataservices.TeamService                     { return d.team }
-func (d *testDatastore) User() dataservices.UserService                     { return d.user }
-func (d *testDatastore) Version() dataservices.VersionService               { return d.version }
-func (d *testDatastore) Workflow() dataservices.WorkflowService             { return d.workflow }
+func (d *testDatastore) Source() dataservices.SourceService           { return d.source }
+func (d *testDatastore) Settings() dataservices.SettingsService       { return d.settings }
+func (d *testDatastore) Snapshot() dataservices.SnapshotService       { return d.snapshot }
+func (d *testDatastore) SSLSettings() dataservices.SSLSettingsService { return d.sslSettings }
+func (d *testDatastore) Stack() dataservices.StackService             { return d.stack }
+func (d *testDatastore) User() dataservices.UserService               { return d.user }
+func (d *testDatastore) Version() dataservices.VersionService         { return d.version }
+func (d *testDatastore) Workflow() dataservices.WorkflowService       { return d.workflow }
 
 func (d *testDatastore) Connection() portainer.Connection {
 	return d.connection

@@ -125,16 +125,8 @@ func redeployWhenChangedSecondStage(
 	user *portainer.User,
 	endpoint *portainer.Endpoint,
 ) error {
-	var teamMemberships []portainer.TeamMembership
-	if err := datastore.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var err error
-		teamMemberships, err = tx.TeamMembership().TeamMembershipsByUserID(user.ID)
-		return err
-	}); err != nil {
-		return err
-	}
-
-	userContext := source.NewUserContext(user, teamMemberships)
+	// There are no team memberships (TAI-023).
+	userContext := source.NewUserContext(user, []portainer.TeamMembership{})
 	gitSrc, file, err := workflows.GitSourceAndArtifactForStack(datastore, userContext, stack.WorkflowID, stack.ID)
 	if err != nil {
 		return errors.WithMessagef(err, "failed to load git config for stack %v", stack.ID)
@@ -274,10 +266,8 @@ func getUserRegistries(datastore dataservices.DataStore, user *portainer.User, e
 		return registries, nil
 	}
 
-	userMemberships, err := datastore.TeamMembership().TeamMembershipsByUserID(user.ID)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "failed to fetch memberships of the stack author [%s]", user.Username)
-	}
+	// There are no team memberships (TAI-023).
+	userMemberships := []portainer.TeamMembership{}
 
 	filteredRegistries := make([]portainer.Registry, 0, len(registries))
 	for _, registry := range registries {

@@ -18,8 +18,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/ssl"
 	"github.com/portainer/portainer/api/dataservices/stack"
 	"github.com/portainer/portainer/api/dataservices/tag"
-	"github.com/portainer/portainer/api/dataservices/team"
-	"github.com/portainer/portainer/api/dataservices/teammembership"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -48,8 +46,6 @@ type Store struct {
 	SSLSettingsService     *ssl.Service
 	StackService           *stack.Service
 	TagService             *tag.Service
-	TeamMembershipService  *teammembership.Service
-	TeamService            *team.Service
 	UserService            *user.Service
 	VersionService         *version.Service
 	WorkflowService        *workflow.Service
@@ -122,18 +118,6 @@ func (store *Store) initServices() error {
 	}
 	store.TagService = tagService
 
-	teammembershipService, err := teammembership.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.TeamMembershipService = teammembershipService
-
-	teamService, err := team.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.TeamService = teamService
-
 	userService, err := user.NewService(store.connection)
 	if err != nil {
 		return err
@@ -204,16 +188,6 @@ func (store *Store) Stack() dataservices.StackService {
 	return store.StackService
 }
 
-// TeamMembership gives access to the TeamMembership data management layer
-func (store *Store) TeamMembership() dataservices.TeamMembershipService {
-	return store.TeamMembershipService
-}
-
-// Team gives access to the Team data management layer
-func (store *Store) Team() dataservices.TeamService {
-	return store.TeamService
-}
-
 // User gives access to the User data management layer
 func (store *Store) User() dataservices.UserService {
 	return store.UserService
@@ -241,8 +215,6 @@ type storeExport struct {
 	Source          []portainer.Source          `json:"sources,omitempty"`
 	Stack           []portainer.Stack           `json:"stacks,omitempty"`
 	Tag             []portainer.Tag             `json:"tags,omitempty"`
-	TeamMembership  []portainer.TeamMembership  `json:"team_membership,omitempty"`
-	Team            []portainer.Team            `json:"teams,omitempty"`
 	User            []portainer.User            `json:"users,omitempty"`
 	Version         models.Version              `json:"version,omitzero"`
 	Workflow        []portainer.Workflow        `json:"workflows,omitempty"`
@@ -338,22 +310,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.Tag = t
-	}
-
-	if t, err := store.TeamMembership().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Team Memberships")
-		}
-	} else {
-		backup.TeamMembership = t
-	}
-
-	if t, err := store.Team().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Teams")
-		}
-	} else {
-		backup.Team = t
 	}
 
 	if users, err := store.User().ReadAll(); err != nil {
@@ -475,18 +431,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.Tag {
 		if err := store.TagService.Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the tag in the database")
-		}
-	}
-
-	for _, v := range backup.TeamMembership {
-		if err := store.TeamMembership().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the team membership in the database")
-		}
-	}
-
-	for _, v := range backup.Team {
-		if err := store.Team().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the team in the database")
 		}
 	}
 

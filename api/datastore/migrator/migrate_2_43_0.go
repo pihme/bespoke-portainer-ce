@@ -154,8 +154,9 @@ func (m *Migrator) migrateGitConfigToSources_2_43_0() error {
 					}
 					return user.ID, user.Role, nil
 				},
-				func(userId portainer.UserID) ([]portainer.TeamMembership, error) {
-					return m.teamMembershipService.Tx(tx).TeamMembershipsByUserID(userId)
+				// There are no team memberships (TAI-023).
+				func(portainer.UserID) ([]portainer.TeamMembership, error) {
+					return []portainer.TeamMembership{}, nil
 				},
 			)
 
@@ -273,8 +274,9 @@ func (m *Migrator) migrateCustomTemplateGitConfigToSources_2_43_0() error {
 					}
 					return user.ID, user.Role, nil
 				},
-				func(userId portainer.UserID) ([]portainer.TeamMembership, error) {
-					return m.teamMembershipService.Tx(tx).TeamMembershipsByUserID(userId)
+				// There are no team memberships (TAI-023).
+				func(portainer.UserID) ([]portainer.TeamMembership, error) {
+					return []portainer.TeamMembership{}, nil
 				},
 			)
 

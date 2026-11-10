@@ -54,14 +54,6 @@ func (tx *StoreTx) Stack() dataservices.StackService {
 	return tx.store.StackService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) TeamMembership() dataservices.TeamMembershipService {
-	return tx.store.TeamMembershipService.Tx(tx.tx)
-}
-
-func (tx *StoreTx) Team() dataservices.TeamService {
-	return tx.store.TeamService.Tx(tx.tx)
-}
-
 func (tx *StoreTx) User() dataservices.UserService {
 	return tx.store.UserService.Tx(tx.tx)
 }

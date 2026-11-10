@@ -13,9 +13,8 @@ import (
 // included in the lookup key because Docker volume names are only unique within a single
 // engine/cluster, not globally - see VolumeResourceControlID.
 func VolumeResourceControlGetter[
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX,

@@ -108,6 +108,8 @@ var tai023Collections = map[string]string{
 	"webhooks":        "webhook",
 	"pending_actions": "pendingactions",
 	"edge_stack":      "edgestack",
+	"teams":           "team",
+	"team_membership": "teammembership",
 }
 
 // TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a

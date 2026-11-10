@@ -110,12 +110,8 @@ func (handler *Handler) decorateStackResponse(w http.ResponseWriter, stack *port
 			return httperror.InternalServerError("Unable to read user", err)
 		}
 
-		userMemberships, err := tx.TeamMembership().TeamMembershipsByUserID(userID)
-		if err != nil {
-			return httperror.InternalServerError("Unable to read user's team memberships", err)
-		}
-
-		userContext := source.NewUserContext(user, userMemberships)
+		// There are no team memberships (TAI-023).
+		userContext := source.NewUserContext(user, []portainer.TeamMembership{})
 		if err := fillStackGitConfig(tx, userContext, stack); err != nil {
 			return httperror.InternalServerError("Unable to load git config for stack", err)
 		}

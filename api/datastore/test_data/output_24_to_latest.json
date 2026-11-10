@@ -443,13 +443,6 @@
     }
   ],
   "tags": null,
-  "team_membership": null,
-  "teams": [
-    {
-      "Id": 1,
-      "Name": "hello"
-    }
-  ],
   "users": [
     {
       "EndpointAuthorizations": null,

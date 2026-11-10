@@ -15,7 +15,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/stack"
 	"github.com/portainer/portainer/api/dataservices/tag"
-	"github.com/portainer/portainer/api/dataservices/teammembership"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/version"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -40,7 +39,6 @@ type (
 		snapshotService        *snapshot.Service
 		stackService           *stack.Service
 		tagService             *tag.Service
-		teamMembershipService  *teammembership.Service
 		userService            *user.Service
 		versionService         *version.Service
 		fileService            portainer.FileService
@@ -62,7 +60,6 @@ type (
 		SnapshotService        *snapshot.Service
 		StackService           *stack.Service
 		TagService             *tag.Service
-		TeamMembershipService  *teammembership.Service
 		UserService            *user.Service
 		VersionService         *version.Service
 		FileService            portainer.FileService
@@ -85,7 +82,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		settingsService:        parameters.SettingsService,
 		snapshotService:        parameters.SnapshotService,
 		tagService:             parameters.TagService,
-		teamMembershipService:  parameters.TeamMembershipService,
 		stackService:           parameters.StackService,
 		userService:            parameters.UserService,
 		versionService:         parameters.VersionService,

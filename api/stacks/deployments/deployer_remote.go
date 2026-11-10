@@ -135,12 +135,8 @@ func (d *stackDeployer) remoteStack(ctx context.Context, userID portainer.UserID
 				return err
 			}
 
-			memberships, err := tx.TeamMembership().TeamMembershipsByUserID(userID)
-			if err != nil {
-				return err
-			}
-
-			userContext := source.NewUserContext(user, memberships)
+			// There are no team memberships (TAI-023).
+			userContext := source.NewUserContext(user, []portainer.TeamMembership{})
 			src, file, err := workflows.GitSourceAndArtifactForStack(tx, userContext, stack.WorkflowID, stack.ID)
 			if err != nil {
 				return errors.Wrap(err, "failed to load git config for remote stack")

@@ -57,7 +57,6 @@ func TestMigrateSettings(t *testing.T) {
 		SettingsService:        store.SettingsService,
 		StackService:           store.StackService,
 		TagService:             store.TagService,
-		TeamMembershipService:  store.TeamMembershipService,
 		UserService:            store.UserService,
 		VersionService:         store.VersionService,
 		FileService:            store.fileService,

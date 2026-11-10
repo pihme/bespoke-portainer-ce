@@ -42,8 +42,6 @@ func newTestHandler(t *testing.T) (*Handler, dataservices.DataStore, portainer.F
 				3: portainer.AccessPolicy{RoleID: 0},
 			},
 		}))
-		require.NoError(t, tx.Team().Create(&portainer.Team{ID: 1}))
-		require.NoError(t, tx.TeamMembership().Create(&portainer.TeamMembership{ID: 1, UserID: 3, TeamID: 1, Role: portainer.TeamMember}))
 		return nil
 	}))
 

@@ -15,21 +15,15 @@ type rcServiceLike interface {
 	ResourceControlByResourceIDAndType(resourceID string, resourceType portainer.ResourceControlType) (*portainer.ResourceControl, error)
 }
 
-type teamServiceLike interface {
-	TeamByName(name string) (*portainer.Team, error)
-}
-
 type userServiceLike interface {
 	UserIDByUsername(name string) (portainer.UserID, error)
 }
 
 type txLike[
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ] interface {
 	ResourceControl() RCS
-	Team() TS
 	User() US
 }
 
@@ -41,9 +35,8 @@ type ResourceContext[T any] struct {
 
 func genericResourcControlGetter[
 	T any,
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX,
@@ -116,9 +109,8 @@ const (
 
 // translation of rules from transport.newResourceControlFromPortainerLabels(resourceLabelsObject, resourceIdentifier, resourceType)
 func rcFromPortainerLabels[
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX, labels map[string]string, resourceID string, resourceType portainer.ResourceControlType,
@@ -144,18 +136,13 @@ func rcFromPortainerLabels[
 
 	teamIDs := make([]portainer.TeamID, 0)
 	userIDs := make([]portainer.UserID, 0)
+	// There are no teams (TAI-023), so every team name is unknown, as it
+	// was when the always-empty teams collection was read.
 	for _, name := range teamNames {
-		team, err := tx.Team().TeamByName(name)
-		if err != nil {
-			log.Warn().
-				Str("name", name).
-				Str("resource_id", resourceID).
-				Msg("unknown team name in access control label, ignoring access control rule for this team")
-
-			continue
-		}
-
-		teamIDs = append(teamIDs, team.ID)
+		log.Warn().
+			Str("name", name).
+			Str("resource_id", resourceID).
+			Msg("unknown team name in access control label, ignoring access control rule for this team")
 	}
 
 	for _, name := range userNames {

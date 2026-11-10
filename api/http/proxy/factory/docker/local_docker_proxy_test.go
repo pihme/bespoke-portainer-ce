@@ -47,12 +47,10 @@ func TestREQ_USR_08_FindResourceControlDepth(t *testing.T) {
 	_, store := datastore.MustNewTestStore(t, true, false)
 	admin := portainer.User{ID: 1, Username: "admin", Role: portainer.AdministratorRole}
 	std := portainer.User{ID: 2, Username: "std", Role: portainer.StandardUserRole}
-	team := portainer.Team{ID: 10, Name: "devs"}
 
 	require.NoError(t, store.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		require.NoError(t, tx.User().Create(&admin))
 		require.NoError(t, tx.User().Create(&std))
-		require.NoError(t, tx.Team().Create(&team))
 		return nil
 	}))
 
@@ -135,8 +133,8 @@ func TestREQ_USR_08_FindResourceControlDepth(t *testing.T) {
 		require.NotNil(t, got)
 		require.Len(t, got.UserAccesses, 1)
 		require.Equal(t, std.ID, got.UserAccesses[0].UserID)
-		require.Len(t, got.TeamAccesses, 1)
-		require.Equal(t, team.ID, got.TeamAccesses[0].TeamID)
+		// REQ-TAI-023: there are no teams, so every team name is ignored.
+		require.Empty(t, got.TeamAccesses)
 	})
 
 	t.Run("empty portainer access labels yield nil", func(t *testing.T) {

@@ -72,7 +72,6 @@ func (store *Store) newMigratorParameters(version *models.Version, flags *portai
 		SnapshotService:        store.SnapshotService,
 		StackService:           store.StackService,
 		TagService:             store.TagService,
-		TeamMembershipService:  store.TeamMembershipService,
 		UserService:            store.UserService,
 		VersionService:         store.VersionService,
 		FileService:            store.fileService,

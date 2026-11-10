@@ -91,8 +91,6 @@ func TestGenericResourcControlGetterWithPortainerLabels(t *testing.T) {
 	is.NoError(store.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		is.NoError(tx.User().Create(&portainer.User{Role: portainer.AdministratorRole, Username: "admin"}))
 		is.NoError(tx.User().Create(&portainer.User{Role: portainer.AdministratorRole, Username: "user"}))
-		is.NoError(tx.Team().Create(&portainer.Team{Name: "team"}))
-		is.NoError(tx.TeamMembership().Create(&portainer.TeamMembership{UserID: 2, TeamID: 1}))
 		return nil
 	}))
 
@@ -111,9 +109,11 @@ func TestGenericResourcControlGetterWithPortainerLabels(t *testing.T) {
 			ID:     "team",
 			Labels: map[string]string{teamRCLabel: "team"},
 		})
+		// REQ-TAI-023: there are no teams, so a team label grants nothing.
 		is.NoError(err)
 		is.NotNil(rc)
-		is.Contains(rc.TeamAccesses, portainer.TeamResourceAccess{TeamID: 1, AccessLevel: portainer.ReadWriteAccessLevel})
+		is.Empty(rc.UserAccesses)
+		is.Empty(rc.TeamAccesses)
 
 		rc, err = genericResourcControlGetter(tx, 1, context)(container.Summary{
 			ID:     "no-team",

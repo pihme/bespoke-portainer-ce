@@ -20,8 +20,6 @@ type (
 		SSLSettings() SSLSettingsService
 		Source() SourceService
 		Stack() StackService
-		TeamMembership() TeamMembershipService
-		Team() TeamService
 		User() UserService
 		Version() VersionService
 		Workflow() WorkflowService
@@ -128,22 +126,6 @@ type (
 		StacksByName(name string) ([]portainer.Stack, error)
 		GetNextIdentifier() int
 		StackByWebhookID(ID string) (*portainer.Stack, error)
-	}
-
-	// TeamService represents a service for managing user data
-	TeamService interface {
-		BaseCRUD[portainer.Team, portainer.TeamID]
-		TeamByName(name string) (*portainer.Team, error)
-	}
-
-	// TeamMembershipService represents a service for managing team membership data
-	TeamMembershipService interface {
-		BaseCRUD[portainer.TeamMembership, portainer.TeamMembershipID]
-		TeamMembershipsByUserID(userID portainer.UserID) ([]portainer.TeamMembership, error)
-		TeamMembershipsByTeamID(teamID portainer.TeamID) ([]portainer.TeamMembership, error)
-		DeleteTeamMembershipByUserID(userID portainer.UserID) error
-		DeleteTeamMembershipByTeamID(teamID portainer.TeamID) error
-		DeleteTeamMembershipByTeamIDAndUserID(teamID portainer.TeamID, userID portainer.UserID) error
 	}
 
 	// UserService represents a service for managing user data

@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/dataservices/stack"
-	"github.com/portainer/portainer/api/dataservices/teammembership"
 	"github.com/portainer/portainer/api/dataservices/user"
 	"github.com/portainer/portainer/api/dataservices/workflow"
 	gittypes "github.com/portainer/portainer/api/git/types"
@@ -591,8 +590,6 @@ func TestMigrateGitConfigToSources_2_43_0_StandardUserStackPreservesAccess(t *te
 	require.NoError(t, err)
 	userSvc, err := user.NewService(conn)
 	require.NoError(t, err)
-	teamMembershipSvc, err := teammembership.NewService(conn)
-	require.NoError(t, err)
 
 	m := NewMigrator(&MigratorParameters{
 		StackService:           stackSvc,
@@ -600,7 +597,6 @@ func TestMigrateGitConfigToSources_2_43_0_StandardUserStackPreservesAccess(t *te
 		WorkflowService:        workflowSvc,
 		ResourceControlService: rcSvc,
 		UserService:            userSvc,
-		TeamMembershipService:  teamMembershipSvc,
 	})
 
 	standardUser := &portainer.User{

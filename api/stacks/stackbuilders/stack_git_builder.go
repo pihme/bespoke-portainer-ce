@@ -38,12 +38,8 @@ func (b *GitMethodStackBuilder) prepare(ctx context.Context, payload *StackPaylo
 		if err != nil {
 			return httperror.InternalServerError("Unable to read user", err)
 		}
-		memberships, err := tx.TeamMembership().TeamMembershipsByUserID(userID)
-		if err != nil {
-			return httperror.InternalServerError("Unable to read user team memberships", err)
-		}
-
-		userContext = source.NewUserContext(user, memberships)
+		// There are no team memberships (TAI-023).
+		userContext = source.NewUserContext(user, []portainer.TeamMembership{})
 		return nil
 	}); err != nil {
 		return err

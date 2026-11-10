@@ -6,9 +6,8 @@ import (
 )
 
 func StackResourceControlGetter[
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX,
@@ -33,9 +32,8 @@ type ExternalStack struct {
 // External stacks are indirectly detected either via containers or services labels
 // Any UAC applied to them can only be fetched from containers'/services' labels
 func ExternalStackResourceControlGetter[
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX,

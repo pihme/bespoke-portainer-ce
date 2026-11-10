@@ -471,12 +471,8 @@ func (transport *Transport) restrictedResourceOperation(request *http.Request, r
 		return transport.executeDockerRequest(request)
 	}
 
-	teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	userTeamIDs := authorization.TeamIDs(teamMemberships)
+	// There are no team memberships (TAI-023), so the user belongs to no team.
+	var userTeamIDs []portainer.TeamID
 
 	resourceControls, err := transport.dataStore.ResourceControl().ReadAll()
 	if err != nil {
@@ -757,12 +753,8 @@ func (transport *Transport) createRegistryAccessContext(request *http.Request) (
 
 	accessContext.isAdmin = false
 
-	teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	accessContext.teamMemberships = teamMemberships
+	// There are no team memberships (TAI-023).
+	accessContext.teamMemberships = []portainer.TeamMembership{}
 
 	return accessContext, nil
 }
@@ -791,12 +783,8 @@ func (transport *Transport) createOperationContext(request *http.Request) (*rest
 
 	operationContext.isAdmin = false
 
-	teamMemberships, err := transport.dataStore.TeamMembership().TeamMembershipsByUserID(tokenData.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	operationContext.userTeamIDs = authorization.TeamIDs(teamMemberships)
+	// There are no team memberships (TAI-023), so the user belongs to no team.
+	operationContext.userTeamIDs = []portainer.TeamID{}
 
 	return operationContext, nil
 }

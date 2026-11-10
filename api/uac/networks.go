@@ -6,9 +6,8 @@ import (
 )
 
 func NetworkResourceControlGetter[
-	TX txLike[RCS, TS, US],
+	TX txLike[RCS, US],
 	RCS rcServiceLike,
-	TS teamServiceLike,
 	US userServiceLike,
 ](
 	tx TX,

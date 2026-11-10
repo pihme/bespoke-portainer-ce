@@ -70,18 +70,13 @@ func (transport *Transport) newResourceControlFromPortainerLabels(labelsObject m
 	teamIDs := make([]portainer.TeamID, 0)
 	userIDs := make([]portainer.UserID, 0)
 
+	// There are no teams (TAI-023), so every team name is unknown, as it
+	// was when the always-empty teams collection was read.
 	for _, name := range teamNames {
-		team, err := transport.dataStore.Team().TeamByName(name)
-		if err != nil {
-			log.Warn().
-				Str("name", name).
-				Str("resource_id", resourceID).
-				Msg("unknown team name in access control label, ignoring access control rule for this team")
-
-			continue
-		}
-
-		teamIDs = append(teamIDs, team.ID)
+		log.Warn().
+			Str("name", name).
+			Str("resource_id", resourceID).
+			Msg("unknown team name in access control label, ignoring access control rule for this team")
 	}
 
 	for _, name := range userNames {

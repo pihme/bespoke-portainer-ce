@@ -1160,12 +1160,6 @@
       "Type": 2
     }
   ],
-  "teams": [
-    {
-      "Id": 1,
-      "Name": "hello"
-    }
-  ],
   "templates": [
     {
       "Id": 1,

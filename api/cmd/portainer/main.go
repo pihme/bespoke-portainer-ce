@@ -27,13 +27,11 @@ import (
 	"github.com/portainer/portainer/api/gitops/scheduling"
 	"github.com/portainer/portainer/api/http"
 	"github.com/portainer/portainer/api/http/proxy"
-	kubeproxy "github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/endpointutils"
 	"github.com/portainer/portainer/api/internal/snapshot"
 	"github.com/portainer/portainer/api/internal/ssl"
-	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/kubernetes"
 	kubecli "github.com/portainer/portainer/api/kubernetes/cli"
 	"github.com/portainer/portainer/api/logs"
@@ -163,18 +161,6 @@ func checkDBSchemaServerVersionMatch(dbStore dataservices.DataStore, serverVersi
 	}
 
 	return v.SchemaVersion == serverVersion && v.Edition == serverEdition
-}
-
-func initKubernetesDeployer(kubernetesTokenCacheManager *kubeproxy.TokenCacheManager, kubernetesClientFactory *kubecli.ClientFactory, dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, proxyManager *proxy.Manager) portainer.KubernetesDeployer {
-	return exec.NewKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, signatureService, proxyManager)
-}
-
-func initJWTService(userSessionTimeout string, dataStore dataservices.DataStore) (portainer.JWTService, error) {
-	if userSessionTimeout == "" {
-		userSessionTimeout = portainer.DefaultUserSessionTimeout
-	}
-
-	return jwt.NewService(userSessionTimeout, dataStore)
 }
 
 func initDigitalSignatureService() portainer.DigitalSignatureService {
@@ -380,11 +366,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		log.Fatal().Err(err).Msg("")
 	}
 
-	jwtService, err := initJWTService(settings.UserSessionTimeout, dataStore)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed initializing JWT service")
-	}
-
 	gitService := git.NewService(shutdownCtx)
 
 	cryptoService := crypto.Service{}
@@ -410,20 +391,19 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	authorizationService := authorization.NewService(dataStore)
 	authorizationService.K8sClientFactory = kubernetesClientFactory
 
-	kubernetesTokenCacheManager := kubeproxy.NewTokenCacheManager()
-
 	proxyManager := proxy.NewManager(kubernetesClientFactory)
 
 	composeDeployer := compose.NewComposeDeployer()
 
 	composeStackManager := exec.NewComposeStackManager(composeDeployer, proxyManager)
 
-	kubernetesDeployer := initKubernetesDeployer(kubernetesTokenCacheManager, kubernetesClientFactory, dataStore, signatureService, proxyManager)
+	// The post-init migrator keeps its Kubernetes deployer parameter
+	// (BoltDB and migrator code stay unchanged) but never calls it; the
+	// Kubernetes deployer is removed (TAI-016).
+	var kubernetesDeployer portainer.KubernetesDeployer
 
 	pendingActionsService := pendingactions.NewService(dataStore, kubernetesClientFactory)
 	pendingActionsService.RegisterHandler(actions.CleanNAPWithOverridePolicies, handlers.NewHandlerCleanNAPWithOverridePolicies(authorizationService, dataStore))
-	pendingActionsService.RegisterHandler(actions.CleanupNamespaceRecords, handlers.NewHandlerCleanupNamespaceRecords(dataStore, kubernetesClientFactory))
-	pendingActionsService.RegisterHandler(actions.DeletePortainerK8sRegistrySecrets, handlers.NewHandlerDeleteRegistrySecrets(authorizationService, dataStore, kubernetesClientFactory))
 	pendingActionsService.RegisterHandler(actions.PostInitMigrateEnvironment, handlers.NewHandlerPostInitMigrateEnvironment(authorizationService, dataStore, kubernetesClientFactory, dockerClientFactory, *flags.Assets, kubernetesDeployer))
 
 	snapshotService, err := initSnapshotService(*flags.SnapshotInterval, dataStore, dockerClientFactory, kubernetesClientFactory, pendingActionsService)
@@ -433,7 +413,7 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 
 	snapshotService.Start(shutdownCtx)
 
-	proxyManager.NewProxyFactory(dataStore, signatureService, dockerClientFactory, kubernetesClientFactory, kubernetesTokenCacheManager, gitService, snapshotService, jwtService)
+	proxyManager.NewProxyFactory(dataStore, signatureService, dockerClientFactory, gitService, snapshotService)
 
 	applicationStatus := initStatus(instanceID)
 
@@ -505,32 +485,29 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 	}
 
 	return &http.Server{
-		AuthorizationService:        authorizationService,
-		Status:                      applicationStatus,
-		BindAddress:                 *flags.Addr,
-		BindAddressHTTPS:            *flags.AddrHTTPS,
-		CSP:                         *flags.CSP,
-		HTTPEnabled:                 sslDBSettings.HTTPEnabled,
-		AssetsPath:                  *flags.Assets,
-		DataStore:                   dataStore,
-		ComposeStackManager:         composeStackManager,
-		KubernetesDeployer:          kubernetesDeployer,
-		CryptoService:               cryptoService,
-		JWTService:                  jwtService,
-		FileService:                 fileService,
-		GitService:                  gitService,
-		ProxyManager:                proxyManager,
-		KubernetesTokenCacheManager: kubernetesTokenCacheManager,
-		SignatureService:            signatureService,
-		SnapshotService:             snapshotService,
-		SSLService:                  sslService,
-		DockerClientFactory:         dockerClientFactory,
-		KubernetesClientFactory:     kubernetesClientFactory,
-		SourceScheduler:             sourceScheduler,
-		StackDeployer:               stackDeployer,
-		PendingActionsService:       pendingActionsService,
-		PlatformService:             platformService,
-		TrustedOrigins:              trustedOrigins,
+		AuthorizationService:    authorizationService,
+		Status:                  applicationStatus,
+		BindAddress:             *flags.Addr,
+		BindAddressHTTPS:        *flags.AddrHTTPS,
+		CSP:                     *flags.CSP,
+		HTTPEnabled:             sslDBSettings.HTTPEnabled,
+		AssetsPath:              *flags.Assets,
+		DataStore:               dataStore,
+		ComposeStackManager:     composeStackManager,
+		CryptoService:           cryptoService,
+		FileService:             fileService,
+		GitService:              gitService,
+		ProxyManager:            proxyManager,
+		SignatureService:        signatureService,
+		SnapshotService:         snapshotService,
+		SSLService:              sslService,
+		DockerClientFactory:     dockerClientFactory,
+		KubernetesClientFactory: kubernetesClientFactory,
+		SourceScheduler:         sourceScheduler,
+		StackDeployer:           stackDeployer,
+		PendingActionsService:   pendingActionsService,
+		PlatformService:         platformService,
+		TrustedOrigins:          trustedOrigins,
 	}
 }
 

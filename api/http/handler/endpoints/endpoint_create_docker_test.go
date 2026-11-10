@@ -56,7 +56,7 @@ func newCreateDockerHandler(t *testing.T) (*Handler, *datastore.Store) {
 	h.SnapshotService = snap
 	h.PendingActionsService = pendingactions.NewService(store, nil)
 	h.ProxyManager = proxy.NewManager(nil)
-	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
+	h.ProxyManager.NewProxyFactory(nil, nil, nil, nil, nil)
 	h.FileService = fs
 	return h, store
 }

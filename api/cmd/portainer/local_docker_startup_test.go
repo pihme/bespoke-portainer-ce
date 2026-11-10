@@ -190,21 +190,11 @@ func TestREQ_SRV_01_InitStatus_InstanceID(t *testing.T) {
 	assert.Equal(t, "local-instance-id", status.InstanceID)
 }
 
-func TestREQ_SRV_01_InitDigitalSignatureAndJWT(t *testing.T) {
+func TestREQ_SRV_01_InitDigitalSignature(t *testing.T) {
 	t.Parallel()
 
 	sig := initDigitalSignatureService()
 	require.NotNil(t, sig)
-
-	_, store := datastore.MustNewTestStore(t, true, false)
-
-	jwtDefault, err := initJWTService("", store)
-	require.NoError(t, err)
-	require.NotNil(t, jwtDefault)
-
-	jwtCustom, err := initJWTService("1h", store)
-	require.NoError(t, err)
-	require.NotNil(t, jwtCustom)
 }
 
 func TestREQ_SRV_01_CheckDBSchemaServerVersionMatch(t *testing.T) {

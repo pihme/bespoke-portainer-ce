@@ -11,7 +11,6 @@ import (
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
 
 	"github.com/segmentio/encoding/json"
 	"github.com/stretchr/testify/assert"
@@ -35,15 +34,12 @@ func Test_getSystemVersion(t *testing.T) {
 	require.NoError(t, err, "error creating admin user")
 
 	// setup services
-	jwtService, err := jwt.NewService("1h", store)
-	require.NoError(t, err, "Error initiating jwt service")
-
 	requestBouncer := security.NewRequestBouncer(t.Context(), store)
 
 	h := NewHandler(requestBouncer, &portainer.Status{}, store, nil)
 
-	// generate standard and admin user tokens
-	jwt, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
+	// The bouncer ignores the cookie (TAI-001); the JWT service is gone (TAI-016).
+	jwt := "user-" + adminUser.Username
 
 	t.Run("Display Edition", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/system/version", nil)

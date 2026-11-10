@@ -33,7 +33,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/websocket"
 	"github.com/portainer/portainer/api/http/middlewares"
 	"github.com/portainer/portainer/api/http/proxy"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/ssl"
@@ -48,33 +47,30 @@ import (
 
 // Server implements the portainer.Server interface
 type Server struct {
-	AuthorizationService        *authorization.Service
-	BindAddress                 string
-	BindAddressHTTPS            string
-	CSP                         bool
-	HTTPEnabled                 bool
-	AssetsPath                  string
-	Status                      *portainer.Status
-	ComposeStackManager         portainer.ComposeStackManager
-	CryptoService               portainer.CryptoService
-	SignatureService            portainer.DigitalSignatureService
-	SnapshotService             portainer.SnapshotService
-	FileService                 portainer.FileService
-	DataStore                   dataservices.DataStore
-	GitService                  portainer.GitService
-	JWTService                  portainer.JWTService
-	ProxyManager                *proxy.Manager
-	KubernetesTokenCacheManager *kubernetes.TokenCacheManager
-	Handler                     *handler.Handler
-	SSLService                  *ssl.Service
-	DockerClientFactory         *dockerclient.ClientFactory
-	KubernetesClientFactory     *cli.ClientFactory
-	KubernetesDeployer          portainer.KubernetesDeployer
-	SourceScheduler             *scheduling.SourceScheduler
-	StackDeployer               deployments.StackDeployer
-	PendingActionsService       *pendingactions.PendingActionsService
-	PlatformService             platform.Service
-	TrustedOrigins              []string
+	AuthorizationService    *authorization.Service
+	BindAddress             string
+	BindAddressHTTPS        string
+	CSP                     bool
+	HTTPEnabled             bool
+	AssetsPath              string
+	Status                  *portainer.Status
+	ComposeStackManager     portainer.ComposeStackManager
+	CryptoService           portainer.CryptoService
+	SignatureService        portainer.DigitalSignatureService
+	SnapshotService         portainer.SnapshotService
+	FileService             portainer.FileService
+	DataStore               dataservices.DataStore
+	GitService              portainer.GitService
+	ProxyManager            *proxy.Manager
+	Handler                 *handler.Handler
+	SSLService              *ssl.Service
+	DockerClientFactory     *dockerclient.ClientFactory
+	KubernetesClientFactory *cli.ClientFactory
+	SourceScheduler         *scheduling.SourceScheduler
+	StackDeployer           deployments.StackDeployer
+	PendingActionsService   *pendingactions.PendingActionsService
+	PlatformService         platform.Service
+	TrustedOrigins          []string
 }
 
 // Start starts the HTTP server

@@ -1864,16 +1864,6 @@ type (
 		) ([]string, error)
 	}
 
-	// JWTService represents a service for managing JWT tokens
-	JWTService interface {
-		GenerateToken(data *TokenData) (string, time.Time, error)
-		GenerateTokenForKubeconfig(data *TokenData, endpointID EndpointID) (string, error)
-		GenerateTokensForKubeconfig(data *TokenData, endpointIDs []EndpointID) (map[EndpointID]string, error)
-		ParseAndVerifyToken(token string) (*ScopedTokenData, string, time.Time, error)
-		ParseAndVerifySessionToken(token string) (*TokenData, string, time.Time, error)
-		SetUserSessionDuration(userSessionDuration time.Duration)
-	}
-
 	// KubeExecParams holds parameters for KubeClient.StartExecProcess.
 	KubeExecParams struct {
 		Token         string

@@ -149,3 +149,10 @@ func TestREQ_TAI_008_AzureEnvironmentGetsNoProxy(t *testing.T) {
 	_, err := f.NewEndpointProxy(&portainer.Endpoint{Type: portainer.AzureEnvironment, URL: "https://management.azure.com"})
 	require.ErrorIs(t, err, portainer.ErrAzureEnvironmentNotSupported)
 }
+
+func TestREQ_TAI_016_KubernetesEnvironmentGetsNoProxy(t *testing.T) {
+	f := &ProxyFactory{}
+
+	_, err := f.NewEndpointProxy(&portainer.Endpoint{Type: portainer.KubernetesLocalEnvironment, URL: "https://kubernetes.default.svc"})
+	require.ErrorIs(t, err, portainer.ErrKubernetesEnvironmentNotSupported)
+}

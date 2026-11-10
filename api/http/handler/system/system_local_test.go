@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
 	plf "github.com/portainer/portainer/api/platform"
 	"github.com/portainer/portainer/pkg/featureflags"
 	libclient "github.com/portainer/portainer/pkg/libhttp/client"
@@ -55,15 +54,14 @@ func setupSystemHandler(t *testing.T, platform plf.Service) (*Handler, *datastor
 	stdUser := &portainer.User{ID: 2, Username: "user", Role: portainer.StandardUserRole}
 	require.NoError(t, store.User().Create(stdUser))
 
-	jwtService, err := jwt.NewService("1h", store)
-	require.NoError(t, err)
 	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	status := &portainer.Status{Version: portainer.APIVersion}
 	h := NewHandler(bouncer, status, store, platform)
 
-	adminJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: adminUser.ID, Username: adminUser.Username, Role: adminUser.Role})
-	userJWT, _, _ := jwtService.GenerateToken(&portainer.TokenData{ID: stdUser.ID, Username: stdUser.Username, Role: stdUser.Role})
+	// The bouncer ignores the cookie (TAI-001); the JWT service is gone (TAI-016).
+	adminJWT := "user-" + adminUser.Username
+	userJWT := "user-" + stdUser.Username
 	return h, store, adminJWT, userJWT
 }
 

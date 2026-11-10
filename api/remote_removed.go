@@ -27,3 +27,8 @@ func IsAgentEnvironmentType(t EndpointType) bool {
 // ErrAzureEnvironmentNotSupported is returned for Azure Container Instances
 // environments, which are removed (TAI-008).
 var ErrAzureEnvironmentNotSupported = errors.New("Azure environments are no longer supported")
+
+// ErrKubernetesEnvironmentNotSupported is returned for a local Kubernetes
+// environment left in the database: Kubernetes is removed (TAI-002) and the
+// Kubernetes proxy is gone (TAI-016).
+var ErrKubernetesEnvironmentNotSupported = errors.New("Kubernetes environments are no longer supported")

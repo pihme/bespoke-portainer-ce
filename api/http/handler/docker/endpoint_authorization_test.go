@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/pkg/fips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,7 +22,7 @@ import (
 // real daemon. The authorization middleware runs before this, which is what these tests assert.
 const unreachableDockerURL = "tcp://127.0.0.1:1"
 
-func newDashboardAuthTestHandler(t *testing.T) (*Handler, *jwt.Service, *datastore.Store) {
+func newDashboardAuthTestHandler(t *testing.T) (*Handler, *datastore.Store) {
 	t.Helper()
 	fips.InitFIPS(false)
 
@@ -33,9 +32,6 @@ func newDashboardAuthTestHandler(t *testing.T) (*Handler, *jwt.Service, *datasto
 		ID: 1, Name: "docker-env", Type: portainer.DockerEnvironment, URL: unreachableDockerURL,
 	}))
 
-	jwtService, err := jwt.NewService("1h", store)
-	require.NoError(t, err)
-
 	bouncer := security.NewRequestBouncer(t.Context(), store)
 
 	factory := dockerclient.NewClientFactory(nil)
@@ -44,16 +40,16 @@ func newDashboardAuthTestHandler(t *testing.T) (*Handler, *jwt.Service, *datasto
 
 	handler := NewHandler(bouncer, authorizationService, store, factory, containerService)
 
-	return handler, jwtService, store
+	return handler, store
 }
 
-func dashboardRequest(t *testing.T, handler *Handler, jwtService *jwt.Service, user *portainer.User) *httptest.ResponseRecorder {
+func dashboardRequest(t *testing.T, handler *Handler, user *portainer.User) *httptest.ResponseRecorder {
 	t.Helper()
 
+	// The bouncer serves every request as the local operator and ignores the
+	// cookie (TAI-001); the JWT service is gone (TAI-016).
 	req := httptest.NewRequest(http.MethodGet, "/docker/1/dashboard", nil)
-	tk, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: user.ID, Username: user.Username, Role: user.Role})
-	require.NoError(t, err)
-	testhelpers.AddTestSecurityCookie(req, tk)
+	testhelpers.AddTestSecurityCookie(req, "user-"+user.Username)
 
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
@@ -64,12 +60,12 @@ func dashboardRequest(t *testing.T, handler *Handler, jwtService *jwt.Service, u
 // route lets an authorized caller through the authorization middleware (R8S-1057). The request
 // fails later when the handler cannot reach the docker daemon, but it must not be rejected with 403.
 func TestEndpointAuthorization_AuthorizedUser_NotForbidden(t *testing.T) {
-	handler, jwtService, store := newDashboardAuthTestHandler(t)
+	handler, store := newDashboardAuthTestHandler(t)
 
 	adminUser := &portainer.User{Username: "admin", Role: portainer.AdministratorRole}
 	require.NoError(t, store.User().Create(adminUser))
 
-	rr := dashboardRequest(t, handler, jwtService, adminUser)
+	rr := dashboardRequest(t, handler, adminUser)
 
 	assert.NotEqual(t, http.StatusForbidden, rr.Code)
 }

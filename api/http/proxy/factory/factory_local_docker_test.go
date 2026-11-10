@@ -54,7 +54,7 @@ func TestNewProxyFactory_WiresDependencies(t *testing.T) {
 	t.Parallel()
 
 	clientFactory := dockerclient.NewClientFactory(nil)
-	f := NewProxyFactory(nil, nil, clientFactory, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, clientFactory, nil, nil)
 	require.NotNil(t, f)
 	require.Same(t, clientFactory, f.dockerClientFactory)
 }
@@ -72,7 +72,7 @@ func TestREQ_ENV_05_NewEndpointProxy_LocalDockerUnix(t *testing.T) {
 		_, _ = io.WriteString(w, `{"ok":true}`)
 	}))
 
-	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil)
 	endpoint := &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "unix://" + sock,
@@ -99,7 +99,7 @@ func TestREQ_ENV_05_NewEndpointProxy_LocalDockerUnix(t *testing.T) {
 func TestREQ_ENV_05_NewEndpointProxy_DockerTCP(t *testing.T) {
 	enableSSRF(t)
 
-	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
+	f := NewProxyFactory(nil, nil, nil, nil, nil)
 	endpoint := &portainer.Endpoint{
 		Type: portainer.DockerEnvironment,
 		URL:  "tcp://192.168.1.50:2375",

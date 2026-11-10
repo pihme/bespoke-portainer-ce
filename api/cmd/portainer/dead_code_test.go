@@ -83,3 +83,42 @@ func TestREQ_TAI_015_UnusedModulesAreGone(t *testing.T) {
 
 	require.False(t, strings.Contains(string(goMod), "oras.land"), "no oras module should stay")
 }
+
+// TestREQ_TAI_016_UnreachableKubernetesStackIsGone proves that the Kubernetes
+// proxy, the kubeconfig JWT service, the Kubernetes deployer, libkubectl, the
+// namespace cleanup and the Kubernetes-only pending-action handlers are
+// deleted, while the Kubernetes client the post-init migration and the
+// snapshots of leftover records use stays.
+func TestREQ_TAI_016_UnreachableKubernetesStackIsGone(t *testing.T) {
+	for _, path := range []string{
+		"api/http/proxy/factory/kubernetes",
+		"api/http/proxy/factory/kubernetes.go",
+		"api/jwt",
+		"api/exec/kubernetes_deploy.go",
+		"api/exec/exectest",
+		"pkg/libkubectl",
+		"api/kubernetes/namespacecleanup",
+		"api/pendingactions/handlers/cleanup_namespace_records.go",
+		"api/pendingactions/handlers/delete_k8s_registry_secrets.go",
+	} {
+		_, err := os.Stat(filepath.Join(repoRoot, path))
+		require.Truef(t, os.IsNotExist(err), "%s should be removed", path)
+	}
+
+	for _, path := range []string{
+		"api/kubernetes/cli",
+		"api/datastore/postinit/migrate_post_init.go",
+		"api/pendingactions/handlers/post_init_migrate_environment.go",
+		"api/pendingactions/handlers/clean_nap_with_override_policies.go",
+	} {
+		_, err := os.Stat(filepath.Join(repoRoot, path))
+		require.NoErrorf(t, err, "%s should stay", path)
+	}
+
+	goMod, err := os.ReadFile(filepath.Join(repoRoot, "go.mod"))
+	require.NoError(t, err)
+
+	for _, module := range []string{"k8s.io/kubectl", "k8s.io/cli-runtime"} {
+		require.NotContainsf(t, string(goMod), module+" ", "go.mod should not list %s", module)
+	}
+}

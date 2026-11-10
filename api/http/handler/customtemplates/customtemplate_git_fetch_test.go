@@ -21,7 +21,6 @@ import (
 	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/internal/authorization"
 	"github.com/portainer/portainer/api/internal/testhelpers"
-	"github.com/portainer/portainer/api/jwt"
 	"github.com/portainer/portainer/api/logs"
 	"github.com/portainer/portainer/pkg/fips"
 	httperror "github.com/portainer/portainer/pkg/libhttp/error"
@@ -210,9 +209,6 @@ func Test_customTemplateGitFetch(t *testing.T) {
 	}()
 
 	// setup services
-	jwtService, err := jwt.NewService("1h", store)
-	require.NoError(t, err, "Error initiating jwt service")
-
 	requestBouncer := security.NewRequestBouncer(t.Context(), store)
 
 	gitService := &TestGitService{
@@ -222,12 +218,11 @@ func Test_customTemplateGitFetch(t *testing.T) {
 
 	h := NewHandler(requestBouncer, store, fileService, gitService)
 
-	// generate two standard users' tokens
-	jwt1, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: user1.ID, Username: user1.Username, Role: user1.Role})
-	require.NoError(t, err)
-
-	jwt2, _, err := jwtService.GenerateToken(&portainer.TokenData{ID: user2.ID, Username: user2.Username, Role: user2.Role})
-	require.NoError(t, err)
+	// The bouncer serves every request as the local operator and ignores
+	// the cookie (TAI-001); the JWT service is gone (TAI-016). Two cookie
+	// values keep the two callers apart.
+	jwt1 := "user-" + user1.Username
+	jwt2 := "user-" + user2.Username
 
 	t.Run("can return the expected file content by a single call from one user", func(t *testing.T) {
 		err := singleAPIRequest(h, jwt1, "abcdefg")

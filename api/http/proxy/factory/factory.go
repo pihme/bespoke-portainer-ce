@@ -6,36 +6,27 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	dockerclient "github.com/portainer/portainer/api/docker/client"
-	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
-
-	"github.com/portainer/portainer/api/kubernetes/cli"
 )
 
 type (
 	// ProxyFactory is a factory to create reverse proxies
 	ProxyFactory struct {
-		dataStore                   dataservices.DataStore
-		signatureService            portainer.DigitalSignatureService
-		dockerClientFactory         *dockerclient.ClientFactory
-		kubernetesClientFactory     *cli.ClientFactory
-		kubernetesTokenCacheManager *kubernetes.TokenCacheManager
-		gitService                  portainer.GitService
-		snapshotService             portainer.SnapshotService
-		jwtService                  portainer.JWTService
+		dataStore           dataservices.DataStore
+		signatureService    portainer.DigitalSignatureService
+		dockerClientFactory *dockerclient.ClientFactory
+		gitService          portainer.GitService
+		snapshotService     portainer.SnapshotService
 	}
 )
 
 // NewProxyFactory returns a pointer to a new instance of a ProxyFactory
-func NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, clientFactory *dockerclient.ClientFactory, kubernetesClientFactory *cli.ClientFactory, kubernetesTokenCacheManager *kubernetes.TokenCacheManager, gitService portainer.GitService, snapshotService portainer.SnapshotService, jwtService portainer.JWTService) *ProxyFactory {
+func NewProxyFactory(dataStore dataservices.DataStore, signatureService portainer.DigitalSignatureService, clientFactory *dockerclient.ClientFactory, gitService portainer.GitService, snapshotService portainer.SnapshotService) *ProxyFactory {
 	return &ProxyFactory{
-		dataStore:                   dataStore,
-		signatureService:            signatureService,
-		dockerClientFactory:         clientFactory,
-		kubernetesClientFactory:     kubernetesClientFactory,
-		kubernetesTokenCacheManager: kubernetesTokenCacheManager,
-		gitService:                  gitService,
-		snapshotService:             snapshotService,
-		jwtService:                  jwtService,
+		dataStore:           dataStore,
+		signatureService:    signatureService,
+		dockerClientFactory: clientFactory,
+		gitService:          gitService,
+		snapshotService:     snapshotService,
 	}
 }
 
@@ -49,7 +40,7 @@ func (factory *ProxyFactory) NewEndpointProxy(endpoint *portainer.Endpoint) (htt
 	case portainer.AgentOnDockerEnvironment, portainer.AgentOnKubernetesEnvironment:
 		return nil, portainer.ErrAgentEnvironmentNotSupported
 	case portainer.KubernetesLocalEnvironment:
-		return factory.newKubernetesProxy(endpoint)
+		return nil, portainer.ErrKubernetesEnvironmentNotSupported
 	}
 
 	return factory.newDockerProxy(endpoint)

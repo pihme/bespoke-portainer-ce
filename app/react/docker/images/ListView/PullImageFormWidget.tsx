@@ -1,6 +1,5 @@
 import { DownloadIcon } from 'lucide-react';
 import { Formik } from 'formik';
-import { useState } from 'react';
 
 import { useAuthorizations } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
@@ -23,9 +22,7 @@ export function PullImageFormWidget({
   const envId = useEnvironmentId();
   const mutation = usePullImageMutation(envId);
   const authorizedQuery = useAuthorizations('DockerImageCreate');
-  const [isDockerhubRateLimited, setIsDockerhubRateLimited] = useState(false);
-
-  const validation = useValidation(isDockerhubRateLimited, isNodeVisible);
+  const validation = useValidation(isNodeVisible);
 
   if (!authorizedQuery.authorized) {
     return null;
@@ -47,9 +44,6 @@ export function PullImageFormWidget({
           validateOnMount
         >
           <PullImageForm
-            onRateLimit={(limited = false) =>
-              setIsDockerhubRateLimited(limited)
-            }
             isLoading={mutation.isLoading}
             isNodeVisible={isNodeVisible}
           />
@@ -64,7 +58,6 @@ export function PullImageFormWidget({
         environmentId: envId,
         image: config.image,
         nodeName: node,
-        registryId: config.registryId,
         ignoreErrors: false,
       },
       {

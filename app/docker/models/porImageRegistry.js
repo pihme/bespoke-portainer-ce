@@ -1,16 +1,7 @@
 /**
- * This model should be used with por-image-registry component
- * And bound to the 'model' attribute
- *
- * // viewController.js
- *
- * this.imageModel = new PorImageRegistryModel();
- *
- * // view.html
- * <por-image-registry model="$ctrl.imageModel" ... />
+ * Image name model for the image tag forms and app templates.
+ * Registries are gone (TAI-005): the image is always pulled by its full name.
  */
 export function PorImageRegistryModel() {
-  this.UseRegistry = true;
-  this.Registry = {};
   this.Image = '';
 }

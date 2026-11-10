@@ -6,10 +6,6 @@ import {
   EnvironmentId,
   EnvironmentType,
 } from '@/react/portainer/environments/types';
-import {
-  Registry,
-  RegistryId,
-} from '@/react/portainer/registries/types/registry';
 import { createWebhook } from '@/react/portainer/webhooks/useCreateWebhook';
 import { WebhookType } from '@/react/portainer/webhooks/types';
 import {
@@ -63,7 +59,6 @@ interface CreateOptions {
     alwaysPull?: Values['alwaysPull'];
     enableWebhook?: Values['enableWebhook'];
   };
-  registry?: Registry;
   environment: Environment;
 }
 
@@ -85,15 +80,13 @@ export function createOrReplace(options: ReplaceOptions | CreateOptions) {
 async function create({
   config,
   values,
-  registry,
   environment,
 }: CreateOptions) {
   await pullImageIfNeeded(
     environment.Id,
     values.alwaysPull || false,
     values.imageName,
-    values.nodeName,
-    registry
+    values.nodeName
   );
 
   const containerResponse = await createAndStart(
@@ -106,8 +99,7 @@ async function create({
   await applyContainerSettings(
     containerResponse.Id,
     environment,
-    values.enableWebhook,
-    registry
+    values.enableWebhook
   );
 }
 
@@ -115,7 +107,6 @@ async function replace({
   oldContainer,
   config,
   values,
-  registry,
   environment,
   extraNetworks,
 }: ReplaceOptions) {
@@ -123,8 +114,7 @@ async function replace({
     environment.Id,
     values.alwaysPull || false,
     values.imageName,
-    values.nodeName,
-    registry
+    values.nodeName
   );
 
   const containerResponse = await renameAndCreate(
@@ -138,8 +128,7 @@ async function replace({
   await applyContainerSettings(
     containerResponse.Id,
     environment,
-    values.enableWebhook,
-    registry
+    values.enableWebhook
   );
 
   await connectToExtraNetworks(
@@ -198,11 +187,10 @@ async function renameAndCreate(
 async function applyContainerSettings(
   containerId: string,
   environment: Environment,
-  enableWebhook?: boolean,
-  registry?: Registry
+  enableWebhook?: boolean
 ) {
   if (enableWebhook) {
-    await createContainerWebhook(containerId, environment, registry?.Id);
+    await createContainerWebhook(containerId, environment);
   }
 }
 
@@ -246,8 +234,7 @@ async function pullImageIfNeeded(
   environmentId: EnvironmentId,
   pull: boolean,
   image: string,
-  nodeName?: string,
-  registry?: Registry
+  nodeName?: string
 ) {
   if (!pull) {
     return null;
@@ -257,7 +244,6 @@ async function pullImageIfNeeded(
     environmentId,
     nodeName,
     image,
-    registry,
     ignoreErrors: true,
   });
 }
@@ -284,8 +270,7 @@ async function createContainer(
 
 async function createContainerWebhook(
   containerId: string,
-  environment: Environment,
-  registryId?: RegistryId
+  environment: Environment
 ) {
   const isNotEdgeAgentOnDockerEnvironment =
     environment.Type !== EnvironmentType.EdgeAgentOnDocker;
@@ -296,7 +281,6 @@ async function createContainerWebhook(
   await createWebhook({
     resourceId: containerId,
     environmentId: environment.Id,
-    registryId,
     webhookType: WebhookType.DockerContainer,
   });
 }

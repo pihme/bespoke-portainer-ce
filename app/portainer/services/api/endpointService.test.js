@@ -41,8 +41,6 @@ function buildService({ endpoints = {}, uploads = {} } = {}) {
     update: vi.fn((_params, payload) => promiseResource({ Id: 1, ...payload })),
     remove: vi.fn(() => promiseResource({})),
     updateSecuritySettings: vi.fn(() => promiseResource({ AllowBindMountsForRegularUsers: false })),
-    updateRegistryAccess: vi.fn(() => promiseResource({})),
-    registries: vi.fn(() => promiseResource([])),
     updateEndpoint: vi.fn(() => promiseResource({})),
     ...endpoints,
   };
@@ -59,6 +57,12 @@ function buildService({ endpoints = {}, uploads = {} } = {}) {
 describe('REQ-ENV-01 EndpointService local Docker client', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('REQ-TAI-005 exposes no registry list or registry access calls', () => {
+    const { service } = buildService();
+    expect(service.registries).toBeUndefined();
+    expect(service.updateRegistryAccess).toBeUndefined();
   });
 
   it('endpoint loads by id', async () => {

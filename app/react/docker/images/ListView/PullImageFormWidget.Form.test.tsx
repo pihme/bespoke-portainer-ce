@@ -9,17 +9,13 @@ import { FormValues } from './PullImageFormWidget.types';
 vi.mock('@@/ImageConfigFieldset', () => ({
   ImageConfigFieldset: ({
     children,
-    onRateLimit,
     setFieldValue,
+    ...rest
   }: {
     children: React.ReactNode;
-    onRateLimit: (limited?: boolean) => void;
     setFieldValue: (field: string, value: unknown) => void;
   }) => (
-    <div data-cy="image-config">
-      <button type="button" onClick={() => onRateLimit(true)}>
-        rate-limit
-      </button>
+    <div data-cy="image-config" data-props={Object.keys(rest).join(',')}>
       <button type="button" onClick={() => setFieldValue('image', 'nginx')}>
         set-image
       </button>
@@ -64,19 +60,16 @@ vi.mock('../../agent/NodeSelector', () => ({
 
 const initial: FormValues = {
   node: '',
-  config: { image: '', registryId: 0, useRegistry: false },
+  config: { image: '' },
 };
 
 function renderForm(props: {
   isNodeVisible?: boolean;
   isLoading?: boolean;
-  onRateLimit?: (limited?: boolean) => void;
 }) {
-  const onRateLimit = props.onRateLimit || vi.fn();
   return render(
     <Formik initialValues={initial} onSubmit={vi.fn()}>
       <PullImageForm
-        onRateLimit={onRateLimit}
         isLoading={props.isLoading ?? false}
         isNodeVisible={props.isNodeVisible ?? false}
       />
@@ -85,14 +78,19 @@ function renderForm(props: {
 }
 
 describe('PullImageForm', () => {
-  it('hides node selector when not visible and forwards rate limit', async () => {
+  it('hides node selector when not visible', async () => {
     const user = userEvent.setup();
-    const onRateLimit = vi.fn();
-    renderForm({ onRateLimit });
+    renderForm({});
     expect(screen.queryByTestId('deployment')).not.toBeInTheDocument();
-    await user.click(screen.getByText('rate-limit'));
-    expect(onRateLimit).toHaveBeenCalledWith(true);
     await user.click(screen.getByText('set-image'));
+  });
+
+  it('REQ-TAI-005 passes no rate limit or autocomplete props to the image field', () => {
+    renderForm({});
+    expect(screen.getByTestId('image-config')).toHaveAttribute(
+      'data-props',
+      'values,errors'
+    );
   });
 
   it('shows node selector and updates node when visible', async () => {

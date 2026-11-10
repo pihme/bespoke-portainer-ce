@@ -25,11 +25,6 @@ angular.module('portainer.docker').controller('ImportImageController', [
       RegistryModel: new PorImageRegistryModel(),
     };
 
-    $scope.setPullImageValidity = setPullImageValidity;
-    function setPullImageValidity(validity) {
-      $scope.state.pullImageValidity = validity;
-    }
-
     async function tagImage(id) {
       const registryModel = $scope.formValues.RegistryModel;
       if (registryModel.Image) {

@@ -5,13 +5,7 @@ import { LoadingButton } from '@@/buttons';
 
 import { FormValues } from './types';
 
-export function CreateImageForm({
-  onRateLimit,
-  isLoading,
-}: {
-  onRateLimit: (limited?: boolean) => void;
-  isLoading: boolean;
-}) {
+export function CreateImageForm({ isLoading }: { isLoading: boolean }) {
   const { values, setFieldValue, errors, isValid } =
     useFormikContext<FormValues>();
 
@@ -28,13 +22,11 @@ export function CreateImageForm({
       </div>
 
       <ImageConfigFieldset
-        autoComplete
         values={values.config}
         setFieldValue={(field, value) =>
           setFieldValue(`config.${field}`, value)
         }
         errors={errors.config}
-        onRateLimit={onRateLimit}
       />
 
       {/* Tag note */}

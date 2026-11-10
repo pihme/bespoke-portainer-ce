@@ -430,7 +430,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	baseURL := "/"
 	trustedOrigins := ""
 	csp := true
-	pullLimitDisabled := true
 	endpointURL := ""
 	featureFlags := []string{}
 
@@ -438,7 +437,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
 	flags.CSP = &csp
-	flags.PullLimitCheckDisabled = &pullLimitDisabled
 	flags.EndpointURL = &endpointURL
 	flags.FeatureFlags = &featureFlags
 
@@ -458,7 +456,6 @@ func TestREQ_SRV_01_BuildServer_LocalDockerDaemonStartup(t *testing.T) {
 	assert.Equal(t, bind, httpServer.BindAddress)
 	assert.Equal(t, bindHTTPS, httpServer.BindAddressHTTPS)
 	assert.Equal(t, assets, httpServer.AssetsPath)
-	assert.True(t, httpServer.PullLimitCheckDisabled)
 	require.NotNil(t, httpServer.DataStore)
 	require.NotNil(t, httpServer.SnapshotService)
 	require.NotNil(t, httpServer.SSLService)
@@ -487,7 +484,6 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	baseURL := "/"
 	trustedOrigins := "https://portainer.example.com,https://ui.example.com:8443"
 	csp := true
-	pullLimitDisabled := true
 	endpointURL := ""
 	featureFlags := []string{}
 
@@ -495,7 +491,6 @@ func TestREQ_SRV_04_BuildServer_TrustedOriginsLocalBind(t *testing.T) {
 	flags.BaseURL = &baseURL
 	flags.TrustedOrigins = &trustedOrigins
 	flags.CSP = &csp
-	flags.PullLimitCheckDisabled = &pullLimitDisabled
 	flags.EndpointURL = &endpointURL
 	flags.FeatureFlags = &featureFlags
 

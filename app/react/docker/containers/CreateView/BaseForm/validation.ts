@@ -8,17 +8,13 @@ import { nameValidation } from './NameField';
 
 export function validation(
   {
-    isDuplicating,
     isDuplicatingPortainer,
-    isDockerhubRateLimited,
   }: {
-    isDuplicating: boolean | undefined;
+    isDuplicating?: boolean | undefined;
     isDuplicatingPortainer: boolean | undefined;
-    isDockerhubRateLimited: boolean;
   } = {
     isDuplicating: false,
     isDuplicatingPortainer: false,
-    isDockerhubRateLimited: false,
   }
 ): SchemaOf<Values> {
   return object({
@@ -26,20 +22,12 @@ export function validation(
       'not-duplicate-portainer',
       () => !isDuplicatingPortainer
     ),
-    alwaysPull: boolean()
-      .default(true)
-      .test('rate-limits', 'Rate limit exceeded', (alwaysPull: boolean) =>
-        alwaysPull ? !isDockerhubRateLimited : true
-      ),
+    alwaysPull: boolean().default(true),
     autoRemove: boolean().default(false),
     enableWebhook: boolean().default(false),
     nodeName: string().default(''),
     ports: portsSchema(),
     publishAllPorts: boolean().default(false),
-    image: imageConfigValidation().test(
-      'duplicate-must-have-registry',
-      'Duplicate is only possible when registry is selected',
-      (value) => !isDuplicating || typeof value.registryId !== 'undefined'
-    ),
+    image: imageConfigValidation(),
   });
 }

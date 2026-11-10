@@ -3,11 +3,8 @@ import { useCurrentStateAndParams } from '@uirouter/react';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 import { trimContainerName } from '@/docker/filters/utils';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
-import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
-import { Registry } from '@/react/portainer/registries/types/registry';
 
 import { PageHeader } from '@@/PageHeader';
-import { findBestMatchRegistry } from '@@/ImageConfigFieldset/findRegistryMatch';
 
 import { useContainer } from '../queries/useContainer';
 
@@ -30,18 +27,11 @@ export function ItemView() {
     { select: (c) => new ContainerDetailsViewModel(c) }
   );
 
-  const registriesQuery = useEnvironmentRegistries(environmentId);
-
-  if (
-    containerQuery.isLoading ||
-    !containerQuery.data ||
-    !registriesQuery.data
-  ) {
+  if (containerQuery.isLoading || !containerQuery.data) {
     return null;
   }
 
   const container = containerQuery.data;
-  const registryId = getRegistryId(container, registriesQuery.data);
 
   const containerName =
     trimContainerName(container.Name) || container.Id || 'unknown';
@@ -67,7 +57,6 @@ export function ItemView() {
           environmentId={environmentId}
           nodeName={nodeName}
           container={container}
-          registryId={registryId}
         />
       </div>
 
@@ -99,17 +88,4 @@ export function ItemView() {
       )}
     </>
   );
-}
-
-function getRegistryId(
-  container: ContainerDetailsViewModel,
-  registries?: Array<Registry>
-) {
-  const imageName = container.Config?.Image;
-  if (!imageName || !registries) {
-    return undefined;
-  }
-
-  const registry = findBestMatchRegistry(imageName, registries);
-  return registry?.Id;
 }

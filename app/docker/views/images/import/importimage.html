@@ -25,16 +25,19 @@
               <rd-widget>
                 <rd-widget-header icon="tag" title-text="Tag the image"></rd-widget-header>
                 <rd-widget-body>
-                  <!-- image-and-registry -->
-                  <por-image-registry
-                    model="formValues.RegistryModel"
-                    label-class="col-sm-1"
-                    input-class="col-sm-11"
-                    endpoint="endpoint"
-                    is-admin="isAdmin"
-                    set-validity="setPullImageValidity"
-                    check-rate-limits="true"
-                  ></por-image-registry>
+                  <div class="form-group">
+                    <label for="image_name" class="col-sm-1 control-label text-left">Image</label>
+                    <div class="col-sm-11">
+                      <input
+                        type="text"
+                        class="form-control"
+                        ng-model="formValues.RegistryModel.Image"
+                        id="image_name"
+                        placeholder="e.g. registry:port/my-image:my-tag"
+                        data-cy="image-name-input"
+                      />
+                    </div>
+                  </div>
                 </rd-widget-body>
               </rd-widget>
             </div>

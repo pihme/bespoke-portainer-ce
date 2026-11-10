@@ -109,7 +109,6 @@ type (
 		LogMode                *string
 		KubectlShellImage      *string
 		KubectlShellImageSet   bool
-		PullLimitCheckDisabled *bool
 		TrustedOrigins         *string
 	}
 
@@ -2180,8 +2179,6 @@ const (
 	APIKeyHeader = "X-API-KEY"
 	// KubectlShellImageEnvVar is the environment variable used to override the default kubectl shell image
 	KubectlShellImageEnvVar = "KUBECTL_SHELL_IMAGE"
-	// PullLimitCheckDisabledEnvVar is the environment variable used to disable the pull limit check
-	PullLimitCheckDisabledEnvVar = "PULL_LIMIT_CHECK_DISABLED"
 	// FeatureFlagEnvVar is the environment variable used to set the list of enabled feature flags
 	FeatureFlagEnvVar = "FEATURE_FLAG"
 	// LicenseServerBaseURL represents the base URL of the API used to validate

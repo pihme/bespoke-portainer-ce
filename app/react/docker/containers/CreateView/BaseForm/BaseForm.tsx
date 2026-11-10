@@ -49,12 +49,10 @@ export function BaseForm({
   isLoading,
   onChangeName,
   onChangeImageName,
-  onRateLimit,
 }: {
   isLoading: boolean;
   onChangeName: (value: string) => void;
   onChangeImageName: () => void;
-  onRateLimit: (limited?: boolean) => void;
 }) {
   const { setFieldValue, values, errors, isValid } = useFormikContext<Values>();
   const environmentQuery = useCurrentEnvironment();
@@ -85,8 +83,6 @@ export function BaseForm({
             setFieldValue={(field, value) =>
               setFieldValue(`image.${field}`, value)
             }
-            autoComplete
-            onRateLimit={values.alwaysPull ? onRateLimit : undefined}
             errors={errors?.image}
             onChangeImage={onChangeImageName}
           >

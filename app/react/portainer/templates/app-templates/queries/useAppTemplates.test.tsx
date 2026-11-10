@@ -47,13 +47,8 @@ describe('REQ-TPL-01 useAppTemplates and getAppTemplates', () => {
     await expect(getAppTemplates()).rejects.toThrow();
   });
 
-  it('loads templates with the matching registry when an environment id is set', async () => {
+  it('REQ-TAI-005 loads templates without querying registries', async () => {
     server.use(
-      http.get('/api/endpoints/3/registries', () =>
-        HttpResponse.json([
-          { Id: 9, Name: 'private', URL: 'registry.example.com' },
-        ])
-      ),
       http.get('/api/templates', () =>
         HttpResponse.json({ version: '3', templates: [sampleTemplate] })
       )
@@ -69,35 +64,16 @@ describe('REQ-TPL-01 useAppTemplates and getAppTemplates', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].Title).toBe('Redis');
-    expect(result.current.data?.[0].RegistryModel.Registry.URL).toBe(
-      'registry.example.com'
+    expect(result.current.data?.[0].RegistryModel.Image).toBe(
+      'registry.example.com/redis:latest'
     );
-  });
-
-  it('falls back to Docker Hub when the template has no registry URL', async () => {
-    server.use(
-      http.get('/api/registries', () => HttpResponse.json([])),
-      http.get('/api/templates', () =>
-        HttpResponse.json({
-          version: '2',
-          templates: [{ ...sampleTemplate, registry: undefined }],
-        })
-      )
+    expect(result.current.data?.[0].RegistryModel).not.toHaveProperty(
+      'Registry'
     );
-
-    const { result } = renderHook(() => useAppTemplates(), {
-      wrapper: withTestQueryProvider(({ children }) => <>{children}</>),
-    });
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data?.[0].RegistryModel.Registry).toMatchObject({
-      Name: expect.any(String),
-    });
   });
 
   it('useAppTemplate selects a single template by id', async () => {
     server.use(
-      http.get('/api/registries', () => HttpResponse.json([])),
       http.get('/api/templates', () =>
         HttpResponse.json({
           version: '3',

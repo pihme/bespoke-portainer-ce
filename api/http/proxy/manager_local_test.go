@@ -19,10 +19,6 @@ func TestNewProxyFactoryAndGitlabProxy(t *testing.T) {
 
 	manager.NewProxyFactory(store, pkgtesthelpers.NewStubSignatureService(), factory, nil, nil, nil, nil, nil)
 	require.NotNil(t, manager.proxyFactory)
-
-	proxy, err := manager.CreateGitlabProxy("https://gitlab.example.com")
-	require.NoError(t, err)
-	require.NotNil(t, proxy)
 }
 
 func TestCreateAndRegisterEndpointProxy_LocalDocker(t *testing.T) {

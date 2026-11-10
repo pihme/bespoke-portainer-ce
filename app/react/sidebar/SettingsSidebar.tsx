@@ -2,7 +2,6 @@ import {
   Award,
   Settings,
   HardDrive,
-  Radio,
   FileText,
   Bell,
 } from 'lucide-react';
@@ -57,13 +56,6 @@ export function SettingsSidebar({ isPureAdmin, isAdmin }: Props) {
               data-cy="portainerSidebar-environmentTags"
             />
           </SidebarParent>
-
-          <SidebarItem
-            label="Registries"
-            to="portainer.registries"
-            icon={Radio}
-            data-cy="portainerSidebar-registries"
-          />
 
           {isBE && (
             <SidebarItem

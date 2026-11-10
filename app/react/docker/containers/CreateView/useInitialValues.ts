@@ -36,7 +36,6 @@ import {
 import { envVarsTabUtils } from '@/react/docker/containers/CreateView/EnvVarsTab';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useWebhooks } from '@/react/portainer/webhooks/useWebhooks';
-import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 
 import { getImageConfig } from '@@/ImageConfigFieldset/getImageConfig';
@@ -82,9 +81,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
     { endpointId: environmentId, resourceId: from },
     { enabled: !!from }
   );
-  const registriesQuery = useEnvironmentRegistries(environmentId, {
-    enabled: !!from,
-  });
   const isPodman = useIsPodman(environmentId);
 
   if (!networksQuery.data) {
@@ -100,7 +96,6 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
   const fromContainer = fromContainerQuery.data;
   if (
     !fromContainer ||
-    !registriesQuery.data ||
     !runningContainersQuery.data ||
     !webhookQuery.data
   ) {
@@ -128,10 +123,7 @@ export function useInitialValues(submitting: boolean, isWindows: boolean) {
       ),
     }));
 
-  const imageConfig = getImageConfig(
-    fromContainer?.Config?.Image || '',
-    registriesQuery.data
-  );
+  const imageConfig = getImageConfig(fromContainer?.Config?.Image || '');
 
   const initialValues: Values = {
     commands: commandsTabUtils.toViewModel(fromContainer),

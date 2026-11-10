@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
 
-import { RegistryTypes } from '@/react/portainer/registries/types/registry';
-
 import {
   buildImageFullURI,
   buildImageFullURIFromModel,
@@ -110,32 +108,17 @@ describe('parseViewModel and tag helpers', () => {
     expect(imageContainsURL('nginx')).toBe(false);
   });
 
-  it('builds full URIs without registry and with custom/anonymous registries', () => {
+  it('REQ-TAI-005 builds full URIs from the image name only', () => {
     expect(buildImageFullURI('nginx')).toBe('nginx:latest');
     expect(buildImageFullURI('nginx:1.25')).toBe('nginx:1.25');
     expect(() => buildImageFullURI('')).toThrow(/Missing image/);
 
-    expect(
-      buildImageFullURIFromModel({
-        UseRegistry: false,
-        Image: 'redis',
-      })
-    ).toBe('redis:latest');
-
-    expect(
-      buildImageFullURI('app', {
-        Type: RegistryTypes.CUSTOM,
-        URL: 'registry.local',
-        Username: 'u',
-      } as never)
-    ).toBe('registry.local/app:latest');
-
-    expect(
-      buildImageFullURI('busybox', {
-        Type: RegistryTypes.ANONYMOUS,
-        URL: '',
-        Username: '',
-      } as never)
-    ).toBe('busybox:latest');
+    expect(buildImageFullURIFromModel({ Image: 'redis' })).toBe('redis:latest');
+    expect(buildImageFullURI('registry.local/app')).toBe(
+      'registry.local/app:latest'
+    );
+    expect(buildImageFullURI('registry.local:5000/app:2')).toBe(
+      'registry.local:5000/app:2'
+    );
   });
 });

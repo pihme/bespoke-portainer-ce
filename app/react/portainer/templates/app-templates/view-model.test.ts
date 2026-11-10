@@ -40,7 +40,7 @@ describe('REQ-TPL-01 TemplateViewModel maps app template JSON', () => {
     expect(vm.Volumes).toEqual([]);
     expect(vm.Ports).toEqual([]);
     expect(vm.RegistryModel.Image).toBe('nginx:latest');
-    expect(vm.RegistryModel.Registry.URL).toBe('');
+    expect(vm.RegistryModel).not.toHaveProperty('Registry');
   });
 
   it('maps a version-3 template and keeps the id', () => {
@@ -71,7 +71,8 @@ describe('REQ-TPL-01 TemplateViewModel maps app template JSON', () => {
     expect(vm.Categories).toEqual(['webserver']);
     expect(vm.Platform).toBe(Platform.LINUX);
     expect(vm.Logo).toBe('https://example.com/logo.svg');
-    expect(vm.RegistryModel.Registry.URL).toBe('quay.io');
+    // REQ-TAI-005: the template registry is folded into the image name
+    expect(vm.RegistryModel.Image).toBe('quay.io/nginx:latest');
     expect(vm.Command).toBe('nginx -g daemon off;');
     expect(vm.Network).toBe('bridge');
     expect(vm.Privileged).toBe(true);

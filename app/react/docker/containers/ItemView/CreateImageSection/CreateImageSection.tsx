@@ -1,5 +1,4 @@
 import { Formik } from 'formik';
-import { useState } from 'react';
 import { ListIcon } from 'lucide-react';
 
 import { EnvironmentId } from '@/react/portainer/environments/types';
@@ -27,9 +26,7 @@ export function CreateImageSection({
 }: Props) {
   const mutation = useCommitContainerMutation(environmentId);
   const authorizedQuery = useAuthorizations('DockerImageCreate');
-  const [isDockerhubRateLimited, setIsDockerhubRateLimited] = useState(false);
-
-  const validation = useValidation(isDockerhubRateLimited);
+  const validation = useValidation();
 
   if (!authorizedQuery.authorized) {
     return null;
@@ -49,12 +46,7 @@ export function CreateImageSection({
           validationSchema={validation}
           validateOnMount
         >
-          <CreateImageForm
-            onRateLimit={(limited = false) =>
-              setIsDockerhubRateLimited(limited)
-            }
-            isLoading={mutation.isLoading}
-          />
+          <CreateImageForm isLoading={mutation.isLoading} />
         </Formik>
       </Widget.Body>
     </Widget>
@@ -66,8 +58,6 @@ export function CreateImageSection({
         environmentId,
         containerId,
         image: config.image,
-        registryId: config.registryId,
-        useRegistry: config.useRegistry,
       },
       {
         onSuccess() {

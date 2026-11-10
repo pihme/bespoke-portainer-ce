@@ -76,9 +76,10 @@ describe('DockerSidebar local Docker navigation', () => {
     expect(screen.getByTestId('dockerSidebar-events')).toBeInTheDocument();
     expect(screen.getByTestId('portainerSidebar-host')).toBeInTheDocument();
     expect(screen.getByTestId('portainerSidebar-docker-setup')).toBeInTheDocument();
+    // REQ-TAI-005: no environment registries entry
     expect(
-      screen.getByTestId('portainerSidebar-docker-registries')
-    ).toBeInTheDocument();
+      screen.queryByTestId('portainerSidebar-docker-registries')
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId('dockerSidebar-services')).not.toBeInTheDocument();
     expect(screen.queryByTestId('dockerSidebar-configs')).not.toBeInTheDocument();
     expect(screen.queryByTestId('dockerSidebar-secrets')).not.toBeInTheDocument();

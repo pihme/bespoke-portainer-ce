@@ -36,7 +36,6 @@ type Handler struct {
 	BindAddress            string
 	BindAddressHTTPS       string
 	PendingActionsService  *pendingactions.PendingActionsService
-	PullLimitCheckDisabled bool
 }
 
 // NewHandler creates a handler to manage environment(endpoint) operations.
@@ -70,14 +69,8 @@ func NewHandler(bouncer security.BouncerService) *Handler {
 		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointDelete))).Methods(http.MethodDelete)
 	h.Handle("/endpoints/delete",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointDeleteBatch))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/dockerhub/{registryId}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointDockerhubStatus))).Methods(http.MethodGet)
 	h.Handle("/endpoints/{id}/snapshot",
 		bouncer.AdminAccess(httperror.LoggerHandler(h.endpointSnapshot))).Methods(http.MethodPost)
-	h.Handle("/endpoints/{id}/registries",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistriesList))).Methods(http.MethodGet)
-	h.Handle("/endpoints/{id}/registries/{registryId}",
-		bouncer.AuthenticatedAccess(httperror.LoggerHandler(h.endpointRegistryAccess))).Methods(http.MethodPut)
 
 	// DEPRECATED
 	h.Handle("/endpoints", bouncer.AdminAccess(httperror.LoggerHandler(h.endpointDeleteBatchDeprecated))).Methods(http.MethodDelete)

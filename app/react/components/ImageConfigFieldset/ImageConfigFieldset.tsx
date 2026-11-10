@@ -1,18 +1,19 @@
-import { Database, Globe } from 'lucide-react';
 import { FormikErrors } from 'formik';
 import { PropsWithChildren } from 'react';
 
-import { Button } from '@@/buttons';
+import { FormControl } from '@@/form-components/FormControl';
+import { Input } from '@@/form-components/Input';
+import { TextTip } from '@@/Tip/TextTip';
 
-import { SimpleForm } from './SimpleForm';
 import { Values } from './types';
-import { AdvancedForm } from './AdvancedForm';
-import { RateLimits } from './RateLimits';
 
+/**
+ * The image name field. Registries are gone (TAI-005): there is no registry
+ * picker, no simple/advanced mode and no Docker Hub rate limit check; the image
+ * is pulled by its full name.
+ */
 export function ImageConfigFieldset({
-  onRateLimit,
   children,
-  autoComplete,
   values,
   errors,
   onChangeImage,
@@ -20,56 +21,31 @@ export function ImageConfigFieldset({
 }: PropsWithChildren<{
   values: Values;
   errors?: FormikErrors<Values>;
-  autoComplete?: boolean;
-  onRateLimit?: (limited?: boolean) => void;
   onChangeImage?: (name: string) => void;
   setFieldValue: <T>(field: string, value: T) => void;
 }>) {
-  const Component = values.useRegistry ? SimpleForm : AdvancedForm;
-
   return (
     <div className="row">
-      <Component
-        autoComplete={autoComplete}
-        values={values}
-        errors={errors}
-        onChangeImage={onChangeImage}
-        setFieldValue={setFieldValue}
-      />
-
-      <div className="form-group">
-        <div className="col-sm-12">
-          {values.useRegistry ? (
-            <Button
-              size="small"
-              color="link"
-              icon={Globe}
-              className="!ml-0 p-0 hover:no-underline"
-              onClick={() => setFieldValue('useRegistry', false)}
-              data-cy="image-config-advanced-button"
-            >
-              Advanced mode
-            </Button>
-          ) : (
-            <Button
-              size="small"
-              color="link"
-              icon={Database}
-              className="!ml-0 p-0 hover:no-underline"
-              onClick={() => setFieldValue('useRegistry', true)}
-              data-cy="image-config-simple-button"
-            >
-              Simple mode
-            </Button>
-          )}
-        </div>
-      </div>
+      <TextTip color="blue">
+        The image is pulled by its full name; private registries need the
+        credentials of the Docker engine.
+      </TextTip>
+      <FormControl label="Image" inputId="image-field" errors={errors?.image}>
+        <Input
+          id="image-field"
+          value={values.image}
+          onChange={(e) => {
+            const { value } = e.target;
+            setFieldValue('image', value);
+            setTimeout(() => onChangeImage?.(value), 0);
+          }}
+          placeholder="e.g. registry:port/my-image:my-tag"
+          required
+          data-cy="image-config-advanced-input"
+        />
+      </FormControl>
 
       {children}
-
-      {onRateLimit && values.useRegistry && (
-        <RateLimits registryId={values.registryId} onRateLimit={onRateLimit} />
-      )}
     </div>
   );
 }

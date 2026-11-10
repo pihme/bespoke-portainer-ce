@@ -229,18 +229,6 @@ func TestREQ_ENV_05_NewSocketTransport_DialsUnix(t *testing.T) {
 	require.Equal(t, "pong", string(body))
 }
 
-func TestNewGitlabProxy_BuildsHandler(t *testing.T) {
-	t.Parallel()
-
-	f := NewProxyFactory(nil, nil, nil, nil, nil, nil, nil, nil)
-	handler, err := f.NewGitlabProxy("https://gitlab.example.com/api/v4/")
-	require.NoError(t, err)
-	require.IsType(t, &httputil.ReverseProxy{}, handler)
-
-	_, err = f.NewGitlabProxy("://bad")
-	require.Error(t, err)
-}
-
 func TestNewSingleHostReverseProxyWithHostHeader_ErrorHandler(t *testing.T) {
 	t.Parallel()
 

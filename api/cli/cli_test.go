@@ -44,6 +44,19 @@ func TestREQ_TAI_001_LoginSetupFlagsAreRejected(t *testing.T) {
 	}
 }
 
+// REQ-TAI-005: the Docker Hub pull-limit check is gone with registries.
+func TestREQ_TAI_005_PullLimitCheckFlagIsRejected(t *testing.T) {
+	setOsArgs(t, []string{"portainer"})
+	t.Setenv("PULL_LIMIT_CHECK_DISABLED", "true")
+
+	_, err := Service{}.ParseFlags("test-version")
+	require.NoError(t, err)
+
+	require.Nil(t, kingpin.CommandLine.GetFlag("pull-limit-check-disabled"))
+	_, err = kingpin.CommandLine.Parse([]string{"--pull-limit-check-disabled"})
+	require.ErrorContains(t, err, "unknown long flag '--pull-limit-check-disabled'")
+}
+
 // REQ-TAI-004: the Edge and tunnel server flags are gone with Edge, so the
 // parser rejects them as unknown flags and their variables do nothing.
 func TestREQ_TAI_004_EdgeFlagsAreRejected(t *testing.T) {

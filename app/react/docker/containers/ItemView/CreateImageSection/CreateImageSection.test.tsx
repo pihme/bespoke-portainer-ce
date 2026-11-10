@@ -25,27 +25,7 @@ vi.mock('@/portainer/services/notifications', () => ({
 
 describe('CreateImageSection', () => {
   beforeEach(() => {
-    // Setup MSW handlers for registries API
     server.use(
-      http.get('/api/endpoints/:endpointId/registries', () =>
-        HttpResponse.json([
-          {
-            Id: 1,
-            Name: 'DockerHub',
-            Type: 1,
-            URL: 'docker.io',
-            Username: 'testuser',
-          },
-          {
-            Id: 2,
-            Name: 'Private Registry',
-            Type: 3,
-            URL: 'registry.example.com',
-            Username: '',
-          },
-        ])
-      ),
-      // Mock images endpoint for autocomplete functionality
       http.get('/api/endpoints/:endpointId/docker/images/json', () =>
         HttpResponse.json([
           {
@@ -90,6 +70,18 @@ describe('CreateImageSection', () => {
       expect(
         screen.queryByRole('heading', { name: /create image/i })
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('REQ-TAI-005 no registries', () => {
+    it('offers only the image name, no registry picker or rate limit', async () => {
+      renderComponent();
+
+      await waitFor(() => {
+        expect(screen.getByRole('textbox', { name: 'Image' })).toBeVisible();
+      });
+      expect(screen.queryByText(/registry/i)).toBeNull();
+      expect(screen.queryByText(/rate limit/i)).toBeNull();
     });
   });
 
@@ -144,11 +136,11 @@ describe('CreateImageSection', () => {
 
       // Wait for form to load
       await waitFor(() => {
-        expect(screen.getByRole('combobox', { name: 'Image' })).toBeVisible();
+        expect(screen.getByRole('textbox', { name: 'Image' })).toBeVisible();
       });
 
       // Fill in image name
-      const imageInput = screen.getByRole('combobox', { name: 'Image' });
+      const imageInput = screen.getByRole('textbox', { name: 'Image' });
       await userEvent.type(imageInput, 'my-app:v1.0');
 
       // Submit form
@@ -186,10 +178,10 @@ describe('CreateImageSection', () => {
       renderComponent({ onMutationError });
 
       await waitFor(() => {
-        expect(screen.getByRole('combobox', { name: 'Image' })).toBeVisible();
+        expect(screen.getByRole('textbox', { name: 'Image' })).toBeVisible();
       });
 
-      const imageInput = screen.getByRole('combobox', { name: 'Image' });
+      const imageInput = screen.getByRole('textbox', { name: 'Image' });
       await userEvent.type(imageInput, 'my-app');
 
       const createButton = screen.getByRole('button', { name: /^create$/i });
@@ -224,10 +216,10 @@ describe('CreateImageSection', () => {
       renderComponent();
 
       await waitFor(() => {
-        expect(screen.getByRole('combobox', { name: 'Image' })).toBeVisible();
+        expect(screen.getByRole('textbox', { name: 'Image' })).toBeVisible();
       });
 
-      const imageInput = screen.getByRole('combobox', { name: 'Image' });
+      const imageInput = screen.getByRole('textbox', { name: 'Image' });
       await userEvent.type(imageInput, 'my-app');
 
       const createButton = screen.getByRole('button', { name: /^create$/i });

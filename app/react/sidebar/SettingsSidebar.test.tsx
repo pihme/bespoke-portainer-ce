@@ -46,9 +46,10 @@ describe('SettingsSidebar', () => {
       expect(
         screen.getByTestId('portainerSidebar-environments-area')
       ).toBeInTheDocument();
+      // REQ-TAI-005: no Registries entry
       expect(
-        screen.getByTestId('portainerSidebar-registries')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-registries')
+      ).not.toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-activityLogs')
       ).toBeInTheDocument();
@@ -184,9 +185,10 @@ describe('SettingsSidebar', () => {
       expect(
         screen.getByTestId('portainerSidebar-environments-area')
       ).toBeInTheDocument();
+      // REQ-TAI-005: no Registries entry
       expect(
-        screen.getByTestId('portainerSidebar-registries')
-      ).toBeInTheDocument();
+        screen.queryByTestId('portainerSidebar-registries')
+      ).not.toBeInTheDocument();
       expect(
         screen.getByTestId('portainerSidebar-settings')
       ).toBeInTheDocument();

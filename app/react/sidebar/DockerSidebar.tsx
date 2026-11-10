@@ -43,7 +43,6 @@ export function DockerSidebar({ environmentId, environment }: Props) {
   };
 
   const featSubMenuTo = 'docker.host.featuresConfiguration';
-  const registrySubMenuTo = 'docker.host.registries';
 
   return (
     <>
@@ -145,7 +144,7 @@ export function DockerSidebar({ environmentId, environment }: Props) {
           isSubMenu
           to={setupSubMenuProps.to}
           params={{ endpointId: environmentId }}
-          ignorePaths={[featSubMenuTo, registrySubMenuTo]}
+          ignorePaths={[featSubMenuTo]}
           data-cy={setupSubMenuProps.dataCy}
         />
 
@@ -162,14 +161,6 @@ export function DockerSidebar({ environmentId, environment }: Props) {
             data-cy="portainerSidebar-docker-setup"
           />
         </Authorized>
-
-        <SidebarItem
-          label="Registries"
-          isSubMenu
-          to={registrySubMenuTo}
-          params={{ endpointId: environmentId }}
-          data-cy="portainerSidebar-docker-registries"
-        />
       </SidebarParent>
     </>
   );

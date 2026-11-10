@@ -40,18 +40,6 @@ func TestCreateAgentProxyServer_ProxyFactoryNotInitialized(t *testing.T) {
 	assert.Nil(t, proxyServer)
 }
 
-func TestCreateGitlabProxy_ProxyFactoryNotInitialized(t *testing.T) {
-	t.Parallel()
-
-	manager := NewManager(nil)
-
-	proxy, err := manager.CreateGitlabProxy("http://gitlab.example.com")
-
-	require.Error(t, err)
-	require.ErrorIs(t, err, ErrProxyFactoryNotInitialized)
-	assert.Nil(t, proxy)
-}
-
 func TestGetEndpointProxy_NotFound(t *testing.T) {
 	t.Parallel()
 

@@ -25,7 +25,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
 	"github.com/portainer/portainer/api/http/handler/motd"
-	"github.com/portainer/portainer/api/http/handler/registries"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	sslhandler "github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
@@ -84,7 +83,6 @@ type Server struct {
 	UpgradeService              upgrade.Service
 	PendingActionsService       *pendingactions.PendingActionsService
 	PlatformService             platform.Service
-	PullLimitCheckDisabled      bool
 	TrustedOrigins              []string
 }
 
@@ -118,7 +116,6 @@ func (server *Server) Start(ctx context.Context) error {
 	endpointHandler.BindAddress = server.BindAddress
 	endpointHandler.BindAddressHTTPS = server.BindAddressHTTPS
 	endpointHandler.PendingActionsService = server.PendingActionsService
-	endpointHandler.PullLimitCheckDisabled = server.PullLimitCheckDisabled
 
 	var endpointGroupHandler = endpointgroups.NewHandler(requestBouncer)
 	endpointGroupHandler.AuthorizationService = server.AuthorizationService
@@ -141,11 +138,6 @@ func (server *Server) Start(ctx context.Context) error {
 	motdSvc.Start(ctx)
 
 	var motdHandler = motd.NewHandler(requestBouncer, motdSvc)
-
-	var registryHandler = registries.NewHandler(requestBouncer)
-	registryHandler.DataStore = server.DataStore
-	registryHandler.FileService = server.FileService
-	registryHandler.ProxyManager = server.ProxyManager
 
 	var settingsHandler = settings.NewHandler(requestBouncer)
 	settingsHandler.DataStore = server.DataStore
@@ -201,7 +193,6 @@ func (server *Server) Start(ctx context.Context) error {
 		GitOperationHandler:    gitOperationHandler,
 		FileHandler:            fileHandler,
 		MOTDHandler:            motdHandler,
-		RegistryHandler:        registryHandler,
 		SettingsHandler:        settingsHandler,
 		SSLHandler:             sslHandler,
 		StackHandler:           stackHandler,

@@ -43,7 +43,7 @@ function minimalTemplate(overrides = {}) {
 describe('REQ-TPL-01 TemplateService', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  function build({ templatesPayload, registries = [], templatesResource = {} } = {}) {
+  function build({ templatesPayload, templatesResource = {} } = {}) {
     const Templates = {
       query: vi.fn(() =>
         promiseResource(
@@ -56,34 +56,27 @@ describe('REQ-TPL-01 TemplateService', () => {
       file: vi.fn(() => promiseResource({ FileContent: 'services: {}' })),
       ...templatesResource,
     };
-    const EndpointService = {
-      registries: vi.fn(() => Promise.resolve(registries)),
-    };
-    const service = factoryState.factory(mockQ(), Templates, EndpointService);
-    return { service, Templates, EndpointService };
+    const service = factoryState.factory(mockQ(), Templates);
+    return { service, Templates };
   }
 
-  it('templates maps app templates and defaults registry to Docker Hub when URL is empty', async () => {
-    const { service, EndpointService } = build();
+  it('templates maps app templates', async () => {
+    const { service } = build();
     const list = await service.templates(3);
-    expect(EndpointService.registries).toHaveBeenCalledWith(3);
     expect(list).toHaveLength(1);
     expect(list[0].Title).toBe('Nginx');
-    expect(list[0].RegistryModel.Registry.URL).toBe('docker.io');
-    expect(list[0].RegistryModel.Registry.Name).toMatch(/Docker Hub/i);
   });
 
-  it('templates uses a matching endpoint registry when the template has a registry URL', async () => {
+  it('REQ-TAI-005 templates attach no registry object; the registry host is folded into the image name', async () => {
     const { service } = build({
       templatesPayload: {
         version: '2',
         templates: [minimalTemplate({ registry: 'registry.example.com' })],
       },
-      registries: [{ URL: 'registry.example.com', Name: 'corp' }],
     });
     const list = await service.templates(1);
-    expect(list[0].RegistryModel.Registry.Name).toBe('corp');
-    expect(list[0].RegistryModel.Registry.URL).toBe('registry.example.com');
+    expect(list[0].RegistryModel).not.toHaveProperty('Registry');
+    expect(list[0].RegistryModel.Image).toBe('registry.example.com/nginx:latest');
   });
 
   it('templates supports version 3 template payloads', async () => {

@@ -1,5 +1,4 @@
 import { EnvironmentId } from '../environments/types';
-import { RegistryId } from '../registries/types/registry';
 
 export enum WebhookType {
   DockerService = 1,
@@ -11,7 +10,7 @@ export interface Webhook {
   Token: string;
   ResourceId: string;
   EndpointId: EnvironmentId;
-  RegistryId: RegistryId;
+  number: number;
   Type: WebhookType;
 }
 

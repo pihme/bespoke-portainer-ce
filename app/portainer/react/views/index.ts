@@ -9,7 +9,6 @@ import { SettingsView } from '@/react/portainer/settings/SettingsView/SettingsVi
 
 import { wizardModule } from './wizard';
 import { environmentGroupModule } from './env-groups';
-import { registriesModule } from './registries';
 import { activityLogsModule } from './activity-logs';
 import { templatesModule } from './templates';
 import { environmentsModule } from './environments';
@@ -19,7 +18,6 @@ export const viewsModule = angular
   .module('portainer.app.react.views', [
     wizardModule,
     environmentGroupModule,
-    registriesModule,
     activityLogsModule,
     templatesModule,
     environmentsModule,

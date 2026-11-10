@@ -16,7 +16,6 @@ export enum FeatureId {
   K8S_EDIT_YAML = 'k8s-edit-yaml',
   KAAS_PROVISIONING = 'kaas-provisioning',
   RBAC_ROLES = 'rbac-roles',
-  REGISTRY_MANAGEMENT = 'registry-management',
   K8S_SETUP_DEFAULT = 'k8s-setup-default',
   S3_BACKUP_SETTING = 's3-backup-setting',
   S3_RESTORE = 'restore-s3-form',

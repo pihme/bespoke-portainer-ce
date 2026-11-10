@@ -82,11 +82,3 @@ func (manager *Manager) DeleteEndpointProxy(endpointID portainer.EndpointID) {
 	}
 }
 
-// CreateGitlabProxy creates a new HTTP reverse proxy that can be used to send requests to the Gitlab API
-func (manager *Manager) CreateGitlabProxy(url string) (http.Handler, error) {
-	if manager.proxyFactory == nil {
-		return nil, ErrProxyFactoryNotInitialized
-	}
-
-	return manager.proxyFactory.NewGitlabProxy(url)
-}

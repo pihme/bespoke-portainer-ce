@@ -28,21 +28,6 @@ import { useEvents } from './useEvents';
 import { useImages } from './images/useImages';
 import { useCommitContainerMutation } from './useCommitContainerMutation';
 
-vi.mock('@/react/portainer/environments/queries/useEnvironmentRegistries', () => ({
-  useEnvironmentRegistries: () => ({
-    data: [
-      {
-        Id: 9,
-        Name: 'local-reg',
-        URL: 'registry.example.com',
-        Type: 3,
-        Authentication: false,
-      },
-    ],
-    isSuccess: true,
-  }),
-}));
-
 function wrapHook<T>(fn: () => T) {
   const Wrapper = withTestQueryProvider(({ children }) =>
     createElement(Fragment, null, children)
@@ -185,7 +170,6 @@ describe('plugin hooks (backwards compatibility)', () => {
 describe('useCommitContainerMutation (backwards compatibility)', () => {
   it('commits a container image without a registry', async () => {
     server.use(
-      http.get('/api/endpoints/:id/registries', () => HttpResponse.json([])),
       http.post('/api/endpoints/:id/docker/commit', () =>
         HttpResponse.json({ Id: 'sha256:committed' })
       ),
@@ -199,13 +183,12 @@ describe('useCommitContainerMutation (backwards compatibility)', () => {
       environmentId: 8,
       containerId: 'c1',
       image: 'myimg:latest',
-      useRegistry: false,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual({ Id: 'sha256:committed' });
   });
 
-  it('commits using a selected registry when useRegistry is true', async () => {
+  it('REQ-TAI-005 commits with the typed image name, no registry prefix', async () => {
     let requestUrl = '';
     server.use(
       http.post('/api/endpoints/:id/docker/commit', ({ request }) => {
@@ -218,13 +201,12 @@ describe('useCommitContainerMutation (backwards compatibility)', () => {
     result.current.mutate({
       environmentId: 8,
       containerId: 'c1',
-      image: 'myimg:latest',
-      registryId: 9,
-      useRegistry: true,
+      image: 'registry.local:5000/myimg:2',
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual({ Id: 'sha256:reg' });
-    expect(requestUrl).toContain('registry.example.com');
+    const params = new URL(requestUrl).searchParams;
+    expect(params.get('repo')).toBe('registry.local:5000/myimg');
+    expect(params.get('tag')).toBe('2');
   });
 
 });

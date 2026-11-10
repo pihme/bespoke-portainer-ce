@@ -79,16 +79,7 @@ export const handlers = [
   http.get('/api/observability/alerting/settings', () => HttpResponse.json([])),
   http.get('/observability/alerting/rules', () => HttpResponse.json([])),
 
-  http.get('/api/registries', () => HttpResponse.json([])),
-  http.get('/api/registries/:id', () => HttpResponse.json({})),
-
   http.get('/api/system/info', () => HttpResponse.json({})),
-  http.post('/api/registries/ping', () =>
-    HttpResponse.json({
-      success: true,
-      message: 'Registry connection successful',
-    })
-  ),
   http.get('/api/webhooks', () => HttpResponse.json([])),
   http.get('/api/policies', () => HttpResponse.json([])),
 ];

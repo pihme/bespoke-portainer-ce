@@ -78,7 +78,6 @@ vi.mock('./custom-templates', () => ({
 }));
 
 vi.mock('@@/form-components/FileUpload', () => ({ FileUploadField: () => null }));
-vi.mock('./registries', () => ({ registriesModule: 'registries' }));
 vi.mock('./account', () => ({ accountModule: 'account' }));
 
 describe('portainer react components wrappers', () => {

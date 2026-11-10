@@ -76,7 +76,6 @@ describe('portainer.app module', () => {
     expect(globalThis.angular.module).toHaveBeenCalledWith(
       'portainer.app',
       expect.arrayContaining([
-        'portainer.registrymanagement',
         'componentsModule',
         'settingsModule',
         'featureFlagModule',
@@ -155,6 +154,15 @@ describe('portainer.app local-docker UI-Router states', () => {
     ]) {
       expect(names).not.toContain(gone);
     }
+  });
+
+  it('REQ-TAI-005 registers no registry states and no registry management module', () => {
+    const names = registeredStates.map((s) => s.name);
+    expect(names.filter((n) => /registr/i.test(n))).toEqual([]);
+    const call = globalThis.angular.module.mock.calls.find(
+      ([name, deps]) => name === 'portainer.app' && Array.isArray(deps)
+    );
+    expect(call[1]).not.toContain('portainer.registrymanagement');
   });
 
   it('REQ-TAI-002 registers no Helm repository state', () => {

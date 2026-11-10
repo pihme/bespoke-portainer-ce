@@ -7,8 +7,8 @@ import {
   withAgentManagerOperationHeader,
   withAgentTargetHeader,
   withFiltersQueryParam,
-  withRegistryAuthHeader,
 } from './utils';
+import * as utils from './utils';
 
 describe('proxy query utils (backwards compatibility)', () => {
   it('withFiltersQueryParam stringifies filters when provided', () => {
@@ -18,12 +18,8 @@ describe('proxy query utils (backwards compatibility)', () => {
     expect(withFiltersQueryParam(undefined)).toEqual({ filters: undefined });
   });
 
-  it('withRegistryAuthHeader base64-encodes the registry id when set', () => {
-    const header = withRegistryAuthHeader(7);
-    expect(header['X-Registry-Auth']).toBe(
-      window.btoa(JSON.stringify({ registryId: 7 }))
-    );
-    expect(withRegistryAuthHeader(undefined)).toEqual({});
+  it('REQ-TAI-005 builds no X-Registry-Auth header', () => {
+    expect('withRegistryAuthHeader' in utils).toBe(false);
   });
 
   it('withAgentTargetHeader sets the agent target when a node is named', () => {

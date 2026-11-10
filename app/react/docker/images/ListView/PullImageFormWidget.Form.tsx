@@ -9,11 +9,9 @@ import { NodeSelector } from '../../agent/NodeSelector';
 import { FormValues } from './PullImageFormWidget.types';
 
 export function PullImageForm({
-  onRateLimit,
   isLoading,
   isNodeVisible,
 }: {
-  onRateLimit: (limited?: boolean) => void;
   isLoading: boolean;
   isNodeVisible: boolean;
 }) {
@@ -23,13 +21,11 @@ export function PullImageForm({
   return (
     <Form className="form-horizontal">
       <ImageConfigFieldset
-        autoComplete
         values={values.config}
         setFieldValue={(field, value) =>
           setFieldValue(`config.${field}`, value)
         }
         errors={errors.config}
-        onRateLimit={onRateLimit}
       >
         {isNodeVisible && (
           <FormSection title="Deployment">

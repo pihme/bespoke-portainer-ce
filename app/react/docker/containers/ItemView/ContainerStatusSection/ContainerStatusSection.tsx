@@ -5,7 +5,6 @@ import {
 import { ContainerDetailsViewModel } from '@/docker/models/containerDetails';
 import { useEnvironment } from '@/react/portainer/environments/queries/useEnvironment';
 import { isoDate } from '@/portainer/filters/filters';
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 import { isPartOfSwarmService } from '@/docker/helpers/containers';
 
 import { Widget, WidgetBody } from '@@/Widget';
@@ -21,7 +20,6 @@ interface Props {
   container: ContainerDetailsViewModel;
   nodeName?: string;
   onSuccessUpdate?(): void;
-  registryId?: RegistryId;
 }
 
 export function ContainerStatusSection({
@@ -29,7 +27,6 @@ export function ContainerStatusSection({
   container,
   nodeName,
   onSuccessUpdate,
-  registryId,
 }: Props) {
   const environmentQuery = useEnvironment(environmentId);
   const isRunning = container.State?.Running || false;
@@ -80,7 +77,6 @@ export function ContainerStatusSection({
               environmentId={environmentId}
               autoRemove={container.HostConfig?.AutoRemove || false}
               onSuccess={onSuccessUpdate}
-              registryId={registryId}
               partOfSwarmService={isPartOfSwarmService(container)}
             />
           )}

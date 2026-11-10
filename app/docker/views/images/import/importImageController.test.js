@@ -87,9 +87,8 @@ describe('ImportImageController local Docker image import', () => {
     expect(scope.isAdmin).toBe(true);
     expect(scope.formValues.UploadFile).toBeNull();
     expect(scope.formValues.RegistryModel).toBeTruthy();
-
-    scope.setPullImageValidity(true);
-    expect(scope.state.pullImageValidity).toBe(true);
+    // REQ-TAI-005: no registry form helper
+    expect(scope.setPullImageValidity).toBeUndefined();
   });
 
   it('uploads a single local image, tags it, and navigates to the image', async () => {

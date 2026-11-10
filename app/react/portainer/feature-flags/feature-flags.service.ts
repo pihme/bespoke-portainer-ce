@@ -27,7 +27,6 @@ export async function init(edition: Edition) {
     [FeatureId.HIDE_INTERNAL_AUTHENTICATION_PROMPT]: Edition.BE,
     [FeatureId.K8S_SETUP_DEFAULT]: Edition.BE,
     [FeatureId.RBAC_ROLES]: Edition.BE,
-    [FeatureId.REGISTRY_MANAGEMENT]: Edition.BE,
     [FeatureId.S3_BACKUP_SETTING]: Edition.BE,
     [FeatureId.S3_RESTORE]: Edition.BE,
     [FeatureId.TEAM_MEMBERSHIP]: Edition.BE,

@@ -8,7 +8,6 @@ import {
 } from '@/react/portainer/gitops/types';
 import { withError, withInvalidate } from '@/react-tools/react-query';
 import { transformAutoUpdateViewModel } from '@/react/portainer/gitops/AutoUpdateFieldset/utils';
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 import { queryKeys } from '../query-keys';
 
@@ -27,7 +26,7 @@ export function useCreateStack() {
 type BasePayload = {
   name: string;
   environmentId: EnvironmentId;
-  registries?: Array<RegistryId>;
+  registries?: Array<number>;
 };
 
 type DockerBasePayload = BasePayload & {

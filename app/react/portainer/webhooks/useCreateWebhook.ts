@@ -4,7 +4,6 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { withError } from '@/react-tools/react-query';
 
 import { EnvironmentId } from '../environments/types';
-import { RegistryId } from '../registries/types/registry';
 
 import { buildUrl } from './build-url';
 import { Webhook, WebhookType } from './types';
@@ -30,7 +29,7 @@ export async function createWebhook({
 }: {
   resourceId: string;
   environmentId: EnvironmentId;
-  registryId?: RegistryId;
+  registryId?: number;
   webhookType: WebhookType;
 }) {
   try {

@@ -45,12 +45,8 @@ describe('REQ-ENV-01 local environment query helpers', () => {
   it('builds environment query keys', () => {
     expect(environmentQueryKeys.base()).toEqual(['environments']);
     expect(environmentQueryKeys.item(3)).toEqual(['environments', 3]);
-    expect(environmentQueryKeys.registries(3, 'ns')).toEqual([
-      'environments',
-      3,
-      'registries',
-      'ns',
-    ]);
+    // REQ-TAI-005: no environment registries key any more
+    expect('registries' in environmentQueryKeys).toBe(false);
   });
 
   it('validates and normalizes sort types', () => {

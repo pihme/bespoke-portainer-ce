@@ -9,7 +9,6 @@ import { useWebhooks } from '@/react/portainer/webhooks/useWebhooks';
 import { useCreateWebhook } from '@/react/portainer/webhooks/useCreateWebhook';
 import { useDeleteWebhook } from '@/react/portainer/webhooks/useDeleteWebhook';
 import { WebhookType } from '@/react/portainer/webhooks/types';
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 import { CopyButton } from '@@/buttons';
 import { SwitchField } from '@@/form-components/SwitchField';
@@ -21,7 +20,6 @@ interface Props {
   environmentId: EnvironmentId;
   autoRemove: boolean;
   onSuccess?(): void;
-  registryId?: RegistryId;
   partOfSwarmService: boolean;
 }
 
@@ -29,7 +27,6 @@ export function WebhookRow({
   containerId,
   environmentId,
   autoRemove,
-  registryId,
   onSuccess = () => {},
   partOfSwarmService,
 }: Props) {
@@ -77,8 +74,7 @@ export function WebhookRow({
           resourceId: containerId,
           environmentId,
           webhookType: WebhookType.DockerContainer,
-          registryId,
-        },
+                },
         {
           onSuccess: () => {
             notifySuccess('Success', 'Webhook created successfully');

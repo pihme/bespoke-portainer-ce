@@ -16,9 +16,9 @@ function setup(...args: Parameters<typeof useValidation>) {
 }
 
 test('image is required', async () => {
-  const { schema } = setup(false, false);
+  const { schema } = setup(false);
   const object: FormValues = {
-    config: { image: '', registryId: 0, useRegistry: true },
+    config: { image: '' },
     node: '',
   };
 

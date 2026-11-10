@@ -21,7 +21,6 @@ import { BaseForm, Values } from './BaseForm';
 
 const onChangeName = vi.fn();
 const onChangeImageName = vi.fn();
-const onRateLimit = vi.fn();
 
 vi.mock('@uirouter/react', async (importOriginal: () => Promise<object>) => ({
   ...(await importOriginal()),
@@ -40,12 +39,11 @@ vi.mock('@@/ImageConfigFieldset', () => ({
   ImageConfigFieldset: function MockImageConfig({
     children,
     onChangeImage,
-    onRateLimit,
     setFieldValue,
+    ...rest
   }: {
     children?: React.ReactNode;
     onChangeImage?: () => void;
-    onRateLimit?: (limited?: boolean) => void;
     setFieldValue: (field: string, value: unknown) => void;
   }) {
     return (
@@ -53,9 +51,9 @@ vi.mock('@@/ImageConfigFieldset', () => ({
         <button type="button" onClick={() => onChangeImage?.()}>
           image-changed
         </button>
-        <button type="button" onClick={() => onRateLimit?.(true)}>
-          image-rate-limited
-        </button>
+        <span data-cy="image-config-props">
+          {Object.keys(rest).sort().join(',')}
+        </span>
         <button
           type="button"
           onClick={() => setFieldValue('image', 'nginx:alpine')}
@@ -91,7 +89,7 @@ const values: Values = {
   name: '',
   enableWebhook: false,
   publishAllPorts: false,
-  image: { image: 'nginx', registryId: 0, useRegistry: true },
+  image: { image: 'nginx' },
   alwaysPull: true,
   ports: [],
   nodeName: '',
@@ -148,24 +146,20 @@ describe('REQ-CTR-03 BaseForm local Docker create fields', () => {
     ).toBeVisible();
   });
 
-  it('forwards image change and rate-limit callbacks', async () => {
+  it('forwards image change callbacks', async () => {
     const user = userEvent.setup();
     renderBaseForm();
 
     await user.click(await screen.findByRole('button', { name: 'image-changed' }));
     expect(onChangeImageName).toHaveBeenCalled();
-
-    await user.click(screen.getByRole('button', { name: 'image-rate-limited' }));
-    expect(onRateLimit).toHaveBeenCalledWith(true);
   });
 
-  it('toggles always pull off so rate-limit is not forwarded', async () => {
-    const user = userEvent.setup();
+  it('REQ-TAI-005 passes no rate limit or registry props to the image field', async () => {
     renderBaseForm();
 
-    await user.click(await screen.findByText('Always pull the image'));
-    await user.click(screen.getByRole('button', { name: 'image-rate-limited' }));
-    expect(onRateLimit).not.toHaveBeenCalled();
+    expect(await screen.findByTestId('image-config-props')).toHaveTextContent(
+      /^errors,values$/
+    );
   });
 });
 
@@ -184,7 +178,6 @@ function renderBaseForm({
               isLoading={false}
               onChangeName={onChangeName}
               onChangeImageName={onChangeImageName}
-              onRateLimit={onRateLimit}
             />
           );
         }}

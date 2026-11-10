@@ -1,17 +1,11 @@
 import _ from 'lodash';
 
 import { trimSHA } from '@/docker/filters/utils';
-import {
-  Registry,
-  RegistryTypes,
-} from '@/react/portainer/registries/types/registry';
 
 import { DockerImage } from './types';
 import { DockerImageResponse } from './types/response';
 
 type ImageModel = {
-  UseRegistry: boolean;
-  Registry?: Registry;
   Image: string;
 };
 
@@ -47,71 +41,19 @@ export function imageContainsURL(image: string) {
 }
 
 export function buildImageFullURIFromModel(imageModel: ImageModel) {
-  const registry = imageModel.UseRegistry ? imageModel.Registry : undefined;
-  return buildImageFullURI(imageModel.Image, registry);
+  return buildImageFullURI(imageModel.Image);
 }
 
 /**
- * builds the complete uri for an image based on its registry
+ * builds the complete uri for an image name; registries are gone (TAI-005),
+ * so the name is used as typed and only gets a default tag
  */
-export function buildImageFullURI(image: string, registry?: Registry) {
+export function buildImageFullURI(image: string) {
   if (!image) {
     throw new Error('Missing image');
   }
 
-  if (!registry) {
-    return ensureTag(image);
-  }
-
-  const imageName = buildImageFullURIWithRegistry(image, registry);
-
-  return ensureTag(imageName);
-
-  function ensureTag(image: string, defaultTag = 'latest') {
-    return image.includes(':') ? image : `${image}:${defaultTag}`;
-  }
-}
-
-function buildImageFullURIWithRegistry(image: string, registry: Registry) {
-  switch (registry.Type) {
-    case RegistryTypes.GITHUB:
-      return buildImageURIForGithub(image, registry);
-    case RegistryTypes.GITLAB:
-      return buildImageURIForGitLab(image, registry);
-    case RegistryTypes.QUAY:
-      return buildImageURIForQuay(image, registry);
-    case RegistryTypes.ANONYMOUS:
-      return image;
-    default:
-      return buildImageURIForOtherRegistry(image, registry);
-  }
-
-  function buildImageURIForGithub(image: string, registry: Registry) {
-    const imageName = image.startsWith('/') ? image.slice(1) : image;
-
-    const namespace = registry.Github.UseOrganisation
-      ? registry.Github.OrganisationName
-      : registry.Username;
-    return `${registry.URL}/${namespace}/${imageName}`;
-  }
-
-  function buildImageURIForGitLab(image: string, registry: Registry) {
-    const slash = image.startsWith(':') ? '' : '/';
-    return `${registry.URL}/${registry.Gitlab.ProjectPath}${slash}${image}`;
-  }
-
-  function buildImageURIForQuay(image: string, registry: Registry) {
-    const name = registry.Quay.UseOrganisation
-      ? registry.Quay.OrganisationName
-      : registry.Username;
-    const url = registry.URL ? `${registry.URL}/` : '';
-    return `${url}${name}/${image}`;
-  }
-
-  function buildImageURIForOtherRegistry(image: string, registry: Registry) {
-    const url = registry.URL ? `${registry.URL}/` : '';
-    return url + image;
-  }
+  return image.includes(':') ? image : `${image}:latest`;
 }
 
 /**

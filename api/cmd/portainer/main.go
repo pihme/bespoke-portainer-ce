@@ -546,7 +546,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		UpgradeService:              upgradeService,
 		PendingActionsService:       pendingActionsService,
 		PlatformService:             platformService,
-		PullLimitCheckDisabled:      *flags.PullLimitCheckDisabled,
 		TrustedOrigins:              trustedOrigins,
 	}
 }

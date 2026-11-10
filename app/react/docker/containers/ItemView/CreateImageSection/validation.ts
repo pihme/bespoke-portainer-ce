@@ -5,18 +5,12 @@ import { imageConfigValidation } from '@@/ImageConfigFieldset';
 
 import { FormValues } from './types';
 
-export function useValidation(
-  isDockerhubRateLimited: boolean
-): SchemaOf<FormValues> {
+export function useValidation(): SchemaOf<FormValues> {
   return useMemo(
     () =>
       object({
-        config: imageConfigValidation().test(
-          'rate-limits',
-          'Rate limit exceeded',
-          () => !isDockerhubRateLimited
-        ),
+        config: imageConfigValidation(),
       }),
-    [isDockerhubRateLimited]
+    []
   );
 }

@@ -31,8 +31,6 @@ describe('shared frontend setup HTTP handlers', () => {
     await expect(get('/api/endpoints/agent_versions')).resolves.toEqual([]);
     const env = await get('/api/endpoints/1');
     expect(env.Id).toBe(1);
-    await expect(get('/api/endpoints/1/registries')).resolves.toEqual([]);
-    await expect(get('/api/endpoints/1/registries/2')).resolves.toEqual({});
 
     await expect(get('/api/endpoints/1/docker/info')).resolves.toMatchObject({
       NCPU: 0,
@@ -111,6 +109,11 @@ describe('shared frontend setup HTTP handlers', () => {
     );
     expect(rgs.value).toHaveLength(2);
 
+  });
+
+  it('REQ-TAI-005 serves no environment registry stubs', () => {
+    const paths = serverHandlers.map((h) => String(h.info.path));
+    expect(paths.filter((p) => /registr|dockerhub/.test(p))).toEqual([]);
   });
 
   it('REQ-TAI-004 serves no Edge API stubs', () => {

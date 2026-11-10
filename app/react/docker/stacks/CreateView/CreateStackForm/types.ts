@@ -1,4 +1,3 @@
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 import { EnvVarValues } from '@@/form-components/EnvironmentVariablesFieldset';
 
@@ -14,7 +13,7 @@ export interface BaseFormValues {
   name: string;
   env: EnvVarValues;
   enableWebhook: boolean;
-  registries: Array<RegistryId>;
+  registries: Array<number>;
 }
 
 export interface FormValues extends BaseFormValues {

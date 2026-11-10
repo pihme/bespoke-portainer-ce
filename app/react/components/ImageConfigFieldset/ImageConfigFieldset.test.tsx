@@ -1,115 +1,38 @@
-import { FormikErrors } from 'formik';
-import { ComponentProps } from 'react';
-import { HttpResponse } from 'msw';
 import { render, fireEvent } from '@testing-library/react';
 
-import { http, server } from '@/setup-tests/server';
-import { withTestQueryProvider } from '@/react/test-utils/withTestQuery';
-import { createMockEnvironment } from '@/react-tools/test-mocks';
-
 import { ImageConfigFieldset } from './ImageConfigFieldset';
-import { Values } from './types';
 
-vi.mock('@uirouter/react', async (importOriginal: () => Promise<object>) => ({
-  ...(await importOriginal()),
-  useCurrentStateAndParams: vi.fn(() => ({
-    params: { endpointId: 1 },
-  })),
-}));
-
-it('should render SimpleForm when useRegistry is true', () => {
-  const { getByText } = renderComponent({ values: { useRegistry: true } });
-
-  expect(getByText('Advanced mode')).toBeInTheDocument();
-});
-
-it('should render AdvancedForm when useRegistry is false', () => {
-  const { getByText } = renderComponent({ values: { useRegistry: false } });
-
-  expect(getByText('Simple mode')).toBeInTheDocument();
-});
-
-it('should call setFieldValue with useRegistry set to false when "Advanced mode" button is clicked', () => {
-  const setFieldValue = vi.fn();
-  const { getByText } = renderComponent({
-    values: { useRegistry: true },
-    setFieldValue,
-  });
-
-  fireEvent.click(getByText('Advanced mode'));
-
-  expect(setFieldValue).toHaveBeenCalledWith('useRegistry', false);
-});
-
-it('should call setFieldValue with useRegistry set to true when "Simple mode" button is clicked', () => {
-  const setFieldValue = vi.fn();
-  const { getByText } = renderComponent({
-    values: { useRegistry: false },
-    setFieldValue,
-  });
-
-  fireEvent.click(getByText('Simple mode'));
-
-  expect(setFieldValue).toHaveBeenCalledWith('useRegistry', true);
-});
-
-it('renders children and RateLimits when enabled in simple mode', () => {
-  const { getByText, queryByText } = renderComponent({
-    values: { useRegistry: true },
-    onRateLimit: vi.fn(),
-  });
-  expect(getByText('Advanced mode')).toBeInTheDocument();
-});
-
-it('hides RateLimits in advanced mode even when onRateLimit is set', () => {
-  const { queryByText } = renderComponent({
-    values: { useRegistry: false },
-    onRateLimit: vi.fn(),
-  });
-  expect(queryByText('Advanced mode')).toBeNull();
-  expect(queryByText('Simple mode')).toBeInTheDocument();
-});
-
-function renderComponent({
-  values = {
-    useRegistry: true,
-    registryId: 123,
-    image: '',
-  },
-  errors = {},
-  setFieldValue = vi.fn(),
-  onChangeImage = vi.fn(),
-  onRateLimit = vi.fn(),
-}: {
-  values?: Partial<Values>;
-  errors?: FormikErrors<Values>;
-  setFieldValue?: ComponentProps<typeof ImageConfigFieldset>['setFieldValue'];
-  onChangeImage?: ComponentProps<typeof ImageConfigFieldset>['onChangeImage'];
-  onRateLimit?: ComponentProps<typeof ImageConfigFieldset>['onRateLimit'];
-} = {}) {
-  server.use(
-    http.get('/api/registries/:id', () => HttpResponse.json({})),
-    http.get('/api/endpoints/:id', () =>
-      HttpResponse.json(createMockEnvironment())
-    )
-  );
-
-  const Wrapped = withTestQueryProvider(ImageConfigFieldset);
-
+function renderComponent(setFieldValue = vi.fn(), image = '') {
   return render(
-    <Wrapped
-      values={{
-        useRegistry: true,
-        registryId: 123,
-        image: '',
-        ...values,
-      }}
-      errors={errors}
-      setFieldValue={setFieldValue}
-      onChangeImage={onChangeImage}
-      onRateLimit={onRateLimit}
-    >
+    <ImageConfigFieldset values={{ image }} setFieldValue={setFieldValue}>
       <div>extra-child</div>
-    </Wrapped>
+    </ImageConfigFieldset>
   );
 }
+
+it('REQ-IMG-02 renders the image name field and children', () => {
+  const { getByLabelText, getByText } = renderComponent(vi.fn(), 'nginx');
+
+  expect(getByLabelText(/Image/)).toHaveValue('nginx');
+  expect(getByText('extra-child')).toBeInTheDocument();
+});
+
+it('REQ-IMG-02 sets the image name as typed', () => {
+  const setFieldValue = vi.fn();
+  const { getByLabelText } = renderComponent(setFieldValue);
+
+  fireEvent.change(getByLabelText(/Image/), {
+    target: { value: 'registry:5000/app:1' },
+  });
+
+  expect(setFieldValue).toHaveBeenCalledWith('image', 'registry:5000/app:1');
+});
+
+it('REQ-TAI-005 offers no registry picker, mode toggle or rate limit check', () => {
+  const { queryByText, queryByLabelText } = renderComponent();
+
+  expect(queryByText('Simple mode')).toBeNull();
+  expect(queryByText('Advanced mode')).toBeNull();
+  expect(queryByLabelText(/Registry/)).toBeNull();
+  expect(queryByText(/rate limit/i)).toBeNull();
+});

@@ -35,8 +35,6 @@ vi.mock('@/react/docker/images/common/ConfirmExportModal', () => ({
 
 vi.mock('@/docker/models/porImageRegistry', () => ({
   PorImageRegistryModel: function PorImageRegistryModel() {
-    this.UseRegistry = true;
-    this.Registry = {};
     this.Image = '';
   },
 }));
@@ -83,8 +81,6 @@ function buildController(options = {}) {
     ],
     imageError = null,
     historyError = null,
-    registries = [{ Id: 1, Name: 'Docker Hub' }],
-    registriesError = null,
     tagResult = undefined,
     tagError = null,
     deleteResult = undefined,
@@ -129,22 +125,11 @@ function buildController(options = {}) {
     tagImage: vi.fn(() => tagPromise),
     deleteImage: vi.fn(() => deletePromise),
     downloadImages: vi.fn(() => downloadPromise),
-    pushImage: vi.fn(() => Promise.resolve()),
     pullImage: vi.fn(() => Promise.resolve()),
   };
 
   const ImageHelper = {
     createImageConfigForContainer: vi.fn(() => ({ repo: 'nginx', tag: 'custom' })),
-  };
-
-  const RegistryService = {
-    loadRegistriesForDropdown: vi.fn(() =>
-      registriesError ? Promise.reject(registriesError) : Promise.resolve(registries)
-    ),
-  };
-
-  const RegistryModalService = {
-    registryModal: vi.fn(() => Promise.resolve(null)),
   };
 
   const $async = (fn, ...args) => Promise.resolve().then(() => fn(...args));
@@ -171,13 +156,11 @@ function buildController(options = {}) {
     Authentication,
     ImageService,
     ImageHelper,
-    RegistryService,
     Notifications,
     HttpRequestHelper,
     FileSaver,
     Blob,
-    endpoint,
-    RegistryModalService
+    endpoint
   );
 
   return {
@@ -187,12 +170,10 @@ function buildController(options = {}) {
     Authentication,
     ImageService,
     ImageHelper,
-    RegistryService,
     Notifications,
     HttpRequestHelper,
     FileSaver,
     Blob,
-    RegistryModalService,
     $,
     chain,
     image,
@@ -261,10 +242,9 @@ describe('REQ-IMG-06 ImageController local Docker image details', () => {
     expect(ctx.$scope.endpoint).toEqual({ Id: 7, Name: 'local' });
     expect(ctx.$scope.isAdmin).toBe(true);
     expect(ctx.$scope.formValues.RegistryModel).toMatchObject({
-      UseRegistry: true,
       Image: '',
     });
-    expect(ctx.$scope.state).toEqual({ exportInProgress: false, pullImageValidity: false });
+    expect(ctx.$scope.state).toEqual({ exportInProgress: false });
     expect(ctx.$scope.sortType).toBe('Order');
     expect(ctx.$scope.sortReverse).toBe(false);
     expect(ctx.HttpRequestHelper.setPortainerAgentTargetHeader).toHaveBeenCalledWith('node-1');
@@ -272,8 +252,7 @@ describe('REQ-IMG-06 ImageController local Docker image details', () => {
 
     await ctx.settleInit();
 
-    expect(ctx.RegistryService.loadRegistriesForDropdown).toHaveBeenCalledWith(7);
-    expect(ctx.$scope.registries).toEqual([{ Id: 1, Name: 'Docker Hub' }]);
+    expect(ctx.$scope.registries).toBeUndefined();
     expect(ctx.ImageService.image).toHaveBeenCalledWith('sha256:abc');
     expect(ctx.ImageService.history).toHaveBeenCalledWith('sha256:abc');
     expect(ctx.$scope.image.Id).toBe('sha256:abc');
@@ -320,15 +299,33 @@ describe('REQ-IMG-06 ImageController local Docker image details', () => {
     expect(ctx.chain.toggle).toHaveBeenCalledTimes(2);
   });
 
-  it('records pull image validity from the registry form helper', async () => {
+  it('REQ-TAI-005 offers no push to a registry', async () => {
     const ctx = buildController();
     await ctx.settleInit();
 
-    expect(ctx.$scope.setPullImageValidity).toBeTypeOf('function');
-    ctx.$scope.setPullImageValidity(true);
-    expect(ctx.$scope.state.pullImageValidity).toBe(true);
-    ctx.$scope.setPullImageValidity(false);
-    expect(ctx.$scope.state.pullImageValidity).toBe(false);
+    expect(ctx.$scope.pushTag).toBeUndefined();
+    expect(ctx.$scope.setPullImageValidity).toBeUndefined();
+  });
+
+  it('REQ-TAI-005 pulls a tag by name without asking for a registry', async () => {
+    const ctx = buildController();
+    await ctx.settleInit();
+
+    await ctx.$scope.pullTag('nginx:1.25');
+
+    expect(ctx.ImageService.pullImage).toHaveBeenCalledWith({ Image: 'nginx:1.25' });
+    expect(ctx.Notifications.success).toHaveBeenCalledWith('Image successfully pulled', 'nginx:1.25');
+  });
+
+  it('REQ-TAI-005 reports a failed pull', async () => {
+    const ctx = buildController();
+    await ctx.settleInit();
+    const err = new Error('nope');
+    ctx.ImageService.pullImage.mockRejectedValueOnce(err);
+
+    await ctx.$scope.pullTag('nginx:1.25');
+
+    expect(ctx.Notifications.error).toHaveBeenCalledWith('Failure', err, 'Unable to pull image from repository');
   });
 
   it('tags the image via ImageHelper and reloads the details page on success', async () => {

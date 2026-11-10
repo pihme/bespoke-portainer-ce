@@ -356,19 +356,6 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
       },
     };
 
-    const dockerRegistries = {
-      name: 'docker.host.registries',
-      url: '/registries',
-      views: {
-        'content@': {
-          component: 'environmentRegistriesView',
-        },
-      },
-      data: {
-        docs: '/user/docker/host/registries',
-      },
-    };
-
 
     $stateRegistryProvider.register(customTemplates);
     $stateRegistryProvider.register(customTemplatesNew);
@@ -395,6 +382,5 @@ angular.module('portainer.docker', ['portainer.app', reactModule]).config([
     $stateRegistryProvider.register(volumeBrowse);
     $stateRegistryProvider.register(volumeCreation);
     $stateRegistryProvider.register(dockerFeaturesConfiguration);
-    $stateRegistryProvider.register(dockerRegistries);
   },
 ]);

@@ -25,20 +25,11 @@ vi.mock('../queries/usePullImageMutation');
 vi.mock('@@/ImageConfigFieldset/getImageConfig', () => ({
   getDefaultImageConfig: () => ({
     image: 'nginx:latest',
-    registryId: 3,
-    useRegistry: true,
   }),
 }));
 vi.mock('./PullImageFormWidget.Form', () => ({
-  PullImageForm: ({
-    onRateLimit,
-  }: {
-    onRateLimit: (limited?: boolean) => void;
-  }) => (
+  PullImageForm: () => (
     <div>
-      <button type="button" onClick={() => onRateLimit()}>
-        clear-limit
-      </button>
       <button type="submit" form="pull-form">
         submit-via-formik
       </button>
@@ -72,7 +63,7 @@ vi.mock('formik', async (importOriginal) => {
 });
 
 describe('PullImageFormWidget submit', () => {
-  it('pulls the image and notifies on success', async () => {
+  it('REQ-TAI-005 pulls the image by name only and notifies on success', async () => {
     const user = userEvent.setup();
     const mutate = vi.fn((_vars, opts?: { onSuccess?: () => void }) => {
       opts?.onSuccess?.();
@@ -89,7 +80,6 @@ describe('PullImageFormWidget submit', () => {
     const Wrapped = withTestQueryProvider(withTestRouter(PullImageFormWidget));
     render(<Wrapped isNodeVisible={false} />);
 
-    await user.click(screen.getByText('clear-limit'));
     await user.click(screen.getByText('submit-via-formik'));
 
     expect(mutate).toHaveBeenCalledWith(
@@ -97,7 +87,6 @@ describe('PullImageFormWidget submit', () => {
         environmentId: 7,
         image: 'nginx:latest',
         nodeName: '',
-        registryId: 3,
         ignoreErrors: false,
       },
       expect.objectContaining({ onSuccess: expect.any(Function) })

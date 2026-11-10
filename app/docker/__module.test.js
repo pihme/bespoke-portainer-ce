@@ -230,18 +230,16 @@ describe('Docker Angular module wiring', () => {
     });
   });
 
-  it('registers host feature-config and registry states', () => {
+  it('registers the host feature-config state', () => {
     expect(stateByName('docker.host.featuresConfiguration')).toMatchObject({
       url: '/feat-config',
       views: { 'content@': { component: 'dockerFeaturesConfigurationView' } },
       data: { docs: '/user/docker/host/setup' },
     });
-    expect(stateByName('docker.host.registries')).toMatchObject({
-      url: '/registries',
-      views: { 'content@': { component: 'environmentRegistriesView' } },
-    });
     // REQ-TAI-001: per-user/team registry access is gone
+    // REQ-TAI-005: the environment registries view is gone too
     const names = registeredStates.map((s) => s.name);
+    expect(names).not.toContain('docker.host.registries');
     expect(names).not.toContain('docker.host.registries.access');
     expect(names).not.toContain('docker.swarm.registries.access');
   });

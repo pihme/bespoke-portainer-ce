@@ -6,7 +6,6 @@ import {
   buildImageFullURIFromModel,
   fullURIIntoRepoAndTag,
 } from '@/react/docker/images/utils';
-import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
 import { withError } from '@/react-tools/react-query';
 
 import { queryKeys } from '../../containers/queries/query-keys';
@@ -27,31 +26,18 @@ interface MutationParams {
   environmentId: EnvironmentId;
   containerId: string;
   image: string;
-  registryId?: number;
-  useRegistry: boolean;
 }
 
 export function useCommitContainerMutation(environmentId: EnvironmentId) {
   const queryClient = useQueryClient();
-  const registriesQuery = useEnvironmentRegistries(environmentId);
 
   return useMutation({
     mutationFn: async ({
       environmentId,
       containerId,
       image,
-      registryId,
-      useRegistry,
     }: MutationParams) => {
-      const registry = useRegistry
-        ? registriesQuery.data?.find((r) => r.Id === registryId)
-        : undefined;
-
-      const fullURI = buildImageFullURIFromModel({
-        UseRegistry: useRegistry,
-        Registry: registry,
-        Image: image,
-      });
+      const fullURI = buildImageFullURIFromModel({ Image: image });
 
       const { repo, tag } = fullURIIntoRepoAndTag(fullURI);
 

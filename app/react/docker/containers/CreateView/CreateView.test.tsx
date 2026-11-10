@@ -27,7 +27,7 @@ const initialValues: Values = {
   name: 'web',
   enableWebhook: false,
   publishAllPorts: false,
-  image: { image: 'nginx', registryId: 2, useRegistry: true },
+  image: { image: 'nginx' },
   alwaysPull: true,
   ports: [],
   nodeName: '',
@@ -116,12 +116,6 @@ vi.mock('@/react/hooks/useUser', async (importOriginal: () => Promise<object>) =
   };
 });
 
-vi.mock('@/react/portainer/environments/queries/useEnvironmentRegistries', () => ({
-  useEnvironmentRegistries: () => ({
-    data: [{ Id: 2, Name: 'dockerhub', URL: 'docker.io' }],
-  }),
-}));
-
 vi.mock('./useCreateMutation', () => ({
   useCreateOrReplaceMutation: () => ({
     isLoading: false,
@@ -155,19 +149,14 @@ vi.mock('@/portainer/services/notifications', () => ({
 vi.mock('./CreateInnerForm', () => ({
   CreateInnerForm: function MockCreateInnerForm({
     onChangeName,
-    onRateLimit,
   }: {
     onChangeName: (value: string) => void;
-    onRateLimit: (limited?: boolean) => void;
   }) {
     const { submitForm } = useFormikContext();
     return (
       <div>
         <button type="button" onClick={() => onChangeName('web')}>
           sync-name
-        </button>
-        <button type="button" onClick={() => onRateLimit(true)}>
-          hit-rate-limit
         </button>
         <button type="button" onClick={() => submitForm()}>
           submit-create
@@ -217,7 +206,7 @@ describe('REQ-CTR-03 CreateView local Docker create page', () => {
     expect(screen.getByText('Add container')).toBeVisible();
   });
 
-  it('submits a create mutation with the selected registry', async () => {
+  it('REQ-TAI-005 submits a create mutation by image name without a registry', async () => {
     const user = userEvent.setup();
     renderCreateView();
 
@@ -227,10 +216,8 @@ describe('REQ-CTR-03 CreateView local Docker create page', () => {
 
     await waitFor(() => expect(mockMutate).toHaveBeenCalled());
     const [payload, options] = mockMutate.mock.calls[0];
-    expect(payload.config.Image).toContain('nginx');
-    expect(payload.registry).toEqual(
-      expect.objectContaining({ Id: 2, Name: 'dockerhub' })
-    );
+    expect(payload.config.Image).toBe('nginx:latest');
+    expect(payload).not.toHaveProperty('registry');
     expect(payload.values.name).toBe('web');
 
     options.onSuccess();

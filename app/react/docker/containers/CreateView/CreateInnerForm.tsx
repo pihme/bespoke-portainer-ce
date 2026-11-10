@@ -28,13 +28,11 @@ export function CreateInnerForm({
   isLoading,
   isDuplicate,
   onChangeName,
-  onRateLimit,
 }: {
   hideCapabilities: boolean;
   isDuplicate: boolean;
   isLoading: boolean;
   onChangeName: (value: string) => void;
-  onRateLimit: (limited?: boolean) => void;
 }) {
   const { values, setFieldValue, errors, submitForm } =
     useFormikContext<Values>();
@@ -62,7 +60,6 @@ export function CreateInnerForm({
                 setFieldValue('commands.entrypoint', null);
               }}
               isLoading={isLoading}
-              onRateLimit={onRateLimit}
             />
 
             <div className="mt-4">

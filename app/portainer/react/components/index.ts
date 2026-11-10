@@ -30,7 +30,6 @@ import { switchField } from './switch-field';
 import { customTemplatesModule } from './custom-templates';
 import { gitFormModule } from './git-form';
 import { environmentsModule } from './environments';
-import { registriesModule } from './registries';
 import { accountModule } from './account';
 import { stacksModule } from './stacks';
 
@@ -39,7 +38,6 @@ export const ngModule = angular
     customTemplatesModule,
     environmentsModule,
     gitFormModule,
-    registriesModule,
     accountModule,
     stacksModule,
   ])

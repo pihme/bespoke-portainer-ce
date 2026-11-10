@@ -1,4 +1,3 @@
-import { Registry } from '@/react/portainer/registries/types/registry';
 import { buildImageFullURI } from '@/react/docker/images/utils';
 
 import { baseFormUtils } from './BaseForm';
@@ -13,11 +12,7 @@ import { restartPolicyTabUtils } from './RestartPolicyTab';
 import { envVarsTabUtils } from './EnvVarsTab';
 import { Values } from './useInitialValues';
 
-export function toRequest(
-  values: Values,
-  registry?: Registry,
-  ignoreCapabilities?: boolean
-) {
+export function toRequest(values: Values, ignoreCapabilities?: boolean) {
   let config: CreateContainerRequest = {
     HostConfig: {},
     NetworkingConfig: {},
@@ -36,7 +31,7 @@ export function toRequest(
   );
   config = baseFormUtils.toRequest(config, values);
   config = envVarsTabUtils.toRequest(config, values.env);
-  config.Image = buildImageFullURI(values.image.image, registry);
+  config.Image = buildImageFullURI(values.image.image);
 
   return config;
 }

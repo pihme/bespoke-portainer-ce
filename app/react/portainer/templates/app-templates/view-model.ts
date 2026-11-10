@@ -102,10 +102,10 @@ function setTemplatesV2(this: TemplateViewModel, template: AppTemplate) {
   this.Repository = template.repository;
   this.Hostname = template.hostname;
   this.RegistryModel = new PorImageRegistryModel();
-  this.RegistryModel.Image = template.image;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  this.RegistryModel.Registry.URL = template.registry || '';
+  // TAI-005: no registry objects; a template registry becomes part of the image name
+  this.RegistryModel.Image = template.registry
+    ? `${template.registry}/${template.image}`
+    : template.image;
   this.Command = template.command ? template.command : '';
   this.Network = template.network ? template.network : '';
   this.Privileged = template.privileged ? template.privileged : false;

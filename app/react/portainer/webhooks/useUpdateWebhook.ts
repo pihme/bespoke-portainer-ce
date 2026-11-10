@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 import { Webhook } from '@/react/portainer/webhooks/types';
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { withError } from '@/react-tools/react-query';
@@ -26,7 +25,7 @@ async function updateWebhook({
   registryId = 0,
 }: {
   webhookId: Webhook['Id'];
-  registryId?: RegistryId;
+  registryId?: number;
 }) {
   try {
     const { data } = await axios.put<Webhook>(`/webhooks/${webhookId}`, {

@@ -36,15 +36,15 @@ describe('setup-tests server handlers (backwards compatibility)', () => {
     expect((await version.json()).ServerVersion).toBe('v2.10.0');
   });
 
-  it('serves license info, nodes, stacks and registries', async () => {
+  it('serves license info, nodes and stacks', async () => {
     expect((await (await fetch('/api/licenses/info')).json()).valid).toBe(true);
     expect((await (await fetch('/api/status/nodes')).json()).nodes).toBe(3);
     expect(await (await fetch('/api/stacks')).json()).toEqual([]);
-    expect(await (await fetch('/api/registries')).json()).toEqual([]);
-    expect(
-      (await (await fetch('/api/registries/ping', { method: 'POST' })).json())
-        .success
-    ).toBe(true);
+  });
+
+  it('REQ-TAI-005 serves no registry stubs', () => {
+    const paths = handlers.map((h) => String(h.info.path));
+    expect(paths.filter((p) => /registr|dockerhub/.test(p))).toEqual([]);
   });
 
   it('allows overriding handlers via server.use', async () => {
@@ -90,7 +90,6 @@ describe('setup-tests server handlers extra arms', () => {
       '/api/endpoint_groups',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',
-      '/api/registries/1',
       '/api/webhooks',
       '/api/policies',
     ]) {

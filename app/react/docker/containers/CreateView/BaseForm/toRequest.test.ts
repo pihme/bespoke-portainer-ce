@@ -15,7 +15,7 @@ describe('REQ-CTR-03 BaseForm toRequest for ports and publish flags', () => {
     name: 'web',
     enableWebhook: false,
     publishAllPorts: true,
-    image: { image: 'nginx', registryId: 0, useRegistry: true },
+    image: { image: 'nginx' },
     alwaysPull: true,
     ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' }],
     nodeName: '',

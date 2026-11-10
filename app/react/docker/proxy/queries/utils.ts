@@ -1,5 +1,4 @@
 import { agentTargetHeader } from '@/portainer/services/axios/axios';
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 /**
  * Generates the `filters` query param entry for docker API list actions
@@ -9,26 +8,6 @@ import { RegistryId } from '@/react/portainer/registries/types/registry';
  */
 export function withFiltersQueryParam<T = unknown>(filters?: T) {
   return { filters: filters && JSON.stringify(filters) };
-}
-
-/**
- * Encodes the registry credentials in base64
- * @param registryId
- * @returns
- */
-function encodeRegistryCredentials(registryId: RegistryId) {
-  return window.btoa(JSON.stringify({ registryId }));
-}
-
-/**
- * Generates the `X-Registry-Auth` header for docker API
- * @param registryId The registry Id to use
- * @returns
- */
-export function withRegistryAuthHeader(registryId?: RegistryId) {
-  return registryId !== undefined
-    ? { 'X-Registry-Auth': encodeRegistryCredentials(registryId) }
-    : {};
 }
 
 /**

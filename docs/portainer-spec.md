@@ -30,7 +30,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | SWM | Docker Swarm: cluster, services, configs, secrets (all removed, TAI-003) |
 | TPL | App templates and custom templates |
 | GIT | App Delivery (GitOps workflows and sources) |
-| REG | Registries |
+| REG | Registries (all removed, TAI-005) |
 | K8S | Kubernetes environments (all removed, TAI-002) |
 | ACI | Azure Container Instances |
 | EDGE | Edge Compute (all removed, TAI-004) |
@@ -136,11 +136,11 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 ## IMG – Docker images
 
 - **REQ-IMG-01 List images.** Table with tags, size, created date, used/unused and dangling labels; filter and remove. Entry: UI `#!/{envId}/docker/images`; API `GET /docker/{environmentId}/images`. docs: user/docker/images
-- **REQ-IMG-02 Pull an image.** Simple mode (registry + image) and advanced mode (free-form name). Entry: UI images list. docs: user/docker/images/pull
+- **REQ-IMG-02 Pull an image.** Simple mode (registry + image) and advanced mode (free-form name). Entry: UI images list. docs: user/docker/images/pull *TAI-005: there is no simple mode, registry picker or Docker Hub rate-limit check; the image is pulled by its full name, which can carry a registry host (`registry:port/image:tag`). The same holds for creating a container and for creating an image from a container.*
 - **REQ-IMG-03 Build an image.** From the web editor, an uploaded Dockerfile/tarball, or a URL; names/tags, output log. Entry: UI `#!/{envId}/docker/images/build`. docs: user/docker/images/build
 - **REQ-IMG-04 Import an image.** From an uploaded tar archive. Entry: UI `#!/{envId}/docker/images/import`. docs: user/docker/images/import
 - **REQ-IMG-05 Export an image.** Download selected images as a tar archive. docs: user/docker/images/export
-- **REQ-IMG-06 Image details.** Tags (add, remove, push to a registry, pull), layers/history, Dockerfile details. Entry: UI `#!/{envId}/docker/images/{id}`. (inferred from code: `app/docker/views/images/edit`)
+- **REQ-IMG-06 Image details.** Tags (add, remove, push to a registry, pull), layers/history, Dockerfile details. Entry: UI `#!/{envId}/docker/images/{id}`. (inferred from code: `app/docker/views/images/edit`) *TAI-005: no "push to a registry"; pulling a tag needs no registry choice, and tagging uses a plain image name field.*
 - **REQ-IMG-07 Prune dangling and unused images.** Prune removes dangling images by default, optionally all unused images, reports reclaimed space, and can clear the Docker build cache. Entry: UI images list, Prune. docs: user/docker/images/prune-dangling-and-unused-images
 - **REQ-IMG-08 Image up-to-date indicator.** Show whether stacks, services and containers run the newest image. **BE-only.** docs: user/docker/host/setup
 
@@ -201,11 +201,11 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## REG – Registries
 
-- **REQ-REG-01 Manage registries.** Add, edit and remove registries: Docker Hub account, AWS ECR, Quay.io, ProGet, Azure, GitLab, custom; GitHub (ghcr) is BE-only; OCI registries are BE-only. Entry: UI `#!/registries`, `#!/registries/new`, `#!/registries/{id}`; API `/registries`, `POST /registries/{id}/configure`, `POST /registries/ping`. docs: admin/registries, admin/registries/add and sub-pages
-- **REQ-REG-02 Hide anonymous Docker Hub.** **BE-only** (CE flag `HIDE_DOCKER_HUB_ANONYMOUS`, inferred from code). docs: admin/registries
-- **REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.* *TAI-002: the Kubernetes registries view and its namespace "Manage access" are removed; `PUT /endpoints/{id}/registries/{registryId}` no longer takes `Namespaces`, and `GET /endpoints/{id}/registries` ignores `namespace`.* *TAI-003: no `#!/{envId}/docker/swarm/registries`; every Docker engine uses the host page.*
-- **REQ-REG-04 Browse and manage registry content.** Browse repositories, add, retag and remove tags. **BE-only.** docs: admin/registries/browse, admin/registries/manage
-- **REQ-REG-05 Docker Hub pull-limit check.** Show remaining Docker Hub pulls. Entry: API `GET /endpoints/{id}/dockerhub/{registryId}`; CLI `--pull-limit-check-disabled` (inferred from code).
+- ~~**REQ-REG-01 Manage registries.** Add, edit and remove registries: Docker Hub account, AWS ECR, Quay.io, ProGet, Azure, GitLab, custom; GitHub (ghcr) is BE-only; OCI registries are BE-only. Entry: UI `#!/registries`, `#!/registries/new`, `#!/registries/{id}`; API `/registries`, `POST /registries/{id}/configure`, `POST /registries/ping`. docs: admin/registries, admin/registries/add and sub-pages~~ REMOVED (TAI-005)
+- ~~**REQ-REG-02 Hide anonymous Docker Hub.** **BE-only** (CE flag `HIDE_DOCKER_HUB_ANONYMOUS`, inferred from code). docs: admin/registries~~ REMOVED (TAI-005)
+- ~~**REQ-REG-03 Registry access per environment.** Grant users/teams access to a registry in an environment. Entry: UI `#!/{envId}/docker/host/registries`, `#!/{envId}/docker/swarm/registries`, `#!/{envId}/kubernetes/registries`, `…/{id}/access`; API `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}`. docs: user/docker/host/registries, user/docker/swarm/registries, user/kubernetes/cluster/registries *TAI-001: the Docker per-user/team access pages (`#!/{envId}/docker/host/registries/{id}/access`, `…/swarm/…`) are removed; Kubernetes namespace access stays.* *TAI-002: the Kubernetes registries view and its namespace "Manage access" are removed; `PUT /endpoints/{id}/registries/{registryId}` no longer takes `Namespaces`, and `GET /endpoints/{id}/registries` ignores `namespace`.* *TAI-003: no `#!/{envId}/docker/swarm/registries`; every Docker engine uses the host page.*~~ REMOVED (TAI-005)
+- ~~**REQ-REG-04 Browse and manage registry content.** Browse repositories, add, retag and remove tags. **BE-only.** docs: admin/registries/browse, admin/registries/manage~~ REMOVED (TAI-005)
+- ~~**REQ-REG-05 Docker Hub pull-limit check.** Show remaining Docker Hub pulls. Entry: API `GET /endpoints/{id}/dockerhub/{registryId}`; CLI `--pull-limit-check-disabled` (inferred from code).~~ REMOVED (TAI-005)
 
 ## K8S – Kubernetes
 
@@ -350,6 +350,13 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (e) `GET /settings/public` has no `EnableEdgeComputeFeatures` and no `Edge` block; `PUT /settings` ignores `EnableEdgeComputeFeatures`, `TrustOnFirstConnect`, `EnforceEdgeID`, `EdgePortainerURL`, `EdgeAgentCheckinInterval` and the `Edge` intervals.
   - (f) Custom templates are Compose only: `EdgeTemplate` is ignored, Swarm (1) and Kubernetes (3) types answer "Invalid custom template type", and leftover Edge templates are not listed.
   - (g) The UI has no `#!/edge/…` states, no "Edge compute" sidebar section, no `#!/settings/edge` page or "Edge Compute" settings entry, no `#!/endpoints/aeec`, no `#!/init/edge`, no update schedules, no Edge agent poll frequency, no Edge Agent wizard tabs, no "KubeSolo (Edge)" or "Set up new environments" wizard option, no Edge settings on custom templates and no Edge update badge on the home page. A leftover Edge environment shows "Edge environments are no longer supported" on its details page and is sent home instead of to a dashboard.
+- **REQ-TAI-005 No registry management.** Added by TAI-005 (2026-11-10).
+  - (a) The removed API routes answer 404: `/registries` and everything under it (including `POST /registries/ping`, `POST /registries/{id}/configure` and the GitLab proxy `/registries/proxies/gitlab/…`), `GET /endpoints/{id}/registries`, `PUT /endpoints/{id}/registries/{registryId}` and `GET /endpoints/{id}/dockerhub/{registryId}`.
+  - (b) The CLI flag `--pull-limit-check-disabled` is rejected as an unknown flag.
+  - (c) Images are pulled, tagged and committed by their full name: the pull, container-create and create-image forms have only an image name field (no simple/advanced toggle, no registry picker, no Docker Hub rate-limit check), and the requests carry no `X-Registry-Auth` header.
+  - (d) The image details page has no push button and pulls a tag without asking for a registry; the image import page uses a plain image name field.
+  - (e) App templates carry no registry object; a template `registry` is folded into the image name (`registry/image`).
+  - (f) The UI has no `#!/registries…` states, no `#!/{envId}/docker/host/registries`, no "Registries" sidebar entries and no registry management module.
 
 ## Not covered as requirements
 

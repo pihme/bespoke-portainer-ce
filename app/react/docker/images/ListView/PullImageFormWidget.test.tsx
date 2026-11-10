@@ -39,8 +39,6 @@ vi.mock('../queries/usePullImageMutation', () => ({
 vi.mock('@@/ImageConfigFieldset/getImageConfig', () => ({
   getDefaultImageConfig: () => ({
     image: '',
-    registryId: 0,
-    useRegistry: false,
   }),
 }));
 

@@ -17,7 +17,6 @@ async function initAuthentication(Authentication) {
 
 angular
   .module('portainer.app', [
-    'portainer.registrymanagement',
     componentsModule,
     settingsModule,
     featureFlagModule,

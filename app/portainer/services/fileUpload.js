@@ -49,13 +49,6 @@ function FileUploadFactory($q, Upload) {
     });
   };
 
-  service.configureRegistry = function (registryId, registryManagementConfigurationModel) {
-    return Upload.upload({
-      url: 'api/registries/' + registryId + '/configure',
-      data: registryManagementConfigurationModel,
-    });
-  };
-
   service.createEndpoint = function (
     name,
     creationType,

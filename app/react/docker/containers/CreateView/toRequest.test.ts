@@ -9,7 +9,7 @@ function buildValues(overrides: Partial<Values> = {}): Values {
     name: 'web',
     enableWebhook: false,
     publishAllPorts: false,
-    image: { image: 'nginx', registryId: 0, useRegistry: false },
+    image: { image: 'nginx' },
     alwaysPull: true,
     ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' }],
     nodeName: '',
@@ -66,7 +66,7 @@ function buildValues(overrides: Partial<Values> = {}): Values {
 
 describe('REQ-CTR-03 CreateView toRequest for local Docker create', () => {
   it('aggregates tab values into a create container request', () => {
-    const result = toRequest(buildValues(), undefined, false);
+    const result = toRequest(buildValues(), false);
 
     expect(result.Image).toBe('nginx:latest');
     expect(result.Hostname).toBe('web');
@@ -87,7 +87,7 @@ describe('REQ-CTR-03 CreateView toRequest for local Docker create', () => {
   });
 
   it('ignores capabilities when ignoreCapabilities is set', () => {
-    const result = toRequest(buildValues(), undefined, true);
+    const result = toRequest(buildValues(), true);
 
     expect(result.HostConfig.CapAdd).toEqual([]);
     expect(result.HostConfig.CapDrop).toEqual([]);

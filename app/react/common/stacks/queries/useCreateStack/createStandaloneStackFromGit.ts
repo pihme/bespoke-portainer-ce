@@ -2,7 +2,6 @@ import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
 import { Pair } from '@/react/portainer/settings/types';
 import { AutoUpdateResponse } from '@/react/portainer/gitops/types';
 import { EnvironmentId } from '@/react/portainer/environments/types';
-import { RegistryId } from '@/react/portainer/registries/types/registry';
 
 import { Stack } from '../../types';
 
@@ -37,7 +36,7 @@ export type StandaloneGitRepositoryPayload = {
   /** ID of an existing Source. When set, repositoryUrl and authentication fields are ignored. */
   sourceId?: number;
   environmentId: EnvironmentId;
-  registries?: Array<RegistryId>;
+  registries?: Array<number>;
 };
 
 export async function createStandaloneStackFromGit({

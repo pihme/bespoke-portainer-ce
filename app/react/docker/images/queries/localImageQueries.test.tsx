@@ -12,7 +12,6 @@ import { queryKeys } from './queryKeys';
 import { useImages } from './useImages';
 import { deleteImage } from './useDeleteImageMutation';
 import { pullImage } from './usePullImageMutation';
-import { pushImage } from './usePushImageMutation';
 import { usePruneImagesMutation } from './usePruneImagesMutation';
 import {
   buildImageFromDockerfileContent,
@@ -136,26 +135,23 @@ describe('local Docker image queries', () => {
     restore();
   });
 
-  it('pushImage posts to the tagged image push path', async () => {
+  it('REQ-TAI-005 pulls by name without an X-Registry-Auth header', async () => {
+    let authHeader: string | null = 'unset';
+    let fromImage: string | null = '';
     server.use(
-      http.post('/api/endpoints/:id/docker/images/:ref/push', () =>
-        HttpResponse.json([{ status: 'ok' }])
-      )
+      http.post('/api/endpoints/:id/docker/images/create', ({ request }) => {
+        authHeader = request.headers.get('X-Registry-Auth');
+        fromImage = new URL(request.url).searchParams.get('fromImage');
+        return HttpResponse.json({});
+      })
     );
-    await expect(
-      pushImage({ environmentId: 3, image: 'nginx:latest' })
-    ).resolves.toBeUndefined();
-
-    const restore = suppressConsoleLogs();
-    server.use(
-      http.post('/api/endpoints/:id/docker/images/:ref/push', () =>
-        HttpResponse.json({ message: 'denied' }, { status: 500 })
-      )
-    );
-    await expect(
-      pushImage({ environmentId: 3, image: 'nginx:latest' })
-    ).rejects.toThrow(/Unable to push image|denied/i);
-    restore();
+    await pullImage({
+      environmentId: 2,
+      image: 'registry.local/app',
+      ignoreErrors: false,
+    });
+    expect(authHeader).toBeNull();
+    expect(fromImage).toBe('registry.local/app:latest');
   });
 
   it('usePruneImagesMutation prunes images and optional build cache', async () => {

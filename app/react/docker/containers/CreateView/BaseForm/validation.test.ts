@@ -10,7 +10,7 @@ const validBase = {
   nodeName: '',
   ports: [{ containerPort: '80', hostPort: '8080', protocol: 'tcp' as const }],
   publishAllPorts: false,
-  image: { image: 'nginx', registryId: 0, useRegistry: true },
+  image: { image: 'nginx' },
 };
 
 describe('REQ-CTR-03 BaseForm validation for create form', () => {
@@ -22,40 +22,32 @@ describe('REQ-CTR-03 BaseForm validation for create form', () => {
     });
   });
 
-  it('rejects pull when Docker Hub is rate limited', async () => {
+  it('REQ-TAI-005 has no Docker Hub rate limit check on always-pull', async () => {
     const schema = validation({
       isDuplicating: false,
       isDuplicatingPortainer: false,
-      isDockerhubRateLimited: true,
     });
 
     await expect(
       schema.validate({ ...validBase, alwaysPull: true })
-    ).rejects.toThrow(/Rate limit exceeded/);
+    ).resolves.toMatchObject({ alwaysPull: true });
   });
 
-  it('allows duplicating when a registry id is present', async () => {
+  it('REQ-TAI-005 allows duplicating by image name without a registry', async () => {
     const schema = validation({
       isDuplicating: true,
       isDuplicatingPortainer: false,
-      isDockerhubRateLimited: false,
     });
 
     await expect(
-      schema.validate({
-        ...validBase,
-        image: { image: 'nginx', registryId: 3, useRegistry: true },
-      })
-    ).resolves.toMatchObject({
-      image: { registryId: 3 },
-    });
+      schema.validate({ ...validBase, image: { image: 'nginx:1.25' } })
+    ).resolves.toMatchObject({ image: { image: 'nginx:1.25' } });
   });
 
   it('rejects duplicating the Portainer container', async () => {
     const schema = validation({
       isDuplicating: true,
       isDuplicatingPortainer: true,
-      isDockerhubRateLimited: false,
     });
 
     await expect(schema.validate(validBase)).rejects.toThrow();

@@ -17,13 +17,11 @@ export function useValidation({
   maxMemory,
   isDuplicating,
   isDuplicatingPortainer,
-  isDockerhubRateLimited,
 }: {
   maxCpu: number;
   maxMemory: number;
   isDuplicating: boolean | undefined;
   isDuplicatingPortainer: boolean | undefined;
-  isDockerhubRateLimited: boolean;
 }): SchemaOf<Values> {
   return useMemo(
     () =>
@@ -40,11 +38,9 @@ export function useValidation({
         baseFormUtils.validation({
           isDuplicating,
           isDuplicatingPortainer,
-          isDockerhubRateLimited,
         })
       ),
     [
-      isDockerhubRateLimited,
       isDuplicating,
       isDuplicatingPortainer,
       maxCpu,

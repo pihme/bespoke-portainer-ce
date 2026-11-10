@@ -13,7 +13,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/file"
 	"github.com/portainer/portainer/api/http/handler/gitops"
 	"github.com/portainer/portainer/api/http/handler/motd"
-	"github.com/portainer/portainer/api/http/handler/registries"
 	"github.com/portainer/portainer/api/http/handler/settings"
 	"github.com/portainer/portainer/api/http/handler/ssl"
 	"github.com/portainer/portainer/api/http/handler/stacks"
@@ -37,7 +36,6 @@ type Handler struct {
 	GitOperationHandler    *gitops.Handler
 	FileHandler            *file.Handler
 	MOTDHandler            *motd.Handler
-	RegistryHandler        *registries.Handler
 	SettingsHandler        *settings.Handler
 	SSLHandler             *ssl.Handler
 	StackHandler           *stacks.Handler
@@ -53,7 +51,7 @@ type Handler struct {
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","registries","stacks","websocket"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","stacks","websocket"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -86,9 +84,6 @@ type Handler struct {
 // @tag.name motd
 // @tag.description Fetch the message of the day
 // @tag.x-displayName Message of the day
-// @tag.name registries
-// @tag.description Manage Docker registries
-// @tag.x-displayName Registries
 // @tag.name settings
 // @tag.description Manage Portainer settings
 // @tag.x-displayName Portainer settings
@@ -149,8 +144,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.StripPrefix("/api", h.GitOperationHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/motd"):
 		http.StripPrefix("/api", h.MOTDHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/registries"):
-		http.StripPrefix("/api", h.RegistryHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/settings"):
 		http.StripPrefix("/api", h.SettingsHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/stacks"):

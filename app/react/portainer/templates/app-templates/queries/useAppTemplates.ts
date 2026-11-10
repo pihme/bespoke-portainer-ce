@@ -1,11 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import axios, { parseAxiosError } from '@/portainer/services/axios/axios';
-import { useRegistries } from '@/react/portainer/registries/queries/useRegistries';
-import { DockerHubViewModel } from '@/portainer/models/dockerhub';
-import { Registry } from '@/react/portainer/registries/types/registry';
 import { EnvironmentId } from '@/react/portainer/environments/types';
-import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
 
 import { AppTemplate } from '../types';
 import { TemplateViewModel } from '../view-model';
@@ -18,28 +14,16 @@ export type AppTemplatesResponse = {
 };
 
 export function useAppTemplates<T = Array<TemplateViewModel>>({
-  environmentId,
   select,
   enabled = true,
 }: {
+  /** kept for callers; registries per environment are gone (TAI-005) */
   environmentId?: EnvironmentId;
   select?: (templates: Array<TemplateViewModel>) => T;
   enabled?: boolean;
 } = {}) {
-  const hasEnvParam = !!environmentId;
-
-  const environmentRegistriesQuery = useEnvironmentRegistries(
-    environmentId || 0,
-    { enabled: enabled && hasEnvParam }
-  );
-  const registriesQuery = useRegistries({ enabled: enabled && !hasEnvParam });
-
-  const data = hasEnvParam
-    ? environmentRegistriesQuery.data
-    : registriesQuery.data;
-
-  return useQuery(['templates'], () => getTemplatesWithRegistry(data), {
-    enabled: !!data && enabled,
+  return useQuery(['templates'], () => getTemplates(), {
+    enabled,
     select,
   });
 }
@@ -54,23 +38,13 @@ export function useAppTemplate(
   });
 }
 
-async function getTemplatesWithRegistry(
-  registries: Array<Registry> | undefined
-) {
-  if (!registries) {
-    return [];
-  }
-
+/**
+ * TAI-005: registries are gone, so templates are no longer matched against
+ * registry objects; the image name carries any registry host.
+ */
+async function getTemplates() {
   const { templates, version } = await getAppTemplates();
-  return templates.map((item) => {
-    const template = new TemplateViewModel(item, version);
-    const registryURL = item.registry;
-    const registry = registryURL
-      ? registries.find((reg) => reg.URL === registryURL)
-      : new DockerHubViewModel();
-    template.RegistryModel.Registry = registry || new DockerHubViewModel();
-    return template;
-  });
+  return templates.map((item) => new TemplateViewModel(item, version));
 }
 
 export async function getAppTemplates() {

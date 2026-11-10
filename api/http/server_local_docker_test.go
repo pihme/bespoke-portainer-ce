@@ -97,7 +97,6 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 		ProxyManager:           proxy.NewManager(nil),
 		SSLService:             sslService,
 		ShutdownTrigger:        cancel,
-		PullLimitCheckDisabled: true,
 		TrustedOrigins:         trustedOrigins,
 	}
 
@@ -128,7 +127,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	assert.NotNil(t, h.UserHandler)
 	assert.NotNil(t, h.WebSocketHandler)
 	// Cheap constructor wiring for deferred arms that fall out of Start:
-	assert.NotNil(t, h.RegistryHandler)
 }
 
 // TestREQ_SRV_01_Start_WiresLocalDockerHandlersAndListens starts the HTTP
@@ -515,6 +513,57 @@ func TestREQ_TAI_004_Start_EdgeRoutesAreGone(t *testing.T) {
 			assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode, "%s %s", route.method, route.path)
 			continue
 		}
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
+	}
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+// TestREQ_TAI_005_Start_RegistryRoutesAreGone: the registry catalog, the
+// per-environment registry access and the Docker Hub pull-limit routes answer 404.
+func TestREQ_TAI_005_Start_RegistryRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct{ method, path string }{
+		{http.MethodGet, "/api/registries"},
+		{http.MethodPost, "/api/registries"},
+		{http.MethodGet, "/api/registries/1"},
+		{http.MethodPut, "/api/registries/1"},
+		{http.MethodDelete, "/api/registries/1"},
+		{http.MethodPost, "/api/registries/1/configure"},
+		{http.MethodPost, "/api/registries/ping"},
+		{http.MethodGet, "/api/registries/proxies/gitlab/api/v4/projects"},
+		{http.MethodGet, "/api/endpoints/1/registries"},
+		{http.MethodPut, "/api/endpoints/1/registries/1"},
+		{http.MethodGet, "/api/endpoints/1/dockerhub/0"},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
 
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
 	}

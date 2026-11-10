@@ -20,7 +20,6 @@ import { RestartPolicy } from './RestartPolicyTab/types';
 import { Values } from './useInitialValues';
 
 const onChangeName = vi.fn();
-const onRateLimit = vi.fn();
 
 vi.mock('@uirouter/react', async (importOriginal: () => Promise<object>) => ({
   ...(await importOriginal()),
@@ -50,11 +49,9 @@ vi.mock('./BaseForm', () => ({
   BaseForm: function MockBaseForm({
     onChangeName,
     onChangeImageName,
-    onRateLimit,
   }: {
     onChangeName: (value: string) => void;
     onChangeImageName: () => void;
-    onRateLimit: (limited?: boolean) => void;
   }) {
     return (
       <div>
@@ -63,9 +60,6 @@ vi.mock('./BaseForm', () => ({
         </button>
         <button type="button" onClick={onChangeImageName}>
           change-image
-        </button>
-        <button type="button" onClick={() => onRateLimit(true)}>
-          rate-limit
         </button>
       </div>
     );
@@ -121,7 +115,7 @@ const values: Values = {
   name: 'web',
   enableWebhook: false,
   publishAllPorts: false,
-  image: { image: 'nginx', registryId: 0, useRegistry: true },
+  image: { image: 'nginx' },
   alwaysPull: true,
   ports: [],
   nodeName: '',
@@ -203,9 +197,6 @@ describe('REQ-CTR-03 CreateInnerForm advanced settings tabs', () => {
 
     await user.click(screen.getByRole('button', { name: 'change-name' }));
     expect(onChangeName).toHaveBeenCalledWith('from-base');
-
-    await user.click(screen.getByRole('button', { name: 'rate-limit' }));
-    expect(onRateLimit).toHaveBeenCalledWith(true);
   });
 
   it('switches through local create tabs', async () => {
@@ -288,7 +279,6 @@ function renderInnerForm({
               isDuplicate={isDuplicate}
               isLoading={false}
               onChangeName={onChangeName}
-              onRateLimit={onRateLimit}
             />
           );
         }}

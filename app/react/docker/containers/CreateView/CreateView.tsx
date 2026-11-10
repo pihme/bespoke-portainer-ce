@@ -5,13 +5,10 @@ import { useEffect, useState } from 'react';
 import { useIsEnvironmentAdmin } from '@/react/hooks/useUser';
 import { useEnvironmentId } from '@/react/hooks/useEnvironmentId';
 import { useCurrentEnvironment } from '@/react/hooks/useCurrentEnvironment';
-import { useEnvironmentRegistries } from '@/react/portainer/environments/queries/useEnvironmentRegistries';
-import { Registry } from '@/react/portainer/registries/types/registry';
 import { notifySuccess } from '@/portainer/services/notifications';
 import { useDebouncedValue } from '@/react/hooks/useDebouncedValue';
 
 import { PageHeader } from '@@/PageHeader';
-import { ImageConfigValues } from '@@/ImageConfigFieldset';
 import { confirmDestructive } from '@@/modals/confirm';
 import { buildConfirmButton } from '@@/modals/utils';
 import { InformationPanel } from '@@/InformationPanel';
@@ -49,14 +46,12 @@ function CreateForm() {
   const router = useRouter();
   const isWindows = useIsWindows(environmentId);
   const { authorized: isEnvironmentAdmin } = useIsEnvironmentAdmin();
-  const [isDockerhubRateLimited, setIsDockerhubRateLimited] = useState(false);
 
   const mutation = useCreateOrReplaceMutation();
   const initialValuesQuery = useInitialValues(
     mutation.isLoading || mutation.isSuccess,
     isWindows
   );
-  const registriesQuery = useEnvironmentRegistries(environmentId);
 
   const { oldContainer, syncName } = useOldContainer(
     initialValuesQuery?.initialValues?.name
@@ -71,7 +66,6 @@ function CreateForm() {
     maxMemory,
     isDuplicating: initialValuesQuery?.isDuplicating,
     isDuplicatingPortainer: oldContainer?.IsPortainer,
-    isDockerhubRateLimited,
   });
 
   if (!envQuery.data || !initialValuesQuery) {
@@ -122,7 +116,6 @@ function CreateForm() {
           onChangeName={syncName}
           isDuplicate={isDuplicating}
           isLoading={mutation.isLoading}
-          onRateLimit={(limited = false) => setIsDockerhubRateLimited(limited)}
         />
       </Formik>
     </>
@@ -142,8 +135,7 @@ function CreateForm() {
       }
     }
 
-    const registry = getRegistry(values.image, registriesQuery.data || []);
-    const config = toRequest(values, registry, hideCapabilities);
+    const config = toRequest(values, hideCapabilities);
 
     return mutation.mutate(
       {
@@ -156,7 +148,6 @@ function CreateForm() {
           enableWebhook: values.enableWebhook,
           nodeName: values.nodeName,
         },
-        registry,
         oldContainer,
         extraNetworks,
       },
@@ -168,12 +159,6 @@ function CreateForm() {
       }
     );
   }
-}
-
-function getRegistry(image: ImageConfigValues, registries: Registry[]) {
-  return image.useRegistry
-    ? registries.find((registry) => registry.Id === image.registryId)
-    : undefined;
 }
 
 function useOldContainer(initialName?: string) {

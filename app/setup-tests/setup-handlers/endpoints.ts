@@ -10,10 +10,4 @@ export const endpointsHandlers = [
       createMockEnvironment({ Id: parseInt(params.endpointId as string, 10) })
     )
   ),
-  http.get('/api/endpoints/:endpointId/registries', () =>
-    HttpResponse.json([])
-  ),
-  http.get('/api/endpoints/:endpointId/registries/:id', () =>
-    HttpResponse.json({})
-  ),
 ];

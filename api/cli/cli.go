@@ -50,7 +50,6 @@ func CLIFlags(secretsDir string) *portainer.CLIFlags {
 		SecretKeyName:          kingpin.Flag("secret-key-name", fmt.Sprintf("Secret key name for encryption and will be used as %s/<secret-key-name>. An absolute path is used as-is.", secretsDir)).Default(defaultSecretKeyName).String(),
 		LogLevel:               kingpin.Flag("log-level", "Set the minimum logging level to show").Default("INFO").Enum("DEBUG", "INFO", "WARN", "ERROR"),
 		LogMode:                kingpin.Flag("log-mode", "Set the logging output mode").Default("PRETTY").Enum("NOCOLOR", "PRETTY", "JSON"),
-		PullLimitCheckDisabled: kingpin.Flag("pull-limit-check-disabled", "Pull limit check").Envar(portainer.PullLimitCheckDisabledEnvVar).Default(defaultPullLimitCheckDisabled).Bool(),
 		TrustedOrigins:         kingpin.Flag("trusted-origins", "List of trusted origins for CSRF protection. Separate multiple origins with a comma.").Envar(portainer.TrustedOriginsEnvVar).String(),
 		CSP:                    kingpin.Flag("csp", "Content Security Policy (CSP) header").Envar(portainer.CSPEnvVar).Default("true").Bool(),
 		CompactDB:              kingpin.Flag("compact-db", "Enable database compaction on startup").Envar(portainer.CompactDBEnvVar).Default("false").Bool(),

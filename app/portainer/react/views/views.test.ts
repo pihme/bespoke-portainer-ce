@@ -115,10 +115,6 @@ vi.mock('@/react/sidebar/Sidebar', () => ({ Sidebar: () => null }));
 vi.mock('@/react/sidebar/useSidebarState', () => ({
   AngularSidebarService: () => ({}),
 }));
-vi.mock('@/react/portainer/registries/ListView', () => ({ ListView: () => null }));
-vi.mock('@/react/portainer/registries/environments/ListView', () => ({
-  ListView: () => null,
-}));
 vi.mock('@/portainer/authorization-guard', () => ({
   AccessHeaders: { Admin: 'admin', Restricted: 'restricted' },
 }));

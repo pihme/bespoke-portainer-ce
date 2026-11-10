@@ -161,8 +161,6 @@ func (m *Migrator) initMigrations() {
 		m.updateResourceControlsToDBVersion22,
 		m.updateUsersToDBVersion22)
 
-	m.addMigrations("1.24", m.updateEndpointsAndEndpointGroupsToDBVersion23)
-
 	m.addMigrations("1.24.1", m.updateSettingsToDB24)
 
 	m.addMigrations("2.0",

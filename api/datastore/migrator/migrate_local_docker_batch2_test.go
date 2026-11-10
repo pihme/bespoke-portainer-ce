@@ -87,32 +87,6 @@ func TestMigrate_FindResourcesToUpdateForDB32_MatchesLegacyVolumeID(t *testing.T
 	assert.Equal(t, "vol_did", toUpdate[7])
 }
 
-// REQ-TAI-023: there is no tags collection, so the 1.24 migration resolves no
-// tag name and leaves every environment and group with an empty tag ID list.
-func TestMigrate_UpdateEndpointsAndEndpointGroupsToDBVersion23_ClearsTagIDs(t *testing.T) {
-	t.Parallel()
-	s := openTestServices(t)
-
-	require.NoError(t, s.endpointSvc.Create(&portainer.Endpoint{
-		ID: 1, Name: "local", Type: portainer.DockerEnvironment, Tags: []string{"web", "missing"}, TagIDs: []portainer.TagID{7},
-	}))
-	require.NoError(t, s.endpointGroup.Create(&portainer.EndpointGroup{
-		Name: "g1", Tags: []string{"web"},
-	}))
-
-	m := s.newMigrator(nil)
-	require.NoError(t, m.updateEndpointsAndEndpointGroupsToDBVersion23())
-
-	ep, err := s.endpointSvc.Endpoint(1)
-	require.NoError(t, err)
-	assert.Empty(t, ep.TagIDs)
-
-	groups, err := s.endpointGroup.ReadAll()
-	require.NoError(t, err)
-	require.Len(t, groups, 1)
-	assert.Empty(t, groups[0].TagIDs)
-}
-
 func TestMigrate_UpdateResourceControlsToDBVersion22_ClearsAdministratorsOnly(t *testing.T) {
 	t.Parallel()
 	s := openTestServices(t)

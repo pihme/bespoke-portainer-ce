@@ -17,7 +17,6 @@ type testDatastore struct {
 	customTemplate  dataservices.CustomTemplateService
 	endpoint        dataservices.EndpointService
 	endpointGroup   dataservices.EndpointGroupService
-	registry        dataservices.RegistryService
 	resourceControl dataservices.ResourceControlService
 	source          dataservices.SourceService
 	sslSettings     dataservices.SSLSettingsService
@@ -45,7 +44,6 @@ func (d *testDatastore) CustomTemplate() dataservices.CustomTemplateService { re
 func (d *testDatastore) Endpoint() dataservices.EndpointService             { return d.endpoint }
 func (d *testDatastore) EndpointGroup() dataservices.EndpointGroupService   { return d.endpointGroup }
 
-func (d *testDatastore) Registry() dataservices.RegistryService { return d.registry }
 func (d *testDatastore) ResourceControl() dataservices.ResourceControlService {
 	return d.resourceControl
 }

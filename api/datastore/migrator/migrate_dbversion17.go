@@ -105,31 +105,3 @@ func (m *Migrator) updateEndpointGroupsToDBVersion18() error {
 
 	return nil
 }
-
-func (m *Migrator) updateRegistriesToDBVersion18() error {
-	log.Info().Msg("updating registries")
-
-	legacyRegistries, err := m.registryService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	for _, registry := range legacyRegistries {
-		registry.UserAccessPolicies = make(portainer.UserAccessPolicies)
-		for _, userID := range registry.AuthorizedUsers {
-			registry.UserAccessPolicies[userID] = portainer.AccessPolicy{}
-		}
-
-		registry.TeamAccessPolicies = make(portainer.TeamAccessPolicies)
-		for _, teamID := range registry.AuthorizedTeams {
-			registry.TeamAccessPolicies[teamID] = portainer.AccessPolicy{}
-		}
-
-		err = m.registryService.Update(registry.ID, &registry)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}

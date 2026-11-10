@@ -153,10 +153,6 @@ func generateRegistriesStrings(registries []portainer.Registry, dataStore datase
 
 	for _, registry := range registries {
 		if registry.Authentication {
-			if err := registryutils.EnsureRegTokenValid(dataStore, &registry); err != nil {
-				continue
-			}
-
 			username, password, err := registryutils.GetRegEffectiveCredential(&registry)
 			if err != nil {
 				continue

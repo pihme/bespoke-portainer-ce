@@ -53,12 +53,6 @@ func TestREQ_STK_02_CreateComposeStackDeploymentConfigTx(t *testing.T) {
 	admin := &portainer.User{Username: "admin", Role: portainer.AdministratorRole}
 	require.NoError(t, store.User().Create(admin))
 
-	require.NoError(t, store.Registry().Create(&portainer.Registry{
-		Name: "r1",
-		Type: portainer.CustomRegistry,
-		URL:  "reg.example",
-	}))
-
 	endpoint := &portainer.Endpoint{ID: 1}
 	stack := &portainer.Stack{Name: "web", Type: portainer.DockerComposeStack}
 	fileService, err := filesystem.NewService(t.TempDir(), "")
@@ -78,7 +72,8 @@ func TestREQ_STK_02_CreateComposeStackDeploymentConfigTx(t *testing.T) {
 	assert.True(t, config.prune)
 	assert.True(t, config.forcePullImage)
 	assert.True(t, config.ForceCreate)
-	assert.Len(t, config.registries, 1)
+	// REQ-TAI-023: there are no stored registries.
+	assert.Empty(t, config.registries)
 	assert.Same(t, fileService, config.FileService)
 	assert.Same(t, deployer, config.StackDeployer)
 }

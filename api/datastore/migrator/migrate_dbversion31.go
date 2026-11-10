@@ -12,11 +12,6 @@ import (
 )
 
 func (m *Migrator) migrateDBVersionToDB32() error {
-	err := m.updateRegistriesToDB32()
-	if err != nil {
-		return err
-	}
-
 	if err := m.updateVolumeResourceControlToDB32(); err != nil {
 		return err
 	}
@@ -27,54 +22,6 @@ func (m *Migrator) migrateDBVersionToDB32() error {
 
 	if err := m.helmRepositoryURLToDB32(); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (m *Migrator) updateRegistriesToDB32() error {
-	log.Info().Msg("updating registries")
-
-	registries, err := m.registryService.ReadAll()
-	if err != nil {
-		return err
-	}
-
-	endpoints, err := m.endpointService.Endpoints()
-	if err != nil {
-		return err
-	}
-
-	for _, registry := range registries {
-
-		registry.RegistryAccesses = portainer.RegistryAccesses{}
-
-		for _, endpoint := range endpoints {
-
-			filteredUserAccessPolicies := portainer.UserAccessPolicies{}
-			for userId, registryPolicy := range registry.UserAccessPolicies {
-				if _, found := endpoint.UserAccessPolicies[userId]; found {
-					filteredUserAccessPolicies[userId] = registryPolicy
-				}
-			}
-
-			filteredTeamAccessPolicies := portainer.TeamAccessPolicies{}
-			for teamId, registryPolicy := range registry.TeamAccessPolicies {
-				if _, found := endpoint.TeamAccessPolicies[teamId]; found {
-					filteredTeamAccessPolicies[teamId] = registryPolicy
-				}
-			}
-
-			registry.RegistryAccesses[endpoint.ID] = portainer.RegistryAccessPolicies{
-				UserAccessPolicies: filteredUserAccessPolicies,
-				TeamAccessPolicies: filteredTeamAccessPolicies,
-				Namespaces:         []string{},
-			}
-		}
-
-		if err := m.registryService.Update(registry.ID, &registry); err != nil {
-			return err
-		}
 	}
 
 	return nil

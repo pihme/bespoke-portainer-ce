@@ -158,22 +158,6 @@ func (handler *Handler) deleteEndpoint(tx dataservices.DataStoreTx, endpointID p
 
 	handler.ProxyManager.DeleteEndpointProxy(endpoint.ID)
 
-	registries, err := tx.Registry().ReadAll()
-	if err != nil {
-		log.Warn().Err(err).Msg("Unable to retrieve registries from the database")
-	}
-
-	for idx := range registries {
-		registry := &registries[idx]
-		if _, ok := registry.RegistryAccesses[endpoint.ID]; ok {
-			delete(registry.RegistryAccesses, endpoint.ID)
-
-			if err := tx.Registry().Update(registry.ID, registry); err != nil {
-				log.Warn().Err(err).Msg("Unable to update registry accesses")
-			}
-		}
-	}
-
 	workflows, err := tx.Workflow().ReadAll()
 	if err != nil {
 		log.Warn().Err(err).Msg("Unable to retrieve workflows from the database")

@@ -81,31 +81,6 @@ func (service *Service) RemoveTeamAccessPolicies(tx dataservices.DataStoreTx, te
 		}
 	}
 
-	registries, err := tx.Registry().ReadAll()
-	if err != nil {
-		return err
-	}
-
-	// iterate over all environments for all registries
-	// and evict all direct accesses to the registries the team had
-	// we could have built a range of the teams's environments accesses while removing them above
-	// but ranging over all environments (registryAccessPolicy is indexed by environmentId)
-	// makes sure we cleanup all resources in case an access was not removed when a team was removed from an env
-	for _, registry := range registries {
-		updateRegistry := false
-		for _, registryAccessPolicy := range registry.RegistryAccesses {
-			if _, ok := registryAccessPolicy.TeamAccessPolicies[teamID]; ok {
-				delete(registryAccessPolicy.TeamAccessPolicies, teamID)
-				updateRegistry = true
-			}
-		}
-		if updateRegistry {
-			if err := tx.Registry().Update(registry.ID, &registry); err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -147,31 +122,6 @@ func (service *Service) RemoveUserAccessPolicies(tx dataservices.DataStoreTx, us
 				}
 
 				break
-			}
-		}
-	}
-
-	registries, err := tx.Registry().ReadAll()
-	if err != nil {
-		return err
-	}
-
-	// iterate over all environments for all registries
-	// and evict all direct accesses to the registries the user had
-	// we could have built a range of the user's environments accesses while removing them above
-	// but ranging over all environments (registryAccessPolicy is indexed by environmentId)
-	// makes sure we cleanup all resources in case an access was not removed when a user was removed from an env
-	for _, registry := range registries {
-		updateRegistry := false
-		for _, registryAccessPolicy := range registry.RegistryAccesses {
-			if _, ok := registryAccessPolicy.UserAccessPolicies[userID]; ok {
-				delete(registryAccessPolicy.UserAccessPolicies, userID)
-				updateRegistry = true
-			}
-		}
-		if updateRegistry {
-			if err := tx.Registry().Update(registry.ID, &registry); err != nil {
-				return err
 			}
 		}
 	}

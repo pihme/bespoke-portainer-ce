@@ -998,27 +998,6 @@
       "UserAccessPolicies": {}
     }
   ],
-  "registries": [
-    {
-      "Authentication": true,
-      "AuthorizedTeams": null,
-      "AuthorizedUsers": null,
-      "Gitlab": {
-        "InstanceURL": "",
-        "ProjectId": 0,
-        "ProjectPath": ""
-      },
-      "Id": 1,
-      "ManagementConfiguration": null,
-      "Name": "canister.io",
-      "Password": "MjWbx8A6YK7cw7",
-      "TeamAccessPolicies": {},
-      "Type": 3,
-      "URL": "cloud.canister.io:5000",
-      "UserAccessPolicies": {},
-      "Username": "prabhatkhera"
-    }
-  ],
   "resource_control": [
     {
       "AdministratorsOnly": false,

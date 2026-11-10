@@ -35,7 +35,6 @@ func TestStore_LocalServiceAccessorsAreWired(t *testing.T) {
 	require.NotNil(t, store.Workflow())
 
 	// Deferred-feature getters stay wired on the store (observed wiring only).
-	require.NotNil(t, store.Registry())
 	require.NotNil(t, store.User())
 }
 
@@ -103,7 +102,6 @@ func TestStore_UpdateTxAndViewTx_LocalDockerEntities(t *testing.T) {
 		require.Nil(t, tx.Version())
 
 		// Deferred-feature tx getters remain callable (wiring only).
-		require.NotNil(t, tx.Registry())
 		require.NotNil(t, tx.User())
 
 		if err := tx.Endpoint().Create(endpoint); err != nil {

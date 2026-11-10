@@ -7,9 +7,6 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/aws/ecr"
-	"github.com/portainer/portainer/api/dataservices"
-
-	"github.com/rs/zerolog/log"
 )
 
 func isRegTokenValid(registry *portainer.Registry) (valid bool) {
@@ -26,54 +23,6 @@ func fetchRegToken(registry *portainer.Registry) error {
 	}
 	registry.AccessToken = *accessToken
 	registry.AccessTokenExpiry = expiryAt.Unix()
-
-	return nil
-}
-
-func doGetRegToken(tx dataservices.DataStoreTx, registry *portainer.Registry) error {
-	if err := fetchRegToken(registry); err != nil {
-		return err
-	}
-
-	return tx.Registry().Update(registry.ID, registry)
-}
-
-// RefreshAndPersistECRTokens refreshes and persists ECR tokens for all registries that need it.
-// Must be called with a real DataStoreTx (not a top-level DataStore) to avoid write-lock contention.
-func RefreshAndPersistECRTokens(tx dataservices.DataStoreTx, registries []portainer.Registry) {
-	for i := range registries {
-		reg := &registries[i]
-		if reg.Type != portainer.EcrRegistry {
-			continue
-		}
-		if isRegTokenValid(reg) {
-			continue
-		}
-		if err := doGetRegToken(tx, reg); err != nil {
-			log.Warn().
-				Err(err).
-				Str("RegistryName", reg.Name).
-				Msg("Failed to get valid ECR registry token. Skip logging with this registry.")
-		}
-	}
-}
-
-func EnsureRegTokenValid(tx dataservices.DataStoreTx, registry *portainer.Registry) error {
-	if registry.Type != portainer.EcrRegistry {
-		return nil
-	}
-
-	if isRegTokenValid(registry) {
-		log.Debug().Msg("current ECR token is still valid")
-
-		return nil
-	}
-
-	if err := doGetRegToken(tx, registry); err != nil {
-		log.Debug().Msg("refresh ECR token")
-
-		return err
-	}
 
 	return nil
 }
@@ -95,27 +44,4 @@ func GetRegEffectiveCredential(registry *portainer.Registry) (username, password
 	}
 
 	return
-}
-
-// PrepareRegistryCredentials consolidates the common pattern of ensuring valid ECR token
-// and setting effective credentials on the registry when authentication is enabled.
-// This function modifies the registry in-place by setting Username and Password to the effective values.
-func PrepareRegistryCredentials(tx dataservices.DataStoreTx, registry *portainer.Registry) error {
-	if !registry.Authentication {
-		return nil
-	}
-
-	if err := EnsureRegTokenValid(tx, registry); err != nil {
-		return err
-	}
-
-	username, password, err := GetRegEffectiveCredential(registry)
-	if err != nil {
-		return err
-	}
-
-	registry.Username = username
-	registry.Password = password
-
-	return nil
 }

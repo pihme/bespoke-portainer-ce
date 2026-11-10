@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/snapshot"
@@ -33,7 +32,6 @@ type (
 
 		endpointGroupService   *endpointgroup.Service
 		endpointService        *endpoint.Service
-		registryService        *registry.Service
 		resourceControlService *resourcecontrol.Service
 		settingsService        *settings.Service
 		snapshotService        *snapshot.Service
@@ -54,7 +52,6 @@ type (
 		CurrentDBVersion       *models.Version
 		EndpointGroupService   *endpointgroup.Service
 		EndpointService        *endpoint.Service
-		RegistryService        *registry.Service
 		ResourceControlService *resourcecontrol.Service
 		SettingsService        *settings.Service
 		SnapshotService        *snapshot.Service
@@ -77,7 +74,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		currentDBVersion:       parameters.CurrentDBVersion,
 		endpointGroupService:   parameters.EndpointGroupService,
 		endpointService:        parameters.EndpointService,
-		registryService:        parameters.RegistryService,
 		resourceControlService: parameters.ResourceControlService,
 		settingsService:        parameters.SettingsService,
 		snapshotService:        parameters.SnapshotService,
@@ -161,8 +157,7 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("1.21",
 		m.updateUsersToDBVersion18,
 		m.updateEndpointsToDBVersion18,
-		m.updateEndpointGroupsToDBVersion18,
-		m.updateRegistriesToDBVersion18)
+		m.updateEndpointGroupsToDBVersion18)
 
 	m.addMigrations("1.22", m.updateSettingsToDBVersion19)
 
@@ -203,8 +198,6 @@ func (m *Migrator) initMigrations() {
 		m.updateAppTemplatesVersionForDB110,
 		m.updateResourceOverCommitToDB110,
 	)
-
-	m.addMigrations("2.40.0", m.migrateRegistryAccessSASecrets_2_40_0)
 
 	m.addMigrations("2.43.0",
 		m.migrateGitConfigToSources_2_43_0,

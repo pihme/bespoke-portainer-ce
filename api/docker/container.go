@@ -103,7 +103,7 @@ func (c *ContainerService) Recreate(ctx context.Context, endpoint *portainer.End
 
 	// 1. pull image if you need force pull
 	if forcePullImage {
-		puller := images.NewPuller(cli, images.NewRegistryClient(c.dataStore), c.dataStore)
+		puller := images.NewPuller(cli)
 		if err := puller.Pull(ctx, img); err != nil {
 			return nil, errors.Wrapf(err, "pull image error %s", img.FullName())
 		}

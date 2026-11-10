@@ -12,7 +12,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/source"
-	"github.com/portainer/portainer/api/docker/images"
 	"github.com/portainer/portainer/api/filesystem"
 	"github.com/portainer/portainer/api/gitops/workflows"
 	"github.com/portainer/portainer/api/logs"
@@ -160,7 +159,7 @@ func (d *stackDeployer) remoteStack(ctx context.Context, userID portainer.UserID
 	unpackerImg := getUnpackerImage()
 	log.Debug().Str("unpacker_image", unpackerImg).Msg("Resolved unpacker image")
 
-	reader, err := cli.ImagePull(ctx, unpackerImg, image.PullOptions{RegistryAuth: d.resolveUnpackerRegistryAuth(unpackerImg)})
+	reader, err := cli.ImagePull(ctx, unpackerImg, image.PullOptions{})
 	if err != nil {
 		return errors.Wrap(err, "unable to pull unpacker image")
 	}
@@ -276,29 +275,6 @@ func (d *stackDeployer) createDockerClient(_ context.Context, endpoint *portaine
 	}
 
 	return cli, nil
-}
-
-func (d *stackDeployer) unpackerImageRegistryAuth(unpackerImg string) (string, error) {
-	img, err := images.ParseImage(images.ParseImageOptions{Name: unpackerImg})
-	if err != nil {
-		return "", err
-	}
-
-	return images.NewRegistryClient(d.dataStore).EncodedRegistryAuth(img)
-}
-
-func (d *stackDeployer) resolveUnpackerRegistryAuth(unpackerImg string) string {
-	registryAuth, err := d.unpackerImageRegistryAuth(unpackerImg)
-	if err != nil {
-		log.Debug().
-			Str("image", unpackerImg).
-			Err(err).
-			Msg("failed to get an encoded registry auth for the unpacker image, pulling without registry auth")
-
-		return ""
-	}
-
-	return registryAuth
 }
 
 func getUnpackerImage() string {

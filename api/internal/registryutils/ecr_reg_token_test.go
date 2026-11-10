@@ -2,13 +2,10 @@ package registryutils_test
 
 import (
 	"io"
-	"strings"
 	"testing"
 	"time"
 
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/datastore"
 	"github.com/portainer/portainer/api/internal/registryutils"
 	zerolog "github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -25,33 +22,6 @@ func newECRRegistry(id portainer.RegistryID, accessToken string, expiry int64) p
 		AccessToken:       accessToken,
 		AccessTokenExpiry: expiry,
 	}
-}
-
-func TestRefreshAndPersistECRTokens(t *testing.T) {
-	t.Run("does not modify token for ECR registry with valid token", func(t *testing.T) {
-		_, ds := datastore.MustNewTestStore(t, true, false)
-		reg := newECRRegistry(1, "valid-token", time.Now().Add(time.Hour).Unix())
-		require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			registryutils.RefreshAndPersistECRTokens(tx, []portainer.Registry{reg})
-			return nil
-		}))
-		require.Equal(t, "valid-token", reg.AccessToken)
-	})
-
-	t.Run("does not block and leaves token empty when ECR token refresh fails", func(t *testing.T) {
-		var logOutput strings.Builder
-		setupLogOutput(t, &logOutput)
-
-		_, ds := datastore.MustNewTestStore(t, true, false)
-		reg := newECRRegistry(1, "", 0)
-		require.NoError(t, ds.UpdateTx(func(tx dataservices.DataStoreTx) error {
-			registryutils.RefreshAndPersistECRTokens(tx, []portainer.Registry{reg})
-			return nil
-		}))
-		require.Empty(t, reg.AccessToken)
-		require.Contains(t, logOutput.String(), "test-ecr")
-		require.Contains(t, logOutput.String(), "Failed to get valid ECR registry token")
-	})
 }
 
 func setupLogOutput(t *testing.T, w io.Writer) {

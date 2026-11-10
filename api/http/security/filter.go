@@ -69,18 +69,6 @@ func FilterUsers(users []portainer.User, context *RestrictedRequestContext) []po
 	})
 }
 
-// FilterRegistries filters registries based on user role and team memberships.
-// Non administrator users only have access to authorized registries.
-func FilterRegistries(registries []portainer.Registry, user *portainer.User, teamMemberships []portainer.TeamMembership, endpointID portainer.EndpointID) []portainer.Registry {
-	if user.Role == portainer.AdministratorRole {
-		return registries
-	}
-
-	return slicesx.FilterInPlace(registries, func(r portainer.Registry) bool {
-		return AuthorizedRegistryAccess(&r, user, teamMemberships, endpointID)
-	})
-}
-
 // FilterEndpoints filters environments(endpoints) based on user role and team memberships.
 // Non administrator only have access to authorized environments(endpoints) (can be inherited via endpoint groups).
 func FilterEndpoints(endpoints []portainer.Endpoint, groups []portainer.EndpointGroup, context *RestrictedRequestContext) []portainer.Endpoint {

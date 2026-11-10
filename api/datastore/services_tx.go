@@ -26,10 +26,6 @@ func (tx *StoreTx) EndpointGroup() dataservices.EndpointGroupService {
 	return tx.store.EndpointGroupService.Tx(tx.tx)
 }
 
-func (tx *StoreTx) Registry() dataservices.RegistryService {
-	return tx.store.RegistryService.Tx(tx.tx)
-}
-
 func (tx *StoreTx) ResourceControl() dataservices.ResourceControlService {
 	return tx.store.ResourceControlService.Tx(tx.tx)
 }

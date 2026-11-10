@@ -12,7 +12,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/source"
 	"github.com/portainer/portainer/api/git/update"
 	"github.com/portainer/portainer/api/gitops/workflows"
-	"github.com/portainer/portainer/api/http/security"
 	"github.com/portainer/portainer/api/scheduler"
 	"github.com/portainer/portainer/api/stacks/stackutils"
 
@@ -192,12 +191,8 @@ func redeployWhenChangedSecondStage(
 		SourceID:        gitSrc.ID,
 	}
 
-	registries, err := getUserRegistries(datastore, user, endpoint.ID)
-	if dataservices.IsErrObjectNotFound(err) {
-		return scheduler.NewPermanentError(err)
-	} else if err != nil {
-		return err
-	}
+	// There are no stored registries (TAI-023).
+	var registries []portainer.Registry
 
 	redeployStack := func(stack *portainer.Stack) error {
 		var err error
@@ -254,29 +249,6 @@ func redeployWhenChangedSecondStage(
 	}
 
 	return nil
-}
-
-func getUserRegistries(datastore dataservices.DataStore, user *portainer.User, endpointID portainer.EndpointID) ([]portainer.Registry, error) {
-	registries, err := datastore.Registry().ReadAll()
-	if err != nil {
-		return nil, errors.WithMessage(err, "unable to retrieve registries from the database")
-	}
-
-	if user.Role == portainer.AdministratorRole {
-		return registries, nil
-	}
-
-	// There are no team memberships (TAI-023).
-	userMemberships := []portainer.TeamMembership{}
-
-	filteredRegistries := make([]portainer.Registry, 0, len(registries))
-	for _, registry := range registries {
-		if security.AuthorizedRegistryAccess(&registry, user, userMemberships, endpointID) {
-			filteredRegistries = append(filteredRegistries, registry)
-		}
-	}
-
-	return filteredRegistries, nil
 }
 
 // isEnvironmentOnline reports whether a stack on the environment can be redeployed.

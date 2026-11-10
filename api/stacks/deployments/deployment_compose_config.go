@@ -7,7 +7,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/http/security"
-	"github.com/portainer/portainer/api/internal/registryutils"
 	"github.com/portainer/portainer/api/stacks/stackutils"
 
 	"github.com/pkg/errors"
@@ -33,19 +32,9 @@ func CreateComposeStackDeploymentConfigTx(tx dataservices.DataStoreTx, securityC
 		return nil, fmt.Errorf("unable to load user information from the database: %w", err)
 	}
 
-	registries, err := tx.Registry().ReadAll()
-	if err != nil {
-		return nil, fmt.Errorf("unable to retrieve registries from the database: %w", err)
-	}
-
-	filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
-
-	registryutils.RefreshAndPersistECRTokens(tx, filteredRegistries)
-
 	config := &ComposeStackDeploymentConfig{
 		stack:          stack,
 		endpoint:       endpoint,
-		registries:     filteredRegistries,
 		prune:          prune,
 		isAdmin:        securityContext.IsAdmin,
 		user:           user,

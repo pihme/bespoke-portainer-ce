@@ -13,7 +13,6 @@ type (
 		CustomTemplate() CustomTemplateService
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
-		Registry() RegistryService
 		ResourceControl() ResourceControlService
 		Settings() SettingsService
 		Snapshot() SnapshotService
@@ -69,11 +68,6 @@ type (
 	// EndpointGroupService represents a service for managing environment(endpoint) group data
 	EndpointGroupService interface {
 		BaseCRUD[portainer.EndpointGroup, portainer.EndpointGroupID]
-	}
-
-	// RegistryService represents a service for managing registry data
-	RegistryService interface {
-		BaseCRUD[portainer.Registry, portainer.RegistryID]
 	}
 
 	// ResourceControlService represents a service for managing resource control data

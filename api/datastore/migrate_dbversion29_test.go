@@ -52,7 +52,6 @@ func TestMigrateSettings(t *testing.T) {
 		Flags:                  store.flags,
 		EndpointGroupService:   store.EndpointGroupService,
 		EndpointService:        store.EndpointService,
-		RegistryService:        store.RegistryService,
 		ResourceControlService: store.ResourceControlService,
 		SettingsService:        store.SettingsService,
 		StackService:           store.StackService,

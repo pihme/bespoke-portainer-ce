@@ -66,7 +66,6 @@ func (store *Store) newMigratorParameters(version *models.Version, flags *portai
 		CurrentDBVersion:       version,
 		EndpointGroupService:   store.EndpointGroupService,
 		EndpointService:        store.EndpointService,
-		RegistryService:        store.RegistryService,
 		ResourceControlService: store.ResourceControlService,
 		SettingsService:        store.SettingsService,
 		SnapshotService:        store.SnapshotService,

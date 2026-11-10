@@ -138,19 +138,6 @@ func authorizedEndpointGroupAccess(endpointGroup *portainer.EndpointGroup, userI
 	return AuthorizedAccess(userID, memberships, endpointGroup.UserAccessPolicies, endpointGroup.TeamAccessPolicies)
 }
 
-// AuthorizedRegistryAccess ensure that the user can access the specified registry.
-// It will check if the user is part of the authorized users or part of a team that is
-// listed in the authorized teams for a specified environment(endpoint),
-func AuthorizedRegistryAccess(registry *portainer.Registry, user *portainer.User, teamMemberships []portainer.TeamMembership, endpointID portainer.EndpointID) bool {
-	if user.Role == portainer.AdministratorRole {
-		return true
-	}
-
-	registryEndpointAccesses := registry.RegistryAccesses[endpointID]
-
-	return AuthorizedAccess(user.ID, teamMemberships, registryEndpointAccesses.UserAccessPolicies, registryEndpointAccesses.TeamAccessPolicies)
-}
-
 // AuthorizedAccess verifies the userID or memberships are authorized to use an object per the supplied access policies
 func AuthorizedAccess(userID portainer.UserID, memberships []portainer.TeamMembership, userAccessPolicies portainer.UserAccessPolicies, teamAccessPolicies portainer.TeamAccessPolicies) bool {
 	_, userAccess := userAccessPolicies[userID]

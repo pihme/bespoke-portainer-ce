@@ -34,20 +34,14 @@ func TestREQ_IMG_02_NewPuller(t *testing.T) {
 	cli := newImagePullClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	puller := NewPuller(cli, NewRegistryClient(nil), nil)
+	puller := NewPuller(cli)
 	require.NotNil(t, puller)
 	require.Same(t, cli, puller.client)
-	require.NotNil(t, puller.registryClient)
 }
 
 func TestREQ_IMG_02_Pull_WithoutRegistryAuth(t *testing.T) {
 	img, err := ParseImage(ParseImageOptions{Name: "pull-cov-test/nginx:latest"})
 	require.NoError(t, err)
-
-	// Seed cache so EncodedRegistryAuth returns "authentication is disabled"
-	// without touching a datastore (registry auth paths stay deferred).
-	registriesCache.Set(img.Opts.Name, createNewRegistry("docker.io", "", false), 0)
-	t.Cleanup(func() { registriesCache.Delete(img.Opts.Name) })
 
 	var sawCreate bool
 	cli := newImagePullClient(t, func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +55,7 @@ func TestREQ_IMG_02_Pull_WithoutRegistryAuth(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	puller := NewPuller(cli, NewRegistryClient(nil), nil)
+	puller := NewPuller(cli)
 	require.NoError(t, puller.Pull(t.Context(), img))
 	require.True(t, sawCreate)
 }
@@ -69,9 +63,6 @@ func TestREQ_IMG_02_Pull_WithoutRegistryAuth(t *testing.T) {
 func TestREQ_IMG_02_Pull_ImagePullError(t *testing.T) {
 	img, err := ParseImage(ParseImageOptions{Name: "pull-cov-err/nginx:latest"})
 	require.NoError(t, err)
-
-	registriesCache.Set(img.Opts.Name, createNewRegistry("docker.io", "", false), 0)
-	t.Cleanup(func() { registriesCache.Delete(img.Opts.Name) })
 
 	cli := newImagePullClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/images/create") {
@@ -81,6 +72,6 @@ func TestREQ_IMG_02_Pull_ImagePullError(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	puller := NewPuller(cli, NewRegistryClient(nil), nil)
+	puller := NewPuller(cli)
 	require.Error(t, puller.Pull(t.Context(), img))
 }

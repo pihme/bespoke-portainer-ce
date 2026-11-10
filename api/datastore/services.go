@@ -10,7 +10,6 @@ import (
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
-	"github.com/portainer/portainer/api/dataservices/registry"
 	"github.com/portainer/portainer/api/dataservices/resourcecontrol"
 	"github.com/portainer/portainer/api/dataservices/settings"
 	"github.com/portainer/portainer/api/dataservices/snapshot"
@@ -38,7 +37,6 @@ type Store struct {
 	CustomTemplateService  *customtemplate.Service
 	EndpointGroupService   *endpointgroup.Service
 	EndpointService        *endpoint.Service
-	RegistryService        *registry.Service
 	ResourceControlService *resourcecontrol.Service
 	SettingsService        *settings.Service
 	SnapshotService        *snapshot.Service
@@ -69,12 +67,6 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.EndpointService = endpointService
-
-	registryService, err := registry.NewService(store.connection)
-	if err != nil {
-		return err
-	}
-	store.RegistryService = registryService
 
 	resourcecontrolService, err := resourcecontrol.NewService(store.connection)
 	if err != nil {
@@ -154,11 +146,6 @@ func (store *Store) EndpointGroup() dataservices.EndpointGroupService {
 	return store.EndpointGroupService
 }
 
-// Registry gives access to the Registry data management layer
-func (store *Store) Registry() dataservices.RegistryService {
-	return store.RegistryService
-}
-
 // ResourceControl gives access to the ResourceControl data management layer
 func (store *Store) ResourceControl() dataservices.ResourceControlService {
 	return store.ResourceControlService
@@ -207,7 +194,6 @@ type storeExport struct {
 	CustomTemplate  []portainer.CustomTemplate  `json:"customtemplates,omitempty"`
 	Endpoint        []portainer.Endpoint        `json:"endpoints,omitempty"`
 	EndpointGroup   []portainer.EndpointGroup   `json:"endpoint_groups,omitempty"`
-	Registry        []portainer.Registry        `json:"registries,omitempty"`
 	ResourceControl []portainer.ResourceControl `json:"resource_control,omitempty"`
 	Settings        portainer.Settings          `json:"settings,omitzero"`
 	Snapshot        []portainer.Snapshot        `json:"snapshots,omitempty"`
@@ -246,14 +232,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.EndpointGroup = e
-	}
-
-	if r, err := store.Registry().ReadAll(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Registries")
-		}
-	} else {
-		backup.Registry = r
 	}
 
 	if c, err := store.ResourceControl().ReadAll(); err != nil {
@@ -381,12 +359,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.EndpointGroup {
 		if err := store.EndpointGroup().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the endpoint group in the database")
-		}
-	}
-
-	for _, v := range backup.Registry {
-		if err := store.Registry().Update(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the registry in the database")
 		}
 	}
 

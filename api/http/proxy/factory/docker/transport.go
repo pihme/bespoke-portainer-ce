@@ -16,6 +16,7 @@ import (
 
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/dataservices"
+	dserrors "github.com/portainer/portainer/api/dataservices/errors"
 	"github.com/portainer/portainer/api/docker/client"
 	"github.com/portainer/portainer/api/http/proxy/factory/utils"
 	"github.com/portainer/portainer/api/http/security"
@@ -197,15 +198,9 @@ func (transport *Transport) proxyAgentRequest(r *http.Request, unversionedPath s
 			Type: portainer.DockerHubRegistry,
 		}
 
+		// There are no stored registries (TAI-023), so any other ID is not found.
 		if registryID != 0 {
-			registry, err = transport.dataStore.Registry().Read(portainer.RegistryID(registryID))
-			if err != nil {
-				return nil, fmt.Errorf("failed fetching registry: %w", err)
-			}
-		}
-
-		if registry.Type != portainer.DockerHubRegistry {
-			return nil, errors.New("Invalid registry type")
+			return nil, fmt.Errorf("failed fetching registry: %w", dserrors.ErrObjectNotFound)
 		}
 
 		newBody, err := json.Marshal(registry)
@@ -411,11 +406,6 @@ func (transport *Transport) replaceRegistryAuthenticationHeader(request *http.Re
 }
 
 func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.Request) error {
-	accessContext, err := transport.createRegistryAccessContext(request)
-	if err != nil {
-		return err
-	}
-
 	originalHeader := request.Header.Get("X-Registry-Auth")
 
 	if originalHeader == "" {
@@ -446,10 +436,7 @@ func (transport *Transport) decorateRegistryAuthenticationHeader(request *http.R
 		return nil
 	}
 
-	authenticationHeader, err := createRegistryAuthenticationHeader(transport.dataStore, *originalHeaderData.RegistryId, accessContext)
-	if err != nil {
-		return err
-	}
+	authenticationHeader := createRegistryAuthenticationHeader(*originalHeaderData.RegistryId)
 
 	headerData, err := json.Marshal(authenticationHeader)
 	if err != nil {
@@ -722,41 +709,6 @@ func (transport *Transport) administratorOperation(request *http.Request) (*http
 	}
 
 	return transport.executeDockerRequest(request)
-}
-
-func (transport *Transport) createRegistryAccessContext(request *http.Request) (*registryAccessContext, error) {
-	tokenData, err := security.RetrieveTokenData(request)
-	if err != nil {
-		return nil, err
-	}
-
-	accessContext := &registryAccessContext{
-		isAdmin:    true,
-		endpointID: transport.endpoint.ID,
-	}
-
-	user, err := transport.dataStore.User().Read(tokenData.ID)
-	if err != nil {
-		return nil, err
-	}
-	accessContext.user = user
-
-	registries, err := transport.dataStore.Registry().ReadAll()
-	if err != nil {
-		return nil, err
-	}
-	accessContext.registries = registries
-
-	if user.Role == portainer.AdministratorRole {
-		return accessContext, nil
-	}
-
-	accessContext.isAdmin = false
-
-	// There are no team memberships (TAI-023).
-	accessContext.teamMemberships = []portainer.TeamMembership{}
-
-	return accessContext, nil
 }
 
 func (transport *Transport) createOperationContext(request *http.Request) (*restrictedDockerOperationContext, error) {

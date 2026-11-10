@@ -110,6 +110,7 @@ var tai023Collections = map[string]string{
 	"edge_stack":      "edgestack",
 	"teams":           "team",
 	"team_membership": "teammembership",
+	"registries":      "registry",
 }
 
 // TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a

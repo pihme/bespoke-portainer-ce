@@ -175,17 +175,12 @@ func (handler *Handler) startStack(
 	endpoint *portainer.Endpoint,
 	securityContext *security.RestrictedRequestContext,
 ) error {
-	user, err := handler.DataStore.User().Read(securityContext.UserID)
-	if err != nil {
+	if _, err := handler.DataStore.User().Read(securityContext.UserID); err != nil {
 		return fmt.Errorf("unable to load user information from the database: %w", err)
 	}
 
-	registries, err := handler.DataStore.Registry().ReadAll()
-	if err != nil {
-		return fmt.Errorf("unable to retrieve registries from the database: %w", err)
-	}
-
-	filteredRegistries := security.FilterRegistries(registries, user, securityContext.UserMemberships, endpoint.ID)
+	// There are no stored registries (TAI-023).
+	var filteredRegistries []portainer.Registry
 
 	switch stack.Type {
 	case portainer.DockerComposeStack:

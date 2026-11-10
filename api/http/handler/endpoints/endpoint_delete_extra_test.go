@@ -75,27 +75,3 @@ func TestREQ_ENV_03_DeleteEndpoint_InvalidID_ReturnsBadRequest(t *testing.T) {
 	h.ServeHTTP(w, endpointAdminRequest(http.MethodDelete, "/endpoints/abc", nil))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
-
-func TestREQ_ENV_03_DeleteEndpoint_CleansRegistryAccess(t *testing.T) {
-	t.Parallel()
-	fips.InitFIPS(false)
-	h, store := newDockerEndpointHandler(t)
-	createDockerEndpoint(t, store, 1, "with-reg")
-	reg := &portainer.Registry{
-		Name: "local-reg",
-		Type: portainer.CustomRegistry,
-		RegistryAccesses: portainer.RegistryAccesses{
-			1: {},
-		},
-	}
-	require.NoError(t, store.Registry().Create(reg))
-
-	w := httptest.NewRecorder()
-	h.ServeHTTP(w, endpointAdminRequest(http.MethodDelete, "/endpoints/1", nil))
-	require.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
-
-	updated, err := store.Registry().Read(reg.ID)
-	require.NoError(t, err)
-	_, still := updated.RegistryAccesses[1]
-	assert.False(t, still)
-}

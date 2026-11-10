@@ -36,7 +36,6 @@ func TestStoreFull(t *testing.T) {
 		"Settings":         store.testSettings,
 		"SSL Settings":     store.testSSLSettings,
 		"Custom Templates": store.testCustomTemplates,
-		"Registries":       store.testRegistries,
 		"Resource Control": store.testResourceControl,
 		"Tags":             store.testTags,
 	}
@@ -255,44 +254,6 @@ func (store *Store) testCustomTemplates(t *testing.T) {
 	actualTemplate, err := customTemplate.Read(expectedTemplate.ID)
 	require.NoError(t, err, "CustomTemplate should not return an error")
 	is.Equal(expectedTemplate, actualTemplate, "expected and actual template do not match")
-}
-
-func (store *Store) testRegistries(t *testing.T) {
-	is := assert.New(t)
-
-	regService := store.RegistryService
-	is.NotNil(regService, "RegistryService shouldn't be nil")
-
-	reg1 := &portainer.Registry{
-		ID:   1,
-		Type: portainer.DockerHubRegistry,
-		Name: "Dockerhub Registry Test",
-	}
-
-	reg2 := &portainer.Registry{
-		ID:   2,
-		Type: portainer.GitlabRegistry,
-		Name: "Gitlab Registry Test",
-		Gitlab: portainer.GitlabRegistryData{
-			ProjectID:   12345,
-			InstanceURL: "http://gitlab.com/12345",
-			ProjectPath: "mytestproject",
-		},
-	}
-
-	err := regService.Create(reg1)
-	require.NoError(t, err)
-
-	err = regService.Create(reg2)
-	require.NoError(t, err)
-
-	actualReg1, err := regService.Read(reg1.ID)
-	require.NoError(t, err)
-	is.Equal(reg1, actualReg1, "registries differ")
-
-	actualReg2, err := regService.Read(reg2.ID)
-	require.NoError(t, err)
-	is.Equal(reg2, actualReg2, "registries differ")
 }
 
 func (store *Store) testResourceControl(t *testing.T) {

@@ -15,7 +15,6 @@ import { EnvironmentList } from './EnvironmentList';
 import { EdgeLoadingSpinner } from './EdgeLoadingSpinner';
 import { MotdPanel } from './MotdPanel';
 import { LicenseNodePanel } from './LicenseNodePanel';
-import { BackupFailedPanel } from './BackupFailedPanel';
 import { EnvironmentHeader } from './EnvironmentHeader/EnvironmentHeader';
 
 export function HomeView() {
@@ -69,7 +68,6 @@ export function HomeView() {
 
       <MotdPanel />
 
-      {process.env.PORTAINER_EDITION !== 'CE' && <BackupFailedPanel />}
 
       {connectingToEdgeEndpoint ? (
         <div className="mb-5 flex flex-1 flex-col items-center justify-center">

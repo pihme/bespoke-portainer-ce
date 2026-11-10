@@ -16,7 +16,6 @@ import (
 	"github.com/portainer/portainer/api/gitops/scheduling"
 	"github.com/portainer/portainer/api/http/csrf"
 	"github.com/portainer/portainer/api/http/handler"
-	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	dockerhandler "github.com/portainer/portainer/api/http/handler/docker"
 	"github.com/portainer/portainer/api/http/handler/endpointgroups"
@@ -36,7 +35,6 @@ import (
 	"github.com/portainer/portainer/api/http/handler/users"
 	"github.com/portainer/portainer/api/http/handler/websocket"
 	"github.com/portainer/portainer/api/http/middlewares"
-	"github.com/portainer/portainer/api/http/offlinegate"
 	"github.com/portainer/portainer/api/http/proxy"
 	"github.com/portainer/portainer/api/http/proxy/factory/kubernetes"
 	"github.com/portainer/portainer/api/http/security"
@@ -78,7 +76,6 @@ type Server struct {
 	KubernetesClientFactory     *cli.ClientFactory
 	KubernetesDeployer          portainer.KubernetesDeployer
 	SourceScheduler             *scheduling.SourceScheduler
-	ShutdownTrigger             context.CancelFunc
 	StackDeployer               deployments.StackDeployer
 	UpgradeService              upgrade.Service
 	PendingActionsService       *pendingactions.PendingActionsService
@@ -92,16 +89,6 @@ func (server *Server) Start(ctx context.Context) error {
 	if !server.CSP {
 		requestBouncer.DisableCSP()
 	}
-
-	offlineGate := offlinegate.NewOfflineGate()
-
-	var backupHandler = backup.NewHandler(
-		requestBouncer,
-		server.DataStore,
-		offlineGate,
-		server.FileService.GetDatastorePath(),
-		server.ShutdownTrigger,
-	)
 
 	var customTemplatesHandler = customtemplates.NewHandler(requestBouncer, server.DataStore, server.FileService, server.GitService)
 
@@ -184,7 +171,6 @@ func (server *Server) Start(ctx context.Context) error {
 	websocketHandler.SignatureService = server.SignatureService
 
 	server.Handler = &handler.Handler{
-		BackupHandler:          backupHandler,
 		CustomTemplatesHandler: customTemplatesHandler,
 		DockerHandler:          dockerHandler,
 		EndpointGroupHandler:   endpointGroupHandler,
@@ -207,7 +193,7 @@ func (server *Server) Start(ctx context.Context) error {
 
 	errorLogger := NewHTTPLogger()
 
-	var handler http.Handler = offlineGate.WaitingMiddleware(time.Minute, server.Handler)
+	var handler http.Handler = server.Handler
 
 	handler = middlewares.WithPanicLogger(middlewares.WithSlowRequestsLogger(handler))
 

@@ -2,7 +2,6 @@ import angular from 'angular';
 
 import {
   API_ENDPOINT_AUTH,
-  API_ENDPOINT_BACKUP,
   API_ENDPOINT_CUSTOM_TEMPLATES,
   API_ENDPOINT_EDGE_GROUPS,
   API_ENDPOINT_EDGE_JOBS,
@@ -35,7 +34,6 @@ import { BROWSER_OS_PLATFORM } from './react/constants';
 export const constantsModule = angular
   .module('portainer.app.constants', [])
   .constant('API_ENDPOINT_AUTH', API_ENDPOINT_AUTH)
-  .constant('API_ENDPOINT_BACKUP', API_ENDPOINT_BACKUP)
   .constant('API_ENDPOINT_CUSTOM_TEMPLATES', API_ENDPOINT_CUSTOM_TEMPLATES)
   .constant('API_ENDPOINT_EDGE_GROUPS', API_ENDPOINT_EDGE_GROUPS)
   .constant('API_ENDPOINT_EDGE_JOBS', API_ENDPOINT_EDGE_JOBS)

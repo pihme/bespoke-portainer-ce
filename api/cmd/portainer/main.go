@@ -146,7 +146,7 @@ func initDataStore(flags *portainer.CLIFlags, secretKey []byte, fileService port
 		log.Fatal().Err(err).Msg("failed updating settings from flags")
 	}
 
-	// this is for the db restore functionality - needs more tests.
+	// close the database connection on shutdown
 	go func() {
 		<-shutdownCtx.Done()
 
@@ -541,7 +541,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 		DockerClientFactory:         dockerClientFactory,
 		KubernetesClientFactory:     kubernetesClientFactory,
 		SourceScheduler:             sourceScheduler,
-		ShutdownTrigger:             shutdownTrigger,
 		StackDeployer:               stackDeployer,
 		UpgradeService:              upgradeService,
 		PendingActionsService:       pendingActionsService,

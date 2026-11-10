@@ -45,9 +45,6 @@ vi.mock('./ApplicationSettingsPanel', () => ({
   ),
 }));
 
-vi.mock('./BackupSettingsView', () => ({
-  BackupSettingsPanel: () => null,
-}));
 
 vi.mock('./HiddenContainersPanel/HiddenContainersPanel', () => ({
   HiddenContainersPanel: () => <div>hidden-containers</div>,
@@ -118,6 +115,14 @@ describe('REQ-SET-01 SettingsView parent chrome', () => {
     renderComponent();
     await waitFor(() => expect(target.scrollIntoView).toHaveBeenCalled());
     document.body.removeChild(target);
+  });
+
+  it('REQ-TAI-006 shows no backup panel', async () => {
+    setupMocks();
+    renderComponent();
+    await waitFor(() => expect(screen.getByText('sync-settings')).toBeVisible());
+    expect(screen.queryByText(/back up portainer/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/backup/i)).not.toBeInTheDocument();
   });
 
   it('REQ-TAI-002 shows no Kubernetes or Helm settings', async () => {

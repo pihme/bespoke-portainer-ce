@@ -1,6 +1,5 @@
 // try to declare constant where it's needed, not in a global file
 export const API_ENDPOINT_AUTH = 'api/auth';
-export const API_ENDPOINT_BACKUP = 'api/backup';
 export const API_ENDPOINT_CUSTOM_TEMPLATES = 'api/custom_templates';
 export const API_ENDPOINT_EDGE_GROUPS = 'api/edge_groups';
 export const API_ENDPOINT_EDGE_JOBS = 'api/edge_jobs';

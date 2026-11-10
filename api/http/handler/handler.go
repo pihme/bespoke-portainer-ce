@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/portainer/portainer/api/http/handler/backup"
 	"github.com/portainer/portainer/api/http/handler/customtemplates"
 	"github.com/portainer/portainer/api/http/handler/docker"
 	"github.com/portainer/portainer/api/http/handler/endpointgroups"
@@ -27,7 +26,6 @@ import (
 
 // Handler is a collection of all the service handlers.
 type Handler struct {
-	BackupHandler          *backup.Handler
 	CustomTemplatesHandler *customtemplates.Handler
 	DockerHandler          *docker.Handler
 	EndpointGroupHandler   *endpointgroups.Handler
@@ -51,7 +49,7 @@ type Handler struct {
 // @title PortainerCE API
 // @version 2.45.3
 // @description.markdown
-// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["backup","motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","stacks","websocket"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
+// @x-tagGroups [{"name":"Local operator","tags":["users"]},{"name":"Administration","tags":["motd","settings","status","system","ssl","upload"]},{"name":"Docker","tags":["templates","custom_templates","docker","stacks","websocket"]},{"name":"Environment Management","tags":["endpoint_groups","endpoints","tags"]},{"name":"GitOps","tags":["gitops"]}]
 // @termsOfService
 
 // @contact.email info@portainer.io
@@ -63,9 +61,6 @@ type Handler struct {
 // @BasePath /api
 // @schemes http https
 
-// @tag.name backup
-// @tag.description Manage backups
-// @tag.x-displayName Backup
 // @tag.name custom_templates
 // @tag.description Manage Custom Templates
 // @tag.x-displayName Custom templates
@@ -118,10 +113,6 @@ type Handler struct {
 // ServeHTTP delegates a request to the appropriate subhandler.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
-	case strings.HasPrefix(r.URL.Path, "/api/backup"):
-		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/restore"):
-		http.StripPrefix("/api", h.BackupHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/custom_templates"):
 		http.StripPrefix("/api", h.CustomTemplatesHandler).ServeHTTP(w, r)
 	case strings.HasPrefix(r.URL.Path, "/api/endpoint_groups"):

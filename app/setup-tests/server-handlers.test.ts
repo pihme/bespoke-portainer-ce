@@ -86,7 +86,6 @@ describe('setup-tests server handlers extra arms', () => {
     for (const path of [
       '/api/status',
       '/api/system/info',
-      '/api/backup/s3/status',
       '/api/endpoint_groups',
       '/api/observability/alerting/settings',
       '/observability/alerting/rules',

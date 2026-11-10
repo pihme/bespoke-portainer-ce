@@ -35,7 +35,7 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 | ACI | Azure Container Instances |
 | EDGE | Edge Compute (all removed, TAI-004) |
 | SET | Global settings |
-| BKP | Backup and restore |
+| BKP | Backup and restore (all removed, TAI-006) |
 | LOG | Logs and notifications |
 | ALR | Alerting, recommendations, add-ons |
 | LIC | Licensing and Business Edition upgrade/advertising |
@@ -263,9 +263,9 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## BKP – Backup and restore
 
-- **REQ-BKP-01 Download a backup.** Download the Portainer configuration as an archive, optionally password-protected. Entry: UI `#!/settings` (Back up Portainer); API `POST /backup`. docs: admin/settings/general (Back up Portainer), faqs/getting-started/what-does-portainers-backup-include
-- **REQ-BKP-02 Restore from a local file on a fresh instance.** Entry: UI `#!/init/admin` (restore option); API `POST /restore`; setup token required unless `--no-setup-token`. docs: admin/settings/general (Restoring from a local file)
-- **REQ-BKP-03 Scheduled backups to local disk, S3 or Azure Blob, and restore from S3.** **BE-only** (CE flags `S3_BACKUP_SETTING`, `S3_RESTORE`, inferred from code). docs: admin/settings/general
+- ~~**REQ-BKP-01 Download a backup.** Download the Portainer configuration as an archive, optionally password-protected. Entry: UI `#!/settings` (Back up Portainer); API `POST /backup`. docs: admin/settings/general (Back up Portainer), faqs/getting-started/what-does-portainers-backup-include~~ REMOVED (TAI-006)
+- ~~**REQ-BKP-02 Restore from a local file on a fresh instance.** Entry: UI `#!/init/admin` (restore option); API `POST /restore`; setup token required unless `--no-setup-token`. docs: admin/settings/general (Restoring from a local file)~~ REMOVED (TAI-006)
+- ~~**REQ-BKP-03 Scheduled backups to local disk, S3 or Azure Blob, and restore from S3.** **BE-only** (CE flags `S3_BACKUP_SETTING`, `S3_RESTORE`, inferred from code). docs: admin/settings/general~~ REMOVED (TAI-006)
 
 ## LOG – Logs and notifications
 
@@ -303,9 +303,9 @@ Accepted by the user on 2026-11-09 (COV-007). They pin what the code does today;
 - **REQ-DED-04 Snapshot interval.** Default 5 min. `--snapshot-interval` and `PUT /settings` accept any parseable duration; there is no minimum or maximum. Relates to REQ-ENV-12, REQ-SET-01, REQ-SRV-04. (L-03)
 - ~~**REQ-DED-05 Kubeconfig expiry.** Default `0`, meaning the kubeconfig does not expire. Any parseable duration is accepted; there is no maximum. Relates to REQ-K8S-20. (L-04)~~ REMOVED (TAI-002)
 - ~~**REQ-DED-06 Edge agent check-in interval.** Default 5 s (`DefaultEdgeAgentCheckinIntervalInSeconds`). The integer setting is not range-checked by `PUT /settings`. Relates to REQ-SET-01, REQ-EDGE-01. (L-05)~~ REMOVED (TAI-004)
-- **REQ-DED-07 Multipart file uploads.** Uploaded files (restore archive, stack file, `.env`, template file, TLS file) are read whole into memory; there is no size cap. Adding one would be a product change. Relates to REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04. (L-06; `pkg/libhttp/request.RetrieveMultiPartFormFile`)
-- **REQ-DED-08 Backup timeout.** A backup is aborted after 1 h by default; `PORTAINER_BACKUP_TIMEOUT` overrides it, and an invalid value falls back to the default. Relates to REQ-BKP-01. (L-07; `api/filesystem/copy.go`)
-- **REQ-DED-09 Request wait during restore.** While a restore holds the store, a request waits up to 1 minute and then fails. Relates to REQ-BKP-02. (L-08; `offlineGate.WaitingMiddleware(time.Minute, …)`)
+- **REQ-DED-07 Multipart file uploads.** Uploaded files (restore archive, stack file, `.env`, template file, TLS file) are read whole into memory; there is no size cap. Adding one would be a product change. Relates to REQ-BKP-02, REQ-STK-02, REQ-TPL-03, REQ-SET-04. (L-06; `pkg/libhttp/request.RetrieveMultiPartFormFile`) *TAI-006: the restore archive is gone; the other uploads stay.*
+- ~~**REQ-DED-08 Backup timeout.** A backup is aborted after 1 h by default; `PORTAINER_BACKUP_TIMEOUT` overrides it, and an invalid value falls back to the default. Relates to REQ-BKP-01. (L-07; `api/filesystem/copy.go`)~~ REMOVED (TAI-006)
+- ~~**REQ-DED-09 Request wait during restore.** While a restore holds the store, a request waits up to 1 minute and then fails. Relates to REQ-BKP-02. (L-08; `offlineGate.WaitingMiddleware(time.Minute, …)`)~~ REMOVED (TAI-006)
 - **REQ-DED-10 Notification history size.** The bell shows the 50 most recent notifications (REQ-LOG-04). The stored history has no bound. Relates to REQ-LOG-04. (L-09, C-11)
 - **REQ-DED-11 Container log lines.** The log view fetches 100 lines by default; the user can change the number and there is no maximum. Relates to REQ-CTR-10. (L-10; `containerLogsController.js`)
 - **REQ-DED-12 Image build upload.** The build context is parsed with 32 MB in memory and the rest spilled to temporary files; there is no total cap. Relates to REQ-IMG-03. (L-11; `api/http/proxy/factory/docker/build.go`)
@@ -357,6 +357,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (d) The image details page has no push button and pulls a tag without asking for a registry; the image import page uses a plain image name field.
   - (e) App templates carry no registry object; a template `registry` is folded into the image name (`registry/image`).
   - (f) The UI has no `#!/registries…` states, no `#!/{envId}/docker/host/registries`, no "Registries" sidebar entries and no registry management module.
+- **REQ-TAI-006 No backup and restore of Portainer's configuration.** Added by TAI-006 (2026-11-10).
+  - (a) The removed API routes answer 404: `POST /backup`, `POST /restore` and everything under `/backup` (including the S3 backup routes).
+  - (b) Requests are no longer held behind a restore lock (no offline gate); `PORTAINER_BACKUP_TIMEOUT` has no effect.
+  - (c) The settings page has no "Back up Portainer" panel, and the home page has no "backup failed" panel.
+  - (d) The BoltDB store and its own pre-migration backup and rollback (`--rollback`) are unchanged.
 
 ## Not covered as requirements
 

@@ -96,7 +96,6 @@ func newLocalDockerHTTPServer(t *testing.T, httpEnabled, csp bool, trustedOrigin
 		DataStore:        store,
 		ProxyManager:     proxy.NewManager(nil),
 		SSLService:       sslService,
-		ShutdownTrigger:  cancel,
 		TrustedOrigins:   trustedOrigins,
 	}
 
@@ -107,7 +106,6 @@ func assertLocalDockerHandlersWired(t *testing.T, server *Server) {
 	t.Helper()
 	require.NotNil(t, server.Handler)
 	h := server.Handler
-	assert.NotNil(t, h.BackupHandler)
 	assert.NotNil(t, h.CustomTemplatesHandler)
 	assert.NotNil(t, h.DockerHandler)
 	assert.NotNil(t, h.EndpointHandler)
@@ -554,6 +552,49 @@ func TestREQ_TAI_005_Start_RegistryRoutesAreGone(t *testing.T) {
 		{http.MethodGet, "/api/endpoints/1/registries"},
 		{http.MethodPut, "/api/endpoints/1/registries/1"},
 		{http.MethodGet, "/api/endpoints/1/dockerhub/0"},
+	}
+
+	for _, route := range gone {
+		req, err := http.NewRequest(route.method, base+route.path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode, "%s %s", route.method, route.path)
+	}
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}
+
+// TestREQ_TAI_006_Start_BackupRoutesAreGone: the backup download and the
+// restore-from-file routes answer 404.
+func TestREQ_TAI_006_Start_BackupRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	gone := []struct{ method, path string }{
+		{http.MethodPost, "/api/backup"},
+		{http.MethodPost, "/api/restore"},
+		{http.MethodGet, "/api/backup/s3/settings"},
 	}
 
 	for _, route := range gone {

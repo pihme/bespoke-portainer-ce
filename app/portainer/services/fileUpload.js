@@ -5,7 +5,6 @@ angular.module('portainer.app').factory('FileUploadService', FileUploadFactory);
 /* @ngInject */
 function FileUploadFactory($q, Upload) {
   var service = {
-    // uploadBackup, // backup service
     // createComposeStack, // stack service
     // createCustomTemplate, // custom template service
     // configureRegistry, // registry service
@@ -19,14 +18,6 @@ function FileUploadFactory($q, Upload) {
   function uploadFile(url, file) {
     return Upload.upload({ url: url, data: { file: file } });
   }
-
-  service.uploadBackup = function (file, password, setupToken) {
-    return Upload.upload({
-      url: 'api/restore',
-      data: { file, password },
-      headers: setupToken ? { 'X-Setup-Token': setupToken } : {},
-    });
-  };
 
   service.createComposeStack = function (stackName, file, env, endpointId, webhook) {
     return Upload.upload({

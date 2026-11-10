@@ -45,7 +45,6 @@ export const handlers = [
   http.get('/api/stacks', () => HttpResponse.json([])),
   http.get('/api/licenses/info', () => HttpResponse.json(licenseInfo)),
   http.get('/api/status/nodes', () => HttpResponse.json({ nodes: 3 })),
-  http.get('/api/backup/s3/status', () => HttpResponse.json({ Failed: false })),
   http.get('/api/endpoint_groups', () => HttpResponse.json([])),
   http.get('/api/endpoint_groups/:groupId', ({ params }) => {
     if (!params.groupId || params.groupId instanceof Array) {

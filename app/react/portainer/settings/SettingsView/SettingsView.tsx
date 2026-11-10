@@ -10,7 +10,6 @@ import { Settings } from '../types';
 import { isBE } from '../../feature-flags/feature-flags.service';
 
 import { ApplicationSettingsPanel } from './ApplicationSettingsPanel';
-import { BackupSettingsPanel } from './BackupSettingsView';
 import { HiddenContainersPanel } from './HiddenContainersPanel/HiddenContainersPanel';
 import { SSLSettingsPanelWrapper } from './SSLSettingsPanel/SSLSettingsPanel';
 import { ExperimentalFeatures } from './ExperimentalFeatures';
@@ -45,8 +44,6 @@ export function SettingsView() {
         {isBE && <ExperimentalFeatures />}
 
         <HiddenContainersPanel />
-
-        <BackupSettingsPanel />
       </div>
     </>
   );

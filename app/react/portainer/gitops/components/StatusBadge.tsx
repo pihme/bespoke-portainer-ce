@@ -33,7 +33,6 @@ export function StatusBadge({ status }: { status: WorkflowStatus }) {
 
 const TYPE_LABELS: Record<WorkflowType, string> = {
   stack: 'Stack',
-  edgeStack: 'Edge Stack',
 };
 export function TypeBadge({ type }: { type: WorkflowType }) {
   return <Badge type="muted">{TYPE_LABELS[type]}</Badge>;

@@ -22,14 +22,10 @@ interface DeployedStack {
   target?: { endpointId?: number };
 }
 
-/** Links to the actual deployed Stack/EdgeStack a Workflow or WorkflowArtifact represents. */
+/** Links to the actual deployed Stack a Workflow or WorkflowArtifact represents. */
 export function getDeployedStackLink(
   item: DeployedStack
 ): { to: string; params: object } | null {
-  if (item.type === 'edgeStack') {
-    return { to: 'edge.stacks.edit', params: { stackId: item.id } };
-  }
-
   if (item.platform === 'kubernetes') {
     return null;
   }

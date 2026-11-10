@@ -1,4 +1,4 @@
-import { ChevronRight, GitCommitIcon, LayoutGridIcon } from 'lucide-react';
+import { ChevronRight, GitCommitIcon } from 'lucide-react';
 import moment from 'moment';
 
 import { addPlural } from '@/react/common/string-utils';
@@ -7,7 +7,6 @@ import { Card } from '@@/primitives/Card';
 import { Icon } from '@@/Icon';
 import { Link } from '@@/Link';
 
-import { WorkflowTarget, WorkflowType } from '../../workflows/types';
 import { StatusBadge } from '../../components/StatusBadge';
 import { getDeployedStackLink } from '../../workflows/utils';
 import { effectiveWorkflowStatus } from '../../workflows/status';
@@ -155,34 +154,9 @@ function WorkflowCardContent({ item }: { item: SourceWorkflow }) {
         </div>
       </div>
 
-      <TargetBlock target={item.target} type={item.type} />
       <span className="text-gray-4 group-hover:text-gray-6">
         <Icon icon={ChevronRight} size="lg" />
       </span>
     </>
-  );
-}
-
-function TargetBlock({
-  target,
-  type,
-}: {
-  target: WorkflowTarget;
-  type: WorkflowType;
-}) {
-  return type === 'edgeStack' ? <EdgeStackTargetBlock target={target} /> : null;
-}
-
-function EdgeStackTargetBlock({ target }: { target: WorkflowTarget }) {
-  return (
-    <div className="flex items-center gap-2 rounded-md border border-solid border-gray-4 bg-gray-2 px-3 py-2 th-highcontrast:border-gray-11 th-highcontrast:bg-transparent th-dark:border-gray-8 th-dark:bg-gray-iron-10">
-      <Icon icon={LayoutGridIcon} />
-      <span className="font-bold text-graphite-700 th-highcontrast:text-white th-dark:text-white">
-        {target.edgeGroupIds?.length ?? 0}
-      </span>
-      <span className="th-dark:text-gray text-xs text-gray-6 th-highcontrast:text-white th-dark:text-gray-6">
-        Groups
-      </span>
-    </div>
   );
 }

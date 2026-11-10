@@ -4,7 +4,7 @@ export type WorkflowStatus =
   | 'syncing'
   | 'paused'
   | 'unknown';
-export type WorkflowType = 'stack' | 'edgeStack';
+export type WorkflowType = 'stack';
 export type DeploymentPlatform =
   | 'dockerStandalone'
   | 'dockerSwarm'
@@ -24,9 +24,6 @@ export interface WorkflowStatusObject {
 export interface WorkflowTarget {
   endpointId?: number;
   namespace?: string;
-  edgeGroupIds?: number[];
-  groupStatus?: Record<number, WorkflowStatus>;
-  resolvedEndpointIds?: number[];
 }
 
 export interface WorkflowFileRef {

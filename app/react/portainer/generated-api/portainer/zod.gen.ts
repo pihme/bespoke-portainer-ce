@@ -1196,14 +1196,11 @@ export const zWorkflowsStatusSummary = z.object({
 });
 
 export const zWorkflowsTarget = z.object({
-  edgeGroupIds: z.array(z.int()).optional(),
   endpointId: z.int().optional(),
-  groupStatus: z.record(z.string(), zWorkflowsStatus).optional(),
   namespace: z.string().optional(),
-  resolvedEndpointIds: z.array(z.int()).optional(),
 });
 
-export const zWorkflowsType = z.enum(['stack', 'edgeStack']);
+export const zWorkflowsType = z.enum(['stack']);
 
 export const zWorkflowsWorkflowPhaseStatus = z.object({
   error: z.string().optional(),

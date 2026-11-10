@@ -2617,23 +2617,15 @@ export type WorkflowsStatusSummary = {
 };
 
 export type WorkflowsTarget = {
-  edgeGroupIds?: Array<number>;
   endpointId?: number;
-  groupStatus?: {
-    [key: string]: WorkflowsStatus;
-  };
   namespace?: string;
-  resolvedEndpointIds?: Array<number>;
 };
 
 export const WorkflowsType = {
   /**
    * TypeStack
    */
-  TYPE_STACK: 'stack' /**
-   * TypeEdgeStack
-   */,
-  TYPE_EDGE_STACK: 'edgeStack',
+  TYPE_STACK: 'stack',
 } as const;
 
 export type WorkflowsType = (typeof WorkflowsType)[keyof typeof WorkflowsType];

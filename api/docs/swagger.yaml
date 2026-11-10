@@ -3224,22 +3224,10 @@ definitions:
     type: object
   workflows.Target:
     properties:
-      edgeGroupIds:
-        items:
-          type: integer
-        type: array
       endpointId:
         type: integer
-      groupStatus:
-        additionalProperties:
-          $ref: '#/definitions/workflows.Status'
-        type: object
       namespace:
         type: string
-      resolvedEndpointIds:
-        items:
-          type: integer
-        type: array
     type: object
   workflows.Type:
     enum:

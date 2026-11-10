@@ -197,85 +197,6 @@ func TestGitSourceAndArtifactForStack_NoMatchingArtifactReturnsNil(t *testing.T)
 	require.Nil(t, file)
 }
 
-func TestGitSourceAndArtifactForEdgeStack_ZeroWorkflowIDReturnsNil(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var src *portainer.Source
-	var file *portainer.ArtifactFile
-	err := store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var txErr error
-		src, file, txErr = GitSourceAndArtifactForEdgeStack(tx, adminUserContext, 0, 1)
-		return txErr
-	})
-	require.NoError(t, err)
-	require.Nil(t, src)
-	require.Nil(t, file)
-}
-
-func TestGitSourceAndArtifactForEdgeStack_ReturnsMatchingSourceAndFile(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var workflowID portainer.WorkflowID
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		gitSrc := &portainer.Source{
-			Type: portainer.SourceTypeGit,
-			Git:  &gittypes.GitSource{URL: "https://github.com/example/edge-repo"},
-		}
-		err := tx.Source().Create(adminUserContext, gitSrc)
-		require.NoError(t, err)
-
-		wf := &portainer.Workflow{
-			Artifacts: []portainer.Artifact{{
-				EdgeStackID: 5,
-				Files: []portainer.ArtifactFile{{
-					SourceID: gitSrc.ID,
-					Path:     "edge.yml",
-					Ref:      "refs/heads/edge",
-				}},
-			}},
-		}
-		err = tx.Workflow().Create(wf)
-		require.NoError(t, err)
-		workflowID = wf.ID
-
-		return nil
-	})
-	require.NoError(t, err)
-
-	var src *portainer.Source
-	var file *portainer.ArtifactFile
-	err = store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var txErr error
-		src, file, txErr = GitSourceAndArtifactForEdgeStack(tx, adminUserContext, workflowID, 5)
-		return txErr
-	})
-	require.NoError(t, err)
-	require.NotNil(t, src)
-	require.Equal(t, portainer.SourceTypeGit, src.Type)
-	require.NotNil(t, file)
-	require.Equal(t, "refs/heads/edge", file.Ref)
-}
-
-// TestGitSourceAndArtifactForEdgeStack_MissingWorkflowReturnsNilNotError is the edge-stack
-// counterpart of TestGitSourceAndArtifactForStack_MissingWorkflowReturnsNilNotError.
-func TestGitSourceAndArtifactForEdgeStack_MissingWorkflowReturnsNilNotError(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var src *portainer.Source
-	var file *portainer.ArtifactFile
-	err := store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var txErr error
-		src, file, txErr = GitSourceAndArtifactForEdgeStack(tx, adminUserContext, 999, 1)
-		return txErr
-	})
-	require.NoError(t, err)
-	require.Nil(t, src)
-	require.Nil(t, file)
-}
-
 func TestUpdateArtifactFileForStack_NoMatchingArtifactIsNoOp(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
@@ -342,44 +263,6 @@ func TestUpdateArtifactFileForStack_AppliesFnAndPersists(t *testing.T) {
 
 	err = store.UpdateTx(func(tx dataservices.DataStoreTx) error {
 		return UpdateArtifactFileForStack(tx, workflowID, 1, sourceID, func(a *portainer.ArtifactFile) {
-			a.Hash = "new-hash"
-		})
-	})
-	require.NoError(t, err)
-
-	wf, err := store.Workflow().Read(workflowID)
-	require.NoError(t, err)
-	require.Equal(t, "new-hash", wf.Artifacts[0].Files[0].Hash)
-}
-
-func TestUpdateArtifactFileForEdgeStack_AppliesFnAndPersists(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var workflowID portainer.WorkflowID
-	var sourceID portainer.SourceID
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		src := &portainer.Source{Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://example.com"}}
-		err := tx.Source().Create(adminUserContext, src)
-		require.NoError(t, err)
-		sourceID = src.ID
-
-		wf := &portainer.Workflow{
-			Artifacts: []portainer.Artifact{{
-				EdgeStackID: 7,
-				Files:       []portainer.ArtifactFile{{SourceID: sourceID, Hash: "old-hash"}},
-			}},
-		}
-		err = tx.Workflow().Create(wf)
-		require.NoError(t, err)
-		workflowID = wf.ID
-
-		return nil
-	})
-	require.NoError(t, err)
-
-	err = store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return UpdateArtifactFileForEdgeStack(tx, workflowID, 7, sourceID, func(a *portainer.ArtifactFile) {
 			a.Hash = "new-hash"
 		})
 	})
@@ -968,45 +851,6 @@ func TestSaveWorkflowArtifact_SwitchesSourceWithoutMutatingIt(t *testing.T) {
 	require.Equal(t, "selected-pass", selected.Git.Authentication.Password)
 }
 
-func TestUpdateArtifactFileForEdgeStack_MultipleArtifactsOnlyMatchingUpdated(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var workflowID portainer.WorkflowID
-	var srcID portainer.SourceID
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		src := &portainer.Source{Type: portainer.SourceTypeGit, Git: &gittypes.GitSource{URL: "https://example.com"}}
-		err := tx.Source().Create(adminUserContext, src)
-		require.NoError(t, err)
-		srcID = src.ID
-
-		wf := &portainer.Workflow{
-			Artifacts: []portainer.Artifact{
-				{EdgeStackID: 10, Files: []portainer.ArtifactFile{{SourceID: srcID, Hash: "hash-10"}}},
-				{EdgeStackID: 20, Files: []portainer.ArtifactFile{{SourceID: srcID, Hash: "hash-20"}}},
-			},
-		}
-		err = tx.Workflow().Create(wf)
-		require.NoError(t, err)
-		workflowID = wf.ID
-
-		return nil
-	})
-	require.NoError(t, err)
-
-	err = store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		return UpdateArtifactFileForEdgeStack(tx, workflowID, 10, srcID, func(a *portainer.ArtifactFile) {
-			a.Hash = "updated-hash-10"
-		})
-	})
-	require.NoError(t, err)
-
-	wf, err := store.Workflow().Read(workflowID)
-	require.NoError(t, err)
-	require.Equal(t, "updated-hash-10", wf.Artifacts[0].Files[0].Hash)
-	require.Equal(t, "hash-20", wf.Artifacts[1].Files[0].Hash)
-}
-
 func TestSaveWorkflowArtifact_SameSourceUpdatesArtifactOnly(t *testing.T) {
 	t.Parallel()
 	_, store := datastore.MustNewTestStore(t, false, true)
@@ -1093,47 +937,6 @@ func TestGitSourceAndArtifactForStack_MultipleArtifactsReturnsCorrectOne(t *test
 	err = store.ViewTx(func(tx dataservices.DataStoreTx) error {
 		var txErr error
 		src, file, txErr = GitSourceAndArtifactForStack(tx, adminUserContext, workflowID, 20)
-		return txErr
-	})
-	require.NoError(t, err)
-	require.NotNil(t, src)
-	require.NotNil(t, file)
-	require.Equal(t, "refs/heads/dev", file.Ref)
-	require.Equal(t, "hash-20", file.Hash)
-}
-
-func TestGitSourceAndArtifactForEdgeStack_MultipleArtifactsReturnsCorrectOne(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	var workflowID portainer.WorkflowID
-	err := store.UpdateTx(func(tx dataservices.DataStoreTx) error {
-		gitSrc := &portainer.Source{
-			Type: portainer.SourceTypeGit,
-			Git:  &gittypes.GitSource{URL: "https://github.com/example/shared-edge-repo"},
-		}
-		err := tx.Source().Create(adminUserContext, gitSrc)
-		require.NoError(t, err)
-
-		wf := &portainer.Workflow{
-			Artifacts: []portainer.Artifact{
-				{EdgeStackID: 10, Files: []portainer.ArtifactFile{{SourceID: gitSrc.ID, Ref: "refs/heads/main", Hash: "hash-10"}}},
-				{EdgeStackID: 20, Files: []portainer.ArtifactFile{{SourceID: gitSrc.ID, Ref: "refs/heads/dev", Hash: "hash-20"}}},
-			},
-		}
-		err = tx.Workflow().Create(wf)
-		require.NoError(t, err)
-		workflowID = wf.ID
-
-		return nil
-	})
-	require.NoError(t, err)
-
-	var src *portainer.Source
-	var file *portainer.ArtifactFile
-	err = store.ViewTx(func(tx dataservices.DataStoreTx) error {
-		var txErr error
-		src, file, txErr = GitSourceAndArtifactForEdgeStack(tx, adminUserContext, workflowID, 20)
 		return txErr
 	})
 	require.NoError(t, err)

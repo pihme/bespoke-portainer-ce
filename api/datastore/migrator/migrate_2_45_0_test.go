@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/boltdb"
 	"github.com/portainer/portainer/api/dataservices"
-	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/stack"
 	"github.com/portainer/portainer/api/dataservices/workflow"
@@ -83,23 +82,16 @@ func TestPruneOrphanedStackArtifacts_2_45_0(t *testing.T) {
 
 	stackSvc, err := stack.NewService(conn)
 	require.NoError(t, err)
-	edgeStackSvc, err := edgestack.NewService(conn, func(portainer.Transaction, portainer.EdgeStackID) {})
-	require.NoError(t, err)
 	workflowSvc, err := workflow.NewService(conn)
 	require.NoError(t, err)
 
 	m := NewMigrator(&MigratorParameters{
-		StackService:     stackSvc,
-		EdgeStackService: edgeStackSvc,
-		WorkflowService:  workflowSvc,
+		StackService:    stackSvc,
+		WorkflowService: workflowSvc,
 	})
 
 	liveStack := &portainer.Stack{ID: 1, Name: "live-stack"}
 	err = stackSvc.Create(liveStack)
-	require.NoError(t, err)
-
-	liveEdgeStack := &portainer.EdgeStack{ID: 1, Name: "live-edgestack"}
-	err = edgeStackSvc.Create(liveEdgeStack.ID, liveEdgeStack)
 	require.NoError(t, err)
 
 	mixedWf := &portainer.Workflow{
@@ -107,8 +99,9 @@ func TestPruneOrphanedStackArtifacts_2_45_0(t *testing.T) {
 		Artifacts: []portainer.Artifact{
 			{StackID: liveStack.ID},
 			{StackID: 999},
-			{EdgeStackID: liveEdgeStack.ID},
-			{EdgeStackID: 999},
+			// Edge stack artifacts have no backing record without the
+			// edge_stack collection (TAI-023).
+			{EdgeStackID: 1},
 			{},
 		},
 	}
@@ -134,9 +127,8 @@ func TestPruneOrphanedStackArtifacts_2_45_0(t *testing.T) {
 
 	updatedMixedWf, err := workflowSvc.Read(mixedWf.ID)
 	require.NoError(t, err)
-	require.Len(t, updatedMixedWf.Artifacts, 2)
+	require.Len(t, updatedMixedWf.Artifacts, 1)
 	require.Equal(t, liveStack.ID, updatedMixedWf.Artifacts[0].StackID)
-	require.Equal(t, liveEdgeStack.ID, updatedMixedWf.Artifacts[1].EdgeStackID)
 
 	_, err = workflowSvc.Read(fullyOrphanedWf.ID)
 	require.True(t, dataservices.IsErrObjectNotFound(err))

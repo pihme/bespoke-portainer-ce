@@ -2,12 +2,10 @@ package portainer
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 
 	gittypes "github.com/portainer/portainer/api/git/types"
-	"github.com/portainer/portainer/api/roar"
 	"github.com/portainer/portainer/pkg/featureflags"
 
 	"github.com/docker/docker/api/types"
@@ -213,20 +211,6 @@ type (
 		Version    types.Version             `json:"Version" swaggerignore:"true"`
 	}
 
-	// EdgeGroup represents an Edge group
-	EdgeGroup struct {
-		// EdgeGroup Identifier
-		ID           EdgeGroupID           `json:"Id" example:"1"`
-		Name         string                `json:"Name"`
-		Dynamic      bool                  `json:"Dynamic"`
-		TagIDs       []TagID               `json:"TagIds"`
-		EndpointIDs  roar.Roar[EndpointID] `json:"EndpointIds" validate:"optional"`
-		PartialMatch bool                  `json:"PartialMatch"`
-
-		// Deprecated: only used for API responses
-		Endpoints []EndpointID `json:"Endpoints"`
-	}
-
 	// EdgeGroupID represents an Edge group identifier
 	EdgeGroupID int
 
@@ -257,29 +241,6 @@ type (
 		AdditionalFiles []string `json:"AdditionalFiles,omitempty"`
 		// SourceID is the Source used for deploying the stack
 		SourceID SourceID `json:"SourceID,omitempty"`
-	}
-
-	// EdgeStack represents an edge stack
-	EdgeStack struct {
-		// EdgeStack Identifier
-		ID     EdgeStackID                    `json:"Id" example:"1"`
-		Name   string                         `json:"Name"`
-		Status map[EndpointID]EdgeStackStatus `json:"Status"`
-		// StatusArray    map[EndpointID][]EdgeStackStatus `json:"StatusArray"`
-		CreationDate   int64                   `json:"CreationDate"`
-		EdgeGroups     []EdgeGroupID           `json:"EdgeGroups"`
-		ProjectPath    string                  `json:"ProjectPath"`
-		EntryPoint     string                  `json:"EntryPoint"`
-		Version        int                     `json:"Version"`
-		NumDeployments int                     `json:"NumDeployments"`
-		ManifestPath   string                  `json:"ManifestPath"`
-		DeploymentType EdgeStackDeploymentType `json:"DeploymentType"`
-		// Uses the manifest's namespaces instead of the default one
-		UseManifestNamespaces bool
-		// The username id which created this stack
-		CreatedByUserId string `example:"1"`
-		// The username which created this stack
-		CreatedBy string `example:"admin"`
 	}
 
 	// HelmConfig represents the Helm configuration for an edge stack.
@@ -314,67 +275,8 @@ type (
 		Namespace string `json:"Namespace,omitempty" example:"default"`
 	}
 
-	EdgeStackStatusForEnv struct {
-		EndpointID EndpointID
-		Status     []EdgeStackDeploymentStatus
-		// EE only feature
-		DeploymentInfo StackDeploymentInfo
-		// RePullImage is a flag to indicate whether the auto update is trigger to re-pull image
-		RePullImage bool `json:"RePullImage,omitempty"`
-		// ForceRedeploy is a flag to indicate whether the force redeployment is set for the current
-		// deployment of the edge stack. The redeployment could be triggered by GitOps Update or manually by user.
-		ForceRedeploy bool `json:"ForceRedeploy,omitempty"`
-
-		// Deprecated(2.36): use ForceRedeploy and RePullImage instead for cleaner
-		// responsibility, but keep it for backward compatibility. To remove in future versions (2.44+)
-		// ReadyRePullImage is a flag to indicate whether the auto update is trigger to re-pull image
-		ReadyRePullImage bool `json:"ReadyRePullImage,omitempty"`
-	}
-
-	EdgeStackDeploymentType int
-
 	// EdgeStackID represents an edge stack id
 	EdgeStackID int
-
-	EdgeStackStatusDetails struct {
-		Pending             bool
-		Ok                  bool
-		Error               bool
-		Acknowledged        bool
-		Remove              bool
-		RemoteUpdateSuccess bool
-		ImagesPulled        bool
-	}
-
-	// EdgeStackStatus represents an edge stack status
-	EdgeStackStatus struct {
-		Status     []EdgeStackDeploymentStatus
-		EndpointID EndpointID
-		// EE only feature
-		DeploymentInfo StackDeploymentInfo
-		// ReadyRePullImage is a flag to indicate whether the auto update is trigger to re-pull image
-		ReadyRePullImage bool `json:"ReadyRePullImage,omitempty"`
-
-		// Deprecated
-		Details *EdgeStackStatusDetails `json:"Details,omitempty"`
-		// Deprecated
-		Error string `json:"Error,omitempty"`
-		// Deprecated
-		Type EdgeStackStatusType `json:"Type,omitempty"`
-	}
-
-	// EdgeStackDeploymentStatus represents an edge stack deployment status
-	EdgeStackDeploymentStatus struct {
-		Time  int64
-		Type  EdgeStackStatusType
-		Error string `json:"Error,omitempty"`
-		// EE only feature
-		RollbackTo *int `json:"RollbackTo,omitempty"`
-		Version    int  `json:"Version,omitempty"`
-	}
-
-	// EdgeStackStatusType represents an edge stack status type
-	EdgeStackStatusType int
 
 	// Environment(Endpoint) represents a Docker environment(endpoint) with all the info required
 	// to connect to it
@@ -1765,68 +1667,6 @@ const (
 	// CustomTemplatePlatformWindows represents a custom template for windows
 	CustomTemplatePlatformWindows
 )
-
-const (
-	// EdgeStackDeploymentCompose represent an edge stack deployed using a compose file
-	EdgeStackDeploymentCompose EdgeStackDeploymentType = iota
-	// EdgeStackDeploymentKubernetes represent an edge stack deployed using a kubernetes manifest file
-	EdgeStackDeploymentKubernetes
-)
-
-const (
-	// EdgeStackStatusPending represents a pending edge stack
-	EdgeStackStatusPending EdgeStackStatusType = iota
-	// EdgeStackStatusDeploymentReceived represents an edge environment which received the edge stack deployment
-	EdgeStackStatusDeploymentReceived
-	// EdgeStackStatusError represents an edge environment which failed to deploy its edge stack
-	EdgeStackStatusError
-	// EdgeStackStatusAcknowledged represents an acknowledged edge stack
-	EdgeStackStatusAcknowledged
-	// EdgeStackStatusRemoved represents a removed edge stack
-	EdgeStackStatusRemoved
-	// StatusRemoteUpdateSuccess represents a successfully updated edge stack
-	EdgeStackStatusRemoteUpdateSuccess
-	// EdgeStackStatusImagesPulled represents a successfully images-pulling
-	EdgeStackStatusImagesPulled
-	// EdgeStackStatusRunning represents a running Edge stack
-	EdgeStackStatusRunning
-	// EdgeStackStatusDeploying represents an Edge stack which is being deployed
-	EdgeStackStatusDeploying
-	// EdgeStackStatusRemoving represents an Edge stack which is being removed
-	EdgeStackStatusRemoving
-	// EdgeStackStatusPausedDeploying represents a paused Edge stack
-	EdgeStackStatusPausedDeploying
-	// EdgeStackStatusRollingBack represents an Edge stack which is being rolled back
-	EdgeStackStatusRollingBack
-	// EdgeStackStatusRolledBack represents an Edge stack which has rolled back
-	EdgeStackStatusRolledBack
-	// EdgeStackStatusCompleted represents a completed Edge stack
-	EdgeStackStatusCompleted
-)
-
-var edgeStackStatusTypeStr = map[EdgeStackStatusType]string{
-	EdgeStackStatusPending:             "Pending",
-	EdgeStackStatusDeploymentReceived:  "DeploymentReceived",
-	EdgeStackStatusError:               "Error",
-	EdgeStackStatusAcknowledged:        "Acknowledged",
-	EdgeStackStatusRemoved:             "Removed",
-	EdgeStackStatusRemoteUpdateSuccess: "RemoteUpdateSuccess",
-	EdgeStackStatusImagesPulled:        "ImagesPulled",
-	EdgeStackStatusRunning:             "Running",
-	EdgeStackStatusDeploying:           "Deploying",
-	EdgeStackStatusRemoving:            "Removing",
-	EdgeStackStatusPausedDeploying:     "PausedDeploying",
-	EdgeStackStatusRollingBack:         "RollingBack",
-	EdgeStackStatusRolledBack:          "RolledBack",
-	EdgeStackStatusCompleted:           "Completed",
-}
-
-func (s EdgeStackStatusType) String() string {
-	if str, ok := edgeStackStatusTypeStr[s]; ok {
-		return fmt.Sprintf("%d (%s)", s, str)
-	}
-	return fmt.Sprintf("%d (UNKNOWN)", s)
-}
 
 const (
 	_ EndpointStatus = iota

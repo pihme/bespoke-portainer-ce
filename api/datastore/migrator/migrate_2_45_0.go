@@ -2,7 +2,6 @@ package migrator
 
 import (
 	portainer "github.com/portainer/portainer/api"
-	"github.com/portainer/portainer/api/dataservices"
 
 	"github.com/rs/zerolog/log"
 )
@@ -118,14 +117,9 @@ func (migrator *Migrator) artifactBackingExists_2_45_0(a portainer.Artifact) (bo
 	switch {
 	case a.StackID != 0:
 		return migrator.stackService.Exists(a.StackID)
-	case a.EdgeStackID != 0:
-		_, err := migrator.edgeStackService.EdgeStack(a.EdgeStackID)
-		if dataservices.IsErrObjectNotFound(err) {
-			return false, nil
-		}
-
-		return err == nil, err
 	default:
+		// Without the edge_stack collection (TAI-023) an Edge stack artifact
+		// has no backing record, as it never had in this build.
 		return false, nil
 	}
 }

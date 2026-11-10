@@ -82,7 +82,6 @@ func TestSourceScheduler_TickDeploysAllReferencingArtifacts(t *testing.T) {
 
 	var mu sync.Mutex
 	var stacks []portainer.StackID
-	var edgeStacks []portainer.EdgeStackID
 
 	sched := scheduler.NewScheduler(t.Context())
 	poller := NewSourceScheduler(sched, store, Deployers{
@@ -93,20 +92,13 @@ func TestSourceScheduler_TickDeploysAllReferencingArtifacts(t *testing.T) {
 
 			return nil
 		},
-		EdgeStack: func(_ context.Context, id portainer.EdgeStackID) error {
-			mu.Lock()
-			defer mu.Unlock()
-			edgeStacks = append(edgeStacks, id)
-
-			return nil
-		},
 	})
 
 	err = poller.tick(t.Context(), src.ID)
 	require.NoError(t, err)
 
+	// The Edge stack artifact has no backing record and is skipped (TAI-023).
 	require.ElementsMatch(t, []portainer.StackID{11, 22}, stacks)
-	require.ElementsMatch(t, []portainer.EdgeStackID{33}, edgeStacks)
 }
 
 // TestSourceScheduler_TickSkipsArtifactWithMissingBacking covers BE-13300: a stack that was
@@ -270,20 +262,17 @@ func TestSourceScheduler_SourceReferencedPropagatesBackingCheckError(t *testing.
 	require.ErrorIs(t, err, wantErr)
 }
 
-// TestSourceScheduler_ArtifactBackingExistsUsesEdgeStackExistsOverride covers
-// artifactBackingExists's EdgeStackExists override: when it is supplied, it must be used instead
-// of the default assume-exists closure.
-func TestSourceScheduler_ArtifactBackingExistsUsesEdgeStackExistsOverride(t *testing.T) {
+// TestREQ_TAI_023_ArtifactBackingExistsEdgeStackHasNoBacking proves that an
+// Edge stack artifact counts as orphaned, as it did when the always-empty
+// edge_stack collection was read: it is never redeployed and does not keep a
+// source's poll job alive.
+func TestREQ_TAI_023_ArtifactBackingExistsEdgeStackHasNoBacking(t *testing.T) {
 	t.Parallel()
 
 	_, store := datastore.MustNewTestStore(t, false, true)
 
 	sched := scheduler.NewScheduler(t.Context())
-	poller := NewSourceScheduler(sched, store, Deployers{
-		EdgeStackExists: func(id portainer.EdgeStackID) (bool, error) {
-			return id != 999, nil
-		},
-	})
+	poller := NewSourceScheduler(sched, store, Deployers{})
 
 	exists, err := poller.artifactBackingExists(portainer.Artifact{EdgeStackID: 999})
 	require.NoError(t, err)

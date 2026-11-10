@@ -96,45 +96,6 @@ func TestDetachStackArtifact_NoMatchLeavesWorkflowUnchanged(t *testing.T) {
 	require.Len(t, updated.Artifacts, 1)
 }
 
-func TestDetachEdgeStackArtifact_MultipleArtifactsPrunesOnlyMatched(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	wf := &portainer.Workflow{
-		Name: "multi-edge-artifact",
-		Artifacts: []portainer.Artifact{
-			{EdgeStackID: 1},
-			{EdgeStackID: 2},
-		},
-	}
-	require.NoError(t, store.Workflow().Create(wf))
-
-	err := DetachEdgeStackArtifact(store, wf.ID, 1)
-	require.NoError(t, err)
-
-	updated, err := store.Workflow().Read(wf.ID)
-	require.NoError(t, err)
-	require.Len(t, updated.Artifacts, 1)
-	require.Equal(t, portainer.EdgeStackID(2), updated.Artifacts[0].EdgeStackID)
-}
-
-func TestDetachEdgeStackArtifact_SingleArtifactDeletesWorkflow(t *testing.T) {
-	t.Parallel()
-	_, store := datastore.MustNewTestStore(t, false, true)
-
-	wf := &portainer.Workflow{
-		Name:      "single-edge-artifact",
-		Artifacts: []portainer.Artifact{{EdgeStackID: 1}},
-	}
-	require.NoError(t, store.Workflow().Create(wf))
-
-	err := DetachEdgeStackArtifact(store, wf.ID, 1)
-	require.NoError(t, err)
-
-	_, err = store.Workflow().Read(wf.ID)
-	require.Error(t, err)
-}
-
 // erroringWorkflowStore is a workflowDeleteStore whose Workflow().Read always fails with a
 // non-not-found error, to exercise the error-propagation branch of detachArtifact.
 type erroringWorkflowStore struct {

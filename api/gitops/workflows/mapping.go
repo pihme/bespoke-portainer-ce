@@ -42,31 +42,6 @@ func DeriveStackWorkflowFields(s portainer.Stack, source, artifact WorkflowPhase
 	}
 }
 
-// DeriveEdgeStackWorkflowFields computes the shared WorkflowMappingFields for an EdgeStack-backed deployment.
-func DeriveEdgeStackWorkflowFields(es portainer.EdgeStack, statuses []portainer.EdgeStackStatusForEnv, groupEndpoints map[portainer.EdgeGroupID][]portainer.EndpointID, source, artifact WorkflowPhaseStatus) WorkflowMappingFields {
-	platform := DeploymentPlatformDockerStandalone
-	if es.DeploymentType == portainer.EdgeStackDeploymentKubernetes {
-		platform = DeploymentPlatformKubernetes
-	}
-	return WorkflowMappingFields{
-		Type:     TypeEdgeStack,
-		Name:     es.Name,
-		Platform: platform,
-		Status: WorkflowStatusObject{
-			Source:   source,
-			Artifact: artifact,
-			Target:   deriveEdgeStackTargetState(statuses),
-		},
-		Target: Target{
-			EdgeGroupIDs:        es.EdgeGroups,
-			GroupStatus:         edgeStackTargetStatuses(es.EdgeGroups, statuses, groupEndpoints),
-			ResolvedEndpointIDs: resolveEdgeGroupEndpoints(es.EdgeGroups, groupEndpoints),
-		},
-		CreationDate: es.CreationDate,
-		LastSyncDate: edgeStackLastSyncDate(statuses),
-	}
-}
-
 // MapStackToArtifactDetail converts a stack to an ArtifactDetail.
 func MapStackToArtifactDetail(stack portainer.Stack, files []portainer.ArtifactFile, source, artifact WorkflowPhaseStatus) ArtifactDetail {
 	return ArtifactDetail{
@@ -76,42 +51,10 @@ func MapStackToArtifactDetail(stack portainer.Stack, files []portainer.ArtifactF
 	}
 }
 
-// MapEdgeStackToArtifactDetail converts an edge stack to an ArtifactDetail.
-func MapEdgeStackToArtifactDetail(es portainer.EdgeStack, files []portainer.ArtifactFile, statuses []portainer.EdgeStackStatusForEnv, groupEndpoints map[portainer.EdgeGroupID][]portainer.EndpointID, source, artifact WorkflowPhaseStatus) ArtifactDetail {
-	return ArtifactDetail{
-		ID:                    int(es.ID),
-		WorkflowMappingFields: DeriveEdgeStackWorkflowFields(es, statuses, groupEndpoints, source, artifact),
-		Files:                 mapFilesToFileDetails(files),
-	}
-}
-
 func StackLastSyncDate(s portainer.Stack) int64 {
 	for _, ds := range slices.Backward(s.DeploymentStatus) {
 		if ds.Status == portainer.StackStatusActive {
 			return ds.Time
-		}
-	}
-	return 0
-}
-
-func edgeStackLastSyncDate(statuses []portainer.EdgeStackStatusForEnv) int64 {
-	var oldest int64
-	for _, epStatus := range statuses {
-		last := endpointLastSyncDate(epStatus)
-		if last == 0 {
-			return 0
-		}
-		if oldest == 0 || last < oldest {
-			oldest = last
-		}
-	}
-	return oldest
-}
-
-func endpointLastSyncDate(epStatus portainer.EdgeStackStatusForEnv) int64 {
-	for _, s := range slices.Backward(epStatus.Status) {
-		if isEdgeStackHealthyStatus(s.Type) {
-			return s.Time
 		}
 	}
 	return 0
@@ -126,52 +69,6 @@ func platformFromStackType(t portainer.StackType) DeploymentPlatform {
 	default:
 		return DeploymentPlatformDockerStandalone
 	}
-}
-
-func isEdgeStackHealthyStatus(t portainer.EdgeStackStatusType) bool {
-	switch t {
-	case portainer.EdgeStackStatusRunning,
-		portainer.EdgeStackStatusRolledBack,
-		portainer.EdgeStackStatusCompleted,
-		portainer.EdgeStackStatusRemoved,
-		portainer.EdgeStackStatusRemoteUpdateSuccess:
-		return true
-	}
-	return false
-}
-
-func resolveEdgeGroupEndpoints(groups []portainer.EdgeGroupID, groupEndpoints map[portainer.EdgeGroupID][]portainer.EndpointID) []portainer.EndpointID {
-	seen := set.Set[portainer.EndpointID]{}
-	for _, gid := range groups {
-		for _, epID := range groupEndpoints[gid] {
-			seen.Add(epID)
-		}
-	}
-	return seen.Keys()
-}
-
-func edgeStackTargetStatuses(
-	groups []portainer.EdgeGroupID,
-	statuses []portainer.EdgeStackStatusForEnv,
-	groupEndpoints map[portainer.EdgeGroupID][]portainer.EndpointID,
-) map[portainer.EdgeGroupID]Status {
-	epMap := make(map[portainer.EndpointID]Status, len(statuses))
-	for _, s := range statuses {
-		ws, _ := endpointWorkflowStatus(s)
-		epMap[s.EndpointID] = ws
-	}
-
-	result := make(map[portainer.EdgeGroupID]Status, len(groups))
-	for _, gid := range groups {
-		gStatus := StatusUnknown
-		for _, epID := range groupEndpoints[gid] {
-			if ws := epMap[epID]; statusPriority(ws) > statusPriority(gStatus) {
-				gStatus = ws
-			}
-		}
-		result[gid] = gStatus
-	}
-	return result
 }
 
 // BuildWorkflow assembles a Workflow from a domain workflow and its resolved, access-filtered artifacts.

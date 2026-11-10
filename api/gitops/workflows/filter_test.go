@@ -21,7 +21,6 @@ func TestArtifactBackingExists_StackExists(t *testing.T) {
 	exists, err := ArtifactBackingExists(
 		portainer.Artifact{StackID: 1},
 		func(portainer.StackID) (bool, error) { return true, nil },
-		func(portainer.EdgeStackID) (bool, error) { return false, nil },
 	)
 	require.NoError(t, err)
 	require.True(t, exists)
@@ -33,22 +32,23 @@ func TestArtifactBackingExists_StackMissing(t *testing.T) {
 	exists, err := ArtifactBackingExists(
 		portainer.Artifact{StackID: 999},
 		func(portainer.StackID) (bool, error) { return false, nil },
-		func(portainer.EdgeStackID) (bool, error) { return true, nil },
 	)
 	require.NoError(t, err)
 	require.False(t, exists)
 }
 
-func TestArtifactBackingExists_EdgeStackExists(t *testing.T) {
+// TestREQ_TAI_023_ArtifactBackingExists_EdgeStackHasNoBacking proves that an
+// Edge stack artifact has no backing record, as when the always-empty
+// edge_stack collection was read.
+func TestREQ_TAI_023_ArtifactBackingExists_EdgeStackHasNoBacking(t *testing.T) {
 	t.Parallel()
 
 	exists, err := ArtifactBackingExists(
 		portainer.Artifact{EdgeStackID: 1},
-		func(portainer.StackID) (bool, error) { return false, nil },
-		func(portainer.EdgeStackID) (bool, error) { return true, nil },
+		func(portainer.StackID) (bool, error) { return true, nil },
 	)
 	require.NoError(t, err)
-	require.True(t, exists)
+	require.False(t, exists)
 }
 
 func TestArtifactBackingExists_NeitherIDSet(t *testing.T) {
@@ -57,7 +57,6 @@ func TestArtifactBackingExists_NeitherIDSet(t *testing.T) {
 	exists, err := ArtifactBackingExists(
 		portainer.Artifact{},
 		func(portainer.StackID) (bool, error) { return true, nil },
-		func(portainer.EdgeStackID) (bool, error) { return true, nil },
 	)
 	require.NoError(t, err)
 	require.False(t, exists)
@@ -70,7 +69,6 @@ func TestArtifactBackingExists_PropagatesError(t *testing.T) {
 	_, err := ArtifactBackingExists(
 		portainer.Artifact{StackID: 1},
 		func(portainer.StackID) (bool, error) { return false, wantErr },
-		func(portainer.EdgeStackID) (bool, error) { return true, nil },
 	)
 	require.ErrorIs(t, err, wantErr)
 }

@@ -71,49 +71,6 @@ func deriveStackTargetState(s portainer.Stack) WorkflowPhaseStatus {
 	}
 }
 
-func deriveEdgeStackTargetState(statuses []portainer.EdgeStackStatusForEnv) WorkflowPhaseStatus {
-	result := StatusUnknown
-	for _, epStatus := range statuses {
-		ws, msg := endpointWorkflowStatus(epStatus)
-		if ws == StatusError {
-			return WorkflowPhaseStatus{Status: ws, Error: msg}
-		}
-		if statusPriority(ws) > statusPriority(result) {
-			result = ws
-		}
-	}
-	return WorkflowPhaseStatus{Status: result}
-}
-
-func endpointWorkflowStatus(epStatus portainer.EdgeStackStatusForEnv) (Status, string) {
-	if len(epStatus.Status) == 0 {
-		return StatusUnknown, ""
-	}
-	last := epStatus.Status[len(epStatus.Status)-1]
-	switch last.Type {
-	case portainer.EdgeStackStatusError:
-		return StatusError, last.Error
-	case portainer.EdgeStackStatusDeploying,
-		portainer.EdgeStackStatusRollingBack,
-		portainer.EdgeStackStatusRemoving,
-		portainer.EdgeStackStatusPending,
-		portainer.EdgeStackStatusDeploymentReceived,
-		portainer.EdgeStackStatusAcknowledged,
-		portainer.EdgeStackStatusImagesPulled:
-		return StatusSyncing, ""
-	case portainer.EdgeStackStatusPausedDeploying:
-		return StatusPaused, ""
-	case portainer.EdgeStackStatusRunning,
-		portainer.EdgeStackStatusRolledBack,
-		portainer.EdgeStackStatusCompleted,
-		portainer.EdgeStackStatusRemoved,
-		portainer.EdgeStackStatusRemoteUpdateSuccess:
-		return StatusHealthy, ""
-	default:
-		return StatusUnknown, ""
-	}
-}
-
 // effectiveStatusOf returns the highest-priority status across the three phases of a status object.
 func effectiveStatusOf(s WorkflowStatusObject) Status {
 	effective := s.Target.Status

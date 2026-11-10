@@ -11,7 +11,6 @@ type (
 	DataStoreTx interface {
 		IsErrObjectNotFound(err error) bool
 		CustomTemplate() CustomTemplateService
-		EdgeStack() EdgeStackService
 		Endpoint() EndpointService
 		EndpointGroup() EndpointGroupService
 		Registry() RegistryService
@@ -49,19 +48,6 @@ type (
 	CustomTemplateService interface {
 		BaseCRUD[portainer.CustomTemplate, portainer.CustomTemplateID]
 		GetNextIdentifier() int
-	}
-
-	// EdgeStackService represents a service to manage Edge stacks
-	EdgeStackService interface {
-		EdgeStacks() ([]portainer.EdgeStack, error)
-		EdgeStack(ID portainer.EdgeStackID) (*portainer.EdgeStack, error)
-		EdgeStackVersion(ID portainer.EdgeStackID) (int, bool)
-		Create(id portainer.EdgeStackID, edgeStack *portainer.EdgeStack) error
-		UpdateEdgeStack(ID portainer.EdgeStackID, edgeStack *portainer.EdgeStack) error
-		UpdateEdgeStackFunc(ID portainer.EdgeStackID, updateFunc func(edgeStack *portainer.EdgeStack)) error
-		DeleteEdgeStack(ID portainer.EdgeStackID) error
-		GetNextIdentifier() int
-		BucketName() string
 	}
 
 	// EndpointService represents a service for managing environment(endpoint) data

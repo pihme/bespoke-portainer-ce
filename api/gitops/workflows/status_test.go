@@ -74,62 +74,6 @@ func TestCountSummaryByStatus_NonTargetPhaseOverride(t *testing.T) {
 	assert.Equal(t, StatusSummary{Error: 1}, got)
 }
 
-func TestDeriveEdgeStackTargetState(t *testing.T) {
-	t.Parallel()
-
-	ep := func(id portainer.EndpointID, typ portainer.EdgeStackStatusType) portainer.EdgeStackStatusForEnv {
-		return portainer.EdgeStackStatusForEnv{
-			EndpointID: id,
-			Status:     []portainer.EdgeStackDeploymentStatus{{Type: typ}},
-		}
-	}
-
-	cases := []struct {
-		name     string
-		statuses []portainer.EdgeStackStatusForEnv
-		want     Status
-	}{
-		{"empty", nil, StatusUnknown},
-		{"all per-env status slices empty", []portainer.EdgeStackStatusForEnv{{EndpointID: 1}}, StatusUnknown},
-		{"running: healthy", []portainer.EdgeStackStatusForEnv{ep(1, portainer.EdgeStackStatusRunning)}, StatusHealthy},
-		{"deploying: syncing", []portainer.EdgeStackStatusForEnv{ep(1, portainer.EdgeStackStatusDeploying)}, StatusSyncing},
-		{"paused deploying: paused", []portainer.EdgeStackStatusForEnv{ep(1, portainer.EdgeStackStatusPausedDeploying)}, StatusPaused},
-		{"error short-circuits", []portainer.EdgeStackStatusForEnv{ep(1, portainer.EdgeStackStatusError)}, StatusError},
-		{
-			"error + running gives error (short-circuit, order matters)",
-			[]portainer.EdgeStackStatusForEnv{
-				ep(1, portainer.EdgeStackStatusError),
-				ep(2, portainer.EdgeStackStatusRunning),
-			},
-			StatusError,
-		},
-		{
-			"syncing beats paused",
-			[]portainer.EdgeStackStatusForEnv{
-				ep(1, portainer.EdgeStackStatusPausedDeploying),
-				ep(2, portainer.EdgeStackStatusDeploying),
-			},
-			StatusSyncing,
-		},
-		{
-			"healthy does not downgrade syncing",
-			[]portainer.EdgeStackStatusForEnv{
-				ep(1, portainer.EdgeStackStatusDeploying),
-				ep(2, portainer.EdgeStackStatusRunning),
-			},
-			StatusSyncing,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			result := deriveEdgeStackTargetState(tc.statuses)
-			assert.Equal(t, tc.want, result.Status)
-		})
-	}
-}
-
 func TestArtifactPhases(t *testing.T) {
 	t.Parallel()
 

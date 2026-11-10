@@ -52,8 +52,8 @@ func TestREQ_TAI_020_DeadDataServicesAreGone(t *testing.T) {
 
 // TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections proves that a fresh
 // store no longer creates the always-empty Edge group, Edge job, Edge stack
-// status and endpoint relation collections. The edge_stack collection stays
-// because the Git source scheduler and source delete still read it.
+// status and endpoint relation collections. The edge_stack collection
+// followed in TAI-023.
 func TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections(t *testing.T) {
 	_, store := MustNewTestStore(t, true, false)
 	require.NoError(t, store.connection.Close())
@@ -71,7 +71,7 @@ func TestREQ_TAI_021_FreshStoreHasNoEdgeRelationCollections(t *testing.T) {
 		require.NotContainsf(t, buckets, name, "bucket %s should not be created", name)
 	}
 
-	for _, name := range []string{"edge_stack", "endpoint_groups", "resource_control"} {
+	for _, name := range []string{"endpoint_groups", "resource_control"} {
 		require.Containsf(t, buckets, name, "bucket %s should still be created", name)
 	}
 
@@ -107,6 +107,7 @@ func TestREQ_TAI_021_FreshStoreHasNoAllowList(t *testing.T) {
 var tai023Collections = map[string]string{
 	"webhooks":        "webhook",
 	"pending_actions": "pendingactions",
+	"edge_stack":      "edgestack",
 }
 
 // TestREQ_TAI_023_FreshStoreHasNoRemainingEmptyCollections proves that a

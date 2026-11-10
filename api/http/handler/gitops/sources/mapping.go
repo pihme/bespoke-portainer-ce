@@ -36,20 +36,3 @@ func MapStackToWorkflow(s portainer.Stack, sourceID portainer.SourceID, gitConfi
 		LastSyncDate: f.LastSyncDate,
 	}
 }
-
-// MapEdgeStackToWorkflow converts an edge stack to a Workflow
-func MapEdgeStackToWorkflow(wfID portainer.WorkflowID, es portainer.EdgeStack, sourceID portainer.SourceID, gitConfig *gittypes.RepoConfig, statuses []portainer.EdgeStackStatusForEnv, groupEndpoints map[portainer.EdgeGroupID][]portainer.EndpointID, source, artifact workflows.WorkflowPhaseStatus) Workflow {
-	f := workflows.DeriveEdgeStackWorkflowFields(es, statuses, groupEndpoints, source, artifact)
-	return Workflow{
-		ID:           wfID,
-		Name:         f.Name,
-		Type:         f.Type,
-		Platform:     f.Platform,
-		Status:       f.Status,
-		SourceID:     sourceID,
-		GitConfig:    gitConfig,
-		Target:       f.Target,
-		CreationDate: f.CreationDate,
-		LastSyncDate: f.LastSyncDate,
-	}
-}

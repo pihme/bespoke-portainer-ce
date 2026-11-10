@@ -6,7 +6,6 @@ import (
 	portainer "github.com/portainer/portainer/api"
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer/api/dataservices/registry"
@@ -46,7 +45,6 @@ type (
 		versionService         *version.Service
 		fileService            portainer.FileService
 		authorizationService   *authorization.Service
-		edgeStackService       *edgestack.Service
 		customTemplateService  *customtemplate.Service
 		sourceService          *source.Service
 		workflowService        *workflow.Service
@@ -69,7 +67,6 @@ type (
 		VersionService         *version.Service
 		FileService            portainer.FileService
 		AuthorizationService   *authorization.Service
-		EdgeStackService       *edgestack.Service
 		CustomTemplateService  *customtemplate.Service
 		SourceService          *source.Service
 		WorkflowService        *workflow.Service
@@ -94,7 +91,6 @@ func NewMigrator(parameters *MigratorParameters) *Migrator {
 		versionService:         parameters.VersionService,
 		fileService:            parameters.FileService,
 		authorizationService:   parameters.AuthorizationService,
-		edgeStackService:       parameters.EdgeStackService,
 		customTemplateService:  parameters.CustomTemplateService,
 		sourceService:          parameters.SourceService,
 		workflowService:        parameters.WorkflowService,
@@ -206,16 +202,11 @@ func (m *Migrator) initMigrations() {
 	m.addMigrations("2.16.1", m.migrateDBVersionToDB71)
 	m.addMigrations("2.17", m.migrateDBVersionToDB80)
 	m.addMigrations("2.18", m.migrateDBVersionToDB90)
-	m.addMigrations("2.19",
-		m.migrateDockerDesktopExtensionSetting,
-		m.updateEdgeStackStatusForDB100,
-	)
+	m.addMigrations("2.19", m.migrateDockerDesktopExtensionSetting)
 	m.addMigrations("2.20",
 		m.updateAppTemplatesVersionForDB110,
 		m.updateResourceOverCommitToDB110,
 	)
-
-	m.addMigrations("2.31.0", m.migrateEdgeStacksStatuses_2_31_0)
 
 	m.addMigrations("2.40.0", m.migrateRegistryAccessSASecrets_2_40_0)
 

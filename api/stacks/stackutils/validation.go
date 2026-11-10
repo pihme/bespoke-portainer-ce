@@ -331,21 +331,6 @@ func ValidateComposeURLs(ctx context.Context, stack *portainer.Stack, fileServic
 	return nil
 }
 
-// ValidateEdgeStackComposeContent checks that every external URL in an edge
-// stack's Compose file is permitted by the active SSRF policy. It is a no-op
-// when SSRF protection is disabled or the deployment type is not compose.
-func ValidateEdgeStackComposeContent(ctx context.Context, deploymentType portainer.EdgeStackDeploymentType, content []byte) error {
-	if !ssrf.IsEnabled() || deploymentType != portainer.EdgeStackDeploymentCompose {
-		return nil
-	}
-
-	if err := checkComposeFileURLs(ctx, content, nil, ""); err != nil {
-		return errors.Wrap(err, "stack file contains a URL blocked by the SSRF policy")
-	}
-
-	return nil
-}
-
 func checkComposeFileURLs(ctx context.Context, content []byte, env map[string]string, workingDir string) error {
 	composeConfigDetails := composetypes.ConfigDetails{
 		ConfigFiles: []composetypes.ConfigFile{{Content: content}},

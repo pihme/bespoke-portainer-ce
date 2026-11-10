@@ -23,22 +23,15 @@ func HasAccessibleSource(files []portainer.ArtifactFile, sourceMap map[portainer
 	})
 }
 
-// ArtifactBackingExists reports whether the artifact's target stack or edge stack still exists,
-// using the caller-supplied existence checks. An artifact with neither StackID nor EdgeStackID set
-// has no backing target.
-//
-// The check is expressed as caller-supplied closures rather than a shared store interface because
-// CE and EE each define their own Stack/EdgeStack service and domain types (portainer.Stack vs
-// portaineree.Stack), so a single interface type cannot be satisfied by both editions' DataStoreTx.
-func ArtifactBackingExists(a portainer.Artifact, stackExists func(portainer.StackID) (bool, error), edgeStackExists func(portainer.EdgeStackID) (bool, error)) (bool, error) {
-	switch {
-	case a.StackID != 0:
+// ArtifactBackingExists reports whether the artifact's target stack still exists, using the
+// caller-supplied existence check. An artifact without a StackID has no backing target: Edge
+// stack artifacts never have one since the edge_stack collection is gone (TAI-023).
+func ArtifactBackingExists(a portainer.Artifact, stackExists func(portainer.StackID) (bool, error)) (bool, error) {
+	if a.StackID != 0 {
 		return stackExists(a.StackID)
-	case a.EdgeStackID != 0:
-		return edgeStackExists(a.EdgeStackID)
-	default:
-		return false, nil
 	}
+
+	return false, nil
 }
 
 // EndpointMatchesStackType reports whether ep is a valid target for stackType.

@@ -58,45 +58,6 @@ func GitSourceAndArtifactForStack(tx gitSourceStore, userContext source.UserCont
 	return nil, nil, nil
 }
 
-// GitSourceAndArtifactForEdgeStack returns the git Source and the ArtifactFile matching edgeStackID.
-// Returns nil, nil, nil when workflowID is 0, the workflow no longer exists, or no matching entry is found.
-func GitSourceAndArtifactForEdgeStack(tx gitSourceStore, userContext source.UserContext, workflowID portainer.WorkflowID, edgeStackID portainer.EdgeStackID) (*portainer.Source, *portainer.ArtifactFile, error) {
-	if workflowID == 0 {
-		return nil, nil, nil
-	}
-
-	wf, err := tx.Workflow().Read(workflowID)
-	if dataservices.IsErrObjectNotFound(err) {
-		return nil, nil, nil
-	} else if err != nil {
-		return nil, nil, err
-	}
-
-	sourceMap, err := LoadWorkflowSources(tx, userContext, wf)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	for i, as := range wf.Artifacts {
-		if as.EdgeStackID != edgeStackID {
-			continue
-		}
-
-		for j, file := range as.Files {
-			src, ok := sourceMap[file.SourceID]
-			if !ok {
-				continue
-			}
-
-			if src.Type == portainer.SourceTypeGit {
-				return &src, &wf.Artifacts[i].Files[j], nil
-			}
-		}
-	}
-
-	return nil, nil, nil
-}
-
 // MergeSourceAndFile builds a RepoConfig by combining shared fields from src (URL, auth, TLS)
 // with file-specific fields from file (ref, path, hash).
 func MergeSourceAndFile(src *portainer.Source, file *portainer.ArtifactFile) *gittypes.RepoConfig {
@@ -145,32 +106,6 @@ func UpdateArtifactFileForStack(tx gitSourceStore, workflowID portainer.Workflow
 	return nil
 }
 
-// UpdateArtifactFileForEdgeStack finds the ArtifactFile matching edgeStackID and sourceID in the workflow
-// and applies fn to it, then persists the updated Workflow.
-// A no-op if no matching artifact or file is found.
-func UpdateArtifactFileForEdgeStack(tx gitSourceStore, workflowID portainer.WorkflowID, edgeStackID portainer.EdgeStackID, sourceID portainer.SourceID, fn func(*portainer.ArtifactFile)) error {
-	wf, err := tx.Workflow().Read(workflowID)
-	if err != nil {
-		return err
-	}
-
-	for i, as := range wf.Artifacts {
-		if as.EdgeStackID != edgeStackID {
-			continue
-		}
-
-		for j, file := range as.Files {
-			if file.SourceID == sourceID {
-				fn(&wf.Artifacts[i].Files[j])
-
-				return tx.Workflow().Update(workflowID, wf)
-			}
-		}
-	}
-
-	return nil
-}
-
 func UpdateSourceSyncStatus(tx gitSourceStore, userContext source.UserContext, sourceID portainer.SourceID, status portainer.SourceStatus, statusError string) error {
 	if sourceID == 0 {
 		return nil
@@ -201,25 +136,6 @@ func SaveStackStatus(tx gitSourceStore, userContext source.UserContext, workflow
 	status, statusError := checkResultStatus(checkErr)
 
 	if err := UpdateArtifactFileForStack(tx, workflowID, stackID, sourceID, func(a *portainer.ArtifactFile) {
-		a.RefStatus = status
-		a.RefError = statusError
-		a.PathStatus = status
-		a.PathError = statusError
-	}); err != nil {
-		return err
-	}
-
-	return UpdateSourceSyncStatus(tx, userContext, sourceID, status, statusError)
-}
-
-func SaveEdgeStackStatus(tx gitSourceStore, userContext source.UserContext, workflowID portainer.WorkflowID, edgeStackID portainer.EdgeStackID, sourceID portainer.SourceID, checkErr error) error {
-	if workflowID == 0 {
-		return nil
-	}
-
-	status, statusError := checkResultStatus(checkErr)
-
-	if err := UpdateArtifactFileForEdgeStack(tx, workflowID, edgeStackID, sourceID, func(a *portainer.ArtifactFile) {
 		a.RefStatus = status
 		a.RefError = statusError
 		a.PathStatus = status

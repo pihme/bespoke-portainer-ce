@@ -8,7 +8,6 @@ import (
 	"github.com/portainer/portainer/api/database/models"
 	"github.com/portainer/portainer/api/dataservices"
 	"github.com/portainer/portainer/api/dataservices/customtemplate"
-	"github.com/portainer/portainer/api/dataservices/edgestack"
 	"github.com/portainer/portainer/api/dataservices/endpoint"
 	"github.com/portainer/portainer/api/dataservices/endpointgroup"
 	"github.com/portainer/portainer/api/dataservices/registry"
@@ -39,7 +38,6 @@ type Store struct {
 
 	fileService            portainer.FileService
 	CustomTemplateService  *customtemplate.Service
-	EdgeStackService       *edgestack.Service
 	EndpointGroupService   *endpointgroup.Service
 	EndpointService        *endpoint.Service
 	RegistryService        *registry.Service
@@ -63,12 +61,6 @@ func (store *Store) initServices() error {
 		return err
 	}
 	store.CustomTemplateService = customTemplateService
-
-	edgeStackService, err := edgestack.NewService(store.connection, nil)
-	if err != nil {
-		return err
-	}
-	store.EdgeStackService = edgeStackService
 
 	endpointgroupService, err := endpointgroup.NewService(store.connection)
 	if err != nil {
@@ -168,11 +160,6 @@ func (store *Store) CustomTemplate() dataservices.CustomTemplateService {
 	return store.CustomTemplateService
 }
 
-// EdgeStack gives access to the EdgeStack data management layer
-func (store *Store) EdgeStack() dataservices.EdgeStackService {
-	return store.EdgeStackService
-}
-
 // Environment(Endpoint) gives access to the Environment(Endpoint) data management layer
 func (store *Store) Endpoint() dataservices.EndpointService {
 	return store.EndpointService
@@ -244,7 +231,6 @@ func (store *Store) Workflow() dataservices.WorkflowService {
 
 type storeExport struct {
 	CustomTemplate  []portainer.CustomTemplate  `json:"customtemplates,omitempty"`
-	EdgeStack       []portainer.EdgeStack       `json:"edge_stack,omitempty"`
 	Endpoint        []portainer.Endpoint        `json:"endpoints,omitempty"`
 	EndpointGroup   []portainer.EndpointGroup   `json:"endpoint_groups,omitempty"`
 	Registry        []portainer.Registry        `json:"registries,omitempty"`
@@ -272,14 +258,6 @@ func (store *Store) Export(filename string) (err error) {
 		}
 	} else {
 		backup.CustomTemplate = c
-	}
-
-	if e, err := store.EdgeStack().EdgeStacks(); err != nil {
-		if !store.IsErrObjectNotFound(err) {
-			log.Error().Err(err).Msg("exporting Edge Stacks")
-		}
-	} else {
-		backup.EdgeStack = e
 	}
 
 	if e, err := store.Endpoint().Endpoints(); err != nil {
@@ -435,12 +413,6 @@ func (store *Store) Import(filename string) (err error) {
 	for _, v := range backup.CustomTemplate {
 		if err := store.CustomTemplate().Update(v.ID, &v); err != nil {
 			log.Warn().Err(err).Msg("failed to update the custom template in the database")
-		}
-	}
-
-	for _, v := range backup.EdgeStack {
-		if err := store.EdgeStack().UpdateEdgeStack(v.ID, &v); err != nil {
-			log.Warn().Err(err).Msg("failed to update the edge stack in the database")
 		}
 	}
 

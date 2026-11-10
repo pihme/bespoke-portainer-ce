@@ -66,17 +66,7 @@ func (h *Handler) sourceDelete(w http.ResponseWriter, r *http.Request) *httperro
 					continue
 				}
 
-				exists, err := workflows.ArtifactBackingExists(a,
-					tx.Stack().Exists,
-					func(edgeStackID portainer.EdgeStackID) (bool, error) {
-						_, err := tx.EdgeStack().EdgeStack(edgeStackID)
-						if dataservices.IsErrObjectNotFound(err) {
-							return false, nil
-						}
-
-						return err == nil, err
-					},
-				)
+				exists, err := workflows.ArtifactBackingExists(a, tx.Stack().Exists)
 				if err != nil {
 					return err
 				}

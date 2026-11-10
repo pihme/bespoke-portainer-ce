@@ -18,14 +18,6 @@ func DetachStackArtifact(tx workflowDeleteStore, workflowID portainer.WorkflowID
 	})
 }
 
-// DetachEdgeStackArtifact removes the artifact referencing edgeStackID from the workflow identified
-// by workflowID, deleting the workflow entirely once no artifacts remain.
-func DetachEdgeStackArtifact(tx workflowDeleteStore, workflowID portainer.WorkflowID, edgeStackID portainer.EdgeStackID) error {
-	return detachArtifact(tx, workflowID, func(a portainer.Artifact) bool {
-		return a.EdgeStackID == edgeStackID
-	})
-}
-
 func detachArtifact(tx workflowDeleteStore, workflowID portainer.WorkflowID, match func(portainer.Artifact) bool) error {
 	if workflowID == 0 {
 		return nil

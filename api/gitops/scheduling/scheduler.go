@@ -22,9 +22,6 @@ import (
 type Deployers struct {
 	Stack       func(ctx context.Context, stackID portainer.StackID) error
 	StackExists func(stackID portainer.StackID) (bool, error)
-
-	EdgeStack       func(ctx context.Context, edgeStackID portainer.EdgeStackID) error
-	EdgeStackExists func(edgeStackID portainer.EdgeStackID) (bool, error)
 }
 
 type dataStore interface {
@@ -224,12 +221,6 @@ func (s *SourceScheduler) deployArtifact(ctx context.Context, a portainer.Artifa
 			log.Warn().Err(err).AnErr("cause", handlerErrorCause(err)).Int("stack_id", int(a.StackID)).Msg("source poll: stack redeploy failed")
 		}
 	}
-
-	if a.EdgeStackID != 0 && s.deployers.EdgeStack != nil {
-		if err := s.deployers.EdgeStack(ctx, a.EdgeStackID); err != nil {
-			log.Warn().Err(err).AnErr("cause", handlerErrorCause(err)).Int("edge_stack_id", int(a.EdgeStackID)).Msg("source poll: edge stack redeploy failed")
-		}
-	}
 }
 
 func handlerErrorCause(err error) error {
@@ -271,20 +262,16 @@ func (s *SourceScheduler) sourceReferenced(sourceID portainer.SourceID) (bool, e
 	return false, nil
 }
 
-// artifactBackingExists reports whether a's target stack or edge stack still exists, via the
-// existence checks supplied in Deployers. An unset check assumes the target exists.
+// artifactBackingExists reports whether a's target stack still exists, via the existence check
+// supplied in Deployers. An unset check assumes the stack exists; an Edge stack artifact never
+// has a backing record (TAI-023).
 func (s *SourceScheduler) artifactBackingExists(a portainer.Artifact) (bool, error) {
 	stackExists := func(portainer.StackID) (bool, error) { return true, nil }
 	if s.deployers.StackExists != nil {
 		stackExists = s.deployers.StackExists
 	}
 
-	edgeStackExists := func(portainer.EdgeStackID) (bool, error) { return true, nil }
-	if s.deployers.EdgeStackExists != nil {
-		edgeStackExists = s.deployers.EdgeStackExists
-	}
-
-	return workflows.ArtifactBackingExists(a, stackExists, edgeStackExists)
+	return workflows.ArtifactBackingExists(a, stackExists)
 }
 
 func countSourceArtifacts(workflows []portainer.Workflow, sourceID portainer.SourceID) int {

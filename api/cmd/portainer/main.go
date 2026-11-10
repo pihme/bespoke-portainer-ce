@@ -418,14 +418,6 @@ func buildServer(flags *portainer.CLIFlags, shutdownCtx context.Context, shutdow
 			return deployments.RedeployWhenChanged(ctx, stackID, stackDeployer, dataStore, gitService, fileService)
 		},
 		StackExists: dataStore.Stack().Exists,
-		EdgeStackExists: func(edgeStackID portainer.EdgeStackID) (bool, error) {
-			_, err := dataStore.EdgeStack().EdgeStack(edgeStackID)
-			if dataservices.IsErrObjectNotFound(err) {
-				return false, nil
-			}
-
-			return err == nil, err
-		},
 	})
 	if err := sourceScheduler.ReconcileAll(); err != nil {
 		log.Fatal().Err(err).Msg("failed to start source scheduler")

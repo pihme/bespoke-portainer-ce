@@ -9,7 +9,7 @@ import { Link } from '@@/Link';
 
 import { WorkflowTarget, WorkflowType } from '../../workflows/types';
 import { StatusBadge } from '../../components/StatusBadge';
-import { getWorkflowLink } from '../../workflows/utils';
+import { getDeployedStackLink } from '../../workflows/utils';
 import { effectiveWorkflowStatus } from '../../workflows/status';
 import {
   SourceWorkflow,
@@ -100,16 +100,36 @@ function WorkflowsList({ workflows }: { workflows: Array<SourceWorkflow> }) {
   );
 }
 
+// The GitOps workflows view is removed (TAI-011): a workflow links to the
+// deployed stack, and is shown without a link when there is none.
 function WorkflowCard({ item }: { item: SourceWorkflow }) {
-  const { to, params } = getWorkflowLink(item);
+  const link = getDeployedStackLink(item);
+  const className =
+    'group flex items-center gap-3 p-4 text-inherit hover:bg-cyan-4/10 hover:text-current hover:!no-underline';
+
+  if (!link) {
+    return (
+      <div className={className} data-cy="workflow-item">
+        <WorkflowCardContent item={item} />
+      </div>
+    );
+  }
 
   return (
     <Link
-      className="group flex items-center gap-3 p-4 text-inherit hover:bg-cyan-4/10 hover:text-current hover:!no-underline"
-      to={to}
-      params={params}
+      className={className}
+      to={link.to}
+      params={link.params}
       data-cy="workflow-item"
     >
+      <WorkflowCardContent item={item} />
+    </Link>
+  );
+}
+
+function WorkflowCardContent({ item }: { item: SourceWorkflow }) {
+  return (
+    <>
       <div className="me-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-4 text-blue-7">
         <Icon icon={GitCommitIcon} size="lg" />
       </div>
@@ -139,7 +159,7 @@ function WorkflowCard({ item }: { item: SourceWorkflow }) {
       <span className="text-gray-4 group-hover:text-gray-6">
         <Icon icon={ChevronRight} size="lg" />
       </span>
-    </Link>
+    </>
   );
 }
 

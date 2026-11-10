@@ -196,37 +196,6 @@ angular
         abstract: true,
       };
 
-      var workflows = {
-        name: 'portainer.gitops.workflows',
-        url: '/workflows?search&sort&order&page&pageSize&status&type&platform&groupBy&groupFilter',
-        data: { docs: '/user/app-delivery/workflows' },
-        params: {
-          ...paginationParams(),
-          sort: filterParam(),
-          order: filterParam(),
-          status: filterParam(),
-          type: filterParam(),
-          platform: filterParam(),
-          groupBy: filterParam(),
-          groupFilter: filterParam(),
-        },
-        views: {
-          'content@': {
-            component: 'workflowsView',
-          },
-        },
-      };
-
-      var gitopsWorkflowDetail = {
-        name: 'portainer.gitops.workflows.item',
-        url: '/:workflowId',
-        views: {
-          'content@': {
-            component: 'workflowItemView',
-          },
-        },
-      };
-
       var gitopsSources = {
         name: 'portainer.gitops.sources',
         url: '/sources?search&sort&order&page&pageSize&status&type',
@@ -320,8 +289,6 @@ angular
       $stateRegistryProvider.register(groupCreation);
       $stateRegistryProvider.register(home);
       $stateRegistryProvider.register(gitopsBase);
-      $stateRegistryProvider.register(workflows);
-      $stateRegistryProvider.register(gitopsWorkflowDetail);
       $stateRegistryProvider.register(gitopsSources);
       $stateRegistryProvider.register(gitopsSourceDetail);
       $stateRegistryProvider.register(gitopsSourceCreate);

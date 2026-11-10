@@ -195,8 +195,8 @@ Upstream feature list for `bespoke-portainer-ce`, written in the raw stage (deci
 
 ## GIT – App Delivery
 
-- **REQ-GIT-01 Workflows view.** Single view of all Docker, Edge and Kubernetes workloads deployed from Git, with status counts, filters and links to the stack or application. Entry: UI `#!/gitops/workflows`, `#!/gitops/workflows/{id}`; API `GET /gitops/workflows`, `GET /gitops/workflows/{id}`, `GET /gitops/workflows/summary`. docs: user/app-delivery/workflows, …/add-a-new-workflow, …/manage-a-workflow *TAI-002: Kubernetes environments can no longer be managed; a leftover Kubernetes workflow target links to the environment details page.*
-- **REQ-GIT-02 Git sources.** Central list of Git repositories with credentials and connectivity status; add, test, edit, restrict access and delete. Entry: UI `#!/gitops/sources`, `…/new`, `…/{sourceId}`; API `/gitops/sources`, `POST /gitops/sources/git`, `POST /gitops/sources/test`, `PUT /gitops/sources/{id}/access`. docs: user/app-delivery/sources, user/app-delivery/sources/git *TAI-001: restricting access per user/team is removed: no access step on create, no Access tab, and `PUT /gitops/sources/{id}/access` answers 404.*
+- ~~**REQ-GIT-01 Workflows view.** Single view of all Docker, Edge and Kubernetes workloads deployed from Git, with status counts, filters and links to the stack or application. Entry: UI `#!/gitops/workflows`, `#!/gitops/workflows/{id}`; API `GET /gitops/workflows`, `GET /gitops/workflows/{id}`, `GET /gitops/workflows/summary`. docs: user/app-delivery/workflows, …/add-a-new-workflow, …/manage-a-workflow *TAI-002: Kubernetes environments can no longer be managed; a leftover Kubernetes workflow target links to the environment details page.*~~ REMOVED (TAI-011)
+- **REQ-GIT-02 Git sources.** Central list of Git repositories with credentials and connectivity status; add, test, edit, restrict access and delete. Entry: UI `#!/gitops/sources`, `…/new`, `…/{sourceId}`; API `/gitops/sources`, `POST /gitops/sources/git`, `POST /gitops/sources/test`, `PUT /gitops/sources/{id}/access`. docs: user/app-delivery/sources, user/app-delivery/sources/git *TAI-001: restricting access per user/team is removed: no access step on create, no Access tab, and `PUT /gitops/sources/{id}/access` answers 404.* *TAI-011: the source page still lists the workflows using the source; each links to its stack (no workflow page).*
 - **REQ-GIT-03 Preview a file from a repository.** Entry: API `POST /gitops/repo/file/preview` (inferred from code).
 
 ## REG – Registries
@@ -386,6 +386,11 @@ Added in the tailored stage. Each requirement belongs to one decision in [BESPOK
   - (b) Every Docker proxy browse request (`/endpoints/{id}/docker/v2/browse/…`, with or without `volumeID`, including `POST …/browse/put`) answers 404 and never reaches the engine.
   - (c) The Docker features configuration page has no "Host and filesystem" section and no volume browser toggle; `PUT /endpoints/{id}/settings` still accepts `allowVolumeBrowserForRegularUsers` and stores it, without effect.
   - (d) Listing, creating, inspecting and removing volumes (REQ-VOL-01, 02, 03, 05) and attaching volumes to containers (REQ-CTR-09) are unchanged.
+- **REQ-TAI-011 No GitOps workflows view.** Added by TAI-011 (2026-11-10).
+  - (a) `GET /gitops/workflows`, `GET /gitops/workflows/{id}` and `GET /gitops/workflows/summary` answer 404.
+  - (b) The UI has no `#!/gitops/workflows` or `#!/gitops/workflows/{id}` page and no Workflows entry in the App Delivery sidebar.
+  - (c) Git sources (REQ-GIT-02) stay, including `GET /gitops/sources/{id}/workflows`; on the source page a workflow links to its Docker stack, or is shown without a link when it has no stack page.
+  - (d) Stack Git deploy, redeploy and auto-update (REQ-STK-03, REQ-STK-04) and file preview (REQ-GIT-03) are unchanged.
 
 ## Not covered as requirements
 

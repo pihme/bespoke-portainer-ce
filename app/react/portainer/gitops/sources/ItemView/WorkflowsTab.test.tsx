@@ -43,13 +43,13 @@ function renderTab() {
   return render(<Wrapped />);
 }
 
-describe('REQ-GIT-01 WorkflowsTab', () => {
+describe('REQ-GIT-02 WorkflowsTab', () => {
   beforeEach(() => {
     workflowsState.data = undefined;
     workflowsState.isLoading = false;
   });
 
-  it('TestREQ_GIT_01_shows_loading_skeleton_while_workflows_load', () => {
+  it('TestREQ_GIT_02_shows_loading_skeleton_while_workflows_load', () => {
     workflowsState.isLoading = true;
     renderTab();
 
@@ -57,14 +57,14 @@ describe('REQ-GIT-01 WorkflowsTab', () => {
     expect(document.querySelectorAll('.animate-pulse')).toHaveLength(3);
   });
 
-  it('TestREQ_GIT_01_shows_unable_to_load_when_query_has_no_data', () => {
+  it('TestREQ_GIT_02_shows_unable_to_load_when_query_has_no_data', () => {
     workflowsState.data = undefined;
     renderTab();
 
     expect(screen.getByText('Unable to load workflows.')).toBeVisible();
   });
 
-  it('TestREQ_GIT_01_shows_empty_state_when_no_workflows_use_source', () => {
+  it('TestREQ_GIT_02_shows_empty_state_when_no_workflows_use_source', () => {
     workflowsState.data = [];
     renderTab();
 
@@ -74,7 +74,7 @@ describe('REQ-GIT-01 WorkflowsTab', () => {
     expect(screen.getByText('0 workflows using this source')).toBeVisible();
   });
 
-  it('TestREQ_GIT_01_lists_local_stack_workflows_with_sync_info', () => {
+  it('TestREQ_GIT_02_lists_local_stack_workflows_with_sync_info', () => {
     workflowsState.data = [
       stackWorkflow(),
       stackWorkflow({
@@ -94,10 +94,33 @@ describe('REQ-GIT-01 WorkflowsTab', () => {
     expect(screen.getAllByTestId('workflow-item')).toHaveLength(2);
   });
 
-  it('TestREQ_GIT_01_does_not_render_edge_group_block_for_stack_workflows', () => {
+  it('TestREQ_GIT_02_does_not_render_edge_group_block_for_stack_workflows', () => {
     workflowsState.data = [stackWorkflow()];
     renderTab();
 
     expect(screen.queryByText('Groups')).not.toBeInTheDocument();
+  });
+});
+
+describe('REQ-TAI-011 WorkflowsTab without the workflows view', () => {
+  beforeEach(() => {
+    workflowsState.data = undefined;
+    workflowsState.isLoading = false;
+  });
+
+  it('links a stack workflow to its stack, not to a workflow page', () => {
+    workflowsState.data = [stackWorkflow()];
+    renderTab();
+
+    const item = screen.getByTestId('workflow-item');
+    expect(item.tagName).toBe('A');
+    expect(item.getAttribute('href') ?? '').not.toMatch(/workflows/);
+  });
+
+  it('shows a Kubernetes workflow without a link', () => {
+    workflowsState.data = [stackWorkflow({ platform: 'kubernetes' })];
+    renderTab();
+
+    expect(screen.getByTestId('workflow-item').tagName).toBe('DIV');
   });
 });

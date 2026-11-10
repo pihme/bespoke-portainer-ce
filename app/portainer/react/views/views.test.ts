@@ -81,12 +81,6 @@ vi.mock('@/react/portainer/environments/ListView', () => ({ ListView: () => null
 vi.mock('@/react/portainer/environments/ItemView/ItemView', () => ({
   ItemView: () => null,
 }));
-vi.mock('@/react/portainer/gitops/workflows/ListView/ListView', () => ({
-  ListView: () => null,
-}));
-vi.mock('@/react/portainer/gitops/workflows/ItemView/ItemView', () => ({
-  ItemView: () => null,
-}));
 vi.mock('@/react/portainer/gitops/sources/ListView/ListView', () => ({
   ListView: () => null,
 }));
@@ -174,13 +168,14 @@ describe('portainer react view wrappers', () => {
     expect(gitopsViewsModule).toBe('portainer.app.react.views.gitops');
     expect(components.map((c) => c.name)).toEqual(
       expect.arrayContaining([
-        'workflowsView',
-        'workflowItemView',
         'sourcesListView',
         'sourceItemView',
         'sourceCreateView',
       ])
     );
+    // REQ-TAI-011: no GitOps workflows views
+    expect(components.map((c) => c.name)).not.toContain('workflowsView');
+    expect(components.map((c) => c.name)).not.toContain('workflowItemView');
 
     components.length = 0;
     const { environmentsModule } = await import('./environments');

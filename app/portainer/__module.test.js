@@ -126,8 +126,6 @@ describe('portainer.app local-docker UI-Router states', () => {
         'portainer.groups.group',
         'portainer.groups.new',
         'portainer.gitops',
-        'portainer.gitops.workflows',
-        'portainer.gitops.workflows.item',
         'portainer.gitops.sources',
         'portainer.gitops.sources.item',
         'portainer.gitops.sources.new',
@@ -213,14 +211,8 @@ describe('portainer.app local-docker UI-Router states', () => {
     expect(tags.views['content@'].templateUrl).toContain('tags.html');
   });
 
-  it('configures gitops workflows and sources under an abstract gitops parent', () => {
+  it('configures gitops sources under an abstract gitops parent', () => {
     expect(stateByName('portainer.gitops').abstract).toBe(true);
-    expect(
-      stateByName('portainer.gitops.workflows').views['content@'].component
-    ).toBe('workflowsView');
-    expect(
-      stateByName('portainer.gitops.workflows.item').views['content@'].component
-    ).toBe('workflowItemView');
     expect(
       stateByName('portainer.gitops.sources').views['content@'].component
     ).toBe('sourcesListView');
@@ -230,6 +222,12 @@ describe('portainer.app local-docker UI-Router states', () => {
     expect(
       stateByName('portainer.gitops.sources.new').views['content@'].component
     ).toBe('sourceCreateView');
+  });
+
+  it('REQ-TAI-011 registers no GitOps workflows states', () => {
+    expect(
+      registeredStates.filter((s) => s.name.startsWith('portainer.gitops.workflows'))
+    ).toEqual([]);
   });
 });
 

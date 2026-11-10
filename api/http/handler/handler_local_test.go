@@ -79,7 +79,7 @@ func TestServeHTTP_LocalDockerWiring(t *testing.T) {
 		{"/api/endpoints/1/docker/containers/json", func(t *testing.T) {
 			require.Equal(t, "/1/docker/containers/json", seenProxy)
 		}},
-		{"/api/gitops/workflows", func(t *testing.T) { require.Equal(t, "/gitops/workflows", seenGitops) }},
+		{"/api/gitops/sources", func(t *testing.T) { require.Equal(t, "/gitops/sources", seenGitops) }},
 		{"/api/motd", func(t *testing.T) { require.Equal(t, "/motd", seenMotd) }},
 		{"/api/settings", func(t *testing.T) { require.Equal(t, "/settings", seenSettings) }},
 		{"/api/stacks", func(t *testing.T) { require.Equal(t, "/stacks", seenStacks) }},

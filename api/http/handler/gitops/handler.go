@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/portainer/portainer/api/http/handler/gitops/sources"
-	"github.com/portainer/portainer/api/http/handler/gitops/workflows"
 )
 
 // Handler is the HTTP handler used to handle git repo operation
@@ -37,8 +36,8 @@ func NewHandler(bouncer security.BouncerService, dataStore dataservices.DataStor
 
 	authenticatedRouter.Handle("/gitops/repo/file/preview", httperror.LoggerHandler(h.gitOperationRepoFilePreview)).Methods(http.MethodPost)
 
-	workflowsHandler := workflows.NewHandler(dataStore, gitService, k8sFactory)
-	authenticatedRouter.PathPrefix("/gitops/workflows").Handler(workflowsHandler)
+	// The GitOps workflows view (/gitops/workflows) is removed (TAI-011); Git
+	// sources keep listing the workflows that use them.
 
 	sourcesHandler := sources.NewHandler(bouncer, dataStore, gitService, k8sFactory, sourceScheduler)
 	authenticatedRouter.PathPrefix("/gitops/sources").Handler(sourcesHandler)

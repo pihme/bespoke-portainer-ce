@@ -8,7 +8,7 @@ import { TestSidebarProvider } from './useSidebarState';
 import { AppDeliverySidebar } from './AppDeliverySidebar';
 
 describe('AppDeliverySidebar', () => {
-  it('renders workflows and sources links for local GitOps navigation', () => {
+  it('REQ-TAI-011 renders the sources link and no workflows link', () => {
     const Wrapped = withUserProvider(
       withTestRouter(AppDeliverySidebar),
       createMockUser()
@@ -21,7 +21,9 @@ describe('AppDeliverySidebar', () => {
     );
 
     expect(screen.getByText('App Delivery')).toBeInTheDocument();
-    expect(screen.getByTestId('portainerSidebar-workflows')).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('portainerSidebar-workflows')
+    ).not.toBeInTheDocument();
     expect(screen.getByTestId('portainerSidebar-sources')).toBeInTheDocument();
   });
 });

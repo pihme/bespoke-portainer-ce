@@ -2,18 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import { StackType } from '@/react/common/stacks/types';
 
-import {
-  getDeployedStackLink,
-  getSourceLink,
-  getWorkflowLink,
-} from './utils';
+import * as utils from './utils';
+
+const { getDeployedStackLink, getSourceLink } = utils;
 
 describe('workflow link helpers', () => {
-  it('builds workflow and source item links', () => {
-    expect(getWorkflowLink({ id: 42 })).toEqual({
-      to: 'portainer.gitops.workflows.item',
-      params: { workflowId: 42 },
-    });
+  it('REQ-TAI-011 builds source item links and no workflow item links', () => {
+    expect(utils).not.toHaveProperty('getWorkflowLink');
     expect(getSourceLink(7)).toEqual({
       to: 'portainer.gitops.sources.item',
       params: { sourceId: 7 },

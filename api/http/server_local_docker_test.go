@@ -705,3 +705,50 @@ func TestREQ_TAI_008_Start_AzureRoutesAreGone(t *testing.T) {
 		t.Fatal("Start did not return after cancel")
 	}
 }
+
+// REQ-TAI-011: the GitOps workflows view is removed; its API routes answer
+// 404 while Git sources stay reachable.
+func TestREQ_TAI_011_Start_WorkflowsRoutesAreGone(t *testing.T) {
+	server, ctx, cancel := newLocalDockerHTTPServer(t, true, true, nil)
+
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- server.Start(ctx)
+	}()
+
+	waitTCP(t, server.BindAddress, 5*time.Second)
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	base := "http://" + server.BindAddress
+
+	get := func(path string) int {
+		req, err := http.NewRequest(http.MethodGet, base+path, nil)
+		require.NoError(t, err)
+		req.Header.Set("Origin", base)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+
+		return resp.StatusCode
+	}
+
+	for _, path := range []string{
+		"/api/gitops/workflows",
+		"/api/gitops/workflows/1",
+		"/api/gitops/workflows/summary",
+	} {
+		assert.Equal(t, http.StatusNotFound, get(path), path)
+	}
+
+	assert.Equal(t, http.StatusOK, get("/api/gitops/sources"))
+
+	cancel()
+
+	select {
+	case err := <-errCh:
+		require.ErrorIs(t, err, http.ErrServerClosed)
+	case <-time.After(10 * time.Second):
+		t.Fatal("Start did not return after cancel")
+	}
+}

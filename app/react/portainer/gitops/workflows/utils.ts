@@ -2,16 +2,8 @@ import { StackType } from '@/react/common/stacks/types';
 
 import { DeploymentPlatform, WorkflowType } from './types';
 
-export function getWorkflowLink(item: { id: number }): {
-  to: string;
-  params: object;
-} {
-  return {
-    to: 'portainer.gitops.workflows.item',
-    params: { workflowId: item.id },
-  };
-}
-
+// The GitOps workflows view is removed (TAI-011): there is no workflow
+// detail page to link to.
 export function getSourceLink(sourceId: number): {
   to: string;
   params: object;
